@@ -41,8 +41,6 @@ set -o nounset
 
 # global variables
 vuln_kernels=()
-CVE_NUMBER=""
-GIT_SHA=""
 
 help() {
 	echo "$0 [CVE_NUMBER] [GIT_SHA]"
@@ -50,11 +48,11 @@ help() {
 }
 
 # Parse the command line
-CVE_NUMBER=$1
+CVE_NUMBER="${1:-}"
 if [[ "${CVE_NUMBER}" == "" ]] ; then
 	help
 fi
-GIT_SHA=$2
+GIT_SHA="${2:-}"
 if [[ "${GIT_SHA}" == "" ]] ; then
 	help
 fi
