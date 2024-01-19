@@ -1,0 +1,136 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# bippy - creates a json file in the proper format to submit a CVE based
+#	  on a specific git SHA.
+#
+# Usage:
+#	bippy [CVE NUMBER] [GIT SHA]
+#
+# Right now only works with CVEs, will handle other identifiers as needed.
+#
+# Name comes from the phrase "you bet your bippy!" as said by David L. Morse.
+#
+# Requires:
+#  A kernel git tree with the SHA to be used in it
+#  jq - the json tool
+#  fixed_in_version - tool to find what kernel a specific SHA is in
+
+# TODO - make these options that are not hard-coded
+
+KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
+FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
+FIXED_IN="/home/gregkh/linux/scripts/fixed_in_version"
+
+# color!
+txtund=$(tput sgr 0 1)    # Underline
+txtbld=$(tput bold)       # Bold
+txtred=$(tput setaf 1)    # Red
+txtgrn=$(tput setaf 2)    # Green
+txtylw=$(tput setaf 3)    # Yellow
+txtblu=$(tput setaf 4)    # Blue
+txtpur=$(tput setaf 5)    # Purple
+txtcyn=$(tput setaf 6)    # Cyan
+txtwht=$(tput setaf 7)    # White
+txtrst=$(tput sgr0)       # Text reset
+
+# don't use unset variables
+set -o nounset
+
+# global variables
+vuln_kernels=()
+CVE_NUMBER=""
+GIT_SHA=""
+
+help() {
+	echo "$0 [CVE_NUMBER] [GIT_SHA]"
+	exit 1
+}
+
+# Parse the command line
+CVE_NUMBER=$1
+if [[ "${CVE_NUMBER}" == "" ]] ; then
+	help
+fi
+GIT_SHA=$2
+if [[ "${GIT_SHA}" == "" ]] ; then
+	help
+fi
+
+
+# Functions for us to use, main flow starts below at ======= point
+
+
+# Given a short SHA value in $1 (we hope), turn it into an "expanded" sha and
+# then look up where that commit came from.
+# Might be multiple kernels, so parse accordingly
+find_fix() {
+	FIX=$1
+
+	id=""
+	if [[ ${FIX} =~ [[:xdigit:]]{12} ]] ; then
+		id=${BASH_REMATCH[0]}
+	else
+		# Let's try it again in a cruder way
+		id=$(echo "${FIX}" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
+	fi
+
+	if [ "${id}" == "" ] ; then
+		# can't find a valid sha or something resembing it, so just return
+		return
+	fi
+
+	long_id=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${id}")
+	if [ "${long_id}" == "" ] ; then
+		# git id is not a valid one, so just return
+		return
+	fi
+
+	release=$("${FOUND_IN}" "${long_id}")
+	echo "${release} "
+	return
+}
+
+# =======
+# Main logic starts here
+
+# go into the kernel tree, we need this to be a valid one
+cd ${KERNEL_TREE} || exit 1
+
+# See if the SHA given to us is a valid SHA in the git repo
+# by grabbing the subject line of the commit given to us
+subject=$(git show --no-patch --pretty=format:"%s" "${GIT_SHA}" 2> /dev/null)
+if [[ "${subject}" == "" ]] ; then
+	echo "error: git id ${GIT_SHA} is not found in the tree at ${KERNEL_TREE}"
+	exit 1
+fi
+
+echo "subject=${subject}"
+
+# Grab the full commit text, we will use that for many things
+commit_text=$(git show --no-patch --pretty=format:"%B" "${GIT_SHA}")
+
+echo "commit_text=${commit_text}"
+
+# Look in the commit text to see if there is any "Fixes:" lines
+# if so, look them up to see what kernels they were released in.  Need to do
+# this with the "expanded" SHA value, the short one will give us too many
+# false-positives when it shows up in other Fixes: tags
+fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
+# echo "fixes_lines=${fixes_lines}"
+if [ "${fixes_lines}" != "" ] ; then
+	# figure out what kernels this commit fixes, (i.e. which are
+	# vulnerable) and turn them into an array
+	v=()
+	for fix_line in ${fixes_lines}; do
+		v+=($(find_fix "${fix_line}"))
+	done
+	# now sort and uniq the list of versions
+	vuln_kernels=($(echo "${v[@]}" | sed 's/ /\n/g' | sort -V | uniq))
+fi
+
+echo "vuln_kernels=${vuln_kernels[@]}"
+
+
