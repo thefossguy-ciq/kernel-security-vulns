@@ -9,5 +9,5 @@ linux-announce-cve mailing list on vger.kernel.org, or see the web archive
 here:
 	https://lore.kernel.org/linux-cve-announce/
 
-Note, in the future, this repo might also track other security identifiers, as
-they are created / mandated by different government agencies.
+Note that in the future, this repo might also track other security identifiers,
+as they are created / mandated by different government agencies.
