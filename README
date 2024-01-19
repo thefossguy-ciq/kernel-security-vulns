@@ -2,7 +2,7 @@ Repo for tracking and maintaining the CVE identifiers reserved and assigned to
 the Linux kernel project.
 
 For any questions about the CVE process that Linux follows, please see the
-file, cve.rst in the kernel Documentation tree.
+file, Documentation/process/cve.rst in the kernel source tree.
 
 To get announcements of all assigned CVEs, please subscribe to the
 linux-announce-cve mailing list on vger.kernel.org, or see the web archive
