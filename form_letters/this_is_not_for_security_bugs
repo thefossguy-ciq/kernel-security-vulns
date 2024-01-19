@@ -1,0 +1,16 @@
+Hi,
+
+This is the semi-friendly bot of the kernel CVE assignment team.  I've detected
+that you have sent a message that is not applicable for us to handle for the
+following reason(s):
+
+	- This list, as per our documentation, is ONLY for assigning CVEs to
+	  existing kernel fixes that have been accepted into Linus's kernel
+	  tree.  You are reporting a potential bug in the kernel that is NOT
+	  resolved, and so, this is NOT the place to do so.  Please read the
+	  kernel file Documentation/process/security_process.rst for who to
+	  contact about potential security bugs.
+
+Sincerely,
+
+Linux CVE team's bot
