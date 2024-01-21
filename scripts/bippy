@@ -172,19 +172,22 @@ cveMetadata=$(jo -- assignerOrgId="${ORGID}"		\
 		-s serial="1"			\
 		state="PUBLISHED")
 
-descriptions=$(jo --				\
+d=$(jo --				\
 	lang="en"				\
 	-s value="${commit_text}"	\
 	)
+
+descriptions=$(jo -a -- "${d}")
 
 providerMetadata=$(jo --		\
 	orgId="${ORGID}"		\
 	)
 
-references=$(jo -- 			\
-	url="${URL}"			\
+r=$(jo -- 		\
+	url="${URL}"	\
 	)
 
+references=$(jo -a -- "${r}")
 
 versions=$(jo --	\
 	-s lessThan="6.7"	\
@@ -193,11 +196,13 @@ versions=$(jo --	\
 	-s versionType="custom"	\
 )
 
-affected=$(jo --	\
+a=$(jo --	\
 	product="Linux"			\
 	vendor="Linux"			\
 	${vuln_array}			\
 )
+
+affected=$(jo -a -- "${a}")
 
 cna=$(jo --	\
 	providerMetadata="${providerMetadata}"	\
