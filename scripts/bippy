@@ -218,7 +218,7 @@ containers=$(jo -- cna="${cna}")
 jo -p --					\
 	containers="${containers}"		\
 	cveMetadata="${cveMetadata}"		\
-	-s dataversion="5.0"			\
-	-s datatype="CVE_RECORD"		\
+	-s dataType="CVE_RECORD"		\
+	-s dataVersion="5.0"			\
 
 
