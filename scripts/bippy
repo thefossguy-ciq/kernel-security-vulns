@@ -3,8 +3,8 @@
 #
 # Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 #
-# bippy - creates a json file in the proper format to submit a CVE based
-#	  on a specific git SHA.
+# bippy - creates a json file on standard output in the proper format to submit
+# 	  a CVE based on a specific git SHA.
 #
 # Usage:
 #	bippy [CVE NUMBER] [GIT SHA]
@@ -15,7 +15,7 @@
 #
 # Requires:
 #  A kernel git tree with the SHA to be used in it
-#  jq - the json tool
+#  jo - the json output tool, found at: https://github.com/jpmens/jo
 #  fixed_in_version - tool to find what kernel a specific SHA is in
 
 # TODO - make these options that are not hard-coded
@@ -24,17 +24,12 @@ KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
 FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
 FIXED_IN="/home/gregkh/linux/scripts/fixed_in_version"
 
-# color!
-txtund=$(tput sgr 0 1)    # Underline
-txtbld=$(tput bold)       # Bold
-txtred=$(tput setaf 1)    # Red
-txtgrn=$(tput setaf 2)    # Green
-txtylw=$(tput setaf 3)    # Yellow
-txtblu=$(tput setaf 4)    # Blue
-txtpur=$(tput setaf 5)    # Purple
-txtcyn=$(tput setaf 6)    # Cyan
-txtwht=$(tput setaf 7)    # White
-txtrst=$(tput sgr0)       # Text reset
+# Hard coded for now, but maybe come from a file?
+ORGID="f4215fc3-5b6b-47ff-a258-f7189bd81038"
+
+# Might be dropped if we don't need the full "container" output, see at the
+# bottom for more details
+USER="gregkh@linuxfoundation.org"
 
 # don't use unset variables
 set -o nounset
@@ -98,26 +93,34 @@ find_fix() {
 cd ${KERNEL_TREE} || exit 1
 
 # See if the SHA given to us is a valid SHA in the git repo
-# by grabbing the subject line of the commit given to us
-subject=$(git show --no-patch --pretty=format:"%s" "${GIT_SHA}" 2> /dev/null)
-if [[ "${subject}" == "" ]] ; then
+# and turning the sha into a "full" one so that we don't get this wrong.
+
+GIT_SHA_FULL=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${GIT_SHA}")
+if [[ "${GIT_SHA_FULL}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
 fi
 
-echo "subject=${subject}"
+# Get the subject line of our sha
+subject=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%s" "${GIT_SHA_FULL}" 2> /dev/null)
+if [[ "${subject}" == "" ]] ; then
+	echo "error: git id ${GIT_SHA_FULL} is not found in the tree at ${KERNEL_TREE}"
+	exit 1
+fi
+
+#echo "subject=${subject}"
 
 # Grab the full commit text, we will use that for many things
-commit_text=$(git show --no-patch --pretty=format:"%B" "${GIT_SHA}")
+commit_text=$(git show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
 
-echo "commit_text=${commit_text}"
+#echo "commit_text=${commit_text}"
 
 # Look in the commit text to see if there is any "Fixes:" lines
 # if so, look them up to see what kernels they were released in.  Need to do
 # this with the "expanded" SHA value, the short one will give us too many
 # false-positives when it shows up in other Fixes: tags
 fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
-# echo "fixes_lines=${fixes_lines}"
+#echo "fixes_lines=${fixes_lines}"
 if [ "${fixes_lines}" != "" ] ; then
 	# figure out what kernels this commit fixes, (i.e. which are
 	# vulnerable) and turn them into an array
@@ -128,7 +131,94 @@ if [ "${fixes_lines}" != "" ] ; then
 	# now sort and uniq the list of versions
 	vuln_kernels=($(echo "${v[@]}" | sed 's/ /\n/g' | sort -V | uniq))
 fi
+#echo "vuln_kernels=${vuln_kernels[@]}"
 
-echo "vuln_kernels=${vuln_kernels[@]}"
+# Find the fixed kernels where this release was done
+fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
+#echo "fixed_kernels=${fixed_kernels}"
+
+# Generate the "vulerable kernel json mess
+# TODO, use the ${vuln_kernels} array to match up with the fixed kernels
+# somehow, for now we just iterate over the fixed_kernels
+vuln_array=""
+for v in ${fixed_kernels[@]}; do
+	# hack, filter out stuff that is still in the queue.
+	# There's a simpler way to do this in bash, I know, but
+	# I'm on a plane without wifi and I can't look anything up
+	# so just brute-force old-school it with echo/grep
+	queue=$(echo "${v}" | grep "queue")
+	if [[ "${queue}" == "" ]]; then
+		vuln_array+="versions[]=$(jo --	\
+			-s lessThan="${v}"	\
+			-s status="affected"	\
+			-s version="0"		\
+			-s versionType="custom"	\
+			) "
+	fi
+done
+#echo "vuln_array=${vuln_array}"
+
+#########################
+# Compose the json knowing what we now know, using the 'jo' tool
+#########################
+
+URL="https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}"
+
+x_generator=$(jo -- engine="bippy")
+
+cveMetadata=$(jo -- assignerOrgId="${ORGID}"		\
+		cveID="${CVE_NUMBER}"			\
+		requesterUserId="${USER}"	\
+		-s serial="1"			\
+		state="PUBLISHED")
+
+descriptions=$(jo --				\
+	lang="en"				\
+	-s value="${commit_text}"	\
+	)
+
+providerMetadata=$(jo --		\
+	orgId="${ORGID}"		\
+	)
+
+references=$(jo -- 			\
+	url="${URL}"			\
+	)
+
+
+versions=$(jo --	\
+	-s lessThan="6.7"	\
+	-s status="affected"	\
+	-s version="0"		\
+	-s versionType="custom"	\
+)
+
+affected=$(jo --	\
+	product="Linux"			\
+	vendor="Linux"			\
+	${vuln_array}			\
+)
+
+cna=$(jo --	\
+	providerMetadata="${providerMetadata}"	\
+	descriptions="${descriptions}"		\
+	affected="${affected}"			\
+	references="${references}"		\
+	title="${subject}"			\
+	x_generator="${x_generator}"		\
+)
+
+# We might just need the "cna" output, and not the "containers" output below.
+# Test with the 'cve' tool a bit, I think this might be able to be dropped as
+# the tool might provide it for us.  If not, then just output the above cna
+# record instead.
+containers=$(jo -- cna="${cna}")
+
+# output the final combination
+jo -p --					\
+	containers="${containers}"		\
+	cveMetadata="${cveMetadata}"		\
+	-s dataversion="5.0"			\
+	-s datatype="CVE_RECORD"		\
 
 
