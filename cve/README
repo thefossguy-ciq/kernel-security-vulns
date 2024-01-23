@@ -1,2 +1,27 @@
+---------------------
 NOTE, this is still using the testing data, not the "real" CVE api server just
-yet, these are NOT valid CVE entries at all.
+yet, these are NOT valid CVE entries at all.  When we are "live", this note
+will be removed.  For now, ignore this as we are getting things working
+properly...
+---------------------
+
+List of CVEs assigned to the Linux project.
+
+They are in one of 3 states, that map directly to the subdirectories here:
+
+	- reserved
+		CVE identifer that we can use for a future issue as it has been
+		assigned to our organization already.  This corresponds
+		directly the RESERVED state of a identifier in the global CVE
+		database.  When we run out, we will allocate new ones through
+		the documented CVE api to do so.
+	- published
+		CVE identifier of a published issue.  Details for the issue are
+		in the files, both a json format, and an email format, both are
+		what we use to publish the needed information.  If the
+		information changes, update the files and also update the
+		global CVE database.
+	- rejected
+		CVE identifier that we have rejected.  The text in the
+		identifier should explain the reasons.
+
