@@ -16,13 +16,12 @@
 # Requires:
 #  A kernel git tree with the SHA to be used in it
 #  jo - the json output tool, found at: https://github.com/jpmens/jo
-#  fixed_in_version - tool to find what kernel a specific SHA is in
+#  id_found_in - tool to find what kernel a specific SHA is in
 
 # TODO - make these options that are not hard-coded
 
 KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
 FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
-FIXED_IN="/home/gregkh/linux/scripts/fixed_in_version"
 
 # Hard coded for now, but maybe come from a file?
 ORGID="f4215fc3-5b6b-47ff-a258-f7189bd81038"
@@ -33,6 +32,13 @@ USER="gregkh@linuxfoundation.org"
 
 # don't use unset variables
 set -o nounset
+
+# set where the tool was run from,
+# the name of our script,
+# and the git version of it
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT=${0##*/}
+SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h")
 
 # global variables
 vuln_kernels=()
@@ -164,7 +170,7 @@ done
 
 URL="https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}"
 
-x_generator=$(jo -- engine="bippy")
+x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
 
 cveMetadata=$(jo -- assignerOrgId="${ORGID}"		\
 		cveID="${CVE_NUMBER}"			\
