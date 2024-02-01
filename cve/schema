@@ -27,6 +27,10 @@ which would mean that the CVE id "CVE-2023-00042" is reserved by our project
 and is free to be used for any issue that comes up that would need an id
 assigned for the year 2023.
 
+Note, the file may contain text information based on stuff the kernel cve team
+deems is needed.  More documentation will be written in the future as we figure
+out what is needed.
+
 Published
 ---------
 
@@ -34,11 +38,17 @@ Ids become "published" when they are submitted to CVE for publication.  To do
 this, normally a git commit id is used to generate the information in the CVE
 entry.
 
-When published, three files for each CVE id are created in the following naming
+When published, four files for each CVE id are created in the following naming
 format:
+	published/YEAR/CVE-YEAR-ID
 	published/YEAR/CVE-YEAR-ID.sha1
 	published/YEAR/CVE-YEAR-ID.json
 	published/YEAR/CVE-YEAR-ID.mbox
+
+The CVE-YEAR-ID file will be the original file that was in the reserved
+directory, in case text information in it was present.  It can also be used to
+hold notes and information about the specific CVE id that don't fit into the
+other files.
 
 The .sha1 file shall contain the git sha1 of the commit that fixes this CVE id.
 
