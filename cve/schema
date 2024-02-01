@@ -1,0 +1,57 @@
+The "schema" of the files in this directory.
+
+We are treating this directory as a "database", as hey, what else is a
+filesystem but one?
+
+This directory contains 3 "root" directories:
+	- published
+	- rejected
+	- reserved
+
+These 3 directories contain the CVE ids allocated to us that are in one of the
+three states.
+
+Reserved
+--------
+
+Ids become "reserved" when they are allocated from CVE for our use.  At this
+point in time they are nothing more but an empty placeholder.
+
+When allocated, new empty files are created in the reserved directory in the
+following format:
+	reserved/YEAR/CVE-YEAR-ID
+
+One example would be the file
+	reserved/2023/CVE-2023-00042
+which would mean that the CVE id "CVE-2023-00042" is reserved by our project
+and is free to be used for any issue that comes up that would need an id
+assigned for the year 2023.
+
+Published
+---------
+
+Ids become "published" when they are submitted to CVE for publication.  To do
+this, normally a git commit id is used to generate the information in the CVE
+entry.
+
+When published, three files for each CVE id are created in the following naming
+format:
+	published/YEAR/CVE-YEAR-ID.sha1
+	published/YEAR/CVE-YEAR-ID.json
+	published/YEAR/CVE-YEAR-ID.mbox
+
+The .sha1 file shall contain the git sha1 of the commit that fixes this CVE id.
+
+The .json file shall contain the json formatted CVE entry that can be submitted
+to CVE when published.
+
+The .mbox file shall contain the mail message of the CVE entry that can be
+submitted to the public mailing list for publication in human-readable format.
+
+Rejected
+--------
+
+Ids become "rejected" when they are not deemed to be actual issues.  When
+rejected, any previously published information shall move to the rejected/
+directory, and the json file will be updated with the needed information to be
+submitted to CVE for publication.
