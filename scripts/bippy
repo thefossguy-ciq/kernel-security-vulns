@@ -289,6 +289,18 @@ fi	# end json creation
 # Compose the mbox file
 #########################
 if [[ "${MBOX_FILE}" != "" ]] ; then
+	cat << EOF > "${MBOX_FILE}"
+From: Linux Kernel CVE team <cve@kernel.org>
+Subject: ${CVE_NUMBER}: ${subject}
+
+${CVE_NUMBER} has been assigned for the following issue:
+
+${commit_text}
+
+Affected versions:
+
+EOF
+
 	dbg "mbox file written to ${MBOX_FILE}"
 fi	# end mbox creation
 
