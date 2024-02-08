@@ -81,7 +81,7 @@ CVE_NUMBER=""
 GIT_SHA=""
 
 TMP=$(getopt -o "${short_opts}" --long "${long_opts}" --name="${SCRIPT}" -- "$@")
-eval set -- ${TMP}
+eval set -- "${TMP}"
 while :; do
 	dbg "arg=${1}"
 	case "${1}" in
@@ -217,70 +217,78 @@ dbg "vuln_array=${vuln_array}"
 # Compose the json knowing what we now know, using the 'jo' tool
 #########################
 if [[ "${JSON_FILE}" != "" ]] ; then
-URL="https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}"
+	URL="https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}"
 
-x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
+	x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
 
-cveMetadata=$(jo -- assignerOrgId="${ORGID}"		\
-		cveID="${CVE_NUMBER}"			\
-		requesterUserId="${USER}"	\
-		-s serial="1"			\
-		state="PUBLISHED")
+	cveMetadata=$(jo -- assignerOrgId="${ORGID}"	\
+			cveID="${CVE_NUMBER}"		\
+			requesterUserId="${USER}"	\
+			-s serial="1"			\
+			state="PUBLISHED")
 
-d=$(jo --				\
-	lang="en"				\
-	-s value="${commit_text}"	\
+	d=$(jo --				\
+		lang="en"			\
+		-s value="${commit_text}"	\
+		)
+
+	descriptions=$(jo -a -- "${d}")
+
+	providerMetadata=$(jo --		\
+		orgId="${ORGID}"		\
+		)
+
+	r=$(jo -- 		\
+		url="${URL}"	\
+		)
+
+	references=$(jo -a -- "${r}")
+
+	versions=$(jo --	\
+		-s lessThan="6.7"	\
+		-s status="affected"	\
+		-s version="0"		\
+		-s versionType="custom"	\
 	)
 
-descriptions=$(jo -a -- "${d}")
-
-providerMetadata=$(jo --		\
-	orgId="${ORGID}"		\
+	a=$(jo --	\
+		product="Linux"			\
+		vendor="Linux"			\
+		${vuln_array}			\
 	)
 
-r=$(jo -- 		\
-	url="${URL}"	\
+	affected=$(jo -a -- "${a}")
+
+	cna=$(jo --	\
+		providerMetadata="${providerMetadata}"	\
+		descriptions="${descriptions}"		\
+		affected="${affected}"			\
+		references="${references}"		\
+		title="${subject}"			\
+		x_generator="${x_generator}"		\
 	)
 
-references=$(jo -a -- "${r}")
+	# We might just need the "cna" output, and not the "containers" output below.
+	# Test with the 'cve' tool a bit, I think this might be able to be dropped as
+	# the tool might provide it for us.  If not, then just output the above cna
+	# record instead.
+	containers=$(jo -- cna="${cna}")
 
-versions=$(jo --	\
-	-s lessThan="6.7"	\
-	-s status="affected"	\
-	-s version="0"		\
-	-s versionType="custom"	\
-)
+	# output the final combination
+	jo -p --					\
+		containers="${containers}"		\
+		cveMetadata="${cveMetadata}"		\
+		-s dataType="CVE_RECORD"		\
+		-s dataVersion="5.0"			> "${JSON_FILE}"
 
-a=$(jo --	\
-	product="Linux"			\
-	vendor="Linux"			\
-	${vuln_array}			\
-)
+	dbg "json file written to ${JSON_FILE}"
 
-affected=$(jo -a -- "${a}")
+fi	# end json creation
 
-cna=$(jo --	\
-	providerMetadata="${providerMetadata}"	\
-	descriptions="${descriptions}"		\
-	affected="${affected}"			\
-	references="${references}"		\
-	title="${subject}"			\
-	x_generator="${x_generator}"		\
-)
-
-# We might just need the "cna" output, and not the "containers" output below.
-# Test with the 'cve' tool a bit, I think this might be able to be dropped as
-# the tool might provide it for us.  If not, then just output the above cna
-# record instead.
-containers=$(jo -- cna="${cna}")
-
-# output the final combination
-jo -p --					\
-	containers="${containers}"		\
-	cveMetadata="${cveMetadata}"		\
-	-s dataType="CVE_RECORD"		\
-	-s dataVersion="5.0"			> "${JSON_FILE}"
-
-dbg "json file written to ${JSON_FILE}"
-fi
+#########################
+# Compose the mbox file
+#########################
+if [[ "${MBOX_FILE}" != "" ]] ; then
+	dbg "mbox file written to ${MBOX_FILE}"
+fi	# end mbox creation
 
