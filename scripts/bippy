@@ -3,11 +3,11 @@
 #
 # Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 #
-# bippy - creates a json file on standard output in the proper format to submit
-# 	  a CVE based on a specific git SHA.
+# bippy - creates a json and/or mbox file on standard output in the proper
+# 	  format to submit a CVE based on a specific git SHA.
 #
 # Usage:
-#	bippy [CVE NUMBER] [GIT SHA]
+#	bippy [loads of options, see the help text below]
 #
 # Right now only works with CVEs, will handle other identifiers as needed.
 #
@@ -18,8 +18,10 @@
 #  jo - the json output tool, found at: https://github.com/jpmens/jo
 #  id_found_in - tool to find what kernel a specific SHA is in
 
-# TODO - make these options that are not hard-coded
+# set to 1 to get some debugging logging messages (or use -v/--verbose option)
+DEBUG=0
 
+# TODO - make these options that are not hard-coded
 KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
 FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
 
@@ -44,17 +46,65 @@ SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty
 vuln_kernels=()
 
 help() {
-	echo "$0 [CVE_NUMBER] [GIT_SHA]"
+	echo "Usage: $0 [OPTIONS]"
+	echo "Create a JSON or MBOX file to report a CVE based on a specific Linux kernel"
+	echo "git sha value."
+	echo ""
+	echo "Arguments:"
+	echo " -c, --cve=CVE_NUMBER		The full CVE number to assign"
+	echo " -s, --sha=GIT_SHA		The kernel git sha1 to assign the CVE to"
+	echo " -j, --json=JSON_FILENAME	Output a JSON report to submit to CVE to the"
+	echo "				specified filename"
+	echo " -m, --mbox=MBOX_FILENAME	Output a mbox file to submit to the CVE"
+	echo "				announce mailing list"
+	echo " -h, --help			This information"
+	echo " -v, --verbose			Show debugging information to stdout"
+	echo ""
+	echo "Note, CVE_NUMBER and GIT_SHA are required, as well as at least one of"
+	echo "JSON_FILENAME and/or MBOX_FILENAME."
 	exit 1
 }
 
+dbg() {
+	if [[ ${DEBUG} -ge 1 ]] ; then
+		echo "$1"
+	fi
+}
+
+
 # Parse the command line
-CVE_NUMBER="${1:-}"
-if [[ "${CVE_NUMBER}" == "" ]] ; then
+short_opts="j:m:c:s:hv"
+long_opts="json:,mbox:,cve:,sha:,help,verbose"
+JSON_FILE=""
+MBOX_FILE=""
+CVE_NUMBER=""
+GIT_SHA=""
+
+TMP=$(getopt -o "${short_opts}" --long "${long_opts}" --name="${SCRIPT}" -- "$@")
+eval set -- ${TMP}
+while :; do
+	dbg "arg=${1}"
+	case "${1}" in
+		-j | --json	) JSON_FILE="${2}";	shift 2 ;;
+		-m | --mbox	) MBOX_FILE="${2}";	shift 2 ;;
+		-c | --cve	) CVE_NUMBER="${2}";	shift 2 ;;
+		-s | --sha	) GIT_SHA="${2}";	shift 2 ;;
+		-h | --help	) help ;;
+		-v | --verbose	) DEBUG=1;		shift ;;
+		-- )		  shift; break ;;
+		*		) help ;;
+	esac
+done
+
+dbg "CVE_NUMBER=${CVE_NUMBER}"
+dbg "GIT_SHA=${GIT_SHA}"
+dbg "JSON_FILE=${JSON_FILE}"
+dbg "MBOX_FILE=${MBOX_FILE}"
+
+if [[ "${CVE_NUMBER}" == "" || "${GIT_SHA}" == "" ]] ; then
 	help
 fi
-GIT_SHA="${2:-}"
-if [[ "${GIT_SHA}" == "" ]] ; then
+if [[ "${JSON_FILE}" == "" && "${MBOX_FILE}" == "" ]] ; then
 	help
 fi
 
@@ -96,7 +146,7 @@ find_fix() {
 # Main logic starts here
 
 # go into the kernel tree, we need this to be a valid one
-cd ${KERNEL_TREE} || exit 1
+#cd ${KERNEL_TREE} || exit 1
 
 # See if the SHA given to us is a valid SHA in the git repo
 # and turning the sha into a "full" one so that we don't get this wrong.
@@ -113,11 +163,10 @@ if [[ "${subject}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA_FULL} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
 fi
-
-#echo "subject=${subject}"
+dbg "subject=${subject}"
 
 # Grab the full commit text, we will use that for many things
-commit_text=$(git show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
+commit_text=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
 
 #echo "commit_text=${commit_text}"
 
@@ -137,11 +186,11 @@ if [ "${fixes_lines}" != "" ] ; then
 	# now sort and uniq the list of versions
 	vuln_kernels=($(echo "${v[@]}" | sed 's/ /\n/g' | sort -V | uniq))
 fi
-#echo "vuln_kernels=${vuln_kernels[@]}"
+dbg "vuln_kernels=${vuln_kernels[@]}"
 
 # Find the fixed kernels where this release was done
 fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
-#echo "fixed_kernels=${fixed_kernels}"
+dbg "fixed_kernels=${fixed_kernels}"
 
 # Generate the "vulerable kernel json mess
 # TODO, use the ${vuln_kernels} array to match up with the fixed kernels
@@ -162,12 +211,12 @@ for v in ${fixed_kernels[@]}; do
 			) "
 	fi
 done
-#echo "vuln_array=${vuln_array}"
+dbg "vuln_array=${vuln_array}"
 
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
 #########################
-
+if [[ "${JSON_FILE}" != "" ]] ; then
 URL="https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}"
 
 x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
@@ -230,6 +279,8 @@ jo -p --					\
 	containers="${containers}"		\
 	cveMetadata="${cveMetadata}"		\
 	-s dataType="CVE_RECORD"		\
-	-s dataVersion="5.0"			\
+	-s dataVersion="5.0"			> "${JSON_FILE}"
 
+dbg "json file written to ${JSON_FILE}"
+fi
 

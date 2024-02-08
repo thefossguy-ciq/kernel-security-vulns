@@ -93,7 +93,7 @@ mv "${ID}" "${PUBLISHED_DIR}"
 echo "${GIT_SHA_FULL}" > "${PUBLISHED_DIR}/${ID}.sha1"
 
 # write the new json entry out, using bippy
-${DIR}/bippy ${ID} ${GIT_SHA_FULL} > "${PUBLISHED_DIR}/${ID}.json"
+${DIR}/bippy --cve=${ID} --sha=${GIT_SHA_FULL} --json="${PUBLISHED_DIR}/${ID}.json"
 
 # write the mbox entry out
 # TODO - use ????
