@@ -175,7 +175,8 @@ commit_text=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%B" "${G
 # this with the "expanded" SHA value, the short one will give us too many
 # false-positives when it shows up in other Fixes: tags
 fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
-#echo "fixes_lines=${fixes_lines}"
+dbg "fixes_lines=${fixes_lines}"
+og_vuln="0"
 if [ "${fixes_lines}" != "" ] ; then
 	# figure out what kernels this commit fixes, (i.e. which are
 	# vulnerable) and turn them into an array
@@ -185,8 +186,14 @@ if [ "${fixes_lines}" != "" ] ; then
 	done
 	# now sort and uniq the list of versions
 	vuln_kernels=($(echo "${v[@]}" | sed 's/ /\n/g' | sort -V | uniq))
+
+	dbg "vuln_kernels=${vuln_kernels[@]}"
+	# Figure out the "original" oldest commit where this showed up, we need
+	# this as a default value in case we can't match up anything else to
+	# it.
+	og_vuln="${vuln_kernels[0]}"
+	dbg "og vuln=${og_vuln}"
 fi
-dbg "vuln_kernels=${vuln_kernels[@]}"
 
 # Find the fixed kernels where this release was done
 fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
@@ -206,7 +213,7 @@ for v in ${fixed_kernels[@]}; do
 		vuln_array+="versions[]=$(jo --	\
 			-s lessThan="${v}"	\
 			-s status="affected"	\
-			-s version="0"		\
+			-s version="${og_vuln}"	\
 			-s versionType="custom"	\
 			) "
 	fi
