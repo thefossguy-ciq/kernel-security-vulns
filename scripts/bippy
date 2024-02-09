@@ -261,6 +261,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	a=$(jo --	\
 		product="Linux"			\
 		vendor="Linux"			\
+		defaultStatus="affected"	\
 		${vuln_array}			\
 	)
 
