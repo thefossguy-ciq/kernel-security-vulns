@@ -476,22 +476,25 @@ for entry in ${fixed_pairs[@]}; do
 	dbg "${entry}"
 done
 
-# Generate the "vulerable kernel json mess
-# TODO, use the ${vuln_kernels} array to match up with the fixed kernels
-# somehow, for now we just iterate over the fixed_kernels
-vuln_array=""
+# Generate the "vulnerable" kernel json and mbox information
+vuln_array_json=""
+vuln_array_mbox=()
 for entry in ${fixed_pairs[@]}; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
 	fix=${x[1]}
-	vuln_array+="versions[]=$(jo --	\
+	vuln_array_json+="versions[]=$(jo --	\
 		-s version="${vuln}"	\
 		-s lessThan="${fix}"	\
 		-s status="affected"	\
 		-s versionType="custom"	\
 		) "
+
+	vuln_array_mbox+=("Issue introduced in ${vuln} and fixed in ${fix}")
 done
-dbg "vuln_array=${vuln_array}"
+dbg "vuln_array_json=${vuln_array_json}"
+dbg "vuln_array_mbox=${vuln_array_mbox[@]}"
+
 
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
@@ -535,7 +538,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 		product="Linux"			\
 		vendor="Linux"			\
 		defaultStatus="affected"	\
-		${vuln_array}			\
+		${vuln_array_json}		\
 	)
 
 	affected=$(jo -a -- "${a}")
@@ -579,8 +582,10 @@ ${CVE_NUMBER} has been assigned for the following issue:
 ${commit_text}
 
 Affected versions:
-
 EOF
+	for line in "${vuln_array_mbox[@]}"; do
+		echo "	${line}" >> ${MBOX_FILE}
+	done
 
 	dbg "mbox file written to ${MBOX_FILE}"
 fi	# end mbox creation
