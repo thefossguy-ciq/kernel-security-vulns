@@ -244,6 +244,8 @@ fi
 dbg "subject=${subject}"
 
 # Grab the full commit text, we will use that for many things
+# We strip off the signed-off-by stuff AFTER we are done with parsing
+# this text
 commit_text=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
 
 #echo "commit_text=${commit_text}"
@@ -490,10 +492,35 @@ for entry in ${fixed_pairs[@]}; do
 		-s versionType="custom"	\
 		) "
 
-	vuln_array_mbox+=("Issue introduced in ${vuln} and fixed in ${fix}")
+	# If this issue has always been there, just say when it was
+	# fixed, otherwise try to give a hint when it was introduced.
+	# The json file just wants 0 for "always been there", so no need
+	# to check it for the array.
+	if [[ "${vuln}" == "0" ]] ; then
+		vuln_array_mbox+=("Fixed in ${fix}")
+	else
+		vuln_array_mbox+=("Issue introduced in ${vuln} and fixed in ${fix}")
+	fi
 done
 dbg "vuln_array_json=${vuln_array_json}"
 dbg "vuln_array_mbox=${vuln_array_mbox[@]}"
+
+# Strip off the signed-off-by stuff out of the commit text.
+# Yes, this should be a better regex, and yes, it's going to get long,
+# lots of people put lots of crud in changelog text, so use a case
+# insensitive line deletion "/pattern/Id" and sed
+# There has to be a better way than just calling sed a bunch, right?
+commit_text=$(echo "${commit_text}" | sed -e '/^acked-by:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^cc:/Id;/^signed-off-by:/Id')	# multiple on one call...
+#commit_text=$(echo "${commit_text}" | sed -e '/^signed-off-by:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^closes:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^fixes:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^link:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^reported-and-tested-by:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^reported-by:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^reviewed-by:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^suggested-by:/Id')
+commit_text=$(echo "${commit_text}" | sed -e '/^tested-by:/Id')
 
 
 #########################
@@ -577,16 +604,42 @@ if [[ "${MBOX_FILE}" != "" ]] ; then
 From: Linux Kernel CVE team <cve@kernel.org>
 Subject: ${CVE_NUMBER}: ${subject}
 
-${CVE_NUMBER} has been assigned for the following issue:
+Description
+===========
 
 ${commit_text}
 
-Affected versions:
+The Linux kernel CVE team has assigned ${CVE_NUMBER} to this issue.
+
+
+Mitigation
+==========
+
+The individual change to resolve this issue can be found at:
+	https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}
+
+
+Affected versions
+=================
 EOF
 	for line in "${vuln_array_mbox[@]}"; do
 		echo "	${line}" >> ${MBOX_FILE}
 	done
 
+	cat << EOF >> "${MBOX_FILE}"
+
+
+Recomendation
+=============
+The Linux kernel CVE team recommends that you update to the latest
+stable kernel version for this, and many other bugfixes.  Individual
+changes are not tested alone, but rather are part of a larger kernel
+release.  Cherry-picking individual commits is not recommended or
+supported by the Linux kernel community at all.
+EOF
 	dbg "mbox file written to ${MBOX_FILE}"
+
 fi	# end mbox creation
 
+# all done!
+exit 0
