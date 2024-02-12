@@ -628,7 +628,7 @@ fi	# end json creation
 #########################
 if [[ "${MBOX_FILE}" != "" ]] ; then
 	cat << EOF > "${MBOX_FILE}"
-From 25bdc8c4ca5caa00d7a85492ac9c76688a44c8e2 Mon Sep 17 00:00:00 2001
+From ${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
 From: Greg KH <gregkh@linuxfoundation.org>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>
