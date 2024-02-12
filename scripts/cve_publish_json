@@ -1,0 +1,57 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# cve_publish_json - Publish all existing json entries to the CVE database
+#
+# Will look through the list of all published cve ids and publish them with the
+# CVE database.  It is recommended to do this after new entries are created,
+# and after updating existing ones.
+#
+# Note, this publishes ALL of them, we should only publish those that have
+# changed, that will be added later...
+#
+# This is good to do after older stable kernels have been released as often
+# CVEs are included in older stable kernels AFTER they show up in newer ones,
+# and this keeps the database at CVE more up to date and friendly for others to
+# rely on.  The mbox files generally shouldn't be resent, as that's just noise
+# that no one wants to see.
+#
+# Usage:
+#	cve_publish
+#
+# Requires:
+#  cve
+
+
+# FIXME: Is only using the test database for now.
+
+
+# don't use unset variables
+set -o nounset
+
+# set where the tool was run from,
+# the name of our script,
+# and the git version of it
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT=${0##*/}
+SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h")
+
+help() {
+	echo "${SCRIPT}"
+	exit 1
+}
+
+cd "${DIR}"/../ || exit 1
+
+for id in cve/published/*/*.sha1 ; do
+	sha=$(cat "${id}")
+	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
+	root=$(echo "${id}" | cut -f 1 -d '.')
+	#echo "id=${id} sha=${sha} cve=${cve}"
+	echo "Uploading ${cve}"
+	cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
+done
+
+
