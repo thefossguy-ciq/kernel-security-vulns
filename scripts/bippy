@@ -40,7 +40,7 @@ set -o nounset
 # and the git version of it
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT=${0##*/}
-SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h")
+SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
 
 # global variables
 vuln_kernels=()
