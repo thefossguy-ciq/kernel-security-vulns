@@ -54,4 +54,5 @@ for id in cve/published/*/*.sha1 ; do
 	cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
 done
 
-
+# to list all published entries:
+# cve -u gregkh@linuxfoundation.org -o Linux -e test list
