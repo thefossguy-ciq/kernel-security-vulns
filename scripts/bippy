@@ -359,7 +359,7 @@ commit_text=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%B" "${G
 fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
 dbg "fixes_lines=${fixes_lines}"
 og_vuln="0"
-if [ "${fixes_lines}" != "" ] ; then
+if [[ "${fixes_lines}" != "" ]] ; then
 	# figure out what kernels this commit fixes, (i.e. which are
 	# vulnerable) and turn them into an array
 	v=()
@@ -371,22 +371,31 @@ if [ "${fixes_lines}" != "" ] ; then
 	# now sort and uniq the list of versions
 	vuln_kernels=($(echo "${v[@]}" | sed 's/ /\n/g' | sort -V | uniq))
 
-	dbg "${#vuln_kernels[@]} vuln_kernels found:"
-	for x in ${vuln_kernels[@]}; do
-		dbg "	$x"
-	done
+	if [[ "${#vuln_kernels[@]}" == "0" ]] ; then
+		dbg "no vuln_kernels_found!"
+	else
+		dbg "${#vuln_kernels[@]} vuln_kernels found:"
+		for x in ${vuln_kernels[@]}; do
+			dbg "	$x"
+		done
 
-	# Figure out the "original" oldest commit where this showed up, we need
-	# this as a default value in case we can't match up anything else to
-	# it, this must be a Linus release
-	for x in ${vuln_kernels[@]}; do
-		version_is_mainline "${x}"
-		mainline=$?
-		if [[ "${mainline}" == "1" ]] ; then
-			og_vuln="${x}"
-			break
-		fi
-	done
+		# Figure out the "original" oldest commit where this showed up,
+		# we need this as a default value in case we can't match up
+		# anything else to it, this must be a Linus release
+		for x in ${vuln_kernels[@]}; do
+			version_is_mainline "${x}"
+			mainline=$?
+			if [[ "${mainline}" == "1" ]] ; then
+				og_vuln="${x}"
+				break
+			fi
+		done
+
+		# Ick, no fixes version was found to be a mainline release, so
+		# we must have a stable-tree-only regression, so pick the
+		# "first" version as it must be the one.
+		og_vuln=${vuln_kernels[0]}
+	fi
 	dbg "og_vuln=${og_vuln}"
 fi
 
@@ -526,11 +535,16 @@ commit_text=$(echo "${commit_text}" | sed -e '/^suggested-by:/Id')
 commit_text=$(echo "${commit_text}" | sed -e '/^tested-by:/Id')
 
 
+# We point only at the "root" fix, not in any of the stable branches.
+# Maybe in the future we can also link to the fixes in the individual branches,
+# but as we ask that people take the whole release, to point at individual
+# commits might just cause more problems than it is worth.
+URL="https://git.kernel.org/stable/linux/c/${GIT_SHA_FULL}"
+
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
 #########################
 if [[ "${JSON_FILE}" != "" ]] ; then
-	URL="https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}"
 
 	x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
 
@@ -619,7 +633,7 @@ Mitigation
 ==========
 
 The individual change to resolve this issue can be found at:
-	https://git.kernel.org/torvalds/c/${GIT_SHA_FULL}
+	${URL}
 
 
 Affected versions
