@@ -174,10 +174,12 @@ function version_match
 		local MINOR_1=${REL_ARRAY_1[1]}
 		local MINOR_2=${REL_ARRAY_2[1]}
 		if [[ "${MINOR_1}" == "${MINOR_2}" ]] ; then
+			# dbg "version_match: ${1} ${2}: succeeded"
 			return 1
 		fi
 	fi
 
+	# dbg "version_match: ${1} ${2}: failed"
 	return 0
 }
 
@@ -394,7 +396,9 @@ if [[ "${fixes_lines}" != "" ]] ; then
 		# Ick, no fixes version was found to be a mainline release, so
 		# we must have a stable-tree-only regression, so pick the
 		# "first" version as it must be the one.
-		og_vuln=${vuln_kernels[0]}
+		if [[ "${og_vuln}" == "0" ]] ; then
+			og_vuln=${vuln_kernels[0]}
+		fi
 	fi
 	dbg "og_vuln=${og_vuln}"
 fi
@@ -457,6 +461,7 @@ for fixed_entry in ${fixed_kernels[@]}; do
 		if [[ "${fixed_entry}" == "${vuln_entry}" ]] ; then
 			# this entry was broken and fixed in the same version,
 			# so skip it
+			create=1	# fake that an entry was created.
 			break
 		fi
 
@@ -483,6 +488,11 @@ for fixed_entry in ${fixed_kernels[@]}; do
 	fi
 done
 
+dbg "We have found ${#fixed_pairs[@]} vulnerable:fixed kernel pairs"
+if [[ "${#fixed_pairs[@]}" == "0" ]] ; then
+	echo "No vulnerable and then fixed pairs of kernels were found for commit ${GIT_SHA_FULL}"
+	exit 1
+fi
 for entry in ${fixed_pairs[@]}; do
 	dbg "${entry}"
 done
@@ -618,7 +628,8 @@ fi	# end json creation
 #########################
 if [[ "${MBOX_FILE}" != "" ]] ; then
 	cat << EOF > "${MBOX_FILE}"
-From: Linux Kernel CVE team <cve@kernel.org>
+To: <linux-cve-announce@vger.kernel.org>
+Reply-to: <cve@kernel.org>
 Subject: ${CVE_NUMBER}: ${subject}
 
 Description
