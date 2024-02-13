@@ -31,7 +31,6 @@ set -o nounset
 # and the git version of it
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT=${0##*/}
-SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h")
 
 help() {
 	echo "${SCRIPT}"

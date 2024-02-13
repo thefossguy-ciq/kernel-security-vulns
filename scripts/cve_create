@@ -33,7 +33,6 @@ set -o nounset
 # and the git version of it
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT=${0##*/}
-SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h")
 
 help() {
 	echo "${SCRIPT} [GIT_SHA]"
@@ -93,7 +92,7 @@ mv "${ID}" "${PUBLISHED_DIR}"
 echo "${GIT_SHA_FULL}" > "${PUBLISHED_DIR}/${ID}.sha1"
 
 # write the new json and mbox entry out, using bippy
-${DIR}/bippy --cve=${ID} --sha=${GIT_SHA_FULL} --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
+"${DIR}"/bippy --cve="${ID}" --sha="${GIT_SHA_FULL}" --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
 
 # say all is good, and give the id
 echo "CVE id ${ID} was allocated for git commit ${GIT_SHA_FULL}"
