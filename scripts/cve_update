@@ -42,11 +42,42 @@ cd "${DIR}"/../ || exit 1
 
 for id in cve/published/*/*.sha1 ; do
 #for id in $(ls cve/published/*/*.sha1) ; do
+	tmp_json=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.json" || exit 1)
+	tmp_mbox=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.mbox" || exit 1)
 	sha=$(cat "${id}")
 	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${id}" | cut -f 1 -d '.')
 	#echo "id=${id} sha=${sha} cve=${cve}"
 	echo "Updating ${cve}..."
-	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${root}.json" --mbox="${root}.mbox"
+
+	# Create the new json and mbox files
+	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}"
+
+	# see if the json and/or mbox files actually changed, EXCEPT for the bippy-VERSIONINFO string
+	changed=0
+	diff=$(diff -u "${root}.json" "${tmp_json}" | grep -v "${tmp_json}" | grep -v "${root}.json" | grep -v "bippy-" | grep -v "^@@ " | grep "^+")
+	#echo "diff json=${diff}"
+	if [[ "${diff}" != "" ]] ; then
+		mv -f "${tmp_json}" "${root}.json"
+		echo "	Updated ${root}.json"
+		changed=1
+	else
+		rm "${tmp_json}"
+		#echo "diff for json was empty"
+	fi
+
+	diff=$(diff -u "${root}.mbox" "${tmp_mbox}" | grep -v "${tmp_mbox}" | grep -v "${root}.mbox" | grep -v "bippy-" | grep -v "^@@ " | grep "^+")
+	#echo "diff mbox=${diff}"
+	if [[ "${diff}" != "" ]] ; then
+		mv -f "${tmp_mbox}" "${root}.mbox"
+		echo "	Updated ${root}.mbox"
+		changed=1
+	else
+		rm "${tmp_mbox}"
+		#echo "diff for mbox was empty"
+	fi
+	if [[ "${changed}" == "0" ]] ; then
+		echo "	nothing changed"
+	fi
 done
 
