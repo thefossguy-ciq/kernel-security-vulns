@@ -98,6 +98,7 @@ chucked-on-by
 cked-by
 cleaned-up-by
 cleanups-from
+closes
 co-author
 co-authored
 co-authored-by
@@ -199,6 +200,7 @@ makes-sense-to
 makes-sparse-happy
 maybe-reported-by
 mentored-by
+message-id
 modified-and-reviewed-by
 modified-by
 more-or-less-tested-by
