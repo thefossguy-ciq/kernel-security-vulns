@@ -480,12 +480,14 @@ for fixed_entry in ${fixed_kernels[@]}; do
 	# and only in the queue there, we get "queue-X.Y as a fixed kernel,
 	# which we don't want to have here, so filter that out.
 	if [[ "${fixed_entry}" =~ .*"queue" ]] ; then
+		dbg "${fixed_entry} is in queue"
 		continue
 	fi
 
 	# We do not care about fixes in -rc kernels, they will show up when the
 	# fix makes it to mainline.
 	if [[ "${fixed_entry_rc}" == "1" ]] ; then
+		dbg "${fixed_entry} is -rc"
 		continue
 	fi
 
@@ -817,8 +819,8 @@ ${commit_text}
 The Linux kernel CVE team has assigned ${CVE_NUMBER} to this issue.
 
 
-Affected versions
-=================
+Affected and fixed versions
+===========================
 
 EOF
 	for line in "${vuln_array_mbox[@]}"; do
@@ -827,9 +829,8 @@ EOF
 
 	cat << EOF >> "${MBOX_FILE}"
 
-Please note that only supported kernel versions have fixes applied to
-them.  For a full list of currently supported kernel versions, please
-see https://www.kernel.org/
+Please see https://www.kernel.org or a full list of currently supported
+kernel versions by the kernel community.
 
 Unaffected versions might change over time as fixes are backported to
 older supported kernel versions.  The official CVE entry at
