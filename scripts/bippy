@@ -158,6 +158,17 @@ function version_is_rc
 	fi
 }
 
+function version_is_queue
+{
+	local VERSION=$1
+
+	if [[ "${VERSION}" =~ .*"queue" ]] ; then
+		return 1
+	else
+		return 0
+	fi
+}
+
 # Determine if the "major.minor" versions of 2 kernels are matching
 # will return 1 if true, 0 if not
 function version_match
@@ -210,6 +221,13 @@ function version_is_mainline
 	#if [[ "${VERSION}" =~ *"-rc"* ]] ; then
 	if [[ "${rc}" == "1" ]] ; then
 		return 1
+	fi
+
+	# If this is in a queue, it's not a mainline release
+	version_is_queue "${VERSION}"
+	local queue=$?
+	if [[ "${queue}" == "1" ]] ; then
+		return 0
 	fi
 
 	# if the REL_ARRAY only has 2 elements in it, it's a mainline release
@@ -463,6 +481,8 @@ for fixed_entry in ${fixed_kernels[@]}; do
 	fixed_entry_mainline=$?
 	version_is_rc "${fixed_entry}"
 	fixed_entry_rc=$?
+	version_is_queue "${fixed_entry}"
+	fixed_entry_queue=$?
 
 	# Print out some debugging to see if kernel version detection is working:
 	dbg_string="${fixed_entry} is "
@@ -479,7 +499,7 @@ for fixed_entry in ${fixed_kernels[@]}; do
 	# if a commit is in a newer "stable" release, but not in an older one
 	# and only in the queue there, we get "queue-X.Y as a fixed kernel,
 	# which we don't want to have here, so filter that out.
-	if [[ "${fixed_entry}" =~ .*"queue" ]] ; then
+	if [[ "${fixed_entry_queue}" == "1" ]] ; then
 		dbg "${fixed_entry} is in queue"
 		continue
 	fi
@@ -684,8 +704,8 @@ for entry in "${fixed_pairs[@]}"; do
 
 	# Add the git sha of the fix to the url array so we can print
 	# them later
-	url_array+=("https://git.kernel.org/stable/linux/c/${fix_git}")
-	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/linux/c/${fix_git}") "
+	url_array+=("https://git.kernel.org/stable/c/${fix_git}")
+	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${fix_git}") "
 
 done
 dbg "vuln_array_json=${vuln_array_json}"
@@ -715,12 +735,6 @@ echo "${sed_script}" > "${sed_file}"
 commit_text=$(echo "${commit_text}" | sed -f "${sed_file}")
 rm "${sed_file}"
 
-
-# We point only at the "root" fix, not in any of the stable branches.
-# Maybe in the future we can also link to the fixes in the individual branches,
-# but as we ask that people take the whole release, to point at individual
-# commits might just cause more problems than it is worth.
-URL="https://git.kernel.org/stable/linux/c/${GIT_SHA_SHORT}"
 
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
@@ -806,7 +820,7 @@ fi	# end json creation
 if [[ "${MBOX_FILE}" != "" ]] ; then
 	cat << EOF > "${MBOX_FILE}"
 From ${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
-From: Greg Kroah-Hartman <gregkh@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>
 Subject: ${CVE_NUMBER}: ${subject}
