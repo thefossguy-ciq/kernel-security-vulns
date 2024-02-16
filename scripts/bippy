@@ -718,7 +718,7 @@ fi	# end json creation
 if [[ "${MBOX_FILE}" != "" ]] ; then
 	cat << EOF > "${MBOX_FILE}"
 From ${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Greg Kroah-Hartman <gregkh@kernel.org>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>
 Subject: ${CVE_NUMBER}: ${subject}
