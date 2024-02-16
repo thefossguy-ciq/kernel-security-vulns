@@ -236,6 +236,7 @@ if [[ "${GIT_SHA_FULL}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
 fi
+GIT_SHA_SHORT=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --format="%h" "${GIT_SHA_FULL}")
 
 # Get the subject line of our sha
 subject=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%s" "${GIT_SHA_FULL}" 2> /dev/null)
@@ -361,6 +362,7 @@ commit_text=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%B" "${G
 fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
 dbg "fixes_lines=${fixes_lines}"
 og_vuln="0"
+og_git="1da177e4c3f4"	# "Linux-2.6.12-rc2"
 if [[ "${fixes_lines}" != "" ]] ; then
 	# figure out what kernels this commit fixes, (i.e. which are
 	# vulnerable) and turn them into an array
@@ -368,6 +370,7 @@ if [[ "${fixes_lines}" != "" ]] ; then
 	for fix_line in ${fixes_lines}; do
 		x=$(find_fix ${fix_line})
 		v+=${x}
+		og_git=${fix_line}	# fixme, what about multiples?
 	done
 	#dbg "v=${v[@]} size=${#v[@]}"
 	# now sort and uniq the list of versions
@@ -398,9 +401,13 @@ if [[ "${fixes_lines}" != "" ]] ; then
 		# "first" version as it must be the one.
 		if [[ "${og_vuln}" == "0" ]] ; then
 			og_vuln=${vuln_kernels[0]}
+			# og_git will be already set to the fixes
+			# commit, based on the loop up above, so no need
+			# to set it again.
 		fi
 	fi
 	dbg "og_vuln=${og_vuln}"
+	dbg "og_git=${og_git}"
 fi
 
 # Find the fixed kernels where this release was done
@@ -412,10 +419,39 @@ create_fix_pair()
 {
 	local v=$1
 	local f=$2
-	fixed_pairs+=("${v}:${f}")
+	local v_git=$3
+	local f_git=$4
+	fixed_pairs+=("${v}:${f}:${v_git}:${f_git}")
+
+	dbg "pair=${v}:${f}:${v_git}:${f_git}"
+}
+
+find_stable_git_id()
+{
+	#>&2 echo "find_stable_git_id: \"${1}\" \"${2}\""
+	local og_git=${1}
+	local fixed_version=${2}
+
+	local fixed_array=(${fixed_version//./ })
+	local fixed_major=${fixed_array[0]}
+	local fixed_minor=${fixed_array[1]}
+
+	local stable_git=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --oneline --grep=${og_git} "v${fixed_major}.${fixed_minor}".."v${fixed_version}" | awk '{print $1}')
+	#>&2 echo "fine_stable_git_id: stable_git=${stable_git}"
+
+	echo "${stable_git}"
+}
+
+find_mainline_git_id()
+{
+	local fixed_version=${1}
+	local stable_git=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --oneline "v${fixed_version}" | awk '{print $1}')
+	echo "${stable_git}"
 }
 
 # Do the crazy matching mess listed up above
+fe=""
+ve=""
 for fixed_entry in ${fixed_kernels[@]}; do
 	create=0
 
@@ -452,7 +488,12 @@ for fixed_entry in ${fixed_kernels[@]}; do
 
 	# If we do not know what the root release is, then just create the pair
 	if [[ "${og_vuln}" == "0" ]] ; then
-		create_fix_pair ${og_vuln} ${fixed_entry}
+		if [[ "${fixed_entry_mainline}" == "1" ]]; then
+			create_fix_pair ${og_vuln} ${fixed_entry} ${og_git} ${GIT_SHA_SHORT}
+		else
+			fe=$(find_stable_git_id ${GIT_SHA_FULL} ${fixed_entry})
+			create_fix_pair ${og_vuln} ${fixed_entry} ${og_git} ${fe}
+		fi
 		create=1
 		continue
 	fi
@@ -468,7 +509,12 @@ for fixed_entry in ${fixed_kernels[@]}; do
 		version_is_mainline "${vuln_entry}"
 		vuln_entry_mainline=$?
 		if [[ "${vuln_entry_mainline}" == "1" ]] ; then
-			create_fix_pair ${vuln_entry} ${fixed_entry}
+			if [[ "${fixed_entry_mainline}" == "1" ]]; then
+				create_fix_pair ${vuln_entry} ${fixed_entry} ${og_git} ${GIT_SHA_SHORT}
+			else
+				fe=$(find_stable_git_id ${GIT_SHA_FULL} ${fixed_entry})
+				create_fix_pair ${vuln_entry} ${fixed_entry} ${og_git} ${fe}
+			fi
 			create=1
 			break
 		fi
@@ -476,7 +522,19 @@ for fixed_entry in ${fixed_kernels[@]}; do
 		version_match ${vuln_entry} ${fixed_entry}
 		match=$?
 		if [[ "${match}" == "1" ]] ; then
-			create_fix_pair ${vuln_entry} ${fixed_entry}
+			if [[ "${fixed_entry_mainline}" == "1" ]]; then
+				create_fix_pair ${vuln_entry} ${fixed_entry} ${og_git} ${GIT_SHA_SHORT}
+			else
+				ve=$(find_stable_git_id ${og_git} ${vuln_entry})
+				if [[ "${ve}" == "" ]] ; then
+					ve=${og_git}
+				fi
+				fe=$(find_stable_git_id ${GIT_SHA_FULL} ${fixed_entry})
+				if [[ "${fe}" == "" ]] ; then
+					fe=${GIT_SHA_SHORT}
+				fi
+				create_fix_pair ${vuln_entry} ${fixed_entry} "${ve}" "${fe}"
+			fi
 			create=1
 			break
 		fi
@@ -484,26 +542,33 @@ for fixed_entry in ${fixed_kernels[@]}; do
 
 	# If we haven't created anything yet, this must be it
 	if [[ ${create} == 0 ]] ; then
-		create_fix_pair ${og_vuln} ${fixed_entry}
+		create_fix_pair ${og_vuln} ${fixed_entry} ${og_git} "${GIT_SHA_SHORT}"
 	fi
 done
 
 dbg "We have found ${#fixed_pairs[@]} vulnerable:fixed kernel pairs"
 if [[ "${#fixed_pairs[@]}" == "0" ]] ; then
-	echo "No vulnerable and then fixed pairs of kernels were found for commit ${GIT_SHA_FULL}"
+	echo "No vulnerable and then fixed pairs of kernels were found for commit ${GIT_SHA_SHORT}"
 	exit 1
 fi
-for entry in ${fixed_pairs[@]}; do
-	dbg "${entry}"
+for entry in "${fixed_pairs[@]}"; do
+	dbg "	${entry}"
 done
 
 # Generate the "vulnerable" kernel json and mbox information
 vuln_array_json=""
 vuln_array_mbox=()
+url_array=()
+url_string_json=""
+git_array_json=()
 for entry in "${fixed_pairs[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
 	fix=${x[1]}
+	vuln_git=${x[2]}
+	fix_git=${x[3]}
+
+	# create the json array for the version numbers
 	vuln_array_json+="versions[]=$(jo --	\
 		-s version="${vuln}"	\
 		-s lessThan="${fix}"	\
@@ -511,19 +576,37 @@ for entry in "${fixed_pairs[@]}"; do
 		-s versionType="custom"	\
 		) "
 
+	# create the json array for the git ids
+	git_array_json+="versions[]=$(jo --	\
+		-s version="${vuln_git}"	\
+		-s lessThan="${fix_git}"	\
+		-s status="affected"		\
+		-s versionType="git"		\
+		) "
+
 	# If this issue has always been there, just say when it was
 	# fixed, otherwise try to give a hint when it was introduced.
 	# The json file just wants 0 for "always been there", so no need
 	# to check it for the array.
 	if [[ "${vuln}" == "0" ]] ; then
-		vuln_array_mbox+=("Fixed in ${fix}")
+		vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
 	else
-		vuln_array_mbox+=("Issue introduced in ${vuln} and fixed in ${fix}")
+		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
 	fi
+
+	# Add the git sha of the fix to the url array so we can print
+	# them later
+	url_array+=("https://git.kernel.org/stable/linux/c/${fix_git}")
+	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/linux/c/${fix_git}") "
+
 done
 dbg "vuln_array_json=${vuln_array_json}"
+dbg "git_array_json=${git_array_json}"
 for entry in "${vuln_array_mbox[@]}"; do
 	dbg "vuln_array_mbox=${entry}"
+done
+for entry in "${url_string_json[@]}"; do
+	dbg "url_string_json=${entry}"
 done
 
 # Strip off all of the signed-off-by stuff out of the commit text.
@@ -549,12 +632,19 @@ rm "${sed_file}"
 # Maybe in the future we can also link to the fixes in the individual branches,
 # but as we ask that people take the whole release, to point at individual
 # commits might just cause more problems than it is worth.
-URL="https://git.kernel.org/stable/linux/c/${GIT_SHA_FULL}"
+URL="https://git.kernel.org/stable/linux/c/${GIT_SHA_SHORT}"
 
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
 #########################
 if [[ "${JSON_FILE}" != "" ]] ; then
+	# NOTE, be VERY careful about the quoting around the bash
+	# variables when using 'jo', it isn't obvious, for some places
+	# we need the variables to be expanded without the "", and
+	# the shellcheck tool will complain, and test the heck out of
+	# any changes you make here, it seems to work as-is, so watch
+	# out, here lies many dragons.  Comments have been added where
+	# needed and able to be used.
 
 	x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
 
@@ -575,33 +665,32 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 		orgId="${ORGID}"		\
 		)
 
-	r=$(jo -- 		\
-		url="${URL}"	\
-		)
+#	versions=$(jo --	\
+#		-s lessThan="6.7"	\
+#		-s status="affected"	\
+#		-s version="0"		\
+#		-s versionType="custom"	\
+#	)
 
-	references=$(jo -a -- "${r}")
-
-	versions=$(jo --	\
-		-s lessThan="6.7"	\
-		-s status="affected"	\
-		-s version="0"		\
-		-s versionType="custom"	\
-	)
-
+	# We want vuln_array_json to be expanded without quotes
+	# shellcheck disable=SC2086
 	a=$(jo --	\
 		product="Linux"			\
 		vendor="Linux"			\
 		defaultStatus="affected"	\
 		${vuln_array_json}		\
+		${git_array_json}		\
 	)
 
 	affected=$(jo -a -- "${a}")
 
+	# We want url_string_json to be expanded without quotes
+	# shellcheck disable=SC2086
 	cna=$(jo --	\
 		providerMetadata="${providerMetadata}"	\
 		descriptions="${descriptions}"		\
 		affected="${affected}"			\
-		references="${references}"		\
+		${url_string_json}			\
 		title="${subject}"			\
 		x_generator="${x_generator}"		\
 	)
@@ -647,7 +736,7 @@ Affected versions
 
 EOF
 	for line in "${vuln_array_mbox[@]}"; do
-		echo "	${line}" >> ${MBOX_FILE}
+		echo "	${line}" >> "${MBOX_FILE}"
 	done
 
 	cat << EOF >> "${MBOX_FILE}"
@@ -671,10 +760,13 @@ stable kernel version for this, and many other bugfixes.  Individual
 changes are never tested alone, but rather are part of a larger kernel
 release.  Cherry-picking individual commits is not recommended or
 supported by the Linux kernel community at all.  If however, updating to
-the latest release is impossible, the individual change to resolve this
-issue can be found at:
-	${URL}
+the latest release is impossible, the individual changes to resolve this
+issue can be found at these commits:
 EOF
+	for url in "${url_array[@]}"; do
+		echo "	${url}" >> "${MBOX_FILE}"
+	done
+
 	dbg "mbox file written to ${MBOX_FILE}"
 
 fi	# end mbox creation
