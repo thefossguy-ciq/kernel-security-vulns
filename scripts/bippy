@@ -264,6 +264,13 @@ if [[ "${subject}" == "" ]] ; then
 fi
 dbg "subject=${subject}"
 
+# Get the list of files affected in the change
+files=$(cd ${KERNEL_TREE} && git diff --name-only "${GIT_SHA_FULL}"^.."${GIT_SHA_FULL}" 2> /dev/null)
+dbg "${GIT_SHA_FULL} touched the following files:"
+while IFS= read -r entry; do
+	dbg "	${entry}"
+done <<< "${files}"
+
 # Grab the full commit text, we will use that for many things
 # We strip off the signed-off-by stuff AFTER we are done with parsing
 # this text
@@ -590,7 +597,7 @@ vuln_array_json=""
 vuln_array_mbox=()
 url_array=()
 url_string_json=""
-git_array_json=()
+git_array_json=""
 if [[ "${default_status}" == "affected" ]]; then
 	# we need to now say what the "unaffected" range is, so loop
 	# through and find the "mainline" part to figure that out.
@@ -777,12 +784,22 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	p=$(jo -a -- "Linux")
 	platforms=$(jo -- platforms="${p}")
 
+	f=""
+	while IFS= read -r entry; do
+		f+="${entry} "
+	done <<< "${files}"
+
+	# We want f to be expanded without quotes
+	# shellcheck disable=SC2086
+	program_files=$(jo -a -- ${f})
+
 	# We want vuln_array_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	a=$(jo --	\
 		product="Linux"				\
 		vendor="Linux"				\
 		platforms="${p}"			\
+		programFiles="${program_files}"		\
 		defaultStatus="${default_status}"	\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${vuln_array_json}			\
@@ -794,6 +811,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 		product="Linux"				\
 		vendor="Linux"				\
 		platforms="${p}"			\
+		programFiles="${program_files}"		\
 		defaultStatus="unaffected"		\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${git_array_json}			\
