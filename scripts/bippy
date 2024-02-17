@@ -774,17 +774,32 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 #		-s versionType="custom"	\
 #	)
 
+	p=$(jo -a -- "Linux")
+	platforms=$(jo -- platforms="${p}")
+
 	# We want vuln_array_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	a=$(jo --	\
 		product="Linux"				\
 		vendor="Linux"				\
+		platforms="${p}"			\
 		defaultStatus="${default_status}"	\
+		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${vuln_array_json}			\
+	)
+
+	# We want git_array_json to be expanded without quotes
+	# shellcheck disable=SC2086
+	ag=$(jo --	\
+		product="Linux"				\
+		vendor="Linux"				\
+		platforms="${p}"			\
+		defaultStatus="unaffected"		\
+		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${git_array_json}			\
 	)
 
-	affected=$(jo -a -- "${a}")
+	affected=$(jo -a -- "${ag}" "${a}")
 
 	# We want url_string_json to be expanded without quotes
 	# shellcheck disable=SC2086
