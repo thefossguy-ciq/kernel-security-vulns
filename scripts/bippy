@@ -597,7 +597,7 @@ vuln_array_json=""
 vuln_array_mbox=()
 url_array=()
 url_string_json=""
-git_array_json=""
+git_array_json=()
 if [[ "${default_status}" == "affected" ]]; then
 	# we need to now say what the "unaffected" range is, so loop
 	# through and find the "mainline" part to figure that out.
@@ -793,13 +793,16 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	# shellcheck disable=SC2086
 	program_files=$(jo -a -- ${f})
 
+	# FIXME: add program_files down below to a and ag in the proper place,
+	# but for now, the json is not validating so don't add it until that is
+	# figured out...
+
 	# We want vuln_array_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	a=$(jo --	\
 		product="Linux"				\
 		vendor="Linux"				\
 		platforms="${p}"			\
-		programFiles="${program_files}"		\
 		defaultStatus="${default_status}"	\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${vuln_array_json}			\
@@ -811,7 +814,6 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 		product="Linux"				\
 		vendor="Linux"				\
 		platforms="${p}"			\
-		programFiles="${program_files}"		\
 		defaultStatus="unaffected"		\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${git_array_json}			\
