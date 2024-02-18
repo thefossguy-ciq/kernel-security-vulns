@@ -37,6 +37,11 @@ help() {
 	exit 1
 }
 
+if [[ "${TMPDIR}" == "" ]]; then
+	echo "TMPDIR environment variable must be set, exiting ${SCRIPT}"
+	exit 1
+fi
+
 cd "${DIR}"/../ || exit 1
 
 for id in cve/published/*/*.sha1 ; do
