@@ -23,9 +23,6 @@
 #  bippy
 
 
-# don't use unset variables
-set -o nounset
-
 # set where the tool was run from,
 # the name of our script,
 # and the git version of it
@@ -41,6 +38,9 @@ if [[ "${TMPDIR}" == "" ]]; then
 	echo "TMPDIR environment variable must be set, exiting ${SCRIPT}"
 	exit 1
 fi
+
+# don't use unset variables
+set -o nounset
 
 cd "${DIR}"/../ || exit 1
 
