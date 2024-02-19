@@ -64,6 +64,13 @@ CVE_ROOT="${DIR}/../cve/"
 RESERVED_DIR="${CVE_ROOT}reserved/${YEAR}/"
 PUBLISHED_DIR="${CVE_ROOT}published/${YEAR}/"
 
+# make sure we haven't allocated a CVE already for this id
+found=$(grep -r -l "${GIT_SHA_FULL}" "${CVE_ROOT}"/published/)
+if [[ "${found}" != "" ]]; then
+	echo "The git id ${GIT_SHA_FULL} is already assigned a cve, look in ${found} for details"
+	exit 1
+fi
+
 # Go into the directory for the year asked for
 cd "${RESERVED_DIR}" 2> /dev/null
 if [[ $? -ne 0 ]]; then
