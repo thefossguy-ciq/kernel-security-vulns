@@ -25,9 +25,6 @@ DEBUG=0
 KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
 FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
 
-# Hard coded for now, but maybe come from a file?
-ORGID="f4215fc3-5b6b-47ff-a258-f7189bd81038"
-
 # Might be dropped if we don't need the full "container" output, see at the
 # bottom for more details
 USER="gregkh@linuxfoundation.org"
@@ -243,17 +240,32 @@ function version_is_mainline
 # =======
 # Main logic starts here
 
+# Get the UUID we are going to use from the linux.uuid file in the directory
+# where the script is.  This allows us to change this if needed in the future
+# (and it's easier to move between testing and production databases this way,
+# as those require different uuids.)
+orig_id=$(cat "${DIR}"/linux.uuid)
+if [[ "${orig_id}" == "" ]]; then
+	echo "No UUID found to use at ${DIR}/linux.uuid, aborting"
+	exit 1
+fi
+dbg "orig_id=${orig_id}"
+
 # go into the kernel tree, we need this to be a valid one
 #cd ${KERNEL_TREE} || exit 1
 
-# See if the SHA given to us is a valid SHA in the git repo
-# and turning the sha into a "full" one so that we don't get this wrong.
-
+# See if the SHA given to us is a valid SHA in the git repo.
+# This tests if we have a valid kernel tree, AND we need a full/long SHA1 for
+# many of the searches we do later on.  If we stuck with a short one, some of
+# the searches would give us false-positives as people use short shas in commit
+# messages.
 GIT_SHA_FULL=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${GIT_SHA}")
 if [[ "${GIT_SHA_FULL}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
 fi
+
+# Grab a "real" 12 character short sha to use as well, we "know" this will not fail.
 GIT_SHA_SHORT=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --format="%h" "${GIT_SHA_FULL}")
 
 # Get the subject line of our sha
@@ -758,7 +770,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 
 	x_generator=$(jo -- engine="${SCRIPT}-${SCRIPT_VERSION}")
 
-	cveMetadata=$(jo -- assignerOrgId="${ORGID}"	\
+	cveMetadata=$(jo -- assignerOrgId="${orig_id}"	\
 			cveID="${CVE_NUMBER}"		\
 			requesterUserId="${USER}"	\
 			-s serial="1"			\
@@ -772,18 +784,8 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	descriptions=$(jo -a -- "${d}")
 
 	providerMetadata=$(jo --		\
-		orgId="${ORGID}"		\
+		orgId="${orig_id}"		\
 		)
-
-#	versions=$(jo --	\
-#		-s lessThan="6.7"	\
-#		-s status="affected"	\
-#		-s version="0"		\
-#		-s versionType="custom"	\
-#	)
-
-	p=$(jo -a -- "Linux")
-	platforms=$(jo -- platforms="${p}")
 
 	f=""
 	while IFS= read -r entry; do
@@ -795,15 +797,14 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	program_files=$(jo -a -- ${f})
 
 	# FIXME: add program_files down below to a and ag in the proper place,
-	# but for now, the json is not validating so don't add it until that is
-	# figured out...
+	# but for now, the json is not validating on the CVE server side, so
+	# don't add it until that is figured out...
 
 	# We want vuln_array_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	a=$(jo --	\
 		product="Linux"				\
 		vendor="Linux"				\
-		platforms="${p}"			\
 		defaultStatus="${default_status}"	\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${vuln_array_json}			\
@@ -814,7 +815,6 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	ag=$(jo --	\
 		product="Linux"				\
 		vendor="Linux"				\
-		platforms="${p}"			\
 		defaultStatus="unaffected"		\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
 		${git_array_json}			\
