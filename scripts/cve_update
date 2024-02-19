@@ -59,7 +59,7 @@ for id in cve/published/*/*.sha1 ; do
 
 	# see if the json and/or mbox files actually changed, EXCEPT for the bippy-VERSIONINFO string
 	changed=0
-	diff=$(diff -u "${root}.json" "${tmp_json}" | grep -v "${tmp_json}" | grep -v "${root}.json" | grep -v "bippy-" | grep -v "^@@ " | grep "^+")
+	diff=$(diff -u "${root}.json" "${tmp_json}" | grep -v "${tmp_json}" | grep -v "${root}.json" | grep -v "bippy-" | grep -v "^@@ " | grep "^[+|-]")
 	#echo "diff json=${diff}"
 	if [[ "${diff}" != "" ]] ; then
 		mv -f "${tmp_json}" "${root}.json"
