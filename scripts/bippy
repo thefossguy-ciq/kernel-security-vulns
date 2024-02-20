@@ -486,6 +486,14 @@ find_mainline_git_id()
 	echo "${stable_git}"
 }
 
+git_full_id()
+{
+	local short_id=${1}
+	local long_id=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${short_id}")
+	echo "${long_id}"
+}
+
+
 # Do the crazy matching mess listed up above
 fe=""
 ve=""
@@ -724,8 +732,9 @@ for entry in "${fixed_pairs[@]}"; do
 
 	# Add the git sha of the fix to the url array so we can print
 	# them later
-	url_array+=("https://git.kernel.org/stable/c/${fix_git}")
-	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${fix_git}") "
+	long_id=$(git_full_id "${fix_git}")
+	url_array+=("https://git.kernel.org/stable/c/${long_id}")
+	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
 
 done
 dbg "vuln_array_json=${vuln_array_json}"
@@ -755,6 +764,9 @@ echo "${sed_script}" > "${sed_file}"
 commit_text=$(echo "${commit_text}" | sed -f "${sed_file}")
 rm "${sed_file}"
 
+# Add a prefix of what this is for, as per the CVE requirements as documented:
+# https://www.cve.org/ResourcesSupport/AllResources/CNARules#section_8-2_cve_record_prose_description_requirements
+commit_text=$(printf "In the Linux kernel, the following vulnerability has been resolved:\n\n%s" "${commit_text}")
 
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
