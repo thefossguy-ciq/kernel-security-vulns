@@ -19,8 +19,14 @@ cve_update:
 cve_publish_json:
 	cd {{invocation_directory()}}; scripts/cve_publish_json
 
-# List a summary of the ids at this point in time
+
+# Query the CVE server for the list of all ids assigned to us
 list_ids:
+	cve -u gregkh@linuxfoundation.org -o Linux -e test list
+
+
+# List a summary of the ids at this point in time
+summary:
 	#!/usr/bin/env bash
 	cd cve/reserved
 	echo "Number of allocated, but not assigned CVE ids, by year:"
