@@ -19,3 +19,20 @@ cve_update:
 cve_publish_json:
 	cd {{invocation_directory()}}; scripts/cve_publish_json
 
+# List a summary of the ids at this point in time
+list_ids:
+	#!/usr/bin/env bash
+	cd cve/reserved
+	echo "Number of allocated, but not assigned CVE ids, by year:"
+	for dir in $(ls); do
+		count=$(find ${dir}/ -type f | wc -l)
+		echo "	${dir}:	${count}"
+	done
+
+	cd ../../cve/published
+	echo "Number of assigned CVE ids, by year:"
+	for dir in $(ls); do
+		count=$(find ${dir}/ -type f | grep "sha1" | wc -l)
+		echo "	${dir}:	${count}"
+	done
+
