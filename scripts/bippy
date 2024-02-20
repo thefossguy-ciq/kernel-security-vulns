@@ -773,7 +773,8 @@ dbg "commit_text length is ${#commit_text}"
 # expensive) So trim it at 4079, and add "---truncated---" text which brings it
 # out to 4095, with 1 byte to spare incase people are off-by-one in their
 # parsing logic
-json_commit_text=$(printf "%.4079s" "${commit_text}")
+#json_commit_text=$(printf "%.4079s" "${commit_text}")
+json_commit_text=$(printf "%.3982s" "${commit_text}")	# really 3982 for now due to CVE backend issues
 if [[ "${#commit_text}" != "${#json_commit_text}" ]]; then
 	# we truncated the text, so say so
 	json_commit_text=$(printf "%s\n---truncated---\n" "${json_commit_text}")
