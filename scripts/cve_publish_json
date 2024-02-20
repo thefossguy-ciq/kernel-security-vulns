@@ -51,7 +51,8 @@ for id in cve/published/*/*.sha1 ; do
 	root=$(echo "${id}" | cut -f 1 -d '.')
 	#echo "id=${id} sha=${sha} cve=${cve}"
 	echo "Uploading ${cve}"
-	cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
+	cve -u gregkh@kernel.org -o Linux publish ${cve} -f "${root}.json"
+	#cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
 done
 
 # to list all published entries:
