@@ -767,6 +767,18 @@ rm "${sed_file}"
 # Add a prefix of what this is for, as per the CVE requirements as documented:
 # https://www.cve.org/ResourcesSupport/AllResources/CNARules#section_8-2_cve_record_prose_description_requirements
 commit_text=$(printf "In the Linux kernel, the following vulnerability has been resolved:\n\n%s" "${commit_text}")
+dbg "commit_text length is ${#commit_text}"
+
+# The json record description can only be 4096 bytes big (because bytes are
+# expensive) So trim it at 4079, and add "---truncated---" text which brings it
+# out to 4095, with 1 byte to spare incase people are off-by-one in their
+# parsing logic
+json_commit_text=$(printf "%.4079s" "${commit_text}")
+if [[ "${#commit_text}" != "${#json_commit_text}" ]]; then
+	# we truncated the text, so say so
+	json_commit_text=$(printf "%s\n---truncated---\n" "${json_commit_text}")
+fi
+dbg "json_commit_text length is ${#json_commit_text}"
 
 #########################
 # Compose the json knowing what we now know, using the 'jo' tool
@@ -790,7 +802,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 
 	d=$(jo --				\
 		lang="en"			\
-		-s value="${commit_text}"	\
+		-s value="${json_commit_text}"	\
 		)
 
 	descriptions=$(jo -a -- "${d}")
