@@ -133,3 +133,1957 @@ index dd2913ac0fa2..78e19b128962 100644
 -- 
 2.43.2
 
+From 6b0d48647935e4b8c7b75d1eccb9043fcd4ee581 Mon Sep 17 00:00:00 2001
+From: Baokun Li <libaokun1@huawei.com>
+Date: Thu, 4 Jan 2024 22:20:35 +0800
+Subject: [PATCH 001/129] ext4: regenerate buddy after block freeing failed if
+ under fc replay
+Status: RO
+Content-Length: 2024
+Lines: 59
+
+[ Upstream commit c9b528c35795b711331ed36dc3dbee90d5812d4e ]
+
+This mostly reverts commit 6bd97bf273bd ("ext4: remove redundant
+mb_regenerate_buddy()") and reintroduces mb_regenerate_buddy(). Based on
+code in mb_free_blocks(), fast commit replay can end up marking as free
+blocks that are already marked as such. This causes corruption of the
+buddy bitmap so we need to regenerate it in that case.
+
+Reported-by: Jan Kara <jack@suse.cz>
+Fixes: 6bd97bf273bd ("ext4: remove redundant mb_regenerate_buddy()")
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Link: https://lore.kernel.org/r/20240104142040.2835097-4-libaokun1@huawei.com
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/ext4/mballoc.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/fs/ext4/mballoc.c b/fs/ext4/mballoc.c
+index 8408318e1d32..3c5786841c6c 100644
+--- a/fs/ext4/mballoc.c
++++ b/fs/ext4/mballoc.c
+@@ -1233,6 +1233,24 @@ void ext4_mb_generate_buddy(struct super_block *sb,
+ 	atomic64_add(period, &sbi->s_mb_generation_time);
+ }
+ 
++static void mb_regenerate_buddy(struct ext4_buddy *e4b)
++{
++	int count;
++	int order = 1;
++	void *buddy;
++
++	while ((buddy = mb_find_buddy(e4b, order++, &count)))
++		mb_set_bits(buddy, 0, count);
++
++	e4b->bd_info->bb_fragments = 0;
++	memset(e4b->bd_info->bb_counters, 0,
++		sizeof(*e4b->bd_info->bb_counters) *
++		(e4b->bd_sb->s_blocksize_bits + 2));
++
++	ext4_mb_generate_buddy(e4b->bd_sb, e4b->bd_buddy,
++		e4b->bd_bitmap, e4b->bd_group, e4b->bd_info);
++}
++
+ /* The buddy information is attached the buddy cache inode
+  * for convenience. The information regarding each group
+  * is loaded via ext4_mb_load_buddy. The information involve
+@@ -1921,6 +1939,8 @@ static void mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
+ 			ext4_mark_group_bitmap_corrupted(
+ 				sb, e4b->bd_group,
+ 				EXT4_GROUP_INFO_BBITMAP_CORRUPT);
++		} else {
++			mb_regenerate_buddy(e4b);
+ 		}
+ 		goto done;
+ 	}
+-- 
+2.43.2
+
+From 3b48c9e258c8691c2f093ee07b1ea3764caaa1b2 Mon Sep 17 00:00:00 2001
+From: Furong Xu <0x1207@gmail.com>
+Date: Wed, 31 Jan 2024 10:08:28 +0800
+Subject: [PATCH 022/129] net: stmmac: xgmac: fix handling of DPP safety error
+ for DMA channels
+Status: RO
+Content-Length: 5743
+Lines: 150
+
+[ Upstream commit 46eba193d04f8bd717e525eb4110f3c46c12aec3 ]
+
+Commit 56e58d6c8a56 ("net: stmmac: Implement Safety Features in
+XGMAC core") checks and reports safety errors, but leaves the
+Data Path Parity Errors for each channel in DMA unhandled at all, lead to
+a storm of interrupt.
+Fix it by checking and clearing the DMA_DPP_Interrupt_Status register.
+
+Fixes: 56e58d6c8a56 ("net: stmmac: Implement Safety Features in XGMAC core")
+Signed-off-by: Furong Xu <0x1207@gmail.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/stmicro/stmmac/common.h  |  1 +
+ .../net/ethernet/stmicro/stmmac/dwxgmac2.h    |  3 +
+ .../ethernet/stmicro/stmmac/dwxgmac2_core.c   | 57 ++++++++++++++++++-
+ 3 files changed, 60 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/stmicro/stmmac/common.h b/drivers/net/ethernet/stmicro/stmmac/common.h
+index e3f650e88f82..588e44d57f29 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/common.h
++++ b/drivers/net/ethernet/stmicro/stmmac/common.h
+@@ -216,6 +216,7 @@ struct stmmac_safety_stats {
+ 	unsigned long mac_errors[32];
+ 	unsigned long mtl_errors[32];
+ 	unsigned long dma_errors[32];
++	unsigned long dma_dpp_errors[32];
+ };
+ 
+ /* Number of fields in Safety Stats */
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwxgmac2.h b/drivers/net/ethernet/stmicro/stmmac/dwxgmac2.h
+index a4e8b498dea9..7d7133ef4994 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwxgmac2.h
++++ b/drivers/net/ethernet/stmicro/stmmac/dwxgmac2.h
+@@ -319,6 +319,8 @@
+ #define XGMAC_RXCEIE			BIT(4)
+ #define XGMAC_TXCEIE			BIT(0)
+ #define XGMAC_MTL_ECC_INT_STATUS	0x000010cc
++#define XGMAC_MTL_DPP_CONTROL		0x000010e0
++#define XGMAC_DDPP_DISABLE		BIT(0)
+ #define XGMAC_MTL_TXQ_OPMODE(x)		(0x00001100 + (0x80 * (x)))
+ #define XGMAC_TQS			GENMASK(25, 16)
+ #define XGMAC_TQS_SHIFT			16
+@@ -401,6 +403,7 @@
+ #define XGMAC_DCEIE			BIT(1)
+ #define XGMAC_TCEIE			BIT(0)
+ #define XGMAC_DMA_ECC_INT_STATUS	0x0000306c
++#define XGMAC_DMA_DPP_INT_STATUS	0x00003074
+ #define XGMAC_DMA_CH_CONTROL(x)		(0x00003100 + (0x80 * (x)))
+ #define XGMAC_SPH			BIT(24)
+ #define XGMAC_PBLx8			BIT(16)
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwxgmac2_core.c b/drivers/net/ethernet/stmicro/stmmac/dwxgmac2_core.c
+index a74e71db79f9..e7eccc0c406f 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwxgmac2_core.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwxgmac2_core.c
+@@ -830,6 +830,43 @@ static const struct dwxgmac3_error_desc dwxgmac3_dma_errors[32]= {
+ 	{ false, "UNKNOWN", "Unknown Error" }, /* 31 */
+ };
+ 
++static const char * const dpp_rx_err = "Read Rx Descriptor Parity checker Error";
++static const char * const dpp_tx_err = "Read Tx Descriptor Parity checker Error";
++static const struct dwxgmac3_error_desc dwxgmac3_dma_dpp_errors[32] = {
++	{ true, "TDPES0", dpp_tx_err },
++	{ true, "TDPES1", dpp_tx_err },
++	{ true, "TDPES2", dpp_tx_err },
++	{ true, "TDPES3", dpp_tx_err },
++	{ true, "TDPES4", dpp_tx_err },
++	{ true, "TDPES5", dpp_tx_err },
++	{ true, "TDPES6", dpp_tx_err },
++	{ true, "TDPES7", dpp_tx_err },
++	{ true, "TDPES8", dpp_tx_err },
++	{ true, "TDPES9", dpp_tx_err },
++	{ true, "TDPES10", dpp_tx_err },
++	{ true, "TDPES11", dpp_tx_err },
++	{ true, "TDPES12", dpp_tx_err },
++	{ true, "TDPES13", dpp_tx_err },
++	{ true, "TDPES14", dpp_tx_err },
++	{ true, "TDPES15", dpp_tx_err },
++	{ true, "RDPES0", dpp_rx_err },
++	{ true, "RDPES1", dpp_rx_err },
++	{ true, "RDPES2", dpp_rx_err },
++	{ true, "RDPES3", dpp_rx_err },
++	{ true, "RDPES4", dpp_rx_err },
++	{ true, "RDPES5", dpp_rx_err },
++	{ true, "RDPES6", dpp_rx_err },
++	{ true, "RDPES7", dpp_rx_err },
++	{ true, "RDPES8", dpp_rx_err },
++	{ true, "RDPES9", dpp_rx_err },
++	{ true, "RDPES10", dpp_rx_err },
++	{ true, "RDPES11", dpp_rx_err },
++	{ true, "RDPES12", dpp_rx_err },
++	{ true, "RDPES13", dpp_rx_err },
++	{ true, "RDPES14", dpp_rx_err },
++	{ true, "RDPES15", dpp_rx_err },
++};
++
+ static void dwxgmac3_handle_dma_err(struct net_device *ndev,
+ 				    void __iomem *ioaddr, bool correctable,
+ 				    struct stmmac_safety_stats *stats)
+@@ -841,6 +878,13 @@ static void dwxgmac3_handle_dma_err(struct net_device *ndev,
+ 
+ 	dwxgmac3_log_error(ndev, value, correctable, "DMA",
+ 			   dwxgmac3_dma_errors, STAT_OFF(dma_errors), stats);
++
++	value = readl(ioaddr + XGMAC_DMA_DPP_INT_STATUS);
++	writel(value, ioaddr + XGMAC_DMA_DPP_INT_STATUS);
++
++	dwxgmac3_log_error(ndev, value, false, "DMA_DPP",
++			   dwxgmac3_dma_dpp_errors,
++			   STAT_OFF(dma_dpp_errors), stats);
+ }
+ 
+ static int
+@@ -881,6 +925,12 @@ dwxgmac3_safety_feat_config(void __iomem *ioaddr, unsigned int asp,
+ 	value |= XGMAC_TMOUTEN; /* FSM Timeout Feature */
+ 	writel(value, ioaddr + XGMAC_MAC_FSM_CONTROL);
+ 
++	/* 5. Enable Data Path Parity Protection */
++	value = readl(ioaddr + XGMAC_MTL_DPP_CONTROL);
++	/* already enabled by default, explicit enable it again */
++	value &= ~XGMAC_DDPP_DISABLE;
++	writel(value, ioaddr + XGMAC_MTL_DPP_CONTROL);
++
+ 	return 0;
+ }
+ 
+@@ -914,7 +964,11 @@ static int dwxgmac3_safety_feat_irq_status(struct net_device *ndev,
+ 		ret |= !corr;
+ 	}
+ 
+-	err = dma & (XGMAC_DEUIS | XGMAC_DECIS);
++	/* DMA_DPP_Interrupt_Status is indicated by MCSIS bit in
++	 * DMA_Safety_Interrupt_Status, so we handle DMA Data Path
++	 * Parity Errors here
++	 */
++	err = dma & (XGMAC_DEUIS | XGMAC_DECIS | XGMAC_MCSIS);
+ 	corr = dma & XGMAC_DECIS;
+ 	if (err) {
+ 		dwxgmac3_handle_dma_err(ndev, ioaddr, corr, stats);
+@@ -930,6 +984,7 @@ static const struct dwxgmac3_error {
+ 	{ dwxgmac3_mac_errors },
+ 	{ dwxgmac3_mtl_errors },
+ 	{ dwxgmac3_dma_errors },
++	{ dwxgmac3_dma_dpp_errors },
+ };
+ 
+ static int dwxgmac3_safety_feat_dump(struct stmmac_safety_stats *stats,
+-- 
+2.43.2
+
+From ce112c941c2b172afba3e913a90c380647d53975 Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Mon, 29 Jan 2024 13:14:13 +0100
+Subject: [PATCH 024/129] wifi: cfg80211: detect stuck ECSA element in probe
+ resp
+Status: RO
+Content-Length: 4674
+Lines: 134
+
+[ Upstream commit 177fbbcb4ed6b306c1626a277fac3fb1c495a4c7 ]
+
+We recently added some validation that we don't try to
+connect to an AP that is currently in a channel switch
+process, since that might want the channel to be quiet
+or we might not be able to connect in time to hear the
+switching in a beacon. This was in commit c09c4f31998b
+("wifi: mac80211: don't connect to an AP while it's in
+a CSA process").
+
+However, we promptly got a report that this caused new
+connection failures, and it turns out that the AP that
+we now cannot connect to is permanently advertising an
+extended channel switch announcement, even with quiet.
+The AP in question was an Asus RT-AC53, with firmware
+3.0.0.4.380_10760-g21a5898.
+
+As a first step, attempt to detect that we're dealing
+with such a situation, so mac80211 can use this later.
+
+Reported-by: coldolt <andypalmadi@gmail.com>
+Closes: https://lore.kernel.org/linux-wireless/CAJvGw+DQhBk_mHXeu6RTOds5iramMW2FbMB01VbKRA4YbHHDTA@mail.gmail.com/
+Fixes: c09c4f31998b ("wifi: mac80211: don't connect to an AP while it's in a CSA process")
+Reviewed-by: Miriam Rachel Korenblit <miriam.rachel.korenblit@intel.com>
+Link: https://msgid.link/20240129131413.246972c8775e.Ibf834d7f52f9951a353b6872383da710a7358338@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/net/cfg80211.h |  4 +++
+ net/wireless/scan.c    | 59 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 62 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/cfg80211.h b/include/net/cfg80211.h
+index 4ecfb06c413d..8f2c48761833 100644
+--- a/include/net/cfg80211.h
++++ b/include/net/cfg80211.h
+@@ -2865,6 +2865,8 @@ struct cfg80211_bss_ies {
+  *	own the beacon_ies, but they're just pointers to the ones from the
+  *	@hidden_beacon_bss struct)
+  * @proberesp_ies: the information elements from the last Probe Response frame
++ * @proberesp_ecsa_stuck: ECSA element is stuck in the Probe Response frame,
++ *	cannot rely on it having valid data
+  * @hidden_beacon_bss: in case this BSS struct represents a probe response from
+  *	a BSS that hides the SSID in its beacon, this points to the BSS struct
+  *	that holds the beacon data. @beacon_ies is still valid, of course, and
+@@ -2900,6 +2902,8 @@ struct cfg80211_bss {
+ 	u8 chains;
+ 	s8 chain_signal[IEEE80211_MAX_CHAINS];
+ 
++	u8 proberesp_ecsa_stuck:1;
++
+ 	u8 bssid_index;
+ 	u8 max_bssid_indicator;
+ 
+diff --git a/net/wireless/scan.c b/net/wireless/scan.c
+index f819ca3891fc..3f49f5c69916 100644
+--- a/net/wireless/scan.c
++++ b/net/wireless/scan.c
+@@ -1725,6 +1725,61 @@ static void cfg80211_update_hidden_bsses(struct cfg80211_internal_bss *known,
+ 	}
+ }
+ 
++static void cfg80211_check_stuck_ecsa(struct cfg80211_registered_device *rdev,
++				      struct cfg80211_internal_bss *known,
++				      const struct cfg80211_bss_ies *old)
++{
++	const struct ieee80211_ext_chansw_ie *ecsa;
++	const struct element *elem_new, *elem_old;
++	const struct cfg80211_bss_ies *new, *bcn;
++
++	if (known->pub.proberesp_ecsa_stuck)
++		return;
++
++	new = rcu_dereference_protected(known->pub.proberesp_ies,
++					lockdep_is_held(&rdev->bss_lock));
++	if (WARN_ON(!new))
++		return;
++
++	if (new->tsf - old->tsf < USEC_PER_SEC)
++		return;
++
++	elem_old = cfg80211_find_elem(WLAN_EID_EXT_CHANSWITCH_ANN,
++				      old->data, old->len);
++	if (!elem_old)
++		return;
++
++	elem_new = cfg80211_find_elem(WLAN_EID_EXT_CHANSWITCH_ANN,
++				      new->data, new->len);
++	if (!elem_new)
++		return;
++
++	bcn = rcu_dereference_protected(known->pub.beacon_ies,
++					lockdep_is_held(&rdev->bss_lock));
++	if (bcn &&
++	    cfg80211_find_elem(WLAN_EID_EXT_CHANSWITCH_ANN,
++			       bcn->data, bcn->len))
++		return;
++
++	if (elem_new->datalen != elem_old->datalen)
++		return;
++	if (elem_new->datalen < sizeof(struct ieee80211_ext_chansw_ie))
++		return;
++	if (memcmp(elem_new->data, elem_old->data, elem_new->datalen))
++		return;
++
++	ecsa = (void *)elem_new->data;
++
++	if (!ecsa->mode)
++		return;
++
++	if (ecsa->new_ch_num !=
++	    ieee80211_frequency_to_channel(known->pub.channel->center_freq))
++		return;
++
++	known->pub.proberesp_ecsa_stuck = 1;
++}
++
+ static bool
+ cfg80211_update_known_bss(struct cfg80211_registered_device *rdev,
+ 			  struct cfg80211_internal_bss *known,
+@@ -1744,8 +1799,10 @@ cfg80211_update_known_bss(struct cfg80211_registered_device *rdev,
+ 		/* Override possible earlier Beacon frame IEs */
+ 		rcu_assign_pointer(known->pub.ies,
+ 				   new->pub.proberesp_ies);
+-		if (old)
++		if (old) {
++			cfg80211_check_stuck_ecsa(rdev, known, old);
+ 			kfree_rcu((struct cfg80211_bss_ies *)old, rcu_head);
++		}
+ 	}
+ 
+ 	if (rcu_access_pointer(new->pub.beacon_ies)) {
+-- 
+2.43.2
+
+From ea88bde8e3fefbe4268f6991375dd629895a090a Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Mon, 29 Jan 2024 13:14:14 +0100
+Subject: [PATCH 025/129] wifi: mac80211: improve CSA/ECSA connection refusal
+Status: RO
+Content-Length: 6443
+Lines: 179
+
+[ Upstream commit 35e2385dbe787936c793d70755a5177d267a40aa ]
+
+As mentioned in the previous commit, we pretty quickly found
+that some APs have ECSA elements stuck in their probe response,
+so using that to not attempt to connect while CSA is happening
+we never connect to such an AP.
+
+Improve this situation by checking more carefully and ignoring
+the ECSA if cfg80211 has previously detected the ECSA element
+being stuck in the probe response.
+
+Additionally, allow connecting to an AP that's switching to a
+channel it's already using, unless it's using quiet mode. In
+this case, we may just have to adjust bandwidth later. If it's
+actually switching channels, it's better not to try to connect
+in the middle of that.
+
+Reported-by: coldolt <andypalmadi@gmail.com>
+Closes: https://lore.kernel.org/linux-wireless/CAJvGw+DQhBk_mHXeu6RTOds5iramMW2FbMB01VbKRA4YbHHDTA@mail.gmail.com/
+Fixes: c09c4f31998b ("wifi: mac80211: don't connect to an AP while it's in a CSA process")
+Reviewed-by: Miriam Rachel Korenblit <miriam.rachel.korenblit@intel.com>
+Link: https://msgid.link/20240129131413.cc2d0a26226e.I682c016af76e35b6c47007db50e8554c5a426910@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/mac80211/mlme.c | 103 ++++++++++++++++++++++++++++++++------------
+ 1 file changed, 76 insertions(+), 27 deletions(-)
+
+diff --git a/net/mac80211/mlme.c b/net/mac80211/mlme.c
+index dcdaab19efbd..bbe36d87ac59 100644
+--- a/net/mac80211/mlme.c
++++ b/net/mac80211/mlme.c
+@@ -7288,6 +7288,75 @@ static int ieee80211_prep_connection(struct ieee80211_sub_if_data *sdata,
+ 	return err;
+ }
+ 
++static bool ieee80211_mgd_csa_present(struct ieee80211_sub_if_data *sdata,
++				      const struct cfg80211_bss_ies *ies,
++				      u8 cur_channel, bool ignore_ecsa)
++{
++	const struct element *csa_elem, *ecsa_elem;
++	struct ieee80211_channel_sw_ie *csa = NULL;
++	struct ieee80211_ext_chansw_ie *ecsa = NULL;
++
++	if (!ies)
++		return false;
++
++	csa_elem = cfg80211_find_elem(WLAN_EID_CHANNEL_SWITCH,
++				      ies->data, ies->len);
++	if (csa_elem && csa_elem->datalen == sizeof(*csa))
++		csa = (void *)csa_elem->data;
++
++	ecsa_elem = cfg80211_find_elem(WLAN_EID_EXT_CHANSWITCH_ANN,
++				       ies->data, ies->len);
++	if (ecsa_elem && ecsa_elem->datalen == sizeof(*ecsa))
++		ecsa = (void *)ecsa_elem->data;
++
++	if (csa && csa->count == 0)
++		csa = NULL;
++	if (csa && !csa->mode && csa->new_ch_num == cur_channel)
++		csa = NULL;
++
++	if (ecsa && ecsa->count == 0)
++		ecsa = NULL;
++	if (ecsa && !ecsa->mode && ecsa->new_ch_num == cur_channel)
++		ecsa = NULL;
++
++	if (ignore_ecsa && ecsa) {
++		sdata_info(sdata,
++			   "Ignoring ECSA in probe response - was considered stuck!\n");
++		return csa;
++	}
++
++	return csa || ecsa;
++}
++
++static bool ieee80211_mgd_csa_in_process(struct ieee80211_sub_if_data *sdata,
++					 struct cfg80211_bss *bss)
++{
++	u8 cur_channel;
++	bool ret;
++
++	cur_channel = ieee80211_frequency_to_channel(bss->channel->center_freq);
++
++	rcu_read_lock();
++	if (ieee80211_mgd_csa_present(sdata,
++				      rcu_dereference(bss->beacon_ies),
++				      cur_channel, false)) {
++		ret = true;
++		goto out;
++	}
++
++	if (ieee80211_mgd_csa_present(sdata,
++				      rcu_dereference(bss->proberesp_ies),
++				      cur_channel, bss->proberesp_ecsa_stuck)) {
++		ret = true;
++		goto out;
++	}
++
++	ret = false;
++out:
++	rcu_read_unlock();
++	return ret;
++}
++
+ /* config hooks */
+ int ieee80211_mgd_auth(struct ieee80211_sub_if_data *sdata,
+ 		       struct cfg80211_auth_request *req)
+@@ -7296,7 +7365,6 @@ int ieee80211_mgd_auth(struct ieee80211_sub_if_data *sdata,
+ 	struct ieee80211_if_managed *ifmgd = &sdata->u.mgd;
+ 	struct ieee80211_mgd_auth_data *auth_data;
+ 	struct ieee80211_link_data *link;
+-	const struct element *csa_elem, *ecsa_elem;
+ 	u16 auth_alg;
+ 	int err;
+ 	bool cont_auth;
+@@ -7339,21 +7407,10 @@ int ieee80211_mgd_auth(struct ieee80211_sub_if_data *sdata,
+ 	if (ifmgd->assoc_data)
+ 		return -EBUSY;
+ 
+-	rcu_read_lock();
+-	csa_elem = ieee80211_bss_get_elem(req->bss, WLAN_EID_CHANNEL_SWITCH);
+-	ecsa_elem = ieee80211_bss_get_elem(req->bss,
+-					   WLAN_EID_EXT_CHANSWITCH_ANN);
+-	if ((csa_elem &&
+-	     csa_elem->datalen == sizeof(struct ieee80211_channel_sw_ie) &&
+-	     ((struct ieee80211_channel_sw_ie *)csa_elem->data)->count != 0) ||
+-	    (ecsa_elem &&
+-	     ecsa_elem->datalen == sizeof(struct ieee80211_ext_chansw_ie) &&
+-	     ((struct ieee80211_ext_chansw_ie *)ecsa_elem->data)->count != 0)) {
+-		rcu_read_unlock();
++	if (ieee80211_mgd_csa_in_process(sdata, req->bss)) {
+ 		sdata_info(sdata, "AP is in CSA process, reject auth\n");
+ 		return -EINVAL;
+ 	}
+-	rcu_read_unlock();
+ 
+ 	auth_data = kzalloc(sizeof(*auth_data) + req->auth_data_len +
+ 			    req->ie_len, GFP_KERNEL);
+@@ -7662,7 +7719,7 @@ int ieee80211_mgd_assoc(struct ieee80211_sub_if_data *sdata,
+ 	struct ieee80211_local *local = sdata->local;
+ 	struct ieee80211_if_managed *ifmgd = &sdata->u.mgd;
+ 	struct ieee80211_mgd_assoc_data *assoc_data;
+-	const struct element *ssid_elem, *csa_elem, *ecsa_elem;
++	const struct element *ssid_elem;
+ 	struct ieee80211_vif_cfg *vif_cfg = &sdata->vif.cfg;
+ 	ieee80211_conn_flags_t conn_flags = 0;
+ 	struct ieee80211_link_data *link;
+@@ -7685,23 +7742,15 @@ int ieee80211_mgd_assoc(struct ieee80211_sub_if_data *sdata,
+ 
+ 	cbss = req->link_id < 0 ? req->bss : req->links[req->link_id].bss;
+ 
+-	rcu_read_lock();
+-	ssid_elem = ieee80211_bss_get_elem(cbss, WLAN_EID_SSID);
+-	if (!ssid_elem || ssid_elem->datalen > sizeof(assoc_data->ssid)) {
+-		rcu_read_unlock();
++	if (ieee80211_mgd_csa_in_process(sdata, cbss)) {
++		sdata_info(sdata, "AP is in CSA process, reject assoc\n");
+ 		kfree(assoc_data);
+ 		return -EINVAL;
+ 	}
+ 
+-	csa_elem = ieee80211_bss_get_elem(cbss, WLAN_EID_CHANNEL_SWITCH);
+-	ecsa_elem = ieee80211_bss_get_elem(cbss, WLAN_EID_EXT_CHANSWITCH_ANN);
+-	if ((csa_elem &&
+-	     csa_elem->datalen == sizeof(struct ieee80211_channel_sw_ie) &&
+-	     ((struct ieee80211_channel_sw_ie *)csa_elem->data)->count != 0) ||
+-	    (ecsa_elem &&
+-	     ecsa_elem->datalen == sizeof(struct ieee80211_ext_chansw_ie) &&
+-	     ((struct ieee80211_ext_chansw_ie *)ecsa_elem->data)->count != 0)) {
+-		sdata_info(sdata, "AP is in CSA process, reject assoc\n");
++	rcu_read_lock();
++	ssid_elem = ieee80211_bss_get_elem(cbss, WLAN_EID_SSID);
++	if (!ssid_elem || ssid_elem->datalen > sizeof(assoc_data->ssid)) {
+ 		rcu_read_unlock();
+ 		kfree(assoc_data);
+ 		return -EINVAL;
+-- 
+2.43.2
+
+From d91964cdada76740811b7c621239f9c407820dbc Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Thu, 1 Feb 2024 17:53:24 +0000
+Subject: [PATCH 031/129] netdevsim: avoid potential loop in
+ nsim_dev_trap_report_work()
+Status: RO
+Content-Length: 4593
+Lines: 95
+
+[ Upstream commit ba5e1272142d051dcc57ca1d3225ad8a089f9858 ]
+
+Many syzbot reports include the following trace [1]
+
+If nsim_dev_trap_report_work() can not grab the mutex,
+it should rearm itself at least one jiffie later.
+
+[1]
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 32383 Comm: kworker/0:2 Not tainted 6.8.0-rc2-syzkaller-00031-g861c0981648f #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+Workqueue: events nsim_dev_trap_report_work
+ RIP: 0010:bytes_is_nonzero mm/kasan/generic.c:89 [inline]
+ RIP: 0010:memory_is_nonzero mm/kasan/generic.c:104 [inline]
+ RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:129 [inline]
+ RIP: 0010:memory_is_poisoned mm/kasan/generic.c:161 [inline]
+ RIP: 0010:check_region_inline mm/kasan/generic.c:180 [inline]
+ RIP: 0010:kasan_check_range+0x101/0x190 mm/kasan/generic.c:189
+Code: 07 49 39 d1 75 0a 45 3a 11 b8 01 00 00 00 7c 0b 44 89 c2 e8 21 ed ff ff 83 f0 01 5b 5d 41 5c c3 48 85 d2 74 4f 48 01 ea eb 09 <48> 83 c0 01 48 39 d0 74 41 80 38 00 74 f2 eb b6 41 bc 08 00 00 00
+RSP: 0018:ffffc90012dcf998 EFLAGS: 00000046
+RAX: fffffbfff258af1e RBX: fffffbfff258af1f RCX: ffffffff8168eda3
+RDX: fffffbfff258af1f RSI: 0000000000000004 RDI: ffffffff92c578f0
+RBP: fffffbfff258af1e R08: 0000000000000000 R09: fffffbfff258af1e
+R10: ffffffff92c578f3 R11: ffffffff8acbcbc0 R12: 0000000000000002
+R13: ffff88806db38400 R14: 1ffff920025b9f42 R15: ffffffff92c578e8
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c00994e078 CR3: 000000002c250000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <NMI>
+ </NMI>
+ <TASK>
+  instrument_atomic_read include/linux/instrumented.h:68 [inline]
+  atomic_read include/linux/atomic/atomic-instrumented.h:32 [inline]
+  queued_spin_is_locked include/asm-generic/qspinlock.h:57 [inline]
+  debug_spin_unlock kernel/locking/spinlock_debug.c:101 [inline]
+  do_raw_spin_unlock+0x53/0x230 kernel/locking/spinlock_debug.c:141
+  __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:150 [inline]
+  _raw_spin_unlock_irqrestore+0x22/0x70 kernel/locking/spinlock.c:194
+  debug_object_activate+0x349/0x540 lib/debugobjects.c:726
+  debug_work_activate kernel/workqueue.c:578 [inline]
+  insert_work+0x30/0x230 kernel/workqueue.c:1650
+  __queue_work+0x62e/0x11d0 kernel/workqueue.c:1802
+  __queue_delayed_work+0x1bf/0x270 kernel/workqueue.c:1953
+  queue_delayed_work_on+0x106/0x130 kernel/workqueue.c:1989
+  queue_delayed_work include/linux/workqueue.h:563 [inline]
+  schedule_delayed_work include/linux/workqueue.h:677 [inline]
+  nsim_dev_trap_report_work+0x9c0/0xc80 drivers/net/netdevsim/dev.c:842
+  process_one_work+0x886/0x15d0 kernel/workqueue.c:2633
+  process_scheduled_works kernel/workqueue.c:2706 [inline]
+  worker_thread+0x8b9/0x1290 kernel/workqueue.c:2787
+  kthread+0x2c6/0x3a0 kernel/kthread.c:388
+  ret_from_fork+0x45/0x80 arch/x86/kernel/process.c:147
+  ret_from_fork_asm+0x11/0x20 arch/x86/entry/entry_64.S:242
+ </TASK>
+
+Fixes: 012ec02ae441 ("netdevsim: convert driver to use unlocked devlink API during init/fini")
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Link: https://lore.kernel.org/r/20240201175324.3752746-1-edumazet@google.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/netdevsim/dev.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/netdevsim/dev.c b/drivers/net/netdevsim/dev.c
+index b4d3b9cde8bd..92a7a36b93ac 100644
+--- a/drivers/net/netdevsim/dev.c
++++ b/drivers/net/netdevsim/dev.c
+@@ -835,14 +835,14 @@ static void nsim_dev_trap_report_work(struct work_struct *work)
+ 				      trap_report_dw.work);
+ 	nsim_dev = nsim_trap_data->nsim_dev;
+ 
+-	/* For each running port and enabled packet trap, generate a UDP
+-	 * packet with a random 5-tuple and report it.
+-	 */
+ 	if (!devl_trylock(priv_to_devlink(nsim_dev))) {
+-		schedule_delayed_work(&nsim_dev->trap_data->trap_report_dw, 0);
++		schedule_delayed_work(&nsim_dev->trap_data->trap_report_dw, 1);
+ 		return;
+ 	}
+ 
++	/* For each running port and enabled packet trap, generate a UDP
++	 * packet with a random 5-tuple and report it.
++	 */
+ 	list_for_each_entry(nsim_dev_port, &nsim_dev->port_list, list) {
+ 		if (!netif_running(nsim_dev_port->ns->netdev))
+ 			continue;
+-- 
+2.43.2
+
+From e42e334c645575be5432adee224975d4f536fdb1 Mon Sep 17 00:00:00 2001
+From: Ivan Vecera <ivecera@redhat.com>
+Date: Thu, 1 Feb 2024 10:47:51 +0100
+Subject: [PATCH 032/129] net: atlantic: Fix DMA mapping for PTP hwts ring
+Status: RO
+Content-Length: 4621
+Lines: 114
+
+[ Upstream commit 2e7d3b67630dfd8f178c41fa2217aa00e79a5887 ]
+
+Function aq_ring_hwts_rx_alloc() maps extra AQ_CFG_RXDS_DEF bytes
+for PTP HWTS ring but then generic aq_ring_free() does not take this
+into account.
+Create and use a specific function to free HWTS ring to fix this
+issue.
+
+Trace:
+[  215.351607] ------------[ cut here ]------------
+[  215.351612] DMA-API: atlantic 0000:4b:00.0: device driver frees DMA memory with different size [device address=0x00000000fbdd0000] [map size=34816 bytes] [unmap size=32768 bytes]
+[  215.351635] WARNING: CPU: 33 PID: 10759 at kernel/dma/debug.c:988 check_unmap+0xa6f/0x2360
+...
+[  215.581176] Call Trace:
+[  215.583632]  <TASK>
+[  215.585745]  ? show_trace_log_lvl+0x1c4/0x2df
+[  215.590114]  ? show_trace_log_lvl+0x1c4/0x2df
+[  215.594497]  ? debug_dma_free_coherent+0x196/0x210
+[  215.599305]  ? check_unmap+0xa6f/0x2360
+[  215.603147]  ? __warn+0xca/0x1d0
+[  215.606391]  ? check_unmap+0xa6f/0x2360
+[  215.610237]  ? report_bug+0x1ef/0x370
+[  215.613921]  ? handle_bug+0x3c/0x70
+[  215.617423]  ? exc_invalid_op+0x14/0x50
+[  215.621269]  ? asm_exc_invalid_op+0x16/0x20
+[  215.625480]  ? check_unmap+0xa6f/0x2360
+[  215.629331]  ? mark_lock.part.0+0xca/0xa40
+[  215.633445]  debug_dma_free_coherent+0x196/0x210
+[  215.638079]  ? __pfx_debug_dma_free_coherent+0x10/0x10
+[  215.643242]  ? slab_free_freelist_hook+0x11d/0x1d0
+[  215.648060]  dma_free_attrs+0x6d/0x130
+[  215.651834]  aq_ring_free+0x193/0x290 [atlantic]
+[  215.656487]  aq_ptp_ring_free+0x67/0x110 [atlantic]
+...
+[  216.127540] ---[ end trace 6467e5964dd2640b ]---
+[  216.132160] DMA-API: Mapped at:
+[  216.132162]  debug_dma_alloc_coherent+0x66/0x2f0
+[  216.132165]  dma_alloc_attrs+0xf5/0x1b0
+[  216.132168]  aq_ring_hwts_rx_alloc+0x150/0x1f0 [atlantic]
+[  216.132193]  aq_ptp_ring_alloc+0x1bb/0x540 [atlantic]
+[  216.132213]  aq_nic_init+0x4a1/0x760 [atlantic]
+
+Fixes: 94ad94558b0f ("net: aquantia: add PTP rings infrastructure")
+Signed-off-by: Ivan Vecera <ivecera@redhat.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Link: https://lore.kernel.org/r/20240201094752.883026-1-ivecera@redhat.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ptp.c  |  4 ++--
+ drivers/net/ethernet/aquantia/atlantic/aq_ring.c | 13 +++++++++++++
+ drivers/net/ethernet/aquantia/atlantic/aq_ring.h |  1 +
+ 3 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
+index abd4832e4ed2..5acb3e16b567 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
+@@ -993,7 +993,7 @@ int aq_ptp_ring_alloc(struct aq_nic_s *aq_nic)
+ 	return 0;
+ 
+ err_exit_hwts_rx:
+-	aq_ring_free(&aq_ptp->hwts_rx);
++	aq_ring_hwts_rx_free(&aq_ptp->hwts_rx);
+ err_exit_ptp_rx:
+ 	aq_ring_free(&aq_ptp->ptp_rx);
+ err_exit_ptp_tx:
+@@ -1011,7 +1011,7 @@ void aq_ptp_ring_free(struct aq_nic_s *aq_nic)
+ 
+ 	aq_ring_free(&aq_ptp->ptp_tx);
+ 	aq_ring_free(&aq_ptp->ptp_rx);
+-	aq_ring_free(&aq_ptp->hwts_rx);
++	aq_ring_hwts_rx_free(&aq_ptp->hwts_rx);
+ 
+ 	aq_ptp_skb_ring_release(&aq_ptp->skb_ring);
+ }
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ring.c b/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
+index cda8597b4e14..f7433abd6591 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
+@@ -919,6 +919,19 @@ void aq_ring_free(struct aq_ring_s *self)
+ 	}
+ }
+ 
++void aq_ring_hwts_rx_free(struct aq_ring_s *self)
++{
++	if (!self)
++		return;
++
++	if (self->dx_ring) {
++		dma_free_coherent(aq_nic_get_dev(self->aq_nic),
++				  self->size * self->dx_size + AQ_CFG_RXDS_DEF,
++				  self->dx_ring, self->dx_ring_pa);
++		self->dx_ring = NULL;
++	}
++}
++
+ unsigned int aq_ring_fill_stats_data(struct aq_ring_s *self, u64 *data)
+ {
+ 	unsigned int count;
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ring.h b/drivers/net/ethernet/aquantia/atlantic/aq_ring.h
+index 52847310740a..d627ace850ff 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ring.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ring.h
+@@ -210,6 +210,7 @@ int aq_ring_rx_fill(struct aq_ring_s *self);
+ int aq_ring_hwts_rx_alloc(struct aq_ring_s *self,
+ 			  struct aq_nic_s *aq_nic, unsigned int idx,
+ 			  unsigned int size, unsigned int dx_size);
++void aq_ring_hwts_rx_free(struct aq_ring_s *self);
+ void aq_ring_hwts_rx_clean(struct aq_ring_s *self, struct aq_nic_s *aq_nic);
+ 
+ unsigned int aq_ring_fill_stats_data(struct aq_ring_s *self, u64 *data);
+-- 
+2.43.2
+
+From 7dc9feb8b1705cf00de20563b6bc4831f4c99dab Mon Sep 17 00:00:00 2001
+From: Antoine Tenart <atenart@kernel.org>
+Date: Thu, 1 Feb 2024 09:38:15 +0100
+Subject: [PATCH 040/129] tunnels: fix out of bounds access when building IPv6
+ PMTU error
+Status: RO
+Content-Length: 1576
+Lines: 46
+
+[ Upstream commit d75abeec401f8c86b470e7028a13fcdc87e5dd06 ]
+
+If the ICMPv6 error is built from a non-linear skb we get the following
+splat,
+
+  BUG: KASAN: slab-out-of-bounds in do_csum+0x220/0x240
+  Read of size 4 at addr ffff88811d402c80 by task netperf/820
+  CPU: 0 PID: 820 Comm: netperf Not tainted 6.8.0-rc1+ #543
+  ...
+   kasan_report+0xd8/0x110
+   do_csum+0x220/0x240
+   csum_partial+0xc/0x20
+   skb_tunnel_check_pmtu+0xeb9/0x3280
+   vxlan_xmit_one+0x14c2/0x4080
+   vxlan_xmit+0xf61/0x5c00
+   dev_hard_start_xmit+0xfb/0x510
+   __dev_queue_xmit+0x7cd/0x32a0
+   br_dev_queue_push_xmit+0x39d/0x6a0
+
+Use skb_checksum instead of csum_partial who cannot deal with non-linear
+SKBs.
+
+Fixes: 4cb47a8644cc ("tunnels: PMTU discovery support for directly bridged IP packets")
+Signed-off-by: Antoine Tenart <atenart@kernel.org>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv4/ip_tunnel_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv4/ip_tunnel_core.c b/net/ipv4/ip_tunnel_core.c
+index 586b1b3e35b8..80ccd6661aa3 100644
+--- a/net/ipv4/ip_tunnel_core.c
++++ b/net/ipv4/ip_tunnel_core.c
+@@ -332,7 +332,7 @@ static int iptunnel_pmtud_build_icmpv6(struct sk_buff *skb, int mtu)
+ 	};
+ 	skb_reset_network_header(skb);
+ 
+-	csum = csum_partial(icmp6h, len, 0);
++	csum = skb_checksum(skb, skb_transport_offset(skb), len, 0);
+ 	icmp6h->icmp6_cksum = csum_ipv6_magic(&nip6h->saddr, &nip6h->daddr, len,
+ 					      IPPROTO_ICMPV6, csum);
+ 
+-- 
+2.43.2
+
+From 3a7753bda55985dc26fae17795cb10d825453ad1 Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Fri, 2 Feb 2024 17:21:34 +0800
+Subject: [PATCH 044/129] hwmon: (coretemp) Fix out-of-bounds memory access
+Status: RO
+Content-Length: 1451
+Lines: 44
+
+[ Upstream commit 4e440abc894585a34c2904a32cd54af1742311b3 ]
+
+Fix a bug that pdata->cpu_map[] is set before out-of-bounds check.
+The problem might be triggered on systems with more than 128 cores per
+package.
+
+Fixes: 7108b80a542b ("hwmon/coretemp: Handle large core ID value")
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/r/20240202092144.71180-2-rui.zhang@intel.com
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Stable-dep-of: fdaf0c8629d4 ("hwmon: (coretemp) Fix bogus core_id to attr name mapping")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/hwmon/coretemp.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index ba82d1e79c13..e78c76919111 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -509,18 +509,14 @@ static int create_core_data(struct platform_device *pdev, unsigned int cpu,
+ 	if (pkg_flag) {
+ 		attr_no = PKG_SYSFS_ATTR_NO;
+ 	} else {
+-		index = ida_alloc(&pdata->ida, GFP_KERNEL);
++		index = ida_alloc_max(&pdata->ida, NUM_REAL_CORES - 1, GFP_KERNEL);
+ 		if (index < 0)
+ 			return index;
++
+ 		pdata->cpu_map[index] = topology_core_id(cpu);
+ 		attr_no = index + BASE_SYSFS_ATTR_NO;
+ 	}
+ 
+-	if (attr_no > MAX_CORE_DATA - 1) {
+-		err = -ERANGE;
+-		goto ida_free;
+-	}
+-
+ 	tdata = init_temp_data(cpu, pkg_flag);
+ 	if (!tdata) {
+ 		err = -ENOMEM;
+-- 
+2.43.2
+
+From 307fa8a75ab7423fa5c73573ec3d192de5027830 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 2 Feb 2024 09:54:04 +0000
+Subject: [PATCH 046/129] inet: read sk->sk_family once in inet_recv_error()
+Status: RO
+Content-Length: 1282
+Lines: 38
+
+[ Upstream commit eef00a82c568944f113f2de738156ac591bbd5cd ]
+
+inet_recv_error() is called without holding the socket lock.
+
+IPv6 socket could mutate to IPv4 with IPV6_ADDRFORM
+socket option and trigger a KCSAN warning.
+
+Fixes: f4713a3dfad0 ("net-timestamp: make tcp_recvmsg call ipv6_recv_error for AF_INET6 socks")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Willem de Bruijn <willemb@google.com>
+Reviewed-by: Willem de Bruijn <willemb@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv4/af_inet.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
+index 1c58bd72e124..e59962f34caa 100644
+--- a/net/ipv4/af_inet.c
++++ b/net/ipv4/af_inet.c
+@@ -1628,10 +1628,12 @@ EXPORT_SYMBOL(inet_current_timestamp);
+ 
+ int inet_recv_error(struct sock *sk, struct msghdr *msg, int len, int *addr_len)
+ {
+-	if (sk->sk_family == AF_INET)
++	unsigned int family = READ_ONCE(sk->sk_family);
++
++	if (family == AF_INET)
+ 		return ip_recv_error(sk, msg, len, addr_len);
+ #if IS_ENABLED(CONFIG_IPV6)
+-	if (sk->sk_family == AF_INET6)
++	if (family == AF_INET6)
+ 		return pingv6_ops.ipv6_recv_error(sk, msg, len, addr_len);
+ #endif
+ 	return -EINVAL;
+-- 
+2.43.2
+
+From 4adeeff8c12321cd453412a659c3c0eeb9bb2397 Mon Sep 17 00:00:00 2001
+From: Ard Biesheuvel <ardb@kernel.org>
+Date: Mon, 5 Feb 2024 09:11:07 +0100
+Subject: [PATCH 048/129] x86/efistub: Use 1:1 file:memory mapping for PE/COFF
+ .compat section
+Status: RO
+Content-Length: 3711
+Lines: 112
+
+[ Upstream commit 1ad55cecf22f05f1c884adf63cc09d3c3e609ebf ]
+
+The .compat section is a dummy PE section that contains the address of
+the 32-bit entrypoint of the 64-bit kernel image if it is bootable from
+32-bit firmware (i.e., CONFIG_EFI_MIXED=y)
+
+This section is only 8 bytes in size and is only referenced from the
+loader, and so it is placed at the end of the memory view of the image,
+to avoid the need for padding it to 4k, which is required for sections
+appearing in the middle of the image.
+
+Unfortunately, this violates the PE/COFF spec, and even if most EFI
+loaders will work correctly (including the Tianocore reference
+implementation), PE loaders do exist that reject such images, on the
+basis that both the file and memory views of the file contents should be
+described by the section headers in a monotonically increasing manner
+without leaving any gaps.
+
+So reorganize the sections to avoid this issue. This results in a slight
+padding overhead (< 4k) which can be avoided if desired by disabling
+CONFIG_EFI_MIXED (which is only needed in rare cases these days)
+
+Fixes: 3e3eabe26dc8 ("x86/boot: Increase section and file alignment to 4k/512")
+Reported-by: Mike Beaton <mjsbeaton@gmail.com>
+Link: https://lkml.kernel.org/r/CAHzAAWQ6srV6LVNdmfbJhOwhBw5ZzxxZZ07aHt9oKkfYAdvuQQ%40mail.gmail.com
+Signed-off-by: Ard Biesheuvel <ardb@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/x86/boot/header.S | 14 ++++++--------
+ arch/x86/boot/setup.ld |  6 +++---
+ 2 files changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/arch/x86/boot/header.S b/arch/x86/boot/header.S
+index b2771710ed98..a1bbedd989e4 100644
+--- a/arch/x86/boot/header.S
++++ b/arch/x86/boot/header.S
+@@ -106,8 +106,7 @@ extra_header_fields:
+ 	.word	0				# MinorSubsystemVersion
+ 	.long	0				# Win32VersionValue
+ 
+-	.long	setup_size + ZO__end + pecompat_vsize
+-						# SizeOfImage
++	.long	setup_size + ZO__end		# SizeOfImage
+ 
+ 	.long	salign				# SizeOfHeaders
+ 	.long	0				# CheckSum
+@@ -143,7 +142,7 @@ section_table:
+ 	.ascii	".setup"
+ 	.byte	0
+ 	.byte	0
+-	.long	setup_size - salign 		# VirtualSize
++	.long	pecompat_fstart - salign 	# VirtualSize
+ 	.long	salign				# VirtualAddress
+ 	.long	pecompat_fstart - salign	# SizeOfRawData
+ 	.long	salign				# PointerToRawData
+@@ -156,8 +155,8 @@ section_table:
+ #ifdef CONFIG_EFI_MIXED
+ 	.asciz	".compat"
+ 
+-	.long	8				# VirtualSize
+-	.long	setup_size + ZO__end		# VirtualAddress
++	.long	pecompat_fsize			# VirtualSize
++	.long	pecompat_fstart			# VirtualAddress
+ 	.long	pecompat_fsize			# SizeOfRawData
+ 	.long	pecompat_fstart			# PointerToRawData
+ 
+@@ -172,17 +171,16 @@ section_table:
+ 	 * modes this image supports.
+ 	 */
+ 	.pushsection ".pecompat", "a", @progbits
+-	.balign	falign
+-	.set	pecompat_vsize, salign
++	.balign	salign
+ 	.globl	pecompat_fstart
+ pecompat_fstart:
+ 	.byte	0x1				# Version
+ 	.byte	8				# Size
+ 	.word	IMAGE_FILE_MACHINE_I386		# PE machine type
+ 	.long	setup_size + ZO_efi32_pe_entry	# Entrypoint
++	.byte	0x0				# Sentinel
+ 	.popsection
+ #else
+-	.set	pecompat_vsize, 0
+ 	.set	pecompat_fstart, setup_size
+ #endif
+ 	.ascii	".text"
+diff --git a/arch/x86/boot/setup.ld b/arch/x86/boot/setup.ld
+index 83bb7efad8ae..3a2d1360abb0 100644
+--- a/arch/x86/boot/setup.ld
++++ b/arch/x86/boot/setup.ld
+@@ -24,6 +24,9 @@ SECTIONS
+ 	.text		: { *(.text .text.*) }
+ 	.text32		: { *(.text32) }
+ 
++	.pecompat	: { *(.pecompat) }
++	PROVIDE(pecompat_fsize = setup_size - pecompat_fstart);
++
+ 	. = ALIGN(16);
+ 	.rodata		: { *(.rodata*) }
+ 
+@@ -36,9 +39,6 @@ SECTIONS
+ 	. = ALIGN(16);
+ 	.data		: { *(.data*) }
+ 
+-	.pecompat	: { *(.pecompat) }
+-	PROVIDE(pecompat_fsize = setup_size - pecompat_fstart);
+-
+ 	.signature	: {
+ 		setup_sig = .;
+ 		LONG(0x5a5aaa55)
+-- 
+2.43.2
+
+From edc8201823e93db7d17726c335a725815aa7d551 Mon Sep 17 00:00:00 2001
+From: David Howells <dhowells@redhat.com>
+Date: Fri, 2 Feb 2024 15:19:13 +0000
+Subject: [PATCH 049/129] rxrpc: Fix generation of serial numbers to skip zero
+Status: RO
+Content-Length: 5951
+Lines: 161
+
+[ Upstream commit f31041417bf7f4a4df8b3bfb52cb31bbe805b934 ]
+
+In the Rx protocol, every packet generated is marked with a per-connection
+monotonically increasing serial number.  This number can be referenced in
+an ACK packet generated in response to an incoming packet - thereby
+allowing the sender to use this for RTT determination, amongst other
+things.
+
+However, if the reference field in the ACK is zero, it doesn't refer to any
+incoming packet (it could be a ping to find out if a packet got lost, for
+example) - so we shouldn't generate zero serial numbers.
+
+Fix the generation of serial numbers to retry if it comes up with a zero.
+
+Furthermore, since the serial numbers are only ever allocated within the
+I/O thread this connection is bound to, there's no need for atomics so
+remove that too.
+
+Fixes: 17926a79320a ("[AF_RXRPC]: Provide secure RxRPC sockets for use by userspace and kernel both")
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Marc Dionne <marc.dionne@auristor.com>
+cc: "David S. Miller" <davem@davemloft.net>
+cc: Eric Dumazet <edumazet@google.com>
+cc: Jakub Kicinski <kuba@kernel.org>
+cc: Paolo Abeni <pabeni@redhat.com>
+cc: linux-afs@lists.infradead.org
+cc: netdev@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/rxrpc/ar-internal.h | 16 +++++++++++++++-
+ net/rxrpc/conn_event.c  |  2 +-
+ net/rxrpc/output.c      |  8 ++++----
+ net/rxrpc/proc.c        |  2 +-
+ net/rxrpc/rxkad.c       |  4 ++--
+ 5 files changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/net/rxrpc/ar-internal.h b/net/rxrpc/ar-internal.h
+index 5d5b19f20d1e..efbe82926769 100644
+--- a/net/rxrpc/ar-internal.h
++++ b/net/rxrpc/ar-internal.h
+@@ -507,7 +507,7 @@ struct rxrpc_connection {
+ 	enum rxrpc_call_completion completion;	/* Completion condition */
+ 	s32			abort_code;	/* Abort code of connection abort */
+ 	int			debug_id;	/* debug ID for printks */
+-	atomic_t		serial;		/* packet serial number counter */
++	rxrpc_serial_t		tx_serial;	/* Outgoing packet serial number counter */
+ 	unsigned int		hi_serial;	/* highest serial number received */
+ 	u32			service_id;	/* Service ID, possibly upgraded */
+ 	u32			security_level;	/* Security level selected */
+@@ -819,6 +819,20 @@ static inline bool rxrpc_sending_to_client(const struct rxrpc_txbuf *txb)
+ 
+ #include <trace/events/rxrpc.h>
+ 
++/*
++ * Allocate the next serial number on a connection.  0 must be skipped.
++ */
++static inline rxrpc_serial_t rxrpc_get_next_serial(struct rxrpc_connection *conn)
++{
++	rxrpc_serial_t serial;
++
++	serial = conn->tx_serial;
++	if (serial == 0)
++		serial = 1;
++	conn->tx_serial = serial + 1;
++	return serial;
++}
++
+ /*
+  * af_rxrpc.c
+  */
+diff --git a/net/rxrpc/conn_event.c b/net/rxrpc/conn_event.c
+index 95f4bc206b3d..ec5eae60ab0c 100644
+--- a/net/rxrpc/conn_event.c
++++ b/net/rxrpc/conn_event.c
+@@ -117,7 +117,7 @@ void rxrpc_conn_retransmit_call(struct rxrpc_connection *conn,
+ 	iov[2].iov_base	= &ack_info;
+ 	iov[2].iov_len	= sizeof(ack_info);
+ 
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 
+ 	pkt.whdr.epoch		= htonl(conn->proto.epoch);
+ 	pkt.whdr.cid		= htonl(conn->proto.cid | channel);
+diff --git a/net/rxrpc/output.c b/net/rxrpc/output.c
+index a0906145e829..4a292f860ae3 100644
+--- a/net/rxrpc/output.c
++++ b/net/rxrpc/output.c
+@@ -216,7 +216,7 @@ int rxrpc_send_ack_packet(struct rxrpc_call *call, struct rxrpc_txbuf *txb)
+ 	iov[0].iov_len	= sizeof(txb->wire) + sizeof(txb->ack) + n;
+ 	len = iov[0].iov_len;
+ 
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 	txb->wire.serial = htonl(serial);
+ 	trace_rxrpc_tx_ack(call->debug_id, serial,
+ 			   ntohl(txb->ack.firstPacket),
+@@ -302,7 +302,7 @@ int rxrpc_send_abort_packet(struct rxrpc_call *call)
+ 	iov[0].iov_base	= &pkt;
+ 	iov[0].iov_len	= sizeof(pkt);
+ 
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 	pkt.whdr.serial = htonl(serial);
+ 
+ 	iov_iter_kvec(&msg.msg_iter, WRITE, iov, 1, sizeof(pkt));
+@@ -334,7 +334,7 @@ int rxrpc_send_data_packet(struct rxrpc_call *call, struct rxrpc_txbuf *txb)
+ 	_enter("%x,{%d}", txb->seq, txb->len);
+ 
+ 	/* Each transmission of a Tx packet needs a new serial number */
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 	txb->wire.serial = htonl(serial);
+ 
+ 	if (test_bit(RXRPC_CONN_PROBING_FOR_UPGRADE, &conn->flags) &&
+@@ -558,7 +558,7 @@ void rxrpc_send_conn_abort(struct rxrpc_connection *conn)
+ 
+ 	len = iov[0].iov_len + iov[1].iov_len;
+ 
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 	whdr.serial = htonl(serial);
+ 
+ 	iov_iter_kvec(&msg.msg_iter, WRITE, iov, 2, len);
+diff --git a/net/rxrpc/proc.c b/net/rxrpc/proc.c
+index 682636d3b060..208312c244f6 100644
+--- a/net/rxrpc/proc.c
++++ b/net/rxrpc/proc.c
+@@ -181,7 +181,7 @@ static int rxrpc_connection_seq_show(struct seq_file *seq, void *v)
+ 		   atomic_read(&conn->active),
+ 		   state,
+ 		   key_serial(conn->key),
+-		   atomic_read(&conn->serial),
++		   conn->tx_serial,
+ 		   conn->hi_serial,
+ 		   conn->channels[0].call_id,
+ 		   conn->channels[1].call_id,
+diff --git a/net/rxrpc/rxkad.c b/net/rxrpc/rxkad.c
+index b52dedcebce0..6b32d61d4cdc 100644
+--- a/net/rxrpc/rxkad.c
++++ b/net/rxrpc/rxkad.c
+@@ -664,7 +664,7 @@ static int rxkad_issue_challenge(struct rxrpc_connection *conn)
+ 
+ 	len = iov[0].iov_len + iov[1].iov_len;
+ 
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 	whdr.serial = htonl(serial);
+ 
+ 	ret = kernel_sendmsg(conn->local->socket, &msg, iov, 2, len);
+@@ -721,7 +721,7 @@ static int rxkad_send_response(struct rxrpc_connection *conn,
+ 
+ 	len = iov[0].iov_len + iov[1].iov_len + iov[2].iov_len;
+ 
+-	serial = atomic_inc_return(&conn->serial);
++	serial = rxrpc_get_next_serial(conn);
+ 	whdr.serial = htonl(serial);
+ 
+ 	rxrpc_local_dont_fragment(conn->local, false);
+-- 
+2.43.2
+
+From 63719f490e6a89896e9a463d2b45e8203eab23ae Mon Sep 17 00:00:00 2001
+From: David Howells <dhowells@redhat.com>
+Date: Fri, 2 Feb 2024 15:19:14 +0000
+Subject: [PATCH 050/129] rxrpc: Fix delayed ACKs to not set the reference
+ serial number
+Status: RO
+Content-Length: 2617
+Lines: 66
+
+[ Upstream commit e7870cf13d20f56bfc19f9c3e89707c69cf104ef ]
+
+Fix the construction of delayed ACKs to not set the reference serial number
+as they can't be used as an RTT reference.
+
+Fixes: 17926a79320a ("[AF_RXRPC]: Provide secure RxRPC sockets for use by userspace and kernel both")
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Marc Dionne <marc.dionne@auristor.com>
+cc: "David S. Miller" <davem@davemloft.net>
+cc: Eric Dumazet <edumazet@google.com>
+cc: Jakub Kicinski <kuba@kernel.org>
+cc: Paolo Abeni <pabeni@redhat.com>
+cc: linux-afs@lists.infradead.org
+cc: netdev@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/rxrpc/ar-internal.h | 1 -
+ net/rxrpc/call_event.c  | 6 +-----
+ 2 files changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/net/rxrpc/ar-internal.h b/net/rxrpc/ar-internal.h
+index efbe82926769..041add7654b2 100644
+--- a/net/rxrpc/ar-internal.h
++++ b/net/rxrpc/ar-internal.h
+@@ -693,7 +693,6 @@ struct rxrpc_call {
+ 	/* Receive-phase ACK management (ACKs we send). */
+ 	u8			ackr_reason;	/* reason to ACK */
+ 	u16			ackr_sack_base;	/* Starting slot in SACK table ring */
+-	rxrpc_serial_t		ackr_serial;	/* serial of packet being ACK'd */
+ 	rxrpc_seq_t		ackr_window;	/* Base of SACK window */
+ 	rxrpc_seq_t		ackr_wtop;	/* Base of SACK window */
+ 	unsigned int		ackr_nr_unacked; /* Number of unacked packets */
+diff --git a/net/rxrpc/call_event.c b/net/rxrpc/call_event.c
+index e363f21a2014..c61efe08695d 100644
+--- a/net/rxrpc/call_event.c
++++ b/net/rxrpc/call_event.c
+@@ -43,8 +43,6 @@ void rxrpc_propose_delay_ACK(struct rxrpc_call *call, rxrpc_serial_t serial,
+ 	unsigned long expiry = rxrpc_soft_ack_delay;
+ 	unsigned long now = jiffies, ack_at;
+ 
+-	call->ackr_serial = serial;
+-
+ 	if (rxrpc_soft_ack_delay < expiry)
+ 		expiry = rxrpc_soft_ack_delay;
+ 	if (call->peer->srtt_us != 0)
+@@ -373,7 +371,6 @@ static void rxrpc_send_initial_ping(struct rxrpc_call *call)
+ bool rxrpc_input_call_event(struct rxrpc_call *call, struct sk_buff *skb)
+ {
+ 	unsigned long now, next, t;
+-	rxrpc_serial_t ackr_serial;
+ 	bool resend = false, expired = false;
+ 	s32 abort_code;
+ 
+@@ -423,8 +420,7 @@ bool rxrpc_input_call_event(struct rxrpc_call *call, struct sk_buff *skb)
+ 	if (time_after_eq(now, t)) {
+ 		trace_rxrpc_timer(call, rxrpc_timer_exp_ack, now);
+ 		cmpxchg(&call->delay_ack_at, t, now + MAX_JIFFY_OFFSET);
+-		ackr_serial = xchg(&call->ackr_serial, 0);
+-		rxrpc_send_ACK(call, RXRPC_ACK_DELAY, ackr_serial,
++		rxrpc_send_ACK(call, RXRPC_ACK_DELAY, 0,
+ 			       rxrpc_propose_ack_ping_for_lost_ack);
+ 	}
+ 
+-- 
+2.43.2
+
+From 0cd331dfd6023640c9669d0592bc0fd491205f87 Mon Sep 17 00:00:00 2001
+From: Shigeru Yoshida <syoshida@redhat.com>
+Date: Thu, 1 Feb 2024 00:23:09 +0900
+Subject: [PATCH 054/129] tipc: Check the bearer type before calling
+ tipc_udp_nl_bearer_add()
+Status: RO
+Content-Length: 2975
+Lines: 72
+
+[ Upstream commit 3871aa01e1a779d866fa9dfdd5a836f342f4eb87 ]
+
+syzbot reported the following general protection fault [1]:
+
+general protection fault, probably for non-canonical address 0xdffffc0000000010: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000080-0x0000000000000087]
+...
+RIP: 0010:tipc_udp_is_known_peer+0x9c/0x250 net/tipc/udp_media.c:291
+...
+Call Trace:
+ <TASK>
+ tipc_udp_nl_bearer_add+0x212/0x2f0 net/tipc/udp_media.c:646
+ tipc_nl_bearer_add+0x21e/0x360 net/tipc/bearer.c:1089
+ genl_family_rcv_msg_doit+0x1fc/0x2e0 net/netlink/genetlink.c:972
+ genl_family_rcv_msg net/netlink/genetlink.c:1052 [inline]
+ genl_rcv_msg+0x561/0x800 net/netlink/genetlink.c:1067
+ netlink_rcv_skb+0x16b/0x440 net/netlink/af_netlink.c:2544
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:1076
+ netlink_unicast_kernel net/netlink/af_netlink.c:1341 [inline]
+ netlink_unicast+0x53b/0x810 net/netlink/af_netlink.c:1367
+ netlink_sendmsg+0x8b7/0xd70 net/netlink/af_netlink.c:1909
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg+0xd5/0x180 net/socket.c:745
+ ____sys_sendmsg+0x6ac/0x940 net/socket.c:2584
+ ___sys_sendmsg+0x135/0x1d0 net/socket.c:2638
+ __sys_sendmsg+0x117/0x1e0 net/socket.c:2667
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0x40/0x110 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+The cause of this issue is that when tipc_nl_bearer_add() is called with
+the TIPC_NLA_BEARER_UDP_OPTS attribute, tipc_udp_nl_bearer_add() is called
+even if the bearer is not UDP.
+
+tipc_udp_is_known_peer() called by tipc_udp_nl_bearer_add() assumes that
+the media_ptr field of the tipc_bearer has an udp_bearer type object, so
+the function goes crazy for non-UDP bearers.
+
+This patch fixes the issue by checking the bearer type before calling
+tipc_udp_nl_bearer_add() in tipc_nl_bearer_add().
+
+Fixes: ef20cd4dd163 ("tipc: introduce UDP replicast")
+Reported-and-tested-by: syzbot+5142b87a9abc510e14fa@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=5142b87a9abc510e14fa [1]
+Signed-off-by: Shigeru Yoshida <syoshida@redhat.com>
+Reviewed-by: Tung Nguyen <tung.q.nguyen@dektech.com.au>
+Link: https://lore.kernel.org/r/20240131152310.4089541-1-syoshida@redhat.com
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/tipc/bearer.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/net/tipc/bearer.c b/net/tipc/bearer.c
+index 2cde375477e3..878415c43527 100644
+--- a/net/tipc/bearer.c
++++ b/net/tipc/bearer.c
+@@ -1086,6 +1086,12 @@ int tipc_nl_bearer_add(struct sk_buff *skb, struct genl_info *info)
+ 
+ #ifdef CONFIG_TIPC_MEDIA_UDP
+ 	if (attrs[TIPC_NLA_BEARER_UDP_OPTS]) {
++		if (b->media->type_id != TIPC_MEDIA_TYPE_UDP) {
++			rtnl_unlock();
++			NL_SET_ERR_MSG(info->extack, "UDP option is unsupported");
++			return -EINVAL;
++		}
++
+ 		err = tipc_udp_nl_bearer_add(b,
+ 					     attrs[TIPC_NLA_BEARER_UDP_OPTS]);
+ 		if (err) {
+-- 
+2.43.2
+
+From 82ae47c5c3a6b27fdc0f9e83c1499cb439c56140 Mon Sep 17 00:00:00 2001
+From: Kuniyuki Iwashima <kuniyu@amazon.com>
+Date: Sat, 3 Feb 2024 10:31:49 -0800
+Subject: [PATCH 055/129] af_unix: Call kfree_skb() for dead unix_(sk)->oob_skb
+ in GC.
+Status: RO
+Content-Length: 4551
+Lines: 104
+
+[ Upstream commit 1279f9d9dec2d7462823a18c29ad61359e0a007d ]
+
+syzbot reported a warning [0] in __unix_gc() with a repro, which
+creates a socketpair and sends one socket's fd to itself using the
+peer.
+
+  socketpair(AF_UNIX, SOCK_STREAM, 0, [3, 4]) = 0
+  sendmsg(4, {msg_name=NULL, msg_namelen=0, msg_iov=[{iov_base="\360", iov_len=1}],
+          msg_iovlen=1, msg_control=[{cmsg_len=20, cmsg_level=SOL_SOCKET,
+                                      cmsg_type=SCM_RIGHTS, cmsg_data=[3]}],
+          msg_controllen=24, msg_flags=0}, MSG_OOB|MSG_PROBE|MSG_DONTWAIT|MSG_ZEROCOPY) = 1
+
+This forms a self-cyclic reference that GC should finally untangle
+but does not due to lack of MSG_OOB handling, resulting in memory
+leak.
+
+Recently, commit 11498715f266 ("af_unix: Remove io_uring code for
+GC.") removed io_uring's dead code in GC and revealed the problem.
+
+The code was executed at the final stage of GC and unconditionally
+moved all GC candidates from gc_candidates to gc_inflight_list.
+That papered over the reported problem by always making the following
+WARN_ON_ONCE(!list_empty(&gc_candidates)) false.
+
+The problem has been there since commit 2aab4b969002 ("af_unix: fix
+struct pid leaks in OOB support") added full scm support for MSG_OOB
+while fixing another bug.
+
+To fix this problem, we must call kfree_skb() for unix_sk(sk)->oob_skb
+if the socket still exists in gc_candidates after purging collected skb.
+
+Then, we need to set NULL to oob_skb before calling kfree_skb() because
+it calls last fput() and triggers unix_release_sock(), where we call
+duplicate kfree_skb(u->oob_skb) if not NULL.
+
+Note that the leaked socket remained being linked to a global list, so
+kmemleak also could not detect it.  We need to check /proc/net/protocol
+to notice the unfreed socket.
+
+[0]:
+WARNING: CPU: 0 PID: 2863 at net/unix/garbage.c:345 __unix_gc+0xc74/0xe80 net/unix/garbage.c:345
+Modules linked in:
+CPU: 0 PID: 2863 Comm: kworker/u4:11 Not tainted 6.8.0-rc1-syzkaller-00583-g1701940b1a02 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
+Workqueue: events_unbound __unix_gc
+RIP: 0010:__unix_gc+0xc74/0xe80 net/unix/garbage.c:345
+Code: 8b 5c 24 50 e9 86 f8 ff ff e8 f8 e4 22 f8 31 d2 48 c7 c6 30 6a 69 89 4c 89 ef e8 97 ef ff ff e9 80 f9 ff ff e8 dd e4 22 f8 90 <0f> 0b 90 e9 7b fd ff ff 48 89 df e8 5c e7 7c f8 e9 d3 f8 ff ff e8
+RSP: 0018:ffffc9000b03fba0 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffffc9000b03fc10 RCX: ffffffff816c493e
+RDX: ffff88802c02d940 RSI: ffffffff896982f3 RDI: ffffc9000b03fb30
+RBP: ffffc9000b03fce0 R08: 0000000000000001 R09: fffff52001607f66
+R10: 0000000000000003 R11: 0000000000000002 R12: dffffc0000000000
+R13: ffffc9000b03fc10 R14: ffffc9000b03fc10 R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff8880b9400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005559c8677a60 CR3: 000000000d57a000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ process_one_work+0x889/0x15e0 kernel/workqueue.c:2633
+ process_scheduled_works kernel/workqueue.c:2706 [inline]
+ worker_thread+0x8b9/0x12a0 kernel/workqueue.c:2787
+ kthread+0x2c6/0x3b0 kernel/kthread.c:388
+ ret_from_fork+0x45/0x80 arch/x86/kernel/process.c:147
+ ret_from_fork_asm+0x1b/0x30 arch/x86/entry/entry_64.S:242
+ </TASK>
+
+Reported-by: syzbot+fa3ef895554bdbfd1183@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=fa3ef895554bdbfd1183
+Fixes: 2aab4b969002 ("af_unix: fix struct pid leaks in OOB support")
+Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Link: https://lore.kernel.org/r/20240203183149.63573-1-kuniyu@amazon.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/unix/garbage.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/net/unix/garbage.c b/net/unix/garbage.c
+index 2405f0f9af31..8f63f0b4bf01 100644
+--- a/net/unix/garbage.c
++++ b/net/unix/garbage.c
+@@ -314,6 +314,17 @@ void unix_gc(void)
+ 	/* Here we are. Hitlist is filled. Die. */
+ 	__skb_queue_purge(&hitlist);
+ 
++#if IS_ENABLED(CONFIG_AF_UNIX_OOB)
++	list_for_each_entry_safe(u, next, &gc_candidates, link) {
++		struct sk_buff *skb = u->oob_skb;
++
++		if (skb) {
++			u->oob_skb = NULL;
++			kfree_skb(skb);
++		}
++	}
++#endif
++
+ 	spin_lock(&unix_gc_lock);
+ 
+ 	/* There could be io_uring registered files, just push them back to
+-- 
+2.43.2
+
+From 210d938f963dddc543b07e66a79b7d8d4bd00bd8 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 5 Feb 2024 17:10:04 +0000
+Subject: [PATCH 057/129] ppp_async: limit MRU to 64K
+Status: RO
+Content-Length: 3634
+Lines: 83
+
+[ Upstream commit cb88cb53badb8aeb3955ad6ce80b07b598e310b8 ]
+
+syzbot triggered a warning [1] in __alloc_pages():
+
+WARN_ON_ONCE_GFP(order > MAX_PAGE_ORDER, gfp)
+
+Willem fixed a similar issue in commit c0a2a1b0d631 ("ppp: limit MRU to 64K")
+
+Adopt the same sanity check for ppp_async_ioctl(PPPIOCSMRU)
+
+[1]:
+
+ WARNING: CPU: 1 PID: 11 at mm/page_alloc.c:4543 __alloc_pages+0x308/0x698 mm/page_alloc.c:4543
+Modules linked in:
+CPU: 1 PID: 11 Comm: kworker/u4:0 Not tainted 6.8.0-rc2-syzkaller-g41bccc98fb79 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+Workqueue: events_unbound flush_to_ldisc
+pstate: 204000c5 (nzCv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+ pc : __alloc_pages+0x308/0x698 mm/page_alloc.c:4543
+ lr : __alloc_pages+0xc8/0x698 mm/page_alloc.c:4537
+sp : ffff800093967580
+x29: ffff800093967660 x28: ffff8000939675a0 x27: dfff800000000000
+x26: ffff70001272ceb4 x25: 0000000000000000 x24: ffff8000939675c0
+x23: 0000000000000000 x22: 0000000000060820 x21: 1ffff0001272ceb8
+x20: ffff8000939675e0 x19: 0000000000000010 x18: ffff800093967120
+x17: ffff800083bded5c x16: ffff80008ac97500 x15: 0000000000000005
+x14: 1ffff0001272cebc x13: 0000000000000000 x12: 0000000000000000
+x11: ffff70001272cec1 x10: 1ffff0001272cec0 x9 : 0000000000000001
+x8 : ffff800091c91000 x7 : 0000000000000000 x6 : 000000000000003f
+x5 : 00000000ffffffff x4 : 0000000000000000 x3 : 0000000000000020
+x2 : 0000000000000008 x1 : 0000000000000000 x0 : ffff8000939675e0
+Call trace:
+  __alloc_pages+0x308/0x698 mm/page_alloc.c:4543
+  __alloc_pages_node include/linux/gfp.h:238 [inline]
+  alloc_pages_node include/linux/gfp.h:261 [inline]
+  __kmalloc_large_node+0xbc/0x1fc mm/slub.c:3926
+  __do_kmalloc_node mm/slub.c:3969 [inline]
+  __kmalloc_node_track_caller+0x418/0x620 mm/slub.c:4001
+  kmalloc_reserve+0x17c/0x23c net/core/skbuff.c:590
+  __alloc_skb+0x1c8/0x3d8 net/core/skbuff.c:651
+  __netdev_alloc_skb+0xb8/0x3e8 net/core/skbuff.c:715
+  netdev_alloc_skb include/linux/skbuff.h:3235 [inline]
+  dev_alloc_skb include/linux/skbuff.h:3248 [inline]
+  ppp_async_input drivers/net/ppp/ppp_async.c:863 [inline]
+  ppp_asynctty_receive+0x588/0x186c drivers/net/ppp/ppp_async.c:341
+  tty_ldisc_receive_buf+0x12c/0x15c drivers/tty/tty_buffer.c:390
+  tty_port_default_receive_buf+0x74/0xac drivers/tty/tty_port.c:37
+  receive_buf drivers/tty/tty_buffer.c:444 [inline]
+  flush_to_ldisc+0x284/0x6e4 drivers/tty/tty_buffer.c:494
+  process_one_work+0x694/0x1204 kernel/workqueue.c:2633
+  process_scheduled_works kernel/workqueue.c:2706 [inline]
+  worker_thread+0x938/0xef4 kernel/workqueue.c:2787
+  kthread+0x288/0x310 kernel/kthread.c:388
+  ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:860
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-and-tested-by: syzbot+c5da1f087c9e4ec6c933@syzkaller.appspotmail.com
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Willem de Bruijn <willemb@google.com>
+Link: https://lore.kernel.org/r/20240205171004.1059724-1-edumazet@google.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ppp/ppp_async.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/net/ppp/ppp_async.c b/drivers/net/ppp/ppp_async.c
+index fbaaa8c102a1..e94a4b08fd63 100644
+--- a/drivers/net/ppp/ppp_async.c
++++ b/drivers/net/ppp/ppp_async.c
+@@ -460,6 +460,10 @@ ppp_async_ioctl(struct ppp_channel *chan, unsigned int cmd, unsigned long arg)
+ 	case PPPIOCSMRU:
+ 		if (get_user(val, p))
+ 			break;
++		if (val > U16_MAX) {
++			err = -EINVAL;
++			break;
++		}
+ 		if (val < PPP_MRU)
+ 			val = PPP_MRU;
+ 		ap->mru = val;
+-- 
+2.43.2
+
+From 686820fe141ea0220fc6fdfc7e5694f915cf64b2 Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Date: Tue, 17 Oct 2023 17:04:39 +0300
+Subject: [PATCH 072/129] fs/ntfs3: Fix an NULL dereference bug
+Status: RO
+Content-Length: 1214
+Lines: 32
+
+[ Upstream commit b2dd7b953c25ffd5912dda17e980e7168bebcf6c ]
+
+The issue here is when this is called from ntfs_load_attr_list().  The
+"size" comes from le32_to_cpu(attr->res.data_size) so it can't overflow
+on a 64bit systems but on 32bit systems the "+ 1023" can overflow and
+the result is zero.  This means that the kmalloc will succeed by
+returning the ZERO_SIZE_PTR and then the memcpy() will crash with an
+Oops on the next line.
+
+Fixes: be71b5cba2e6 ("fs/ntfs3: Add attrib operations")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Signed-off-by: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/ntfs3/ntfs_fs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/ntfs3/ntfs_fs.h b/fs/ntfs3/ntfs_fs.h
+index f6706143d14b..a46d30b84bf3 100644
+--- a/fs/ntfs3/ntfs_fs.h
++++ b/fs/ntfs3/ntfs_fs.h
+@@ -473,7 +473,7 @@ bool al_delete_le(struct ntfs_inode *ni, enum ATTR_TYPE type, CLST vcn,
+ int al_update(struct ntfs_inode *ni, int sync);
+ static inline size_t al_aligned(size_t size)
+ {
+-	return (size + 1023) & ~(size_t)1023;
++	return size_add(size, 1023) & ~(size_t)1023;
+ }
+ 
+ /* Globals from bitfunc.c */
+-- 
+2.43.2
+
+From bd9442e553ab8bf74b8be3b3c0a43bf4af4dc9b8 Mon Sep 17 00:00:00 2001
+From: Xiubo Li <xiubli@redhat.com>
+Date: Thu, 14 Dec 2023 16:01:03 +0800
+Subject: [PATCH 080/129] libceph: just wait for more data to be available on
+ the socket
+Status: RO
+Content-Length: 5624
+Lines: 166
+
+[ Upstream commit 8e46a2d068c92a905d01cbb018b00d66991585ab ]
+
+A short read may occur while reading the message footer from the
+socket.  Later, when the socket is ready for another read, the
+messenger invokes all read_partial_*() handlers, including
+read_partial_sparse_msg_data().  The expectation is that
+read_partial_sparse_msg_data() would bail, allowing the messenger to
+invoke read_partial() for the footer and pick up where it left off.
+
+However read_partial_sparse_msg_data() violates that and ends up
+calling into the state machine in the OSD client.  The sparse-read
+state machine assumes that it's a new op and interprets some piece of
+the footer as the sparse-read header and returns bogus extents/data
+length, etc.
+
+To determine whether read_partial_sparse_msg_data() should bail, let's
+reuse cursor->total_resid.  Because once it reaches to zero that means
+all the extents and data have been successfully received in last read,
+else it could break out when partially reading any of the extents and
+data.  And then osd_sparse_read() could continue where it left off.
+
+[ idryomov: changelog ]
+
+Link: https://tracker.ceph.com/issues/63586
+Fixes: d396f89db39a ("libceph: add sparse read support to msgr1")
+Signed-off-by: Xiubo Li <xiubli@redhat.com>
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Signed-off-by: Ilya Dryomov <idryomov@gmail.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/linux/ceph/messenger.h |  2 +-
+ net/ceph/messenger_v1.c        | 25 +++++++++++++------------
+ net/ceph/messenger_v2.c        |  4 ++--
+ net/ceph/osd_client.c          |  9 +++------
+ 4 files changed, 19 insertions(+), 21 deletions(-)
+
+diff --git a/include/linux/ceph/messenger.h b/include/linux/ceph/messenger.h
+index 2eaaabbe98cb..1717cc57cdac 100644
+--- a/include/linux/ceph/messenger.h
++++ b/include/linux/ceph/messenger.h
+@@ -283,7 +283,7 @@ struct ceph_msg {
+ 	struct kref kref;
+ 	bool more_to_follow;
+ 	bool needs_out_seq;
+-	bool sparse_read;
++	u64 sparse_read_total;
+ 	int front_alloc_len;
+ 
+ 	struct ceph_msgpool *pool;
+diff --git a/net/ceph/messenger_v1.c b/net/ceph/messenger_v1.c
+index 4cb60bacf5f5..0cb61c76b9b8 100644
+--- a/net/ceph/messenger_v1.c
++++ b/net/ceph/messenger_v1.c
+@@ -160,8 +160,9 @@ static size_t sizeof_footer(struct ceph_connection *con)
+ static void prepare_message_data(struct ceph_msg *msg, u32 data_len)
+ {
+ 	/* Initialize data cursor if it's not a sparse read */
+-	if (!msg->sparse_read)
+-		ceph_msg_data_cursor_init(&msg->cursor, msg, data_len);
++	u64 len = msg->sparse_read_total ? : data_len;
++
++	ceph_msg_data_cursor_init(&msg->cursor, msg, len);
+ }
+ 
+ /*
+@@ -1036,7 +1037,7 @@ static int read_partial_sparse_msg_data(struct ceph_connection *con)
+ 	if (do_datacrc)
+ 		crc = con->in_data_crc;
+ 
+-	do {
++	while (cursor->total_resid) {
+ 		if (con->v1.in_sr_kvec.iov_base)
+ 			ret = read_partial_message_chunk(con,
+ 							 &con->v1.in_sr_kvec,
+@@ -1044,23 +1045,23 @@ static int read_partial_sparse_msg_data(struct ceph_connection *con)
+ 							 &crc);
+ 		else if (cursor->sr_resid > 0)
+ 			ret = read_partial_sparse_msg_extent(con, &crc);
+-
+-		if (ret <= 0) {
+-			if (do_datacrc)
+-				con->in_data_crc = crc;
+-			return ret;
+-		}
++		if (ret <= 0)
++			break;
+ 
+ 		memset(&con->v1.in_sr_kvec, 0, sizeof(con->v1.in_sr_kvec));
+ 		ret = con->ops->sparse_read(con, cursor,
+ 				(char **)&con->v1.in_sr_kvec.iov_base);
++		if (ret <= 0) {
++			ret = ret ? ret : 1;  /* must return > 0 to indicate success */
++			break;
++		}
+ 		con->v1.in_sr_len = ret;
+-	} while (ret > 0);
++	}
+ 
+ 	if (do_datacrc)
+ 		con->in_data_crc = crc;
+ 
+-	return ret < 0 ? ret : 1;  /* must return > 0 to indicate success */
++	return ret;
+ }
+ 
+ static int read_partial_msg_data(struct ceph_connection *con)
+@@ -1253,7 +1254,7 @@ static int read_partial_message(struct ceph_connection *con)
+ 		if (!m->num_data_items)
+ 			return -EIO;
+ 
+-		if (m->sparse_read)
++		if (m->sparse_read_total)
+ 			ret = read_partial_sparse_msg_data(con);
+ 		else if (ceph_test_opt(from_msgr(con->msgr), RXBOUNCE))
+ 			ret = read_partial_msg_data_bounce(con);
+diff --git a/net/ceph/messenger_v2.c b/net/ceph/messenger_v2.c
+index f8ec60e1aba3..a0ca5414b333 100644
+--- a/net/ceph/messenger_v2.c
++++ b/net/ceph/messenger_v2.c
+@@ -1128,7 +1128,7 @@ static int decrypt_tail(struct ceph_connection *con)
+ 	struct sg_table enc_sgt = {};
+ 	struct sg_table sgt = {};
+ 	struct page **pages = NULL;
+-	bool sparse = con->in_msg->sparse_read;
++	bool sparse = !!con->in_msg->sparse_read_total;
+ 	int dpos = 0;
+ 	int tail_len;
+ 	int ret;
+@@ -2060,7 +2060,7 @@ static int prepare_read_tail_plain(struct ceph_connection *con)
+ 	}
+ 
+ 	if (data_len(msg)) {
+-		if (msg->sparse_read)
++		if (msg->sparse_read_total)
+ 			con->v2.in_state = IN_S_PREPARE_SPARSE_DATA;
+ 		else
+ 			con->v2.in_state = IN_S_PREPARE_READ_DATA;
+diff --git a/net/ceph/osd_client.c b/net/ceph/osd_client.c
+index d3a759e052c8..8d9760397b88 100644
+--- a/net/ceph/osd_client.c
++++ b/net/ceph/osd_client.c
+@@ -5510,7 +5510,7 @@ static struct ceph_msg *get_reply(struct ceph_connection *con,
+ 	}
+ 
+ 	m = ceph_msg_get(req->r_reply);
+-	m->sparse_read = (bool)srlen;
++	m->sparse_read_total = srlen;
+ 
+ 	dout("get_reply tid %lld %p\n", tid, m);
+ 
+@@ -5777,11 +5777,8 @@ static int prep_next_sparse_read(struct ceph_connection *con,
+ 	}
+ 
+ 	if (o->o_sparse_op_idx < 0) {
+-		u64 srlen = sparse_data_requested(req);
+-
+-		dout("%s: [%d] starting new sparse read req. srlen=0x%llx\n",
+-		     __func__, o->o_osd, srlen);
+-		ceph_msg_data_cursor_init(cursor, con->in_msg, srlen);
++		dout("%s: [%d] starting new sparse read req\n",
++		     __func__, o->o_osd);
+ 	} else {
+ 		u64 end;
+ 
+-- 
+2.43.2
+
+From 2da241c5ed78d0978228a1150735539fe1a60eca Mon Sep 17 00:00:00 2001
+From: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+Date: Mon, 29 Jan 2024 14:38:42 +0800
+Subject: [PATCH 095/129] x86/lib: Revert to _ASM_EXTABLE_UA() for
+ {get,put}_user() fixups
+Status: RO
+Content-Length: 5256
+Lines: 126
+
+commit 8eed4e00a370b37b4e5985ed983dccedd555ea9d upstream.
+
+During memory error injection test on kernels >= v6.4, the kernel panics
+like below. However, this issue couldn't be reproduced on kernels <= v6.3.
+
+  mce: [Hardware Error]: CPU 296: Machine Check Exception: f Bank 1: bd80000000100134
+  mce: [Hardware Error]: RIP 10:<ffffffff821b9776> {__get_user_nocheck_4+0x6/0x20}
+  mce: [Hardware Error]: TSC 411a93533ed ADDR 346a8730040 MISC 86
+  mce: [Hardware Error]: PROCESSOR 0:a06d0 TIME 1706000767 SOCKET 1 APIC 211 microcode 80001490
+  mce: [Hardware Error]: Run the above through 'mcelog --ascii'
+  mce: [Hardware Error]: Machine check: Data load in unrecoverable area of kernel
+  Kernel panic - not syncing: Fatal local machine check
+
+The MCA code can recover from an in-kernel #MC if the fixup type is
+EX_TYPE_UACCESS, explicitly indicating that the kernel is attempting to
+access userspace memory. However, if the fixup type is EX_TYPE_DEFAULT
+the only thing that is raised for an in-kernel #MC is a panic.
+
+ex_handler_uaccess() would warn if users gave a non-canonical addresses
+(with bit 63 clear) to {get, put}_user(), which was unexpected.
+
+Therefore, commit
+
+  b19b74bc99b1 ("x86/mm: Rework address range check in get_user() and put_user()")
+
+replaced _ASM_EXTABLE_UA() with _ASM_EXTABLE() for {get, put}_user()
+fixups. However, the new fixup type EX_TYPE_DEFAULT results in a panic.
+
+Commit
+
+  6014bc27561f ("x86-64: make access_ok() independent of LAM")
+
+added the check gp_fault_address_ok() right before the WARN_ONCE() in
+ex_handler_uaccess() to not warn about non-canonical user addresses due
+to LAM.
+
+With that in place, revert back to _ASM_EXTABLE_UA() for {get,put}_user()
+exception fixups in order to be able to handle in-kernel MCEs correctly
+again.
+
+  [ bp: Massage commit message. ]
+
+Fixes: b19b74bc99b1 ("x86/mm: Rework address range check in get_user() and put_user()")
+Signed-off-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+Signed-off-by: Borislav Petkov (AMD) <bp@alien8.de>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: <stable@kernel.org>
+Link: https://lore.kernel.org/r/20240129063842.61584-1-qiuxu.zhuo@intel.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/x86/lib/getuser.S | 24 ++++++++++++------------
+ arch/x86/lib/putuser.S | 20 ++++++++++----------
+ 2 files changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/arch/x86/lib/getuser.S b/arch/x86/lib/getuser.S
+index 20ef350a60fb..10d5ed8b5990 100644
+--- a/arch/x86/lib/getuser.S
++++ b/arch/x86/lib/getuser.S
+@@ -163,23 +163,23 @@ SYM_CODE_END(__get_user_8_handle_exception)
+ #endif
+ 
+ /* get_user */
+-	_ASM_EXTABLE(1b, __get_user_handle_exception)
+-	_ASM_EXTABLE(2b, __get_user_handle_exception)
+-	_ASM_EXTABLE(3b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(1b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(2b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(3b, __get_user_handle_exception)
+ #ifdef CONFIG_X86_64
+-	_ASM_EXTABLE(4b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(4b, __get_user_handle_exception)
+ #else
+-	_ASM_EXTABLE(4b, __get_user_8_handle_exception)
+-	_ASM_EXTABLE(5b, __get_user_8_handle_exception)
++	_ASM_EXTABLE_UA(4b, __get_user_8_handle_exception)
++	_ASM_EXTABLE_UA(5b, __get_user_8_handle_exception)
+ #endif
+ 
+ /* __get_user */
+-	_ASM_EXTABLE(6b, __get_user_handle_exception)
+-	_ASM_EXTABLE(7b, __get_user_handle_exception)
+-	_ASM_EXTABLE(8b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(6b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(7b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(8b, __get_user_handle_exception)
+ #ifdef CONFIG_X86_64
+-	_ASM_EXTABLE(9b, __get_user_handle_exception)
++	_ASM_EXTABLE_UA(9b, __get_user_handle_exception)
+ #else
+-	_ASM_EXTABLE(9b, __get_user_8_handle_exception)
+-	_ASM_EXTABLE(10b, __get_user_8_handle_exception)
++	_ASM_EXTABLE_UA(9b, __get_user_8_handle_exception)
++	_ASM_EXTABLE_UA(10b, __get_user_8_handle_exception)
+ #endif
+diff --git a/arch/x86/lib/putuser.S b/arch/x86/lib/putuser.S
+index 2877f5934177..975c9c18263d 100644
+--- a/arch/x86/lib/putuser.S
++++ b/arch/x86/lib/putuser.S
+@@ -133,15 +133,15 @@ SYM_CODE_START_LOCAL(__put_user_handle_exception)
+ 	RET
+ SYM_CODE_END(__put_user_handle_exception)
+ 
+-	_ASM_EXTABLE(1b, __put_user_handle_exception)
+-	_ASM_EXTABLE(2b, __put_user_handle_exception)
+-	_ASM_EXTABLE(3b, __put_user_handle_exception)
+-	_ASM_EXTABLE(4b, __put_user_handle_exception)
+-	_ASM_EXTABLE(5b, __put_user_handle_exception)
+-	_ASM_EXTABLE(6b, __put_user_handle_exception)
+-	_ASM_EXTABLE(7b, __put_user_handle_exception)
+-	_ASM_EXTABLE(9b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(1b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(2b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(3b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(4b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(5b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(6b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(7b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(9b, __put_user_handle_exception)
+ #ifdef CONFIG_X86_32
+-	_ASM_EXTABLE(8b, __put_user_handle_exception)
+-	_ASM_EXTABLE(10b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(8b, __put_user_handle_exception)
++	_ASM_EXTABLE_UA(10b, __put_user_handle_exception)
+ #endif
+-- 
+2.43.2
+
