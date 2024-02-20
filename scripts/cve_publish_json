@@ -50,8 +50,15 @@ for id in cve/published/*/*.sha1 ; do
 	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${id}" | cut -f 1 -d '.')
 	#echo "id=${id} sha=${sha} cve=${cve}"
-	echo "Uploading ${cve}"
-	cve -u gregkh@kernel.org -o Linux publish ${cve} -f "${root}.json"
+	echo "Uploading ${cve} for commit ${sha}"
+	cve -u gregkh@kernel.org -o Linux publish "${cve}" -f "${root}.json"
+	good=$?
+	if [[ "${good}" == 0 ]]; then
+		echo "CVE published successfully at: https://cve.org/CVERecord/?id=${cve}"
+	else
+		echo "ERROR: Something went wrong submitting ${cve}"
+	fi
+	echo ""
 	#cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
 done
 
