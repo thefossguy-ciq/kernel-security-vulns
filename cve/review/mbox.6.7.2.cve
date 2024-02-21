@@ -1823,6 +1823,64 @@ index 0771c7160c47..78666b82ac80 100644
 -- 
 2.43.2
 
+From 71c6670f9f032ec67d8f4e3f8db4646bf5a62883 Mon Sep 17 00:00:00 2001
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Date: Wed, 27 Dec 2023 09:35:23 +0000
+Subject: [PATCH 082/641] crypto: scomp - fix req->dst buffer overflow
+Status: RO
+Content-Length: 1688
+Lines: 49
+
+[ Upstream commit 744e1885922a9943458954cfea917b31064b4131 ]
+
+The req->dst buffer size should be checked before copying from the
+scomp_scratch->dst to avoid req->dst buffer overflow problem.
+
+Fixes: 1ab53a77b772 ("crypto: acomp - add driver-side scomp interface")
+Reported-by: syzbot+3eff5e51bf1db122a16e@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/0000000000000b05cd060d6b5511@google.com/
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Barry Song <v-songbaohua@oppo.com>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ crypto/scompress.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/crypto/scompress.c b/crypto/scompress.c
+index 442a82c9de7d..b108a30a7600 100644
+--- a/crypto/scompress.c
++++ b/crypto/scompress.c
+@@ -117,6 +117,7 @@ static int scomp_acomp_comp_decomp(struct acomp_req *req, int dir)
+ 	struct crypto_scomp *scomp = *tfm_ctx;
+ 	void **ctx = acomp_request_ctx(req);
+ 	struct scomp_scratch *scratch;
++	unsigned int dlen;
+ 	int ret;
+ 
+ 	if (!req->src || !req->slen || req->slen > SCOMP_SCRATCH_SIZE)
+@@ -128,6 +129,8 @@ static int scomp_acomp_comp_decomp(struct acomp_req *req, int dir)
+ 	if (!req->dlen || req->dlen > SCOMP_SCRATCH_SIZE)
+ 		req->dlen = SCOMP_SCRATCH_SIZE;
+ 
++	dlen = req->dlen;
++
+ 	scratch = raw_cpu_ptr(&scomp_scratch);
+ 	spin_lock(&scratch->lock);
+ 
+@@ -145,6 +148,9 @@ static int scomp_acomp_comp_decomp(struct acomp_req *req, int dir)
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
++		} else if (req->dlen > dlen) {
++			ret = -ENOSPC;
++			goto out;
+ 		}
+ 		scatterwalk_map_and_copy(scratch->dst, req->dst, 0, req->dlen,
+ 					 1);
+-- 
+2.43.2
+
 From 16b859e6ec7f8730edc2173316f217595636269c Mon Sep 17 00:00:00 2001
 From: Scott Mayhew <smayhew@redhat.com>
 Date: Tue, 5 Dec 2023 09:10:54 -0500
@@ -2172,322 +2230,6 @@ index 0ed286b8a0f0..c6579067eeea 100644
  	}
  }
  EXPORT_SYMBOL_GPL(bpf_map_put);
--- 
-2.43.2
-
-From ca3ede3f5893e2d26d4dbdef1eec28a8487fafde Mon Sep 17 00:00:00 2001
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Date: Tue, 16 Jan 2024 21:29:59 +0000
-Subject: [PATCH 442/641] block: Fix iterating over an empty bio with
- bio_for_each_folio_all
-Status: RO
-Content-Length: 1737
-Lines: 49
-
-commit 7bed6f3d08b7af27b7015da8dc3acf2b9c1f21d7 upstream.
-
-If the bio contains no data, bio_first_folio() calls page_folio() on a
-NULL pointer and oopses.  Move the test that we've reached the end of
-the bio from bio_next_folio() to bio_first_folio().
-
-Reported-by: syzbot+8b23309d5788a79d3eea@syzkaller.appspotmail.com
-Reported-by: syzbot+004c1e0fced2b4bc3dcc@syzkaller.appspotmail.com
-Fixes: 640d1930bef4 ("block: Add bio_for_each_folio_all()")
-Cc: stable@vger.kernel.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Link: https://lore.kernel.org/r/20240116212959.3413014-1-willy@infradead.org
-[axboe: add unlikely() to error case]
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- include/linux/bio.h | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/include/linux/bio.h b/include/linux/bio.h
-index 41d417ee1349..0286bada25ce 100644
---- a/include/linux/bio.h
-+++ b/include/linux/bio.h
-@@ -286,6 +286,11 @@ static inline void bio_first_folio(struct folio_iter *fi, struct bio *bio,
- {
- 	struct bio_vec *bvec = bio_first_bvec_all(bio) + i;
- 
-+	if (unlikely(i >= bio->bi_vcnt)) {
-+		fi->folio = NULL;
-+		return;
-+	}
-+
- 	fi->folio = page_folio(bvec->bv_page);
- 	fi->offset = bvec->bv_offset +
- 			PAGE_SIZE * (bvec->bv_page - &fi->folio->page);
-@@ -303,10 +308,8 @@ static inline void bio_next_folio(struct folio_iter *fi, struct bio *bio)
- 		fi->offset = 0;
- 		fi->length = min(folio_size(fi->folio), fi->_seg_count);
- 		fi->_next = folio_next(fi->folio);
--	} else if (fi->_i + 1 < bio->bi_vcnt) {
--		bio_first_folio(fi, bio, fi->_i + 1);
- 	} else {
--		fi->folio = NULL;
-+		bio_first_folio(fi, bio, fi->_i + 1);
- 	}
- }
- 
--- 
-2.43.2
-
-From 765290b628c2fb764bdfaf8088754439665751e8 Mon Sep 17 00:00:00 2001
-From: Eric Dumazet <edumazet@google.com>
-Date: Fri, 12 Jan 2024 12:28:16 +0000
-Subject: [PATCH 596/641] net: add more sanity check in virtio_net_hdr_to_skb()
-Status: RO
-Content-Length: 5146
-Lines: 128
-
-[ Upstream commit 9181d6f8a2bb32d158de66a84164fac05e3ddd18 ]
-
-syzbot/KMSAN reports access to uninitialized data from gso_features_check() [1]
-
-The repro use af_packet, injecting a gso packet and hdrlen == 0.
-
-We could fix the issue making gso_features_check() more careful
-while dealing with NETIF_F_TSO_MANGLEID in fast path.
-
-Or we can make sure virtio_net_hdr_to_skb() pulls minimal network and
-transport headers as intended.
-
-Note that for GSO packets coming from untrusted sources, SKB_GSO_DODGY
-bit forces a proper header validation (and pull) before the packet can
-hit any device ndo_start_xmit(), thus we do not need a precise disection
-at virtio_net_hdr_to_skb() stage.
-
-[1]
-BUG: KMSAN: uninit-value in skb_gso_segment include/net/gso.h:83 [inline]
-BUG: KMSAN: uninit-value in validate_xmit_skb+0x10f2/0x1930 net/core/dev.c:3629
- skb_gso_segment include/net/gso.h:83 [inline]
- validate_xmit_skb+0x10f2/0x1930 net/core/dev.c:3629
- __dev_queue_xmit+0x1eac/0x5130 net/core/dev.c:4341
- dev_queue_xmit include/linux/netdevice.h:3134 [inline]
- packet_xmit+0x9c/0x6b0 net/packet/af_packet.c:276
- packet_snd net/packet/af_packet.c:3087 [inline]
- packet_sendmsg+0x8b1d/0x9f30 net/packet/af_packet.c:3119
- sock_sendmsg_nosec net/socket.c:730 [inline]
- __sock_sendmsg net/socket.c:745 [inline]
- ____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
- ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
- __sys_sendmsg net/socket.c:2667 [inline]
- __do_sys_sendmsg net/socket.c:2676 [inline]
- __se_sys_sendmsg net/socket.c:2674 [inline]
- __x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x63/0x6b
-
-Uninit was created at:
- slab_post_alloc_hook+0x129/0xa70 mm/slab.h:768
- slab_alloc_node mm/slub.c:3478 [inline]
- kmem_cache_alloc_node+0x5e9/0xb10 mm/slub.c:3523
- kmalloc_reserve+0x13d/0x4a0 net/core/skbuff.c:560
- __alloc_skb+0x318/0x740 net/core/skbuff.c:651
- alloc_skb include/linux/skbuff.h:1286 [inline]
- alloc_skb_with_frags+0xc8/0xbd0 net/core/skbuff.c:6334
- sock_alloc_send_pskb+0xa80/0xbf0 net/core/sock.c:2780
- packet_alloc_skb net/packet/af_packet.c:2936 [inline]
- packet_snd net/packet/af_packet.c:3030 [inline]
- packet_sendmsg+0x70e8/0x9f30 net/packet/af_packet.c:3119
- sock_sendmsg_nosec net/socket.c:730 [inline]
- __sock_sendmsg net/socket.c:745 [inline]
- ____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
- ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
- __sys_sendmsg net/socket.c:2667 [inline]
- __do_sys_sendmsg net/socket.c:2676 [inline]
- __se_sys_sendmsg net/socket.c:2674 [inline]
- __x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x63/0x6b
-
-CPU: 0 PID: 5025 Comm: syz-executor279 Not tainted 6.7.0-rc7-syzkaller-00003-gfbafc3e621c3 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
-
-Reported-by: syzbot+7f4d0ea3df4d4fa9a65f@syzkaller.appspotmail.com
-Link: https://lore.kernel.org/netdev/0000000000005abd7b060eb160cd@google.com/
-Fixes: 9274124f023b ("net: stricter validation of untrusted gso packets")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Willem de Bruijn <willemb@google.com>
-Reviewed-by: Willem de Bruijn <willemb@google.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- include/linux/virtio_net.h | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/virtio_net.h b/include/linux/virtio_net.h
-index 27cc1d464321..4dfa9b69ca8d 100644
---- a/include/linux/virtio_net.h
-+++ b/include/linux/virtio_net.h
-@@ -3,6 +3,8 @@
- #define _LINUX_VIRTIO_NET_H
- 
- #include <linux/if_vlan.h>
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
- #include <linux/udp.h>
- #include <uapi/linux/tcp.h>
- #include <uapi/linux/virtio_net.h>
-@@ -49,6 +51,7 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
- 					const struct virtio_net_hdr *hdr,
- 					bool little_endian)
- {
-+	unsigned int nh_min_len = sizeof(struct iphdr);
- 	unsigned int gso_type = 0;
- 	unsigned int thlen = 0;
- 	unsigned int p_off = 0;
-@@ -65,6 +68,7 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
- 			gso_type = SKB_GSO_TCPV6;
- 			ip_proto = IPPROTO_TCP;
- 			thlen = sizeof(struct tcphdr);
-+			nh_min_len = sizeof(struct ipv6hdr);
- 			break;
- 		case VIRTIO_NET_HDR_GSO_UDP:
- 			gso_type = SKB_GSO_UDP;
-@@ -100,7 +104,8 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
- 		if (!skb_partial_csum_set(skb, start, off))
- 			return -EINVAL;
- 
--		p_off = skb_transport_offset(skb) + thlen;
-+		nh_min_len = max_t(u32, nh_min_len, skb_transport_offset(skb));
-+		p_off = nh_min_len + thlen;
- 		if (!pskb_may_pull(skb, p_off))
- 			return -EINVAL;
- 	} else {
-@@ -140,7 +145,7 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
- 
- 			skb_set_transport_header(skb, keys.control.thoff);
- 		} else if (gso_type) {
--			p_off = thlen;
-+			p_off = nh_min_len + thlen;
- 			if (!pskb_may_pull(skb, p_off))
- 				return -EINVAL;
- 		}
--- 
-2.43.2
-
-From 77d210e8db4d61d43b2d16df66b1ec46fad2ee01 Mon Sep 17 00:00:00 2001
-From: Carlos Llamas <cmllamas@google.com>
-Date: Fri, 1 Dec 2023 17:21:32 +0000
-Subject: [PATCH 387/641] binder: fix race between mmput() and do_exit()
-Status: RO
-Content-Length: 2210
-Lines: 63
-
-commit 9a9ab0d963621d9d12199df9817e66982582d5a5 upstream.
-
-Task A calls binder_update_page_range() to allocate and insert pages on
-a remote address space from Task B. For this, Task A pins the remote mm
-via mmget_not_zero() first. This can race with Task B do_exit() and the
-final mmput() refcount decrement will come from Task A.
-
-  Task A            | Task B
-  ------------------+------------------
-  mmget_not_zero()  |
-                    |  do_exit()
-                    |    exit_mm()
-                    |      mmput()
-  mmput()           |
-    exit_mmap()     |
-      remove_vma()  |
-        fput()      |
-
-In this case, the work of ____fput() from Task B is queued up in Task A
-as TWA_RESUME. So in theory, Task A returns to userspace and the cleanup
-work gets executed. However, Task A instead sleep, waiting for a reply
-from Task B that never comes (it's dead).
-
-This means the binder_deferred_release() is blocked until an unrelated
-binder event forces Task A to go back to userspace. All the associated
-death notifications will also be delayed until then.
-
-In order to fix this use mmput_async() that will schedule the work in
-the corresponding mm->async_put_work WQ instead of Task A.
-
-Fixes: 457b9a6f09f0 ("Staging: android: add binder driver")
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Signed-off-by: Carlos Llamas <cmllamas@google.com>
-Link: https://lore.kernel.org/r/20231201172212.1813387-4-cmllamas@google.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/android/binder_alloc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/android/binder_alloc.c b/drivers/android/binder_alloc.c
-index 304fffbc3728..a56cbfd9ba44 100644
---- a/drivers/android/binder_alloc.c
-+++ b/drivers/android/binder_alloc.c
-@@ -271,7 +271,7 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
- 	}
- 	if (mm) {
- 		mmap_write_unlock(mm);
--		mmput(mm);
-+		mmput_async(mm);
- 	}
- 	return 0;
- 
-@@ -304,7 +304,7 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
- err_no_vma:
- 	if (mm) {
- 		mmap_write_unlock(mm);
--		mmput(mm);
-+		mmput_async(mm);
- 	}
- 	return vma ? -ENOMEM : -ESRCH;
- }
--- 
-2.43.2
-
-From 2942658bc0ed4d796a562d2c47eee9fdb17bffd0 Mon Sep 17 00:00:00 2001
-From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Date: Mon, 11 Dec 2023 22:54:11 +0530
-Subject: [PATCH 469/641] ARM: dts: qcom: sdx55: Fix the base address of PCIe
- PHY
-Status: RO
-Content-Length: 1492
-Lines: 38
-
-commit cc6fc55c7ae04ab19b3972f78d3a8b1be32bf533 upstream.
-
-While convering the binding to new format, serdes address specified in the
-old binding was used as the base address. This causes a boot hang as the
-driver tries to access memory region outside of the specified address. Fix
-it!
-
-Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: stable@vger.kernel.org # 6.6
-Fixes: bb56cff4ac03 ("ARM: dts: qcom-sdx55: switch PCIe QMP PHY to new style of bindings")
-Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Reviewed-by: Konrad Dybcio <konrad.dybcio@linaro.org>
-Reviewed-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Link: https://lore.kernel.org/r/20231211172411.141289-1-manivannan.sadhasivam@linaro.org
-Signed-off-by: Bjorn Andersson <andersson@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- arch/arm/boot/dts/qcom/qcom-sdx55.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi b/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi
-index 2aa5089a8513..a88f186fcf03 100644
---- a/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi
-+++ b/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi
-@@ -436,9 +436,9 @@ pcie_ep: pcie-ep@1c00000 {
- 			status = "disabled";
- 		};
- 
--		pcie_phy: phy@1c07000 {
-+		pcie_phy: phy@1c06000 {
- 			compatible = "qcom,sdx55-qmp-pcie-phy";
--			reg = <0x01c07000 0x2000>;
-+			reg = <0x01c06000 0x2000>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges;
 -- 
 2.43.2
 
@@ -3047,564 +2789,6 @@ index 3d5cd51071f0..ab25a81fd3a1 100644
 -- 
 2.43.2
 
-From 437b5f57732bb4cc32cc9f8895d2010ee9ff521c Mon Sep 17 00:00:00 2001
-From: "Ricardo B. Marliere" <ricardo@marliere.net>
-Date: Fri, 13 Oct 2023 01:09:12 +0200
-Subject: [PATCH 254/641] media: pvrusb2: fix use after free on context
- disconnection
-Status: RO
-Content-Length: 1519
-Lines: 38
-
-[ Upstream commit ded85b0c0edd8f45fec88783d7555a5b982449c1 ]
-
-Upon module load, a kthread is created targeting the
-pvr2_context_thread_func function, which may call pvr2_context_destroy
-and thus call kfree() on the context object. However, that might happen
-before the usb hub_event handler is able to notify the driver. This
-patch adds a sanity check before the invalid read reported by syzbot,
-within the context disconnection call stack.
-
-Reported-and-tested-by: syzbot+621409285c4156a009b3@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/000000000000a02a4205fff8eb92@google.com/
-
-Fixes: e5be15c63804 ("V4L/DVB (7711): pvrusb2: Fix race on module unload")
-Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
-Acked-by: Mike Isely <isely@pobox.com>
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/media/usb/pvrusb2/pvrusb2-context.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-context.c b/drivers/media/usb/pvrusb2/pvrusb2-context.c
-index 14170a5d72b3..1764674de98b 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-context.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-context.c
-@@ -268,7 +268,8 @@ void pvr2_context_disconnect(struct pvr2_context *mp)
- {
- 	pvr2_hdw_disconnect(mp->hdw);
- 	mp->disconnect_flag = !0;
--	pvr2_context_notify(mp);
-+	if (!pvr2_context_shutok())
-+		pvr2_context_notify(mp);
- }
- 
- 
--- 
-2.43.2
-
-From 71c6670f9f032ec67d8f4e3f8db4646bf5a62883 Mon Sep 17 00:00:00 2001
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Date: Wed, 27 Dec 2023 09:35:23 +0000
-Subject: [PATCH 082/641] crypto: scomp - fix req->dst buffer overflow
-Status: RO
-Content-Length: 1688
-Lines: 49
-
-[ Upstream commit 744e1885922a9943458954cfea917b31064b4131 ]
-
-The req->dst buffer size should be checked before copying from the
-scomp_scratch->dst to avoid req->dst buffer overflow problem.
-
-Fixes: 1ab53a77b772 ("crypto: acomp - add driver-side scomp interface")
-Reported-by: syzbot+3eff5e51bf1db122a16e@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/0000000000000b05cd060d6b5511@google.com/
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Reviewed-by: Barry Song <v-songbaohua@oppo.com>
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- crypto/scompress.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/crypto/scompress.c b/crypto/scompress.c
-index 442a82c9de7d..b108a30a7600 100644
---- a/crypto/scompress.c
-+++ b/crypto/scompress.c
-@@ -117,6 +117,7 @@ static int scomp_acomp_comp_decomp(struct acomp_req *req, int dir)
- 	struct crypto_scomp *scomp = *tfm_ctx;
- 	void **ctx = acomp_request_ctx(req);
- 	struct scomp_scratch *scratch;
-+	unsigned int dlen;
- 	int ret;
- 
- 	if (!req->src || !req->slen || req->slen > SCOMP_SCRATCH_SIZE)
-@@ -128,6 +129,8 @@ static int scomp_acomp_comp_decomp(struct acomp_req *req, int dir)
- 	if (!req->dlen || req->dlen > SCOMP_SCRATCH_SIZE)
- 		req->dlen = SCOMP_SCRATCH_SIZE;
- 
-+	dlen = req->dlen;
-+
- 	scratch = raw_cpu_ptr(&scomp_scratch);
- 	spin_lock(&scratch->lock);
- 
-@@ -145,6 +148,9 @@ static int scomp_acomp_comp_decomp(struct acomp_req *req, int dir)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
-+		} else if (req->dlen > dlen) {
-+			ret = -ENOSPC;
-+			goto out;
- 		}
- 		scatterwalk_map_and_copy(scratch->dst, req->dst, 0, req->dlen,
- 					 1);
--- 
-2.43.2
-
-From 48d7114dce3d620285e53e8340e9427ff80ab744 Mon Sep 17 00:00:00 2001
-From: Chunfeng Yun <chunfeng.yun@mediatek.com>
-Date: Thu, 4 Jan 2024 14:16:39 +0800
-Subject: [PATCH 558/641] usb: xhci-mtk: fix a short packet issue of gen1
- isoc-in transfer
-Status: RO
-Content-Length: 3796
-Lines: 121
-
-[ Upstream commit 017dbfc05c31284150819890b4cc86a699cbdb71 ]
-
-For Gen1 isoc-in transfer, host still send out unexpected ACK after device
-finish the burst with a short packet, this will cause an exception on the
-connected device, such as, a usb 4k camera.
-It can be fixed by setting rxfifo depth less than 4k bytes, prefer to use
-3k here, the side-effect is that may cause performance drop about 10%,
-including bulk transfer.
-
-Fixes: 926d60ae64a6 ("usb: xhci-mtk: modify the SOF/ITP interval for mt8195")
-Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Signed-off-by: Chunfeng Yun <chunfeng.yun@mediatek.com>
-Link: https://lore.kernel.org/r/20240104061640.7335-2-chunfeng.yun@mediatek.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/usb/host/xhci-mtk.c | 40 +++++++++++++++++++++++++++++++++++--
- drivers/usb/host/xhci-mtk.h |  2 ++
- 2 files changed, 40 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/usb/host/xhci-mtk.c b/drivers/usb/host/xhci-mtk.c
-index bbdf1b0b7be1..3252e3d2d79c 100644
---- a/drivers/usb/host/xhci-mtk.c
-+++ b/drivers/usb/host/xhci-mtk.c
-@@ -7,6 +7,7 @@
-  *  Chunfeng Yun <chunfeng.yun@mediatek.com>
-  */
- 
-+#include <linux/bitfield.h>
- #include <linux/dma-mapping.h>
- #include <linux/iopoll.h>
- #include <linux/kernel.h>
-@@ -73,6 +74,9 @@
- #define FRMCNT_LEV1_RANG	(0x12b << 8)
- #define FRMCNT_LEV1_RANG_MASK	GENMASK(19, 8)
- 
-+#define HSCH_CFG1		0x960
-+#define SCH3_RXFIFO_DEPTH_MASK	GENMASK(21, 20)
-+
- #define SS_GEN2_EOF_CFG		0x990
- #define SSG2EOF_OFFSET		0x3c
- 
-@@ -114,6 +118,8 @@
- #define SSC_IP_SLEEP_EN	BIT(4)
- #define SSC_SPM_INT_EN		BIT(1)
- 
-+#define SCH_FIFO_TO_KB(x)	((x) >> 10)
-+
- enum ssusb_uwk_vers {
- 	SSUSB_UWK_V1 = 1,
- 	SSUSB_UWK_V2,
-@@ -165,6 +171,35 @@ static void xhci_mtk_set_frame_interval(struct xhci_hcd_mtk *mtk)
- 	writel(value, hcd->regs + SS_GEN2_EOF_CFG);
- }
- 
-+/*
-+ * workaround: usb3.2 gen1 isoc rx hw issue
-+ * host send out unexpected ACK afer device fininsh a burst transfer with
-+ * a short packet.
-+ */
-+static void xhci_mtk_rxfifo_depth_set(struct xhci_hcd_mtk *mtk)
-+{
-+	struct usb_hcd *hcd = mtk->hcd;
-+	u32 value;
-+
-+	if (!mtk->rxfifo_depth)
-+		return;
-+
-+	value = readl(hcd->regs + HSCH_CFG1);
-+	value &= ~SCH3_RXFIFO_DEPTH_MASK;
-+	value |= FIELD_PREP(SCH3_RXFIFO_DEPTH_MASK,
-+			    SCH_FIFO_TO_KB(mtk->rxfifo_depth) - 1);
-+	writel(value, hcd->regs + HSCH_CFG1);
-+}
-+
-+static void xhci_mtk_init_quirk(struct xhci_hcd_mtk *mtk)
-+{
-+	/* workaround only for mt8195 */
-+	xhci_mtk_set_frame_interval(mtk);
-+
-+	/* workaround for SoCs using SSUSB about before IPM v1.6.0 */
-+	xhci_mtk_rxfifo_depth_set(mtk);
-+}
-+
- static int xhci_mtk_host_enable(struct xhci_hcd_mtk *mtk)
- {
- 	struct mu3c_ippc_regs __iomem *ippc = mtk->ippc_regs;
-@@ -448,8 +483,7 @@ static int xhci_mtk_setup(struct usb_hcd *hcd)
- 		if (ret)
- 			return ret;
- 
--		/* workaround only for mt8195 */
--		xhci_mtk_set_frame_interval(mtk);
-+		xhci_mtk_init_quirk(mtk);
- 	}
- 
- 	ret = xhci_gen_setup(hcd, xhci_mtk_quirks);
-@@ -527,6 +561,8 @@ static int xhci_mtk_probe(struct platform_device *pdev)
- 	of_property_read_u32(node, "mediatek,u2p-dis-msk",
- 			     &mtk->u2p_dis_msk);
- 
-+	of_property_read_u32(node, "rx-fifo-depth", &mtk->rxfifo_depth);
-+
- 	ret = usb_wakeup_of_property_parse(mtk, node);
- 	if (ret) {
- 		dev_err(dev, "failed to parse uwk property\n");
-diff --git a/drivers/usb/host/xhci-mtk.h b/drivers/usb/host/xhci-mtk.h
-index 39f7ae7d3087..f5e2bd66bb1b 100644
---- a/drivers/usb/host/xhci-mtk.h
-+++ b/drivers/usb/host/xhci-mtk.h
-@@ -171,6 +171,8 @@ struct xhci_hcd_mtk {
- 	struct regmap *uwk;
- 	u32 uwk_reg_base;
- 	u32 uwk_vers;
-+	/* quirk */
-+	u32 rxfifo_depth;
- };
- 
- static inline struct xhci_hcd_mtk *hcd_to_mtk(struct usb_hcd *hcd)
--- 
-2.43.2
-
-From d1d27950cdb92314d4aa2ffc1dbdf36028e7f12d Mon Sep 17 00:00:00 2001
-From: Martin KaFai Lau <martin.lau@kernel.org>
-Date: Fri, 12 Jan 2024 11:05:29 -0800
-Subject: [PATCH 599/641] bpf: Avoid iter->offset making backward progress in
- bpf_iter_udp
-Status: RO
-Content-Length: 3772
-Lines: 105
-
-[ Upstream commit 2242fd537fab52d5f4d2fbb1845f047c01fad0cf ]
-
-There is a bug in the bpf_iter_udp_batch() function that stops
-the userspace from making forward progress.
-
-The case that triggers the bug is the userspace passed in
-a very small read buffer. When the bpf prog does bpf_seq_printf,
-the userspace read buffer is not enough to capture the whole bucket.
-
-When the read buffer is not large enough, the kernel will remember
-the offset of the bucket in iter->offset such that the next userspace
-read() can continue from where it left off.
-
-The kernel will skip the number (== "iter->offset") of sockets in
-the next read(). However, the code directly decrements the
-"--iter->offset". This is incorrect because the next read() may
-not consume the whole bucket either and then the next-next read()
-will start from offset 0. The net effect is the userspace will
-keep reading from the beginning of a bucket and the process will
-never finish. "iter->offset" must always go forward until the
-whole bucket is consumed.
-
-This patch fixes it by using a local variable "resume_offset"
-and "resume_bucket". "iter->offset" is always reset to 0 before
-it may be used. "iter->offset" will be advanced to the
-"resume_offset" when it continues from the "resume_bucket" (i.e.
-"state->bucket == resume_bucket"). This brings it closer to
-the bpf_iter_tcp's offset handling which does not suffer
-the same bug.
-
-Cc: Aditi Ghag <aditi.ghag@isovalent.com>
-Fixes: c96dac8d369f ("bpf: udp: Implement batching for sockets iterator")
-Acked-by: Yonghong Song <yonghong.song@linux.dev>
-Signed-off-by: Martin KaFai Lau <martin.lau@kernel.org>
-Reviewed-by: Aditi Ghag <aditi.ghag@isovalent.com>
-Link: https://lore.kernel.org/r/20240112190530.3751661-3-martin.lau@linux.dev
-Signed-off-by: Alexei Starovoitov <ast@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/ipv4/udp.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
-
-diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
-index 79050d83e736..148ffb007969 100644
---- a/net/ipv4/udp.c
-+++ b/net/ipv4/udp.c
-@@ -3137,16 +3137,18 @@ static struct sock *bpf_iter_udp_batch(struct seq_file *seq)
- 	struct bpf_udp_iter_state *iter = seq->private;
- 	struct udp_iter_state *state = &iter->state;
- 	struct net *net = seq_file_net(seq);
-+	int resume_bucket, resume_offset;
- 	struct udp_table *udptable;
- 	unsigned int batch_sks = 0;
- 	bool resized = false;
- 	struct sock *sk;
- 
-+	resume_bucket = state->bucket;
-+	resume_offset = iter->offset;
-+
- 	/* The current batch is done, so advance the bucket. */
--	if (iter->st_bucket_done) {
-+	if (iter->st_bucket_done)
- 		state->bucket++;
--		iter->offset = 0;
--	}
- 
- 	udptable = udp_get_table_seq(seq, net);
- 
-@@ -3166,19 +3168,19 @@ static struct sock *bpf_iter_udp_batch(struct seq_file *seq)
- 	for (; state->bucket <= udptable->mask; state->bucket++) {
- 		struct udp_hslot *hslot2 = &udptable->hash2[state->bucket];
- 
--		if (hlist_empty(&hslot2->head)) {
--			iter->offset = 0;
-+		if (hlist_empty(&hslot2->head))
- 			continue;
--		}
- 
-+		iter->offset = 0;
- 		spin_lock_bh(&hslot2->lock);
- 		udp_portaddr_for_each_entry(sk, &hslot2->head) {
- 			if (seq_sk_match(seq, sk)) {
- 				/* Resume from the last iterated socket at the
- 				 * offset in the bucket before iterator was stopped.
- 				 */
--				if (iter->offset) {
--					--iter->offset;
-+				if (state->bucket == resume_bucket &&
-+				    iter->offset < resume_offset) {
-+					++iter->offset;
- 					continue;
- 				}
- 				if (iter->end_sk < iter->max_sk) {
-@@ -3192,9 +3194,6 @@ static struct sock *bpf_iter_udp_batch(struct seq_file *seq)
- 
- 		if (iter->end_sk)
- 			break;
--
--		/* Reset the current bucket's offset before moving to the next bucket. */
--		iter->offset = 0;
- 	}
- 
- 	/* All done: no batch made. */
--- 
-2.43.2
-
-From 1b500d5d6cecf98dd6ca88bc9e7ae1783c83e6d3 Mon Sep 17 00:00:00 2001
-From: Hao Sun <sunhao.th@gmail.com>
-Date: Mon, 15 Jan 2024 09:20:27 +0100
-Subject: [PATCH 610/641] bpf: Reject variable offset alu on PTR_TO_FLOW_KEYS
-Status: RO
-Content-Length: 3251
-Lines: 80
-
-[ Upstream commit 22c7fa171a02d310e3a3f6ed46a698ca8a0060ed ]
-
-For PTR_TO_FLOW_KEYS, check_flow_keys_access() only uses fixed off
-for validation. However, variable offset ptr alu is not prohibited
-for this ptr kind. So the variable offset is not checked.
-
-The following prog is accepted:
-
-  func#0 @0
-  0: R1=ctx() R10=fp0
-  0: (bf) r6 = r1                       ; R1=ctx() R6_w=ctx()
-  1: (79) r7 = *(u64 *)(r6 +144)        ; R6_w=ctx() R7_w=flow_keys()
-  2: (b7) r8 = 1024                     ; R8_w=1024
-  3: (37) r8 /= 1                       ; R8_w=scalar()
-  4: (57) r8 &= 1024                    ; R8_w=scalar(smin=smin32=0,
-  smax=umax=smax32=umax32=1024,var_off=(0x0; 0x400))
-  5: (0f) r7 += r8
-  mark_precise: frame0: last_idx 5 first_idx 0 subseq_idx -1
-  mark_precise: frame0: regs=r8 stack= before 4: (57) r8 &= 1024
-  mark_precise: frame0: regs=r8 stack= before 3: (37) r8 /= 1
-  mark_precise: frame0: regs=r8 stack= before 2: (b7) r8 = 1024
-  6: R7_w=flow_keys(smin=smin32=0,smax=umax=smax32=umax32=1024,var_off
-  =(0x0; 0x400)) R8_w=scalar(smin=smin32=0,smax=umax=smax32=umax32=1024,
-  var_off=(0x0; 0x400))
-  6: (79) r0 = *(u64 *)(r7 +0)          ; R0_w=scalar()
-  7: (95) exit
-
-This prog loads flow_keys to r7, and adds the variable offset r8
-to r7, and finally causes out-of-bounds access:
-
-  BUG: unable to handle page fault for address: ffffc90014c80038
-  [...]
-  Call Trace:
-   <TASK>
-   bpf_dispatcher_nop_func include/linux/bpf.h:1231 [inline]
-   __bpf_prog_run include/linux/filter.h:651 [inline]
-   bpf_prog_run include/linux/filter.h:658 [inline]
-   bpf_prog_run_pin_on_cpu include/linux/filter.h:675 [inline]
-   bpf_flow_dissect+0x15f/0x350 net/core/flow_dissector.c:991
-   bpf_prog_test_run_flow_dissector+0x39d/0x620 net/bpf/test_run.c:1359
-   bpf_prog_test_run kernel/bpf/syscall.c:4107 [inline]
-   __sys_bpf+0xf8f/0x4560 kernel/bpf/syscall.c:5475
-   __do_sys_bpf kernel/bpf/syscall.c:5561 [inline]
-   __se_sys_bpf kernel/bpf/syscall.c:5559 [inline]
-   __x64_sys_bpf+0x73/0xb0 kernel/bpf/syscall.c:5559
-   do_syscall_x64 arch/x86/entry/common.c:52 [inline]
-   do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:83
-   entry_SYSCALL_64_after_hwframe+0x63/0x6b
-
-Fix this by rejecting ptr alu with variable offset on flow_keys.
-Applying the patch rejects the program with "R7 pointer arithmetic
-on flow_keys prohibited".
-
-Fixes: d58e468b1112 ("flow_dissector: implements flow dissector BPF hook")
-Signed-off-by: Hao Sun <sunhao.th@gmail.com>
-Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
-Acked-by: Yonghong Song <yonghong.song@linux.dev>
-Link: https://lore.kernel.org/bpf/20240115082028.9992-1-sunhao.th@gmail.com
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- kernel/bpf/verifier.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index 2b8fbdc1a113..e215413c79a5 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -12854,6 +12854,10 @@ static int adjust_ptr_min_max_vals(struct bpf_verifier_env *env,
- 	}
- 
- 	switch (base_type(ptr_reg->type)) {
-+	case PTR_TO_FLOW_KEYS:
-+		if (known)
-+			break;
-+		fallthrough;
- 	case CONST_PTR_TO_MAP:
- 		/* smin_val represents the known value */
- 		if (known && smin_val == 0 && opcode == BPF_ADD)
--- 
-2.43.2
-
-From 7924ade13a49c0067da6ea13e398102979c0654a Mon Sep 17 00:00:00 2001
-From: Hengqi Chen <hengqi.chen@gmail.com>
-Date: Wed, 17 Jan 2024 12:43:13 +0800
-Subject: [PATCH 612/641] LoongArch: BPF: Prevent out-of-bounds memory access
-Status: RO
-Content-Length: 5688
-Lines: 108
-
-[ Upstream commit 36a87385e31c9343af9a4756598e704741250a67 ]
-
-The test_tag test triggers an unhandled page fault:
-
-  # ./test_tag
-  [  130.640218] CPU 0 Unable to handle kernel paging request at virtual address ffff80001b898004, era == 9000000003137f7c, ra == 9000000003139e70
-  [  130.640501] Oops[#3]:
-  [  130.640553] CPU: 0 PID: 1326 Comm: test_tag Tainted: G      D    O       6.7.0-rc4-loong-devel-gb62ab1a397cf #47 61985c1d94084daa2432f771daa45b56b10d8d2a
-  [  130.640764] Hardware name: QEMU QEMU Virtual Machine, BIOS unknown 2/2/2022
-  [  130.640874] pc 9000000003137f7c ra 9000000003139e70 tp 9000000104cb4000 sp 9000000104cb7a40
-  [  130.641001] a0 ffff80001b894000 a1 ffff80001b897ff8 a2 000000006ba210be a3 0000000000000000
-  [  130.641128] a4 000000006ba210be a5 00000000000000f1 a6 00000000000000b3 a7 0000000000000000
-  [  130.641256] t0 0000000000000000 t1 00000000000007f6 t2 0000000000000000 t3 9000000004091b70
-  [  130.641387] t4 000000006ba210be t5 0000000000000004 t6 fffffffffffffff0 t7 90000000040913e0
-  [  130.641512] t8 0000000000000005 u0 0000000000000dc0 s9 0000000000000009 s0 9000000104cb7ae0
-  [  130.641641] s1 00000000000007f6 s2 0000000000000009 s3 0000000000000095 s4 0000000000000000
-  [  130.641771] s5 ffff80001b894000 s6 ffff80001b897fb0 s7 9000000004090c50 s8 0000000000000000
-  [  130.641900]    ra: 9000000003139e70 build_body+0x1fcc/0x4988
-  [  130.642007]   ERA: 9000000003137f7c build_body+0xd8/0x4988
-  [  130.642112]  CRMD: 000000b0 (PLV0 -IE -DA +PG DACF=CC DACM=CC -WE)
-  [  130.642261]  PRMD: 00000004 (PPLV0 +PIE -PWE)
-  [  130.642353]  EUEN: 00000003 (+FPE +SXE -ASXE -BTE)
-  [  130.642458]  ECFG: 00071c1c (LIE=2-4,10-12 VS=7)
-  [  130.642554] ESTAT: 00010000 [PIL] (IS= ECode=1 EsubCode=0)
-  [  130.642658]  BADV: ffff80001b898004
-  [  130.642719]  PRID: 0014c010 (Loongson-64bit, Loongson-3A5000)
-  [  130.642815] Modules linked in: [last unloaded: bpf_testmod(O)]
-  [  130.642924] Process test_tag (pid: 1326, threadinfo=00000000f7f4015f, task=000000006499f9fd)
-  [  130.643062] Stack : 0000000000000000 9000000003380724 0000000000000000 0000000104cb7be8
-  [  130.643213]         0000000000000000 25af8d9b6e600558 9000000106250ea0 9000000104cb7ae0
-  [  130.643378]         0000000000000000 0000000000000000 9000000104cb7be8 90000000049f6000
-  [  130.643538]         0000000000000090 9000000106250ea0 ffff80001b894000 ffff80001b894000
-  [  130.643685]         00007ffffb917790 900000000313ca94 0000000000000000 0000000000000000
-  [  130.643831]         ffff80001b894000 0000000000000ff7 0000000000000000 9000000100468000
-  [  130.643983]         0000000000000000 0000000000000000 0000000000000040 25af8d9b6e600558
-  [  130.644131]         0000000000000bb7 ffff80001b894048 0000000000000000 0000000000000000
-  [  130.644276]         9000000104cb7be8 90000000049f6000 0000000000000090 9000000104cb7bdc
-  [  130.644423]         ffff80001b894000 0000000000000000 00007ffffb917790 90000000032acfb0
-  [  130.644572]         ...
-  [  130.644629] Call Trace:
-  [  130.644641] [<9000000003137f7c>] build_body+0xd8/0x4988
-  [  130.644785] [<900000000313ca94>] bpf_int_jit_compile+0x228/0x4ec
-  [  130.644891] [<90000000032acfb0>] bpf_prog_select_runtime+0x158/0x1b0
-  [  130.645003] [<90000000032b3504>] bpf_prog_load+0x760/0xb44
-  [  130.645089] [<90000000032b6744>] __sys_bpf+0xbb8/0x2588
-  [  130.645175] [<90000000032b8388>] sys_bpf+0x20/0x2c
-  [  130.645259] [<9000000003f6ab38>] do_syscall+0x7c/0x94
-  [  130.645369] [<9000000003121c5c>] handle_syscall+0xbc/0x158
-  [  130.645507]
-  [  130.645539] Code: 380839f6  380831f9  28412bae <24000ca6> 004081ad  0014cb50  004083e8  02bff34c  58008e91
-  [  130.645729]
-  [  130.646418] ---[ end trace 0000000000000000 ]---
-
-On my machine, which has CONFIG_PAGE_SIZE_16KB=y, the test failed at
-loading a BPF prog with 2039 instructions:
-
-  prog = (struct bpf_prog *)ffff80001b894000
-  insn = (struct bpf_insn *)(prog->insnsi)ffff80001b894048
-  insn + 2039 = (struct bpf_insn *)ffff80001b898000 <- end of the page
-
-In the build_insn() function, we are trying to access next instruction
-unconditionally, i.e. `(insn + 1)->imm`. The address lies in the next
-page and can be not owned by the current process, thus an page fault is
-inevitable and then segfault.
-
-So, let's access next instruction only under `dst = imm64` context.
-
-With this fix, we have:
-
-  # ./test_tag
-  test_tag: OK (40945 tests)
-
-Fixes: bbfddb904df6f82 ("LoongArch: BPF: Avoid declare variables in switch-case")
-Tested-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Signed-off-by: Hengqi Chen <hengqi.chen@gmail.com>
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/loongarch/net/bpf_jit.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/arch/loongarch/net/bpf_jit.c b/arch/loongarch/net/bpf_jit.c
-index 4fcd6cd6da23..5c634de4ee36 100644
---- a/arch/loongarch/net/bpf_jit.c
-+++ b/arch/loongarch/net/bpf_jit.c
-@@ -465,7 +465,6 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx, bool ext
- 	const u8 dst = regmap[insn->dst_reg];
- 	const s16 off = insn->off;
- 	const s32 imm = insn->imm;
--	const u64 imm64 = (u64)(insn + 1)->imm << 32 | (u32)insn->imm;
- 	const bool is32 = BPF_CLASS(insn->code) == BPF_ALU || BPF_CLASS(insn->code) == BPF_JMP32;
- 
- 	switch (code) {
-@@ -923,8 +922,12 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx, bool ext
- 
- 	/* dst = imm64 */
- 	case BPF_LD | BPF_IMM | BPF_DW:
-+	{
-+		const u64 imm64 = (u64)(insn + 1)->imm << 32 | (u32)insn->imm;
-+
- 		move_imm(ctx, dst, imm64, is32);
- 		return 1;
-+	}
- 
- 	/* dst = *(size *)(src + off) */
- 	case BPF_LDX | BPF_MEM | BPF_B:
--- 
-2.43.2
-
 From f9ff6ef1c73cd9e1a6bb1ab3e57c5d141a536306 Mon Sep 17 00:00:00 2001
 From: Yonghong Song <yonghong.song@linux.dev>
 Date: Thu, 14 Dec 2023 12:38:15 -0800
@@ -3938,92 +3122,6 @@ index 640b08818afa..652c40a14d0d 100644
 -- 
 2.43.2
 
-From 50ae82f080cf87e84828f066c31723b781d68f5b Mon Sep 17 00:00:00 2001
-From: Jiri Olsa <olsajiri@gmail.com>
-Date: Wed, 3 Jan 2024 20:05:46 +0100
-Subject: [PATCH 449/641] bpf: Fix re-attachment branch in
- bpf_tracing_prog_attach
-Status: RO
-Content-Length: 2700
-Lines: 76
-
-commit 715d82ba636cb3629a6e18a33bb9dbe53f9936ee upstream.
-
-The following case can cause a crash due to missing attach_btf:
-
-1) load rawtp program
-2) load fentry program with rawtp as target_fd
-3) create tracing link for fentry program with target_fd = 0
-4) repeat 3
-
-In the end we have:
-
-- prog->aux->dst_trampoline == NULL
-- tgt_prog == NULL (because we did not provide target_fd to link_create)
-- prog->aux->attach_btf == NULL (the program was loaded with attach_prog_fd=X)
-- the program was loaded for tgt_prog but we have no way to find out which one
-
-    BUG: kernel NULL pointer dereference, address: 0000000000000058
-    Call Trace:
-     <TASK>
-     ? __die+0x20/0x70
-     ? page_fault_oops+0x15b/0x430
-     ? fixup_exception+0x22/0x330
-     ? exc_page_fault+0x6f/0x170
-     ? asm_exc_page_fault+0x22/0x30
-     ? bpf_tracing_prog_attach+0x279/0x560
-     ? btf_obj_id+0x5/0x10
-     bpf_tracing_prog_attach+0x439/0x560
-     __sys_bpf+0x1cf4/0x2de0
-     __x64_sys_bpf+0x1c/0x30
-     do_syscall_64+0x41/0xf0
-     entry_SYSCALL_64_after_hwframe+0x6e/0x76
-
-Return -EINVAL in this situation.
-
-Fixes: f3a95075549e0 ("bpf: Allow trampoline re-attach for tracing and lsm programs")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
-Acked-by: Jiri Olsa <olsajiri@gmail.com>
-Acked-by: Song Liu <song@kernel.org>
-Signed-off-by: Dmitrii Dolgov <9erthalion6@gmail.com>
-Link: https://lore.kernel.org/r/20240103190559.14750-4-9erthalion6@gmail.com
-Signed-off-by: Alexei Starovoitov <ast@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- kernel/bpf/syscall.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index 6e7e57360b81..58e34ff81197 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -3205,6 +3205,10 @@ static int bpf_tracing_prog_attach(struct bpf_prog *prog,
- 	 *
- 	 * - if prog->aux->dst_trampoline and tgt_prog is NULL, the program
- 	 *   was detached and is going for re-attachment.
-+	 *
-+	 * - if prog->aux->dst_trampoline is NULL and tgt_prog and prog->aux->attach_btf
-+	 *   are NULL, then program was already attached and user did not provide
-+	 *   tgt_prog_fd so we have no way to find out or create trampoline
- 	 */
- 	if (!prog->aux->dst_trampoline && !tgt_prog) {
- 		/*
-@@ -3218,6 +3222,11 @@ static int bpf_tracing_prog_attach(struct bpf_prog *prog,
- 			err = -EINVAL;
- 			goto out_unlock;
- 		}
-+		/* We can allow re-attach only if we have valid attach_btf. */
-+		if (!prog->aux->attach_btf) {
-+			err = -EINVAL;
-+			goto out_unlock;
-+		}
- 		btf_id = prog->aux->attach_btf_id;
- 		key = bpf_trampoline_compute_key(NULL, prog->aux->attach_btf, btf_id);
- 	}
--- 
-2.43.2
-
 From 9efc70cf2554e7a8d5a996a44252f39e5bc4e510 Mon Sep 17 00:00:00 2001
 From: Francesco Dolcini <francesco.dolcini@toradex.com>
 Date: Mon, 11 Dec 2023 17:40:18 +0100
@@ -4314,6 +3412,1874 @@ index f69c47945175..3d50215985d5 100644
 -- 
 2.43.2
 
+From ba8d904c274268b18ef3dc11d3ca7b24a96cb087 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 5 Jan 2024 17:03:13 +0000
+Subject: [PATCH 240/641] ip6_tunnel: fix NEXTHDR_FRAGMENT handling in
+ ip6_tnl_parse_tlv_enc_lim()
+Status: RO
+Content-Length: 6594
+Lines: 165
+
+[ Upstream commit d375b98e0248980681e5e56b712026174d617198 ]
+
+syzbot pointed out [1] that NEXTHDR_FRAGMENT handling is broken.
+
+Reading frag_off can only be done if we pulled enough bytes
+to skb->head. Currently we might access garbage.
+
+[1]
+BUG: KMSAN: uninit-value in ip6_tnl_parse_tlv_enc_lim+0x94f/0xbb0
+ip6_tnl_parse_tlv_enc_lim+0x94f/0xbb0
+ipxip6_tnl_xmit net/ipv6/ip6_tunnel.c:1326 [inline]
+ip6_tnl_start_xmit+0xab2/0x1a70 net/ipv6/ip6_tunnel.c:1432
+__netdev_start_xmit include/linux/netdevice.h:4940 [inline]
+netdev_start_xmit include/linux/netdevice.h:4954 [inline]
+xmit_one net/core/dev.c:3548 [inline]
+dev_hard_start_xmit+0x247/0xa10 net/core/dev.c:3564
+__dev_queue_xmit+0x33b8/0x5130 net/core/dev.c:4349
+dev_queue_xmit include/linux/netdevice.h:3134 [inline]
+neigh_connected_output+0x569/0x660 net/core/neighbour.c:1592
+neigh_output include/net/neighbour.h:542 [inline]
+ip6_finish_output2+0x23a9/0x2b30 net/ipv6/ip6_output.c:137
+ip6_finish_output+0x855/0x12b0 net/ipv6/ip6_output.c:222
+NF_HOOK_COND include/linux/netfilter.h:303 [inline]
+ip6_output+0x323/0x610 net/ipv6/ip6_output.c:243
+dst_output include/net/dst.h:451 [inline]
+ip6_local_out+0xe9/0x140 net/ipv6/output_core.c:155
+ip6_send_skb net/ipv6/ip6_output.c:1952 [inline]
+ip6_push_pending_frames+0x1f9/0x560 net/ipv6/ip6_output.c:1972
+rawv6_push_pending_frames+0xbe8/0xdf0 net/ipv6/raw.c:582
+rawv6_sendmsg+0x2b66/0x2e70 net/ipv6/raw.c:920
+inet_sendmsg+0x105/0x190 net/ipv4/af_inet.c:847
+sock_sendmsg_nosec net/socket.c:730 [inline]
+__sock_sendmsg net/socket.c:745 [inline]
+____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
+___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
+__sys_sendmsg net/socket.c:2667 [inline]
+__do_sys_sendmsg net/socket.c:2676 [inline]
+__se_sys_sendmsg net/socket.c:2674 [inline]
+__x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
+do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+Uninit was created at:
+slab_post_alloc_hook+0x129/0xa70 mm/slab.h:768
+slab_alloc_node mm/slub.c:3478 [inline]
+__kmem_cache_alloc_node+0x5c9/0x970 mm/slub.c:3517
+__do_kmalloc_node mm/slab_common.c:1006 [inline]
+__kmalloc_node_track_caller+0x118/0x3c0 mm/slab_common.c:1027
+kmalloc_reserve+0x249/0x4a0 net/core/skbuff.c:582
+pskb_expand_head+0x226/0x1a00 net/core/skbuff.c:2098
+__pskb_pull_tail+0x13b/0x2310 net/core/skbuff.c:2655
+pskb_may_pull_reason include/linux/skbuff.h:2673 [inline]
+pskb_may_pull include/linux/skbuff.h:2681 [inline]
+ip6_tnl_parse_tlv_enc_lim+0x901/0xbb0 net/ipv6/ip6_tunnel.c:408
+ipxip6_tnl_xmit net/ipv6/ip6_tunnel.c:1326 [inline]
+ip6_tnl_start_xmit+0xab2/0x1a70 net/ipv6/ip6_tunnel.c:1432
+__netdev_start_xmit include/linux/netdevice.h:4940 [inline]
+netdev_start_xmit include/linux/netdevice.h:4954 [inline]
+xmit_one net/core/dev.c:3548 [inline]
+dev_hard_start_xmit+0x247/0xa10 net/core/dev.c:3564
+__dev_queue_xmit+0x33b8/0x5130 net/core/dev.c:4349
+dev_queue_xmit include/linux/netdevice.h:3134 [inline]
+neigh_connected_output+0x569/0x660 net/core/neighbour.c:1592
+neigh_output include/net/neighbour.h:542 [inline]
+ip6_finish_output2+0x23a9/0x2b30 net/ipv6/ip6_output.c:137
+ip6_finish_output+0x855/0x12b0 net/ipv6/ip6_output.c:222
+NF_HOOK_COND include/linux/netfilter.h:303 [inline]
+ip6_output+0x323/0x610 net/ipv6/ip6_output.c:243
+dst_output include/net/dst.h:451 [inline]
+ip6_local_out+0xe9/0x140 net/ipv6/output_core.c:155
+ip6_send_skb net/ipv6/ip6_output.c:1952 [inline]
+ip6_push_pending_frames+0x1f9/0x560 net/ipv6/ip6_output.c:1972
+rawv6_push_pending_frames+0xbe8/0xdf0 net/ipv6/raw.c:582
+rawv6_sendmsg+0x2b66/0x2e70 net/ipv6/raw.c:920
+inet_sendmsg+0x105/0x190 net/ipv4/af_inet.c:847
+sock_sendmsg_nosec net/socket.c:730 [inline]
+__sock_sendmsg net/socket.c:745 [inline]
+____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
+___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
+__sys_sendmsg net/socket.c:2667 [inline]
+__do_sys_sendmsg net/socket.c:2676 [inline]
+__se_sys_sendmsg net/socket.c:2674 [inline]
+__x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
+do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+CPU: 0 PID: 7345 Comm: syz-executor.3 Not tainted 6.7.0-rc8-syzkaller-00024-gac865f00af29 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+
+Fixes: fbfa743a9d2a ("ipv6: fix ip6_tnl_parse_tlv_enc_lim()")
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Willem de Bruijn <willemb@google.com>
+Reviewed-by: Willem de Bruijn <willemb@google.com>
+Reviewed-by: David Ahern <dsahern@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv6/ip6_tunnel.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+index 5e80e517f071..46c19bd48990 100644
+--- a/net/ipv6/ip6_tunnel.c
++++ b/net/ipv6/ip6_tunnel.c
+@@ -399,7 +399,7 @@ __u16 ip6_tnl_parse_tlv_enc_lim(struct sk_buff *skb, __u8 *raw)
+ 	const struct ipv6hdr *ipv6h = (const struct ipv6hdr *)raw;
+ 	unsigned int nhoff = raw - skb->data;
+ 	unsigned int off = nhoff + sizeof(*ipv6h);
+-	u8 next, nexthdr = ipv6h->nexthdr;
++	u8 nexthdr = ipv6h->nexthdr;
+ 
+ 	while (ipv6_ext_hdr(nexthdr) && nexthdr != NEXTHDR_NONE) {
+ 		struct ipv6_opt_hdr *hdr;
+@@ -410,26 +410,26 @@ __u16 ip6_tnl_parse_tlv_enc_lim(struct sk_buff *skb, __u8 *raw)
+ 
+ 		hdr = (struct ipv6_opt_hdr *)(skb->data + off);
+ 		if (nexthdr == NEXTHDR_FRAGMENT) {
+-			struct frag_hdr *frag_hdr = (struct frag_hdr *) hdr;
+-			if (frag_hdr->frag_off)
+-				break;
+ 			optlen = 8;
+ 		} else if (nexthdr == NEXTHDR_AUTH) {
+ 			optlen = ipv6_authlen(hdr);
+ 		} else {
+ 			optlen = ipv6_optlen(hdr);
+ 		}
+-		/* cache hdr->nexthdr, since pskb_may_pull() might
+-		 * invalidate hdr
+-		 */
+-		next = hdr->nexthdr;
++
++		if (!pskb_may_pull(skb, off + optlen))
++			break;
++
++		hdr = (struct ipv6_opt_hdr *)(skb->data + off);
++		if (nexthdr == NEXTHDR_FRAGMENT) {
++			struct frag_hdr *frag_hdr = (struct frag_hdr *)hdr;
++
++			if (frag_hdr->frag_off)
++				break;
++		}
+ 		if (nexthdr == NEXTHDR_DEST) {
+ 			u16 i = 2;
+ 
+-			/* Remember : hdr is no longer valid at this point. */
+-			if (!pskb_may_pull(skb, off + optlen))
+-				break;
+-
+ 			while (1) {
+ 				struct ipv6_tlv_tnl_enc_lim *tel;
+ 
+@@ -449,7 +449,7 @@ __u16 ip6_tnl_parse_tlv_enc_lim(struct sk_buff *skb, __u8 *raw)
+ 					i++;
+ 			}
+ 		}
+-		nexthdr = next;
++		nexthdr = hdr->nexthdr;
+ 		off += optlen;
+ 	}
+ 	return 0;
+-- 
+2.43.2
+
+From 437b5f57732bb4cc32cc9f8895d2010ee9ff521c Mon Sep 17 00:00:00 2001
+From: "Ricardo B. Marliere" <ricardo@marliere.net>
+Date: Fri, 13 Oct 2023 01:09:12 +0200
+Subject: [PATCH 254/641] media: pvrusb2: fix use after free on context
+ disconnection
+Status: RO
+Content-Length: 1519
+Lines: 38
+
+[ Upstream commit ded85b0c0edd8f45fec88783d7555a5b982449c1 ]
+
+Upon module load, a kthread is created targeting the
+pvr2_context_thread_func function, which may call pvr2_context_destroy
+and thus call kfree() on the context object. However, that might happen
+before the usb hub_event handler is able to notify the driver. This
+patch adds a sanity check before the invalid read reported by syzbot,
+within the context disconnection call stack.
+
+Reported-and-tested-by: syzbot+621409285c4156a009b3@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/000000000000a02a4205fff8eb92@google.com/
+
+Fixes: e5be15c63804 ("V4L/DVB (7711): pvrusb2: Fix race on module unload")
+Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
+Acked-by: Mike Isely <isely@pobox.com>
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-context.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-context.c b/drivers/media/usb/pvrusb2/pvrusb2-context.c
+index 14170a5d72b3..1764674de98b 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-context.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-context.c
+@@ -268,7 +268,8 @@ void pvr2_context_disconnect(struct pvr2_context *mp)
+ {
+ 	pvr2_hdw_disconnect(mp->hdw);
+ 	mp->disconnect_flag = !0;
+-	pvr2_context_notify(mp);
++	if (!pvr2_context_shutok())
++		pvr2_context_notify(mp);
+ }
+ 
+ 
+-- 
+2.43.2
+
+From 2fb4867f4405aea8c0519d7d188207f232a57862 Mon Sep 17 00:00:00 2001
+From: Chao Yu <chao@kernel.org>
+Date: Tue, 28 Nov 2023 17:25:16 +0800
+Subject: [PATCH 263/641] f2fs: fix to avoid dirent corruption
+Status: RO
+Content-Length: 1626
+Lines: 52
+
+[ Upstream commit 53edb549565f55ccd0bdf43be3d66ce4c2d48b28 ]
+
+As Al reported in link[1]:
+
+f2fs_rename()
+...
+	if (old_dir != new_dir && !whiteout)
+		f2fs_set_link(old_inode, old_dir_entry,
+					old_dir_page, new_dir);
+	else
+		f2fs_put_page(old_dir_page, 0);
+
+You want correct inumber in the ".." link.  And cross-directory
+rename does move the source to new parent, even if you'd been asked
+to leave a whiteout in the old place.
+
+[1] https://lore.kernel.org/all/20231017055040.GN800259@ZenIV/
+
+With below testcase, it may cause dirent corruption, due to it missed
+to call f2fs_set_link() to update ".." link to new directory.
+- mkdir -p dir/foo
+- renameat2 -w dir/foo bar
+
+[ASSERT] (__chk_dots_dentries:1421)  --> Bad inode number[0x4] for '..', parent parent ino is [0x3]
+[FSCK] other corrupted bugs                           [Fail]
+
+Fixes: 7e01e7ad746b ("f2fs: support RENAME_WHITEOUT")
+Cc: Jan Kara <jack@suse.cz>
+Reported-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Chao Yu <chao@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Jaegeuk Kim <jaegeuk@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/f2fs/namei.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/f2fs/namei.c b/fs/f2fs/namei.c
+index d0053b0284d8..7f71bae2c83b 100644
+--- a/fs/f2fs/namei.c
++++ b/fs/f2fs/namei.c
+@@ -1106,7 +1106,7 @@ static int f2fs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
+ 	}
+ 
+ 	if (old_dir_entry) {
+-		if (old_dir != new_dir && !whiteout)
++		if (old_dir != new_dir)
+ 			f2fs_set_link(old_inode, old_dir_entry,
+ 						old_dir_page, new_dir);
+ 		else
+-- 
+2.43.2
+
+From 77d210e8db4d61d43b2d16df66b1ec46fad2ee01 Mon Sep 17 00:00:00 2001
+From: Carlos Llamas <cmllamas@google.com>
+Date: Fri, 1 Dec 2023 17:21:32 +0000
+Subject: [PATCH 387/641] binder: fix race between mmput() and do_exit()
+Status: RO
+Content-Length: 2210
+Lines: 63
+
+commit 9a9ab0d963621d9d12199df9817e66982582d5a5 upstream.
+
+Task A calls binder_update_page_range() to allocate and insert pages on
+a remote address space from Task B. For this, Task A pins the remote mm
+via mmget_not_zero() first. This can race with Task B do_exit() and the
+final mmput() refcount decrement will come from Task A.
+
+  Task A            | Task B
+  ------------------+------------------
+  mmget_not_zero()  |
+                    |  do_exit()
+                    |    exit_mm()
+                    |      mmput()
+  mmput()           |
+    exit_mmap()     |
+      remove_vma()  |
+        fput()      |
+
+In this case, the work of ____fput() from Task B is queued up in Task A
+as TWA_RESUME. So in theory, Task A returns to userspace and the cleanup
+work gets executed. However, Task A instead sleep, waiting for a reply
+from Task B that never comes (it's dead).
+
+This means the binder_deferred_release() is blocked until an unrelated
+binder event forces Task A to go back to userspace. All the associated
+death notifications will also be delayed until then.
+
+In order to fix this use mmput_async() that will schedule the work in
+the corresponding mm->async_put_work WQ instead of Task A.
+
+Fixes: 457b9a6f09f0 ("Staging: android: add binder driver")
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Signed-off-by: Carlos Llamas <cmllamas@google.com>
+Link: https://lore.kernel.org/r/20231201172212.1813387-4-cmllamas@google.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/android/binder_alloc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/android/binder_alloc.c b/drivers/android/binder_alloc.c
+index 304fffbc3728..a56cbfd9ba44 100644
+--- a/drivers/android/binder_alloc.c
++++ b/drivers/android/binder_alloc.c
+@@ -271,7 +271,7 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
+ 	}
+ 	if (mm) {
+ 		mmap_write_unlock(mm);
+-		mmput(mm);
++		mmput_async(mm);
+ 	}
+ 	return 0;
+ 
+@@ -304,7 +304,7 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
+ err_no_vma:
+ 	if (mm) {
+ 		mmap_write_unlock(mm);
+-		mmput(mm);
++		mmput_async(mm);
+ 	}
+ 	return vma ? -ENOMEM : -ESRCH;
+ }
+-- 
+2.43.2
+
+From 69d54650b751532d1e1613a4fb433e591aeef126 Mon Sep 17 00:00:00 2001
+From: Namjae Jeon <linkinjeon@kernel.org>
+Date: Sat, 13 Jan 2024 15:30:07 +0900
+Subject: [PATCH 423/641] ksmbd: fix UAF issue in ksmbd_tcp_new_connection()
+Status: RO
+Content-Length: 3833
+Lines: 111
+
+commit 38d20c62903d669693a1869aa68c4dd5674e2544 upstream.
+
+The race is between the handling of a new TCP connection and
+its disconnection. It leads to UAF on `struct tcp_transport` in
+ksmbd_tcp_new_connection() function.
+
+Cc: stable@vger.kernel.org
+Reported-by: zdi-disclosures@trendmicro.com # ZDI-CAN-22991
+Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
+Signed-off-by: Steve French <stfrench@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ fs/smb/server/connection.c     |  6 ------
+ fs/smb/server/connection.h     |  1 -
+ fs/smb/server/transport_rdma.c | 11 ++++++-----
+ fs/smb/server/transport_tcp.c  | 13 +++++++------
+ 4 files changed, 13 insertions(+), 18 deletions(-)
+
+diff --git a/fs/smb/server/connection.c b/fs/smb/server/connection.c
+index b6fa1e285c40..7977827c6541 100644
+--- a/fs/smb/server/connection.c
++++ b/fs/smb/server/connection.c
+@@ -415,13 +415,7 @@ static void stop_sessions(void)
+ again:
+ 	down_read(&conn_list_lock);
+ 	list_for_each_entry(conn, &conn_list, conns_list) {
+-		struct task_struct *task;
+-
+ 		t = conn->transport;
+-		task = t->handler;
+-		if (task)
+-			ksmbd_debug(CONN, "Stop session handler %s/%d\n",
+-				    task->comm, task_pid_nr(task));
+ 		ksmbd_conn_set_exiting(conn);
+ 		if (t->ops->shutdown) {
+ 			up_read(&conn_list_lock);
+diff --git a/fs/smb/server/connection.h b/fs/smb/server/connection.h
+index 342f935f5770..0e04cf8b1d89 100644
+--- a/fs/smb/server/connection.h
++++ b/fs/smb/server/connection.h
+@@ -135,7 +135,6 @@ struct ksmbd_transport_ops {
+ struct ksmbd_transport {
+ 	struct ksmbd_conn		*conn;
+ 	struct ksmbd_transport_ops	*ops;
+-	struct task_struct		*handler;
+ };
+ 
+ #define KSMBD_TCP_RECV_TIMEOUT	(7 * HZ)
+diff --git a/fs/smb/server/transport_rdma.c b/fs/smb/server/transport_rdma.c
+index c5629a68c8b7..8faa25c6e129 100644
+--- a/fs/smb/server/transport_rdma.c
++++ b/fs/smb/server/transport_rdma.c
+@@ -2039,6 +2039,7 @@ static bool rdma_frwr_is_supported(struct ib_device_attr *attrs)
+ static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id)
+ {
+ 	struct smb_direct_transport *t;
++	struct task_struct *handler;
+ 	int ret;
+ 
+ 	if (!rdma_frwr_is_supported(&new_cm_id->device->attrs)) {
+@@ -2056,11 +2057,11 @@ static int smb_direct_handle_connect_request(struct rdma_cm_id *new_cm_id)
+ 	if (ret)
+ 		goto out_err;
+ 
+-	KSMBD_TRANS(t)->handler = kthread_run(ksmbd_conn_handler_loop,
+-					      KSMBD_TRANS(t)->conn, "ksmbd:r%u",
+-					      smb_direct_port);
+-	if (IS_ERR(KSMBD_TRANS(t)->handler)) {
+-		ret = PTR_ERR(KSMBD_TRANS(t)->handler);
++	handler = kthread_run(ksmbd_conn_handler_loop,
++			      KSMBD_TRANS(t)->conn, "ksmbd:r%u",
++			      smb_direct_port);
++	if (IS_ERR(handler)) {
++		ret = PTR_ERR(handler);
+ 		pr_err("Can't start thread\n");
+ 		goto out_err;
+ 	}
+diff --git a/fs/smb/server/transport_tcp.c b/fs/smb/server/transport_tcp.c
+index eff7a1d793f0..9d4222154dcc 100644
+--- a/fs/smb/server/transport_tcp.c
++++ b/fs/smb/server/transport_tcp.c
+@@ -185,6 +185,7 @@ static int ksmbd_tcp_new_connection(struct socket *client_sk)
+ 	struct sockaddr *csin;
+ 	int rc = 0;
+ 	struct tcp_transport *t;
++	struct task_struct *handler;
+ 
+ 	t = alloc_transport(client_sk);
+ 	if (!t) {
+@@ -199,13 +200,13 @@ static int ksmbd_tcp_new_connection(struct socket *client_sk)
+ 		goto out_error;
+ 	}
+ 
+-	KSMBD_TRANS(t)->handler = kthread_run(ksmbd_conn_handler_loop,
+-					      KSMBD_TRANS(t)->conn,
+-					      "ksmbd:%u",
+-					      ksmbd_tcp_get_port(csin));
+-	if (IS_ERR(KSMBD_TRANS(t)->handler)) {
++	handler = kthread_run(ksmbd_conn_handler_loop,
++			      KSMBD_TRANS(t)->conn,
++			      "ksmbd:%u",
++			      ksmbd_tcp_get_port(csin));
++	if (IS_ERR(handler)) {
+ 		pr_err("cannot start conn thread\n");
+-		rc = PTR_ERR(KSMBD_TRANS(t)->handler);
++		rc = PTR_ERR(handler);
+ 		free_transport(t);
+ 	}
+ 	return rc;
+-- 
+2.43.2
+
+From ca3ede3f5893e2d26d4dbdef1eec28a8487fafde Mon Sep 17 00:00:00 2001
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Date: Tue, 16 Jan 2024 21:29:59 +0000
+Subject: [PATCH 442/641] block: Fix iterating over an empty bio with
+ bio_for_each_folio_all
+Status: RO
+Content-Length: 1737
+Lines: 49
+
+commit 7bed6f3d08b7af27b7015da8dc3acf2b9c1f21d7 upstream.
+
+If the bio contains no data, bio_first_folio() calls page_folio() on a
+NULL pointer and oopses.  Move the test that we've reached the end of
+the bio from bio_next_folio() to bio_first_folio().
+
+Reported-by: syzbot+8b23309d5788a79d3eea@syzkaller.appspotmail.com
+Reported-by: syzbot+004c1e0fced2b4bc3dcc@syzkaller.appspotmail.com
+Fixes: 640d1930bef4 ("block: Add bio_for_each_folio_all()")
+Cc: stable@vger.kernel.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lore.kernel.org/r/20240116212959.3413014-1-willy@infradead.org
+[axboe: add unlikely() to error case]
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ include/linux/bio.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index 41d417ee1349..0286bada25ce 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -286,6 +286,11 @@ static inline void bio_first_folio(struct folio_iter *fi, struct bio *bio,
+ {
+ 	struct bio_vec *bvec = bio_first_bvec_all(bio) + i;
+ 
++	if (unlikely(i >= bio->bi_vcnt)) {
++		fi->folio = NULL;
++		return;
++	}
++
+ 	fi->folio = page_folio(bvec->bv_page);
+ 	fi->offset = bvec->bv_offset +
+ 			PAGE_SIZE * (bvec->bv_page - &fi->folio->page);
+@@ -303,10 +308,8 @@ static inline void bio_next_folio(struct folio_iter *fi, struct bio *bio)
+ 		fi->offset = 0;
+ 		fi->length = min(folio_size(fi->folio), fi->_seg_count);
+ 		fi->_next = folio_next(fi->folio);
+-	} else if (fi->_i + 1 < bio->bi_vcnt) {
+-		bio_first_folio(fi, bio, fi->_i + 1);
+ 	} else {
+-		fi->folio = NULL;
++		bio_first_folio(fi, bio, fi->_i + 1);
+ 	}
+ }
+ 
+-- 
+2.43.2
+
+From 50ae82f080cf87e84828f066c31723b781d68f5b Mon Sep 17 00:00:00 2001
+From: Jiri Olsa <olsajiri@gmail.com>
+Date: Wed, 3 Jan 2024 20:05:46 +0100
+Subject: [PATCH 449/641] bpf: Fix re-attachment branch in
+ bpf_tracing_prog_attach
+Status: RO
+Content-Length: 2700
+Lines: 76
+
+commit 715d82ba636cb3629a6e18a33bb9dbe53f9936ee upstream.
+
+The following case can cause a crash due to missing attach_btf:
+
+1) load rawtp program
+2) load fentry program with rawtp as target_fd
+3) create tracing link for fentry program with target_fd = 0
+4) repeat 3
+
+In the end we have:
+
+- prog->aux->dst_trampoline == NULL
+- tgt_prog == NULL (because we did not provide target_fd to link_create)
+- prog->aux->attach_btf == NULL (the program was loaded with attach_prog_fd=X)
+- the program was loaded for tgt_prog but we have no way to find out which one
+
+    BUG: kernel NULL pointer dereference, address: 0000000000000058
+    Call Trace:
+     <TASK>
+     ? __die+0x20/0x70
+     ? page_fault_oops+0x15b/0x430
+     ? fixup_exception+0x22/0x330
+     ? exc_page_fault+0x6f/0x170
+     ? asm_exc_page_fault+0x22/0x30
+     ? bpf_tracing_prog_attach+0x279/0x560
+     ? btf_obj_id+0x5/0x10
+     bpf_tracing_prog_attach+0x439/0x560
+     __sys_bpf+0x1cf4/0x2de0
+     __x64_sys_bpf+0x1c/0x30
+     do_syscall_64+0x41/0xf0
+     entry_SYSCALL_64_after_hwframe+0x6e/0x76
+
+Return -EINVAL in this situation.
+
+Fixes: f3a95075549e0 ("bpf: Allow trampoline re-attach for tracing and lsm programs")
+Cc: stable@vger.kernel.org
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Acked-by: Jiri Olsa <olsajiri@gmail.com>
+Acked-by: Song Liu <song@kernel.org>
+Signed-off-by: Dmitrii Dolgov <9erthalion6@gmail.com>
+Link: https://lore.kernel.org/r/20240103190559.14750-4-9erthalion6@gmail.com
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ kernel/bpf/syscall.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index 6e7e57360b81..58e34ff81197 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -3205,6 +3205,10 @@ static int bpf_tracing_prog_attach(struct bpf_prog *prog,
+ 	 *
+ 	 * - if prog->aux->dst_trampoline and tgt_prog is NULL, the program
+ 	 *   was detached and is going for re-attachment.
++	 *
++	 * - if prog->aux->dst_trampoline is NULL and tgt_prog and prog->aux->attach_btf
++	 *   are NULL, then program was already attached and user did not provide
++	 *   tgt_prog_fd so we have no way to find out or create trampoline
+ 	 */
+ 	if (!prog->aux->dst_trampoline && !tgt_prog) {
+ 		/*
+@@ -3218,6 +3222,11 @@ static int bpf_tracing_prog_attach(struct bpf_prog *prog,
+ 			err = -EINVAL;
+ 			goto out_unlock;
+ 		}
++		/* We can allow re-attach only if we have valid attach_btf. */
++		if (!prog->aux->attach_btf) {
++			err = -EINVAL;
++			goto out_unlock;
++		}
+ 		btf_id = prog->aux->attach_btf_id;
+ 		key = bpf_trampoline_compute_key(NULL, prog->aux->attach_btf, btf_id);
+ 	}
+-- 
+2.43.2
+
+From 2942658bc0ed4d796a562d2c47eee9fdb17bffd0 Mon Sep 17 00:00:00 2001
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Date: Mon, 11 Dec 2023 22:54:11 +0530
+Subject: [PATCH 469/641] ARM: dts: qcom: sdx55: Fix the base address of PCIe
+ PHY
+Status: RO
+Content-Length: 1492
+Lines: 38
+
+commit cc6fc55c7ae04ab19b3972f78d3a8b1be32bf533 upstream.
+
+While convering the binding to new format, serdes address specified in the
+old binding was used as the base address. This causes a boot hang as the
+driver tries to access memory region outside of the specified address. Fix
+it!
+
+Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Cc: stable@vger.kernel.org # 6.6
+Fixes: bb56cff4ac03 ("ARM: dts: qcom-sdx55: switch PCIe QMP PHY to new style of bindings")
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Reviewed-by: Konrad Dybcio <konrad.dybcio@linaro.org>
+Reviewed-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Link: https://lore.kernel.org/r/20231211172411.141289-1-manivannan.sadhasivam@linaro.org
+Signed-off-by: Bjorn Andersson <andersson@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/arm/boot/dts/qcom/qcom-sdx55.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi b/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi
+index 2aa5089a8513..a88f186fcf03 100644
+--- a/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi
++++ b/arch/arm/boot/dts/qcom/qcom-sdx55.dtsi
+@@ -436,9 +436,9 @@ pcie_ep: pcie-ep@1c00000 {
+ 			status = "disabled";
+ 		};
+ 
+-		pcie_phy: phy@1c07000 {
++		pcie_phy: phy@1c06000 {
+ 			compatible = "qcom,sdx55-qmp-pcie-phy";
+-			reg = <0x01c07000 0x2000>;
++			reg = <0x01c06000 0x2000>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges;
+-- 
+2.43.2
+
+From 77ab09b92f16c8439a948d1af489196953dc4a0e Mon Sep 17 00:00:00 2001
+From: Fedor Pchelkin <pchelkin@ispras.ru>
+Date: Thu, 28 Dec 2023 19:07:43 +0300
+Subject: [PATCH 557/641] apparmor: avoid crash when parsed profile name is
+ empty
+Status: RO
+Content-Length: 2729
+Lines: 74
+
+[ Upstream commit 55a8210c9e7d21ff2644809699765796d4bfb200 ]
+
+When processing a packed profile in unpack_profile() described like
+
+ "profile :ns::samba-dcerpcd /usr/lib*/samba/{,samba/}samba-dcerpcd {...}"
+
+a string ":samba-dcerpcd" is unpacked as a fully-qualified name and then
+passed to aa_splitn_fqname().
+
+aa_splitn_fqname() treats ":samba-dcerpcd" as only containing a namespace.
+Thus it returns NULL for tmpname, meanwhile tmpns is non-NULL. Later
+aa_alloc_profile() crashes as the new profile name is NULL now.
+
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN NOPTI
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 6 PID: 1657 Comm: apparmor_parser Not tainted 6.7.0-rc2-dirty #16
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014
+RIP: 0010:strlen+0x1e/0xa0
+Call Trace:
+ <TASK>
+ ? strlen+0x1e/0xa0
+ aa_policy_init+0x1bb/0x230
+ aa_alloc_profile+0xb1/0x480
+ unpack_profile+0x3bc/0x4960
+ aa_unpack+0x309/0x15e0
+ aa_replace_profiles+0x213/0x33c0
+ policy_update+0x261/0x370
+ profile_replace+0x20e/0x2a0
+ vfs_write+0x2af/0xe00
+ ksys_write+0x126/0x250
+ do_syscall_64+0x46/0xf0
+ entry_SYSCALL_64_after_hwframe+0x6e/0x76
+ </TASK>
+---[ end trace 0000000000000000 ]---
+RIP: 0010:strlen+0x1e/0xa0
+
+It seems such behaviour of aa_splitn_fqname() is expected and checked in
+other places where it is called (e.g. aa_remove_profiles). Well, there
+is an explicit comment "a ns name without a following profile is allowed"
+inside.
+
+AFAICS, nothing can prevent unpacked "name" to be in form like
+":samba-dcerpcd" - it is passed from userspace.
+
+Deny the whole profile set replacement in such case and inform user with
+EPROTO and an explaining message.
+
+Found by Linux Verification Center (linuxtesting.org).
+
+Fixes: 04dc715e24d0 ("apparmor: audit policy ns specified in policy load")
+Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
+Signed-off-by: John Johansen <john.johansen@canonical.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ security/apparmor/policy_unpack.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/security/apparmor/policy_unpack.c b/security/apparmor/policy_unpack.c
+index 9575da5fd4cb..dbf7d96257ad 100644
+--- a/security/apparmor/policy_unpack.c
++++ b/security/apparmor/policy_unpack.c
+@@ -832,6 +832,10 @@ static struct aa_profile *unpack_profile(struct aa_ext *e, char **ns_name)
+ 
+ 	tmpname = aa_splitn_fqname(name, strlen(name), &tmpns, &ns_len);
+ 	if (tmpns) {
++		if (!tmpname) {
++			info = "empty profile name";
++			goto fail;
++		}
+ 		*ns_name = kstrndup(tmpns, ns_len, GFP_KERNEL);
+ 		if (!*ns_name) {
+ 			info = "out of memory";
+-- 
+2.43.2
+
+From 48d7114dce3d620285e53e8340e9427ff80ab744 Mon Sep 17 00:00:00 2001
+From: Chunfeng Yun <chunfeng.yun@mediatek.com>
+Date: Thu, 4 Jan 2024 14:16:39 +0800
+Subject: [PATCH 558/641] usb: xhci-mtk: fix a short packet issue of gen1
+ isoc-in transfer
+Status: RO
+Content-Length: 3796
+Lines: 121
+
+[ Upstream commit 017dbfc05c31284150819890b4cc86a699cbdb71 ]
+
+For Gen1 isoc-in transfer, host still send out unexpected ACK after device
+finish the burst with a short packet, this will cause an exception on the
+connected device, such as, a usb 4k camera.
+It can be fixed by setting rxfifo depth less than 4k bytes, prefer to use
+3k here, the side-effect is that may cause performance drop about 10%,
+including bulk transfer.
+
+Fixes: 926d60ae64a6 ("usb: xhci-mtk: modify the SOF/ITP interval for mt8195")
+Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Signed-off-by: Chunfeng Yun <chunfeng.yun@mediatek.com>
+Link: https://lore.kernel.org/r/20240104061640.7335-2-chunfeng.yun@mediatek.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/usb/host/xhci-mtk.c | 40 +++++++++++++++++++++++++++++++++++--
+ drivers/usb/host/xhci-mtk.h |  2 ++
+ 2 files changed, 40 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-mtk.c b/drivers/usb/host/xhci-mtk.c
+index bbdf1b0b7be1..3252e3d2d79c 100644
+--- a/drivers/usb/host/xhci-mtk.c
++++ b/drivers/usb/host/xhci-mtk.c
+@@ -7,6 +7,7 @@
+  *  Chunfeng Yun <chunfeng.yun@mediatek.com>
+  */
+ 
++#include <linux/bitfield.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/iopoll.h>
+ #include <linux/kernel.h>
+@@ -73,6 +74,9 @@
+ #define FRMCNT_LEV1_RANG	(0x12b << 8)
+ #define FRMCNT_LEV1_RANG_MASK	GENMASK(19, 8)
+ 
++#define HSCH_CFG1		0x960
++#define SCH3_RXFIFO_DEPTH_MASK	GENMASK(21, 20)
++
+ #define SS_GEN2_EOF_CFG		0x990
+ #define SSG2EOF_OFFSET		0x3c
+ 
+@@ -114,6 +118,8 @@
+ #define SSC_IP_SLEEP_EN	BIT(4)
+ #define SSC_SPM_INT_EN		BIT(1)
+ 
++#define SCH_FIFO_TO_KB(x)	((x) >> 10)
++
+ enum ssusb_uwk_vers {
+ 	SSUSB_UWK_V1 = 1,
+ 	SSUSB_UWK_V2,
+@@ -165,6 +171,35 @@ static void xhci_mtk_set_frame_interval(struct xhci_hcd_mtk *mtk)
+ 	writel(value, hcd->regs + SS_GEN2_EOF_CFG);
+ }
+ 
++/*
++ * workaround: usb3.2 gen1 isoc rx hw issue
++ * host send out unexpected ACK afer device fininsh a burst transfer with
++ * a short packet.
++ */
++static void xhci_mtk_rxfifo_depth_set(struct xhci_hcd_mtk *mtk)
++{
++	struct usb_hcd *hcd = mtk->hcd;
++	u32 value;
++
++	if (!mtk->rxfifo_depth)
++		return;
++
++	value = readl(hcd->regs + HSCH_CFG1);
++	value &= ~SCH3_RXFIFO_DEPTH_MASK;
++	value |= FIELD_PREP(SCH3_RXFIFO_DEPTH_MASK,
++			    SCH_FIFO_TO_KB(mtk->rxfifo_depth) - 1);
++	writel(value, hcd->regs + HSCH_CFG1);
++}
++
++static void xhci_mtk_init_quirk(struct xhci_hcd_mtk *mtk)
++{
++	/* workaround only for mt8195 */
++	xhci_mtk_set_frame_interval(mtk);
++
++	/* workaround for SoCs using SSUSB about before IPM v1.6.0 */
++	xhci_mtk_rxfifo_depth_set(mtk);
++}
++
+ static int xhci_mtk_host_enable(struct xhci_hcd_mtk *mtk)
+ {
+ 	struct mu3c_ippc_regs __iomem *ippc = mtk->ippc_regs;
+@@ -448,8 +483,7 @@ static int xhci_mtk_setup(struct usb_hcd *hcd)
+ 		if (ret)
+ 			return ret;
+ 
+-		/* workaround only for mt8195 */
+-		xhci_mtk_set_frame_interval(mtk);
++		xhci_mtk_init_quirk(mtk);
+ 	}
+ 
+ 	ret = xhci_gen_setup(hcd, xhci_mtk_quirks);
+@@ -527,6 +561,8 @@ static int xhci_mtk_probe(struct platform_device *pdev)
+ 	of_property_read_u32(node, "mediatek,u2p-dis-msk",
+ 			     &mtk->u2p_dis_msk);
+ 
++	of_property_read_u32(node, "rx-fifo-depth", &mtk->rxfifo_depth);
++
+ 	ret = usb_wakeup_of_property_parse(mtk, node);
+ 	if (ret) {
+ 		dev_err(dev, "failed to parse uwk property\n");
+diff --git a/drivers/usb/host/xhci-mtk.h b/drivers/usb/host/xhci-mtk.h
+index 39f7ae7d3087..f5e2bd66bb1b 100644
+--- a/drivers/usb/host/xhci-mtk.h
++++ b/drivers/usb/host/xhci-mtk.h
+@@ -171,6 +171,8 @@ struct xhci_hcd_mtk {
+ 	struct regmap *uwk;
+ 	u32 uwk_reg_base;
+ 	u32 uwk_vers;
++	/* quirk */
++	u32 rxfifo_depth;
+ };
+ 
+ static inline struct xhci_hcd_mtk *hcd_to_mtk(struct usb_hcd *hcd)
+-- 
+2.43.2
+
+From 141cb8981670926fed23f650be4699460f54cb5f Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Thu, 11 Jan 2024 19:49:16 +0000
+Subject: [PATCH 590/641] mptcp: use OPTION_MPTCP_MPJ_SYN in
+ subflow_check_req()
+Status: RO
+Content-Length: 4227
+Lines: 97
+
+[ Upstream commit 66ff70df1a919a066942844bb095d6fcb748d78d ]
+
+syzbot reported that subflow_check_req() was using uninitialized data in
+subflow_check_req() [1]
+
+This is because mp_opt.token is only set when OPTION_MPTCP_MPJ_SYN is also set.
+
+While we are are it, fix mptcp_subflow_init_cookie_req()
+to test for OPTION_MPTCP_MPJ_ACK.
+
+[1]
+
+BUG: KMSAN: uninit-value in subflow_token_join_request net/mptcp/subflow.c:91 [inline]
+ BUG: KMSAN: uninit-value in subflow_check_req+0x1028/0x15d0 net/mptcp/subflow.c:209
+  subflow_token_join_request net/mptcp/subflow.c:91 [inline]
+  subflow_check_req+0x1028/0x15d0 net/mptcp/subflow.c:209
+  subflow_v6_route_req+0x269/0x410 net/mptcp/subflow.c:367
+  tcp_conn_request+0x153a/0x4240 net/ipv4/tcp_input.c:7164
+ subflow_v6_conn_request+0x3ee/0x510
+  tcp_rcv_state_process+0x2e1/0x4ac0 net/ipv4/tcp_input.c:6659
+  tcp_v6_do_rcv+0x11bf/0x1fe0 net/ipv6/tcp_ipv6.c:1669
+  tcp_v6_rcv+0x480b/0x4fb0 net/ipv6/tcp_ipv6.c:1900
+  ip6_protocol_deliver_rcu+0xda6/0x2a60 net/ipv6/ip6_input.c:438
+  ip6_input_finish net/ipv6/ip6_input.c:483 [inline]
+  NF_HOOK include/linux/netfilter.h:314 [inline]
+  ip6_input+0x15d/0x430 net/ipv6/ip6_input.c:492
+  dst_input include/net/dst.h:461 [inline]
+  ip6_rcv_finish+0x5db/0x870 net/ipv6/ip6_input.c:79
+  NF_HOOK include/linux/netfilter.h:314 [inline]
+  ipv6_rcv+0xda/0x390 net/ipv6/ip6_input.c:310
+  __netif_receive_skb_one_core net/core/dev.c:5532 [inline]
+  __netif_receive_skb+0x1a6/0x5a0 net/core/dev.c:5646
+  netif_receive_skb_internal net/core/dev.c:5732 [inline]
+  netif_receive_skb+0x58/0x660 net/core/dev.c:5791
+  tun_rx_batched+0x3ee/0x980 drivers/net/tun.c:1555
+  tun_get_user+0x53af/0x66d0 drivers/net/tun.c:2002
+  tun_chr_write_iter+0x3af/0x5d0 drivers/net/tun.c:2048
+  call_write_iter include/linux/fs.h:2020 [inline]
+  new_sync_write fs/read_write.c:491 [inline]
+  vfs_write+0x8ef/0x1490 fs/read_write.c:584
+  ksys_write+0x20f/0x4c0 fs/read_write.c:637
+  __do_sys_write fs/read_write.c:649 [inline]
+  __se_sys_write fs/read_write.c:646 [inline]
+  __x64_sys_write+0x93/0xd0 fs/read_write.c:646
+  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+  do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+Local variable mp_opt created at:
+  subflow_check_req+0x6d/0x15d0 net/mptcp/subflow.c:145
+  subflow_v6_route_req+0x269/0x410 net/mptcp/subflow.c:367
+
+CPU: 1 PID: 5924 Comm: syz-executor.3 Not tainted 6.7.0-rc8-syzkaller-00055-g5eff55d725a4 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+
+Fixes: f296234c98a8 ("mptcp: Add handling of incoming MP_JOIN requests")
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Peter Krystad <peter.krystad@linux.intel.com>
+Cc: Matthieu Baerts <matttbe@kernel.org>
+Cc: Mat Martineau <martineau@kernel.org>
+Cc: Geliang Tang <geliang.tang@linux.dev>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Acked-by: Paolo Abeni <pabeni@redhat.com>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Link: https://lore.kernel.org/r/20240111194917.4044654-5-edumazet@google.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/mptcp/subflow.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/mptcp/subflow.c b/net/mptcp/subflow.c
+index d720314debb0..09312d619018 100644
+--- a/net/mptcp/subflow.c
++++ b/net/mptcp/subflow.c
+@@ -158,7 +158,7 @@ static int subflow_check_req(struct request_sock *req,
+ 	mptcp_get_options(skb, &mp_opt);
+ 
+ 	opt_mp_capable = !!(mp_opt.suboptions & OPTIONS_MPTCP_MPC);
+-	opt_mp_join = !!(mp_opt.suboptions & OPTIONS_MPTCP_MPJ);
++	opt_mp_join = !!(mp_opt.suboptions & OPTION_MPTCP_MPJ_SYN);
+ 	if (opt_mp_capable) {
+ 		SUBFLOW_REQ_INC_STATS(req, MPTCP_MIB_MPCAPABLEPASSIVE);
+ 
+@@ -255,7 +255,7 @@ int mptcp_subflow_init_cookie_req(struct request_sock *req,
+ 	mptcp_get_options(skb, &mp_opt);
+ 
+ 	opt_mp_capable = !!(mp_opt.suboptions & OPTIONS_MPTCP_MPC);
+-	opt_mp_join = !!(mp_opt.suboptions & OPTIONS_MPTCP_MPJ);
++	opt_mp_join = !!(mp_opt.suboptions & OPTION_MPTCP_MPJ_ACK);
+ 	if (opt_mp_capable && opt_mp_join)
+ 		return -EINVAL;
+ 
+-- 
+2.43.2
+
+From ac1815b6162d89a7d00598022e37ec241c0cb95f Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 12 Jan 2024 10:44:27 +0000
+Subject: [PATCH 594/641] udp: annotate data-races around up->pending
+Status: RO
+Content-Length: 6047
+Lines: 186
+
+[ Upstream commit 482521d8e0c6520429478aa6866cd44128b33d5d ]
+
+up->pending can be read without holding the socket lock,
+as pointed out by syzbot [1]
+
+Add READ_ONCE() in lockless contexts, and WRITE_ONCE()
+on write side.
+
+[1]
+BUG: KCSAN: data-race in udpv6_sendmsg / udpv6_sendmsg
+
+write to 0xffff88814e5eadf0 of 4 bytes by task 15547 on cpu 1:
+ udpv6_sendmsg+0x1405/0x1530 net/ipv6/udp.c:1596
+ inet6_sendmsg+0x63/0x80 net/ipv6/af_inet6.c:657
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg net/socket.c:745 [inline]
+ __sys_sendto+0x257/0x310 net/socket.c:2192
+ __do_sys_sendto net/socket.c:2204 [inline]
+ __se_sys_sendto net/socket.c:2200 [inline]
+ __x64_sys_sendto+0x78/0x90 net/socket.c:2200
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+read to 0xffff88814e5eadf0 of 4 bytes by task 15551 on cpu 0:
+ udpv6_sendmsg+0x22c/0x1530 net/ipv6/udp.c:1373
+ inet6_sendmsg+0x63/0x80 net/ipv6/af_inet6.c:657
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg net/socket.c:745 [inline]
+ ____sys_sendmsg+0x37c/0x4d0 net/socket.c:2586
+ ___sys_sendmsg net/socket.c:2640 [inline]
+ __sys_sendmmsg+0x269/0x500 net/socket.c:2726
+ __do_sys_sendmmsg net/socket.c:2755 [inline]
+ __se_sys_sendmmsg net/socket.c:2752 [inline]
+ __x64_sys_sendmmsg+0x57/0x60 net/socket.c:2752
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+value changed: 0x00000000 -> 0x0000000a
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 15551 Comm: syz-executor.1 Tainted: G        W          6.7.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-by: syzbot+8d482d0e407f665d9d10@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/netdev/0000000000009e46c3060ebcdffd@google.com/
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv4/udp.c | 12 ++++++------
+ net/ipv6/udp.c | 16 ++++++++--------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index 89e5a806b82e..5f742d0b9e07 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -805,7 +805,7 @@ void udp_flush_pending_frames(struct sock *sk)
+ 
+ 	if (up->pending) {
+ 		up->len = 0;
+-		up->pending = 0;
++		WRITE_ONCE(up->pending, 0);
+ 		ip_flush_pending_frames(sk);
+ 	}
+ }
+@@ -993,7 +993,7 @@ int udp_push_pending_frames(struct sock *sk)
+ 
+ out:
+ 	up->len = 0;
+-	up->pending = 0;
++	WRITE_ONCE(up->pending, 0);
+ 	return err;
+ }
+ EXPORT_SYMBOL(udp_push_pending_frames);
+@@ -1070,7 +1070,7 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	getfrag = is_udplite ? udplite_getfrag : ip_generic_getfrag;
+ 
+ 	fl4 = &inet->cork.fl.u.ip4;
+-	if (up->pending) {
++	if (READ_ONCE(up->pending)) {
+ 		/*
+ 		 * There are pending frames.
+ 		 * The socket lock must be held while it's corked.
+@@ -1269,7 +1269,7 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	fl4->saddr = saddr;
+ 	fl4->fl4_dport = dport;
+ 	fl4->fl4_sport = inet->inet_sport;
+-	up->pending = AF_INET;
++	WRITE_ONCE(up->pending, AF_INET);
+ 
+ do_append_data:
+ 	up->len += ulen;
+@@ -1281,7 +1281,7 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	else if (!corkreq)
+ 		err = udp_push_pending_frames(sk);
+ 	else if (unlikely(skb_queue_empty(&sk->sk_write_queue)))
+-		up->pending = 0;
++		WRITE_ONCE(up->pending, 0);
+ 	release_sock(sk);
+ 
+ out:
+@@ -1319,7 +1319,7 @@ void udp_splice_eof(struct socket *sock)
+ 	struct sock *sk = sock->sk;
+ 	struct udp_sock *up = udp_sk(sk);
+ 
+-	if (!up->pending || udp_test_bit(CORK, sk))
++	if (!READ_ONCE(up->pending) || udp_test_bit(CORK, sk))
+ 		return;
+ 
+ 	lock_sock(sk);
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 622b10a549f7..a1a79ff46fd9 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -1135,7 +1135,7 @@ static void udp_v6_flush_pending_frames(struct sock *sk)
+ 		udp_flush_pending_frames(sk);
+ 	else if (up->pending) {
+ 		up->len = 0;
+-		up->pending = 0;
++		WRITE_ONCE(up->pending, 0);
+ 		ip6_flush_pending_frames(sk);
+ 	}
+ }
+@@ -1313,7 +1313,7 @@ static int udp_v6_push_pending_frames(struct sock *sk)
+ 			      &inet_sk(sk)->cork.base);
+ out:
+ 	up->len = 0;
+-	up->pending = 0;
++	WRITE_ONCE(up->pending, 0);
+ 	return err;
+ }
+ 
+@@ -1370,7 +1370,7 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 		default:
+ 			return -EINVAL;
+ 		}
+-	} else if (!up->pending) {
++	} else if (!READ_ONCE(up->pending)) {
+ 		if (sk->sk_state != TCP_ESTABLISHED)
+ 			return -EDESTADDRREQ;
+ 		daddr = &sk->sk_v6_daddr;
+@@ -1401,8 +1401,8 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 		return -EMSGSIZE;
+ 
+ 	getfrag  =  is_udplite ?  udplite_getfrag : ip_generic_getfrag;
+-	if (up->pending) {
+-		if (up->pending == AF_INET)
++	if (READ_ONCE(up->pending)) {
++		if (READ_ONCE(up->pending) == AF_INET)
+ 			return udp_sendmsg(sk, msg, len);
+ 		/*
+ 		 * There are pending frames.
+@@ -1593,7 +1593,7 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 		goto out;
+ 	}
+ 
+-	up->pending = AF_INET6;
++	WRITE_ONCE(up->pending, AF_INET6);
+ 
+ do_append_data:
+ 	if (ipc6.dontfrag < 0)
+@@ -1607,7 +1607,7 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	else if (!corkreq)
+ 		err = udp_v6_push_pending_frames(sk);
+ 	else if (unlikely(skb_queue_empty(&sk->sk_write_queue)))
+-		up->pending = 0;
++		WRITE_ONCE(up->pending, 0);
+ 
+ 	if (err > 0)
+ 		err = inet6_test_bit(RECVERR6, sk) ? net_xmit_errno(err) : 0;
+@@ -1648,7 +1648,7 @@ static void udpv6_splice_eof(struct socket *sock)
+ 	struct sock *sk = sock->sk;
+ 	struct udp_sock *up = udp_sk(sk);
+ 
+-	if (!up->pending || udp_test_bit(CORK, sk))
++	if (!READ_ONCE(up->pending) || udp_test_bit(CORK, sk))
+ 		return;
+ 
+ 	lock_sock(sk);
+-- 
+2.43.2
+
+From eed24b816e50c6cd18cbee0ff0d7218c8fced199 Mon Sep 17 00:00:00 2001
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+Date: Sat, 13 Jan 2024 23:06:02 +0800
+Subject: [PATCH 595/641] erofs: fix inconsistent per-file compression format
+Status: RO
+Content-Length: 3265
+Lines: 86
+
+[ Upstream commit 118a8cf504d7dfa519562d000f423ee3ca75d2c4 ]
+
+EROFS can select compression algorithms on a per-file basis, and each
+per-file compression algorithm needs to be marked in the on-disk
+superblock for initialization.
+
+However, syzkaller can generate inconsistent crafted images that use
+an unsupported algorithmtype for specific inodes, e.g. use MicroLZMA
+algorithmtype even it's not set in `sbi->available_compr_algs`.  This
+can lead to an unexpected "BUG: kernel NULL pointer dereference" if
+the corresponding decompressor isn't built-in.
+
+Fix this by checking against `sbi->available_compr_algs` for each
+m_algorithmformat request.  Incorrect !erofs_sb_has_compr_cfgs preset
+bitmap is now fixed together since it was harmless previously.
+
+Reported-by: <bugreport@ubisectech.com>
+Fixes: 8f89926290c4 ("erofs: get compression algorithms directly on mapping")
+Fixes: 622ceaddb764 ("erofs: lzma compression support")
+Reviewed-by: Yue Hu <huyue2@coolpad.com>
+Link: https://lore.kernel.org/r/20240113150602.1471050-1-hsiangkao@linux.alibaba.com
+Signed-off-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/erofs/decompressor.c |  2 +-
+ fs/erofs/zmap.c         | 23 +++++++++++++----------
+ 2 files changed, 14 insertions(+), 11 deletions(-)
+
+diff --git a/fs/erofs/decompressor.c b/fs/erofs/decompressor.c
+index 021be5feb1bc..af98e88908ee 100644
+--- a/fs/erofs/decompressor.c
++++ b/fs/erofs/decompressor.c
+@@ -398,7 +398,7 @@ int z_erofs_parse_cfgs(struct super_block *sb, struct erofs_super_block *dsb)
+ 	int size, ret = 0;
+ 
+ 	if (!erofs_sb_has_compr_cfgs(sbi)) {
+-		sbi->available_compr_algs = Z_EROFS_COMPRESSION_LZ4;
++		sbi->available_compr_algs = 1 << Z_EROFS_COMPRESSION_LZ4;
+ 		return z_erofs_load_lz4_config(sb, dsb, NULL, 0);
+ 	}
+ 
+diff --git a/fs/erofs/zmap.c b/fs/erofs/zmap.c
+index 7b55111fd533..7a1a24ae4a2d 100644
+--- a/fs/erofs/zmap.c
++++ b/fs/erofs/zmap.c
+@@ -458,7 +458,7 @@ static int z_erofs_do_map_blocks(struct inode *inode,
+ 		.map = map,
+ 	};
+ 	int err = 0;
+-	unsigned int lclusterbits, endoff;
++	unsigned int lclusterbits, endoff, afmt;
+ 	unsigned long initial_lcn;
+ 	unsigned long long ofs, end;
+ 
+@@ -547,17 +547,20 @@ static int z_erofs_do_map_blocks(struct inode *inode,
+ 			err = -EFSCORRUPTED;
+ 			goto unmap_out;
+ 		}
+-		if (vi->z_advise & Z_EROFS_ADVISE_INTERLACED_PCLUSTER)
+-			map->m_algorithmformat =
+-				Z_EROFS_COMPRESSION_INTERLACED;
+-		else
+-			map->m_algorithmformat =
+-				Z_EROFS_COMPRESSION_SHIFTED;
+-	} else if (m.headtype == Z_EROFS_LCLUSTER_TYPE_HEAD2) {
+-		map->m_algorithmformat = vi->z_algorithmtype[1];
++		afmt = vi->z_advise & Z_EROFS_ADVISE_INTERLACED_PCLUSTER ?
++			Z_EROFS_COMPRESSION_INTERLACED :
++			Z_EROFS_COMPRESSION_SHIFTED;
+ 	} else {
+-		map->m_algorithmformat = vi->z_algorithmtype[0];
++		afmt = m.headtype == Z_EROFS_LCLUSTER_TYPE_HEAD2 ?
++			vi->z_algorithmtype[1] : vi->z_algorithmtype[0];
++		if (!(EROFS_I_SB(inode)->available_compr_algs & (1 << afmt))) {
++			erofs_err(inode->i_sb, "inconsistent algorithmtype %u for nid %llu",
++				  afmt, vi->nid);
++			err = -EFSCORRUPTED;
++			goto unmap_out;
++		}
+ 	}
++	map->m_algorithmformat = afmt;
+ 
+ 	if ((flags & EROFS_GET_BLOCKS_FIEMAP) ||
+ 	    ((flags & EROFS_GET_BLOCKS_READMORE) &&
+-- 
+2.43.2
+
+From 765290b628c2fb764bdfaf8088754439665751e8 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 12 Jan 2024 12:28:16 +0000
+Subject: [PATCH 596/641] net: add more sanity check in virtio_net_hdr_to_skb()
+Status: RO
+Content-Length: 5146
+Lines: 128
+
+[ Upstream commit 9181d6f8a2bb32d158de66a84164fac05e3ddd18 ]
+
+syzbot/KMSAN reports access to uninitialized data from gso_features_check() [1]
+
+The repro use af_packet, injecting a gso packet and hdrlen == 0.
+
+We could fix the issue making gso_features_check() more careful
+while dealing with NETIF_F_TSO_MANGLEID in fast path.
+
+Or we can make sure virtio_net_hdr_to_skb() pulls minimal network and
+transport headers as intended.
+
+Note that for GSO packets coming from untrusted sources, SKB_GSO_DODGY
+bit forces a proper header validation (and pull) before the packet can
+hit any device ndo_start_xmit(), thus we do not need a precise disection
+at virtio_net_hdr_to_skb() stage.
+
+[1]
+BUG: KMSAN: uninit-value in skb_gso_segment include/net/gso.h:83 [inline]
+BUG: KMSAN: uninit-value in validate_xmit_skb+0x10f2/0x1930 net/core/dev.c:3629
+ skb_gso_segment include/net/gso.h:83 [inline]
+ validate_xmit_skb+0x10f2/0x1930 net/core/dev.c:3629
+ __dev_queue_xmit+0x1eac/0x5130 net/core/dev.c:4341
+ dev_queue_xmit include/linux/netdevice.h:3134 [inline]
+ packet_xmit+0x9c/0x6b0 net/packet/af_packet.c:276
+ packet_snd net/packet/af_packet.c:3087 [inline]
+ packet_sendmsg+0x8b1d/0x9f30 net/packet/af_packet.c:3119
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg net/socket.c:745 [inline]
+ ____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
+ ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
+ __sys_sendmsg net/socket.c:2667 [inline]
+ __do_sys_sendmsg net/socket.c:2676 [inline]
+ __se_sys_sendmsg net/socket.c:2674 [inline]
+ __x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+Uninit was created at:
+ slab_post_alloc_hook+0x129/0xa70 mm/slab.h:768
+ slab_alloc_node mm/slub.c:3478 [inline]
+ kmem_cache_alloc_node+0x5e9/0xb10 mm/slub.c:3523
+ kmalloc_reserve+0x13d/0x4a0 net/core/skbuff.c:560
+ __alloc_skb+0x318/0x740 net/core/skbuff.c:651
+ alloc_skb include/linux/skbuff.h:1286 [inline]
+ alloc_skb_with_frags+0xc8/0xbd0 net/core/skbuff.c:6334
+ sock_alloc_send_pskb+0xa80/0xbf0 net/core/sock.c:2780
+ packet_alloc_skb net/packet/af_packet.c:2936 [inline]
+ packet_snd net/packet/af_packet.c:3030 [inline]
+ packet_sendmsg+0x70e8/0x9f30 net/packet/af_packet.c:3119
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ __sock_sendmsg net/socket.c:745 [inline]
+ ____sys_sendmsg+0x9c2/0xd60 net/socket.c:2584
+ ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2638
+ __sys_sendmsg net/socket.c:2667 [inline]
+ __do_sys_sendmsg net/socket.c:2676 [inline]
+ __se_sys_sendmsg net/socket.c:2674 [inline]
+ __x64_sys_sendmsg+0x307/0x490 net/socket.c:2674
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0x44/0x110 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+CPU: 0 PID: 5025 Comm: syz-executor279 Not tainted 6.7.0-rc7-syzkaller-00003-gfbafc3e621c3 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+
+Reported-by: syzbot+7f4d0ea3df4d4fa9a65f@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/netdev/0000000000005abd7b060eb160cd@google.com/
+Fixes: 9274124f023b ("net: stricter validation of untrusted gso packets")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Willem de Bruijn <willemb@google.com>
+Reviewed-by: Willem de Bruijn <willemb@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/linux/virtio_net.h | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/virtio_net.h b/include/linux/virtio_net.h
+index 27cc1d464321..4dfa9b69ca8d 100644
+--- a/include/linux/virtio_net.h
++++ b/include/linux/virtio_net.h
+@@ -3,6 +3,8 @@
+ #define _LINUX_VIRTIO_NET_H
+ 
+ #include <linux/if_vlan.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
+ #include <linux/udp.h>
+ #include <uapi/linux/tcp.h>
+ #include <uapi/linux/virtio_net.h>
+@@ -49,6 +51,7 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
+ 					const struct virtio_net_hdr *hdr,
+ 					bool little_endian)
+ {
++	unsigned int nh_min_len = sizeof(struct iphdr);
+ 	unsigned int gso_type = 0;
+ 	unsigned int thlen = 0;
+ 	unsigned int p_off = 0;
+@@ -65,6 +68,7 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
+ 			gso_type = SKB_GSO_TCPV6;
+ 			ip_proto = IPPROTO_TCP;
+ 			thlen = sizeof(struct tcphdr);
++			nh_min_len = sizeof(struct ipv6hdr);
+ 			break;
+ 		case VIRTIO_NET_HDR_GSO_UDP:
+ 			gso_type = SKB_GSO_UDP;
+@@ -100,7 +104,8 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
+ 		if (!skb_partial_csum_set(skb, start, off))
+ 			return -EINVAL;
+ 
+-		p_off = skb_transport_offset(skb) + thlen;
++		nh_min_len = max_t(u32, nh_min_len, skb_transport_offset(skb));
++		p_off = nh_min_len + thlen;
+ 		if (!pskb_may_pull(skb, p_off))
+ 			return -EINVAL;
+ 	} else {
+@@ -140,7 +145,7 @@ static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
+ 
+ 			skb_set_transport_header(skb, keys.control.thoff);
+ 		} else if (gso_type) {
+-			p_off = thlen;
++			p_off = nh_min_len + thlen;
+ 			if (!pskb_may_pull(skb, p_off))
+ 				return -EINVAL;
+ 		}
+-- 
+2.43.2
+
+From d1d27950cdb92314d4aa2ffc1dbdf36028e7f12d Mon Sep 17 00:00:00 2001
+From: Martin KaFai Lau <martin.lau@kernel.org>
+Date: Fri, 12 Jan 2024 11:05:29 -0800
+Subject: [PATCH 599/641] bpf: Avoid iter->offset making backward progress in
+ bpf_iter_udp
+Status: RO
+Content-Length: 3772
+Lines: 105
+
+[ Upstream commit 2242fd537fab52d5f4d2fbb1845f047c01fad0cf ]
+
+There is a bug in the bpf_iter_udp_batch() function that stops
+the userspace from making forward progress.
+
+The case that triggers the bug is the userspace passed in
+a very small read buffer. When the bpf prog does bpf_seq_printf,
+the userspace read buffer is not enough to capture the whole bucket.
+
+When the read buffer is not large enough, the kernel will remember
+the offset of the bucket in iter->offset such that the next userspace
+read() can continue from where it left off.
+
+The kernel will skip the number (== "iter->offset") of sockets in
+the next read(). However, the code directly decrements the
+"--iter->offset". This is incorrect because the next read() may
+not consume the whole bucket either and then the next-next read()
+will start from offset 0. The net effect is the userspace will
+keep reading from the beginning of a bucket and the process will
+never finish. "iter->offset" must always go forward until the
+whole bucket is consumed.
+
+This patch fixes it by using a local variable "resume_offset"
+and "resume_bucket". "iter->offset" is always reset to 0 before
+it may be used. "iter->offset" will be advanced to the
+"resume_offset" when it continues from the "resume_bucket" (i.e.
+"state->bucket == resume_bucket"). This brings it closer to
+the bpf_iter_tcp's offset handling which does not suffer
+the same bug.
+
+Cc: Aditi Ghag <aditi.ghag@isovalent.com>
+Fixes: c96dac8d369f ("bpf: udp: Implement batching for sockets iterator")
+Acked-by: Yonghong Song <yonghong.song@linux.dev>
+Signed-off-by: Martin KaFai Lau <martin.lau@kernel.org>
+Reviewed-by: Aditi Ghag <aditi.ghag@isovalent.com>
+Link: https://lore.kernel.org/r/20240112190530.3751661-3-martin.lau@linux.dev
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv4/udp.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
+
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index 79050d83e736..148ffb007969 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -3137,16 +3137,18 @@ static struct sock *bpf_iter_udp_batch(struct seq_file *seq)
+ 	struct bpf_udp_iter_state *iter = seq->private;
+ 	struct udp_iter_state *state = &iter->state;
+ 	struct net *net = seq_file_net(seq);
++	int resume_bucket, resume_offset;
+ 	struct udp_table *udptable;
+ 	unsigned int batch_sks = 0;
+ 	bool resized = false;
+ 	struct sock *sk;
+ 
++	resume_bucket = state->bucket;
++	resume_offset = iter->offset;
++
+ 	/* The current batch is done, so advance the bucket. */
+-	if (iter->st_bucket_done) {
++	if (iter->st_bucket_done)
+ 		state->bucket++;
+-		iter->offset = 0;
+-	}
+ 
+ 	udptable = udp_get_table_seq(seq, net);
+ 
+@@ -3166,19 +3168,19 @@ static struct sock *bpf_iter_udp_batch(struct seq_file *seq)
+ 	for (; state->bucket <= udptable->mask; state->bucket++) {
+ 		struct udp_hslot *hslot2 = &udptable->hash2[state->bucket];
+ 
+-		if (hlist_empty(&hslot2->head)) {
+-			iter->offset = 0;
++		if (hlist_empty(&hslot2->head))
+ 			continue;
+-		}
+ 
++		iter->offset = 0;
+ 		spin_lock_bh(&hslot2->lock);
+ 		udp_portaddr_for_each_entry(sk, &hslot2->head) {
+ 			if (seq_sk_match(seq, sk)) {
+ 				/* Resume from the last iterated socket at the
+ 				 * offset in the bucket before iterator was stopped.
+ 				 */
+-				if (iter->offset) {
+-					--iter->offset;
++				if (state->bucket == resume_bucket &&
++				    iter->offset < resume_offset) {
++					++iter->offset;
+ 					continue;
+ 				}
+ 				if (iter->end_sk < iter->max_sk) {
+@@ -3192,9 +3194,6 @@ static struct sock *bpf_iter_udp_batch(struct seq_file *seq)
+ 
+ 		if (iter->end_sk)
+ 			break;
+-
+-		/* Reset the current bucket's offset before moving to the next bucket. */
+-		iter->offset = 0;
+ 	}
+ 
+ 	/* All done: no batch made. */
+-- 
+2.43.2
+
+From 1b500d5d6cecf98dd6ca88bc9e7ae1783c83e6d3 Mon Sep 17 00:00:00 2001
+From: Hao Sun <sunhao.th@gmail.com>
+Date: Mon, 15 Jan 2024 09:20:27 +0100
+Subject: [PATCH 610/641] bpf: Reject variable offset alu on PTR_TO_FLOW_KEYS
+Status: RO
+Content-Length: 3251
+Lines: 80
+
+[ Upstream commit 22c7fa171a02d310e3a3f6ed46a698ca8a0060ed ]
+
+For PTR_TO_FLOW_KEYS, check_flow_keys_access() only uses fixed off
+for validation. However, variable offset ptr alu is not prohibited
+for this ptr kind. So the variable offset is not checked.
+
+The following prog is accepted:
+
+  func#0 @0
+  0: R1=ctx() R10=fp0
+  0: (bf) r6 = r1                       ; R1=ctx() R6_w=ctx()
+  1: (79) r7 = *(u64 *)(r6 +144)        ; R6_w=ctx() R7_w=flow_keys()
+  2: (b7) r8 = 1024                     ; R8_w=1024
+  3: (37) r8 /= 1                       ; R8_w=scalar()
+  4: (57) r8 &= 1024                    ; R8_w=scalar(smin=smin32=0,
+  smax=umax=smax32=umax32=1024,var_off=(0x0; 0x400))
+  5: (0f) r7 += r8
+  mark_precise: frame0: last_idx 5 first_idx 0 subseq_idx -1
+  mark_precise: frame0: regs=r8 stack= before 4: (57) r8 &= 1024
+  mark_precise: frame0: regs=r8 stack= before 3: (37) r8 /= 1
+  mark_precise: frame0: regs=r8 stack= before 2: (b7) r8 = 1024
+  6: R7_w=flow_keys(smin=smin32=0,smax=umax=smax32=umax32=1024,var_off
+  =(0x0; 0x400)) R8_w=scalar(smin=smin32=0,smax=umax=smax32=umax32=1024,
+  var_off=(0x0; 0x400))
+  6: (79) r0 = *(u64 *)(r7 +0)          ; R0_w=scalar()
+  7: (95) exit
+
+This prog loads flow_keys to r7, and adds the variable offset r8
+to r7, and finally causes out-of-bounds access:
+
+  BUG: unable to handle page fault for address: ffffc90014c80038
+  [...]
+  Call Trace:
+   <TASK>
+   bpf_dispatcher_nop_func include/linux/bpf.h:1231 [inline]
+   __bpf_prog_run include/linux/filter.h:651 [inline]
+   bpf_prog_run include/linux/filter.h:658 [inline]
+   bpf_prog_run_pin_on_cpu include/linux/filter.h:675 [inline]
+   bpf_flow_dissect+0x15f/0x350 net/core/flow_dissector.c:991
+   bpf_prog_test_run_flow_dissector+0x39d/0x620 net/bpf/test_run.c:1359
+   bpf_prog_test_run kernel/bpf/syscall.c:4107 [inline]
+   __sys_bpf+0xf8f/0x4560 kernel/bpf/syscall.c:5475
+   __do_sys_bpf kernel/bpf/syscall.c:5561 [inline]
+   __se_sys_bpf kernel/bpf/syscall.c:5559 [inline]
+   __x64_sys_bpf+0x73/0xb0 kernel/bpf/syscall.c:5559
+   do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+   do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:83
+   entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+Fix this by rejecting ptr alu with variable offset on flow_keys.
+Applying the patch rejects the program with "R7 pointer arithmetic
+on flow_keys prohibited".
+
+Fixes: d58e468b1112 ("flow_dissector: implements flow dissector BPF hook")
+Signed-off-by: Hao Sun <sunhao.th@gmail.com>
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+Acked-by: Yonghong Song <yonghong.song@linux.dev>
+Link: https://lore.kernel.org/bpf/20240115082028.9992-1-sunhao.th@gmail.com
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ kernel/bpf/verifier.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
+index 2b8fbdc1a113..e215413c79a5 100644
+--- a/kernel/bpf/verifier.c
++++ b/kernel/bpf/verifier.c
+@@ -12854,6 +12854,10 @@ static int adjust_ptr_min_max_vals(struct bpf_verifier_env *env,
+ 	}
+ 
+ 	switch (base_type(ptr_reg->type)) {
++	case PTR_TO_FLOW_KEYS:
++		if (known)
++			break;
++		fallthrough;
+ 	case CONST_PTR_TO_MAP:
+ 		/* smin_val represents the known value */
+ 		if (known && smin_val == 0 && opcode == BPF_ADD)
+-- 
+2.43.2
+
+From 7924ade13a49c0067da6ea13e398102979c0654a Mon Sep 17 00:00:00 2001
+From: Hengqi Chen <hengqi.chen@gmail.com>
+Date: Wed, 17 Jan 2024 12:43:13 +0800
+Subject: [PATCH 612/641] LoongArch: BPF: Prevent out-of-bounds memory access
+Status: RO
+Content-Length: 5688
+Lines: 108
+
+[ Upstream commit 36a87385e31c9343af9a4756598e704741250a67 ]
+
+The test_tag test triggers an unhandled page fault:
+
+  # ./test_tag
+  [  130.640218] CPU 0 Unable to handle kernel paging request at virtual address ffff80001b898004, era == 9000000003137f7c, ra == 9000000003139e70
+  [  130.640501] Oops[#3]:
+  [  130.640553] CPU: 0 PID: 1326 Comm: test_tag Tainted: G      D    O       6.7.0-rc4-loong-devel-gb62ab1a397cf #47 61985c1d94084daa2432f771daa45b56b10d8d2a
+  [  130.640764] Hardware name: QEMU QEMU Virtual Machine, BIOS unknown 2/2/2022
+  [  130.640874] pc 9000000003137f7c ra 9000000003139e70 tp 9000000104cb4000 sp 9000000104cb7a40
+  [  130.641001] a0 ffff80001b894000 a1 ffff80001b897ff8 a2 000000006ba210be a3 0000000000000000
+  [  130.641128] a4 000000006ba210be a5 00000000000000f1 a6 00000000000000b3 a7 0000000000000000
+  [  130.641256] t0 0000000000000000 t1 00000000000007f6 t2 0000000000000000 t3 9000000004091b70
+  [  130.641387] t4 000000006ba210be t5 0000000000000004 t6 fffffffffffffff0 t7 90000000040913e0
+  [  130.641512] t8 0000000000000005 u0 0000000000000dc0 s9 0000000000000009 s0 9000000104cb7ae0
+  [  130.641641] s1 00000000000007f6 s2 0000000000000009 s3 0000000000000095 s4 0000000000000000
+  [  130.641771] s5 ffff80001b894000 s6 ffff80001b897fb0 s7 9000000004090c50 s8 0000000000000000
+  [  130.641900]    ra: 9000000003139e70 build_body+0x1fcc/0x4988
+  [  130.642007]   ERA: 9000000003137f7c build_body+0xd8/0x4988
+  [  130.642112]  CRMD: 000000b0 (PLV0 -IE -DA +PG DACF=CC DACM=CC -WE)
+  [  130.642261]  PRMD: 00000004 (PPLV0 +PIE -PWE)
+  [  130.642353]  EUEN: 00000003 (+FPE +SXE -ASXE -BTE)
+  [  130.642458]  ECFG: 00071c1c (LIE=2-4,10-12 VS=7)
+  [  130.642554] ESTAT: 00010000 [PIL] (IS= ECode=1 EsubCode=0)
+  [  130.642658]  BADV: ffff80001b898004
+  [  130.642719]  PRID: 0014c010 (Loongson-64bit, Loongson-3A5000)
+  [  130.642815] Modules linked in: [last unloaded: bpf_testmod(O)]
+  [  130.642924] Process test_tag (pid: 1326, threadinfo=00000000f7f4015f, task=000000006499f9fd)
+  [  130.643062] Stack : 0000000000000000 9000000003380724 0000000000000000 0000000104cb7be8
+  [  130.643213]         0000000000000000 25af8d9b6e600558 9000000106250ea0 9000000104cb7ae0
+  [  130.643378]         0000000000000000 0000000000000000 9000000104cb7be8 90000000049f6000
+  [  130.643538]         0000000000000090 9000000106250ea0 ffff80001b894000 ffff80001b894000
+  [  130.643685]         00007ffffb917790 900000000313ca94 0000000000000000 0000000000000000
+  [  130.643831]         ffff80001b894000 0000000000000ff7 0000000000000000 9000000100468000
+  [  130.643983]         0000000000000000 0000000000000000 0000000000000040 25af8d9b6e600558
+  [  130.644131]         0000000000000bb7 ffff80001b894048 0000000000000000 0000000000000000
+  [  130.644276]         9000000104cb7be8 90000000049f6000 0000000000000090 9000000104cb7bdc
+  [  130.644423]         ffff80001b894000 0000000000000000 00007ffffb917790 90000000032acfb0
+  [  130.644572]         ...
+  [  130.644629] Call Trace:
+  [  130.644641] [<9000000003137f7c>] build_body+0xd8/0x4988
+  [  130.644785] [<900000000313ca94>] bpf_int_jit_compile+0x228/0x4ec
+  [  130.644891] [<90000000032acfb0>] bpf_prog_select_runtime+0x158/0x1b0
+  [  130.645003] [<90000000032b3504>] bpf_prog_load+0x760/0xb44
+  [  130.645089] [<90000000032b6744>] __sys_bpf+0xbb8/0x2588
+  [  130.645175] [<90000000032b8388>] sys_bpf+0x20/0x2c
+  [  130.645259] [<9000000003f6ab38>] do_syscall+0x7c/0x94
+  [  130.645369] [<9000000003121c5c>] handle_syscall+0xbc/0x158
+  [  130.645507]
+  [  130.645539] Code: 380839f6  380831f9  28412bae <24000ca6> 004081ad  0014cb50  004083e8  02bff34c  58008e91
+  [  130.645729]
+  [  130.646418] ---[ end trace 0000000000000000 ]---
+
+On my machine, which has CONFIG_PAGE_SIZE_16KB=y, the test failed at
+loading a BPF prog with 2039 instructions:
+
+  prog = (struct bpf_prog *)ffff80001b894000
+  insn = (struct bpf_insn *)(prog->insnsi)ffff80001b894048
+  insn + 2039 = (struct bpf_insn *)ffff80001b898000 <- end of the page
+
+In the build_insn() function, we are trying to access next instruction
+unconditionally, i.e. `(insn + 1)->imm`. The address lies in the next
+page and can be not owned by the current process, thus an page fault is
+inevitable and then segfault.
+
+So, let's access next instruction only under `dst = imm64` context.
+
+With this fix, we have:
+
+  # ./test_tag
+  test_tag: OK (40945 tests)
+
+Fixes: bbfddb904df6f82 ("LoongArch: BPF: Avoid declare variables in switch-case")
+Tested-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Signed-off-by: Hengqi Chen <hengqi.chen@gmail.com>
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/loongarch/net/bpf_jit.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/arch/loongarch/net/bpf_jit.c b/arch/loongarch/net/bpf_jit.c
+index 4fcd6cd6da23..5c634de4ee36 100644
+--- a/arch/loongarch/net/bpf_jit.c
++++ b/arch/loongarch/net/bpf_jit.c
+@@ -465,7 +465,6 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx, bool ext
+ 	const u8 dst = regmap[insn->dst_reg];
+ 	const s16 off = insn->off;
+ 	const s32 imm = insn->imm;
+-	const u64 imm64 = (u64)(insn + 1)->imm << 32 | (u32)insn->imm;
+ 	const bool is32 = BPF_CLASS(insn->code) == BPF_ALU || BPF_CLASS(insn->code) == BPF_JMP32;
+ 
+ 	switch (code) {
+@@ -923,8 +922,12 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx, bool ext
+ 
+ 	/* dst = imm64 */
+ 	case BPF_LD | BPF_IMM | BPF_DW:
++	{
++		const u64 imm64 = (u64)(insn + 1)->imm << 32 | (u32)insn->imm;
++
+ 		move_imm(ctx, dst, imm64, is32);
+ 		return 1;
++	}
+ 
+ 	/* dst = *(size *)(src + off) */
+ 	case BPF_LDX | BPF_MEM | BPF_B:
+-- 
+2.43.2
+
+From c5068e442eed063d2f1658e6b6d3c1c6fcf1e588 Mon Sep 17 00:00:00 2001
+From: Jakub Kicinski <kuba@kernel.org>
+Date: Tue, 16 Jan 2024 11:14:00 -0800
+Subject: [PATCH 614/641] net: netdevsim: don't try to destroy PHC on VFs
+Status: RO
+Content-Length: 2171
+Lines: 68
+
+[ Upstream commit ea937f77208323d35ffe2f8d8fc81b00118bfcda ]
+
+PHC gets initialized in nsim_init_netdevsim(), which
+is only called if (nsim_dev_port_is_pf()).
+
+Create a counterpart of nsim_init_netdevsim() and
+move the mock_phc_destroy() there.
+
+This fixes a crash trying to destroy netdevsim with
+VFs instantiated, as caught by running the devlink.sh test:
+
+    BUG: kernel NULL pointer dereference, address: 00000000000000b8
+    RIP: 0010:mock_phc_destroy+0xd/0x30
+    Call Trace:
+     <TASK>
+     nsim_destroy+0x4a/0x70 [netdevsim]
+     __nsim_dev_port_del+0x47/0x70 [netdevsim]
+     nsim_dev_reload_destroy+0x105/0x120 [netdevsim]
+     nsim_drv_remove+0x2f/0xb0 [netdevsim]
+     device_release_driver_internal+0x1a1/0x210
+     bus_remove_device+0xd5/0x120
+     device_del+0x159/0x490
+     device_unregister+0x12/0x30
+     del_device_store+0x11a/0x1a0 [netdevsim]
+     kernfs_fop_write_iter+0x130/0x1d0
+     vfs_write+0x30b/0x4b0
+     ksys_write+0x69/0xf0
+     do_syscall_64+0xcc/0x1e0
+     entry_SYSCALL_64_after_hwframe+0x6f/0x77
+
+Fixes: b63e78fca889 ("net: netdevsim: use mock PHC driver")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/netdevsim/netdev.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/netdevsim/netdev.c b/drivers/net/netdevsim/netdev.c
+index aecaf5f44374..77e8250282a5 100644
+--- a/drivers/net/netdevsim/netdev.c
++++ b/drivers/net/netdevsim/netdev.c
+@@ -369,6 +369,12 @@ static int nsim_init_netdevsim_vf(struct netdevsim *ns)
+ 	return err;
+ }
+ 
++static void nsim_exit_netdevsim(struct netdevsim *ns)
++{
++	nsim_udp_tunnels_info_destroy(ns->netdev);
++	mock_phc_destroy(ns->phc);
++}
++
+ struct netdevsim *
+ nsim_create(struct nsim_dev *nsim_dev, struct nsim_dev_port *nsim_dev_port)
+ {
+@@ -417,8 +423,7 @@ void nsim_destroy(struct netdevsim *ns)
+ 	}
+ 	rtnl_unlock();
+ 	if (nsim_dev_port_is_pf(ns->nsim_dev_port))
+-		nsim_udp_tunnels_info_destroy(dev);
+-	mock_phc_destroy(ns->phc);
++		nsim_exit_netdevsim(ns);
+ 	free_netdev(dev);
+ }
+ 
+-- 
+2.43.2
+
+From ff67e3e488090908dc015ba04d7407d8bd467f7e Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sun, 14 Jan 2024 23:53:39 +0100
+Subject: [PATCH 621/641] netfilter: nf_tables: do not allow mismatch field
+ size and set key length
+Status: RO
+Content-Length: 1490
+Lines: 42
+
+[ Upstream commit 3ce67e3793f48c1b9635beb9bb71116ca1e51b58 ]
+
+The set description provides the size of each field in the set whose sum
+should not mismatch the set key length, bail out otherwise.
+
+I did not manage to crash nft_set_pipapo with mismatch fields and set key
+length so far, but this is UB which must be disallowed.
+
+Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3912a133324c..7775bf5224ac 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4811,8 +4811,8 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
+ static int nft_set_desc_concat(struct nft_set_desc *desc,
+ 			       const struct nlattr *nla)
+ {
++	u32 num_regs = 0, key_num_regs = 0;
+ 	struct nlattr *attr;
+-	u32 num_regs = 0;
+ 	int rem, err, i;
+ 
+ 	nla_for_each_nested(attr, nla, rem) {
+@@ -4827,6 +4827,10 @@ static int nft_set_desc_concat(struct nft_set_desc *desc,
+ 	for (i = 0; i < desc->field_count; i++)
+ 		num_regs += DIV_ROUND_UP(desc->field_len[i], sizeof(u32));
+ 
++	key_num_regs = DIV_ROUND_UP(desc->klen, sizeof(u32));
++	if (key_num_regs != num_regs)
++		return -EINVAL;
++
+ 	if (num_regs > NFT_REG32_COUNT)
+ 		return -E2BIG;
+ 
+-- 
+2.43.2
+
 From df4bb78489b85dea545c57f3d8568022dea57f2a Mon Sep 17 00:00:00 2001
 From: Christoph Hellwig <hch@lst.de>
 Date: Wed, 17 Jan 2024 18:59:01 +0100
@@ -4423,54 +5389,551 @@ index 9f2d412fc560..552f56a84a7e 100644
 -- 
 2.43.2
 
-From ff67e3e488090908dc015ba04d7407d8bd467f7e Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sun, 14 Jan 2024 23:53:39 +0100
-Subject: [PATCH 621/641] netfilter: nf_tables: do not allow mismatch field
- size and set key length
+From 1a720f3ec16e510ff1e0d384119475bc0bdc4e26 Mon Sep 17 00:00:00 2001
+From: Amit Cohen <amcohen@nvidia.com>
+Date: Wed, 17 Jan 2024 16:04:16 +0100
+Subject: [PATCH 630/641] mlxsw: spectrum_acl_erp: Fix error flow of pool
+ allocation failure
 Status: RO
-Content-Length: 1490
-Lines: 42
+Content-Length: 6927
+Lines: 177
 
-[ Upstream commit 3ce67e3793f48c1b9635beb9bb71116ca1e51b58 ]
+[ Upstream commit 6d6eeabcfaba2fcadf5443b575789ea606f9de83 ]
 
-The set description provides the size of each field in the set whose sum
-should not mismatch the set key length, bail out otherwise.
+Lately, a bug was found when many TC filters are added - at some point,
+several bugs are printed to dmesg [1] and the switch is crashed with
+segmentation fault.
 
-I did not manage to crash nft_set_pipapo with mismatch fields and set key
-length so far, but this is UB which must be disallowed.
+The issue starts when gen_pool_free() fails because of unexpected
+behavior - a try to free memory which is already freed, this leads to BUG()
+call which crashes the switch and makes many other bugs.
 
-Fixes: f3a2181e16f1 ("netfilter: nf_tables: Support for sets with multiple ranged fields")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Trying to track down the unexpected behavior led to a bug in eRP code. The
+function mlxsw_sp_acl_erp_table_alloc() gets a pointer to the allocated
+index, sets the value and returns an error code. When gen_pool_alloc()
+fails it returns address 0, we track it and return -ENOBUFS outside, BUT
+the call for gen_pool_alloc() already override the index in erp_table
+structure. This is a problem when such allocation is done as part of
+table expansion. This is not a new table, which will not be used in case
+of allocation failure. We try to expand eRP table and override the
+current index (non-zero) with zero. Then, it leads to an unexpected
+behavior when address 0 is freed twice. Note that address 0 is valid in
+erp_table->base_index and indeed other tables use it.
+
+gen_pool_alloc() fails in case that there is no space left in the
+pre-allocated pool, in our case, the pool is limited to
+ACL_MAX_ERPT_BANK_SIZE, which is read from hardware. When more than max
+erp entries are required, we exceed the limit and return an error, this
+error leads to "Failed to migrate vregion" print.
+
+Fix this by changing erp_table->base_index only in case of a successful
+allocation.
+
+Add a test case for such a scenario. Without this fix it causes
+segmentation fault:
+
+$ TESTS="max_erp_entries_test" ./tc_flower.sh
+./tc_flower.sh: line 988:  1560 Segmentation fault      tc filter del dev $h2 ingress chain $i protocol ip pref $i handle $j flower &>/dev/null
+
+[1]:
+kernel BUG at lib/genalloc.c:508!
+invalid opcode: 0000 [#1] PREEMPT SMP
+CPU: 6 PID: 3531 Comm: tc Not tainted 6.7.0-rc5-custom-ga6893f479f5e #1
+Hardware name: Mellanox Technologies Ltd. MSN4700/VMOD0010, BIOS 5.11 07/12/2021
+RIP: 0010:gen_pool_free_owner+0xc9/0xe0
+...
+Call Trace:
+ <TASK>
+ __mlxsw_sp_acl_erp_table_other_dec+0x70/0xa0 [mlxsw_spectrum]
+ mlxsw_sp_acl_erp_mask_destroy+0xf5/0x110 [mlxsw_spectrum]
+ objagg_obj_root_destroy+0x18/0x80 [objagg]
+ objagg_obj_destroy+0x12c/0x130 [objagg]
+ mlxsw_sp_acl_erp_mask_put+0x37/0x50 [mlxsw_spectrum]
+ mlxsw_sp_acl_ctcam_region_entry_remove+0x74/0xa0 [mlxsw_spectrum]
+ mlxsw_sp_acl_ctcam_entry_del+0x1e/0x40 [mlxsw_spectrum]
+ mlxsw_sp_acl_tcam_ventry_del+0x78/0xd0 [mlxsw_spectrum]
+ mlxsw_sp_flower_destroy+0x4d/0x70 [mlxsw_spectrum]
+ mlxsw_sp_flow_block_cb+0x73/0xb0 [mlxsw_spectrum]
+ tc_setup_cb_destroy+0xc1/0x180
+ fl_hw_destroy_filter+0x94/0xc0 [cls_flower]
+ __fl_delete+0x1ac/0x1c0 [cls_flower]
+ fl_destroy+0xc2/0x150 [cls_flower]
+ tcf_proto_destroy+0x1a/0xa0
+...
+mlxsw_spectrum3 0000:07:00.0: Failed to migrate vregion
+mlxsw_spectrum3 0000:07:00.0: Failed to migrate vregion
+
+Fixes: f465261aa105 ("mlxsw: spectrum_acl: Implement common eRP core")
+Signed-off-by: Amit Cohen <amcohen@nvidia.com>
+Signed-off-by: Ido Schimmel <idosch@nvidia.com>
+Signed-off-by: Petr Machata <petrm@nvidia.com>
+Acked-by: Paolo Abeni <pabeni@redhat.com>
+Link: https://lore.kernel.org/r/4cfca254dfc0e5d283974801a24371c7b6db5989.1705502064.git.petrm@nvidia.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ .../mellanox/mlxsw/spectrum_acl_erp.c         |  8 +--
+ .../drivers/net/mlxsw/spectrum-2/tc_flower.sh | 52 ++++++++++++++++++-
+ 2 files changed, 56 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3912a133324c..7775bf5224ac 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4811,8 +4811,8 @@ static int nft_set_desc_concat_parse(const struct nlattr *attr,
- static int nft_set_desc_concat(struct nft_set_desc *desc,
- 			       const struct nlattr *nla)
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_erp.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_erp.c
+index 4c98950380d5..d231f4d2888b 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_erp.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_erp.c
+@@ -301,6 +301,7 @@ mlxsw_sp_acl_erp_table_alloc(struct mlxsw_sp_acl_erp_core *erp_core,
+ 			     unsigned long *p_index)
  {
-+	u32 num_regs = 0, key_num_regs = 0;
- 	struct nlattr *attr;
--	u32 num_regs = 0;
- 	int rem, err, i;
+ 	unsigned int num_rows, entry_size;
++	unsigned long index;
  
- 	nla_for_each_nested(attr, nla, rem) {
-@@ -4827,6 +4827,10 @@ static int nft_set_desc_concat(struct nft_set_desc *desc,
- 	for (i = 0; i < desc->field_count; i++)
- 		num_regs += DIV_ROUND_UP(desc->field_len[i], sizeof(u32));
+ 	/* We only allow allocations of entire rows */
+ 	if (num_erps % erp_core->num_erp_banks != 0)
+@@ -309,10 +310,11 @@ mlxsw_sp_acl_erp_table_alloc(struct mlxsw_sp_acl_erp_core *erp_core,
+ 	entry_size = erp_core->erpt_entries_size[region_type];
+ 	num_rows = num_erps / erp_core->num_erp_banks;
  
-+	key_num_regs = DIV_ROUND_UP(desc->klen, sizeof(u32));
-+	if (key_num_regs != num_regs)
-+		return -EINVAL;
+-	*p_index = gen_pool_alloc(erp_core->erp_tables, num_rows * entry_size);
+-	if (*p_index == 0)
++	index = gen_pool_alloc(erp_core->erp_tables, num_rows * entry_size);
++	if (!index)
+ 		return -ENOBUFS;
+-	*p_index -= MLXSW_SP_ACL_ERP_GENALLOC_OFFSET;
 +
- 	if (num_regs > NFT_REG32_COUNT)
- 		return -E2BIG;
++	*p_index = index - MLXSW_SP_ACL_ERP_GENALLOC_OFFSET;
+ 
+ 	return 0;
+ }
+diff --git a/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh b/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh
+index fb850e0ec837..7bf56ea161e3 100755
+--- a/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh
++++ b/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh
+@@ -10,7 +10,8 @@ lib_dir=$(dirname $0)/../../../../net/forwarding
+ ALL_TESTS="single_mask_test identical_filters_test two_masks_test \
+ 	multiple_masks_test ctcam_edge_cases_test delta_simple_test \
+ 	delta_two_masks_one_key_test delta_simple_rehash_test \
+-	bloom_simple_test bloom_complex_test bloom_delta_test"
++	bloom_simple_test bloom_complex_test bloom_delta_test \
++	max_erp_entries_test"
+ NUM_NETIFS=2
+ source $lib_dir/lib.sh
+ source $lib_dir/tc_common.sh
+@@ -983,6 +984,55 @@ bloom_delta_test()
+ 	log_test "bloom delta test ($tcflags)"
+ }
+ 
++max_erp_entries_test()
++{
++	# The number of eRP entries is limited. Once the maximum number of eRPs
++	# has been reached, filters cannot be added. This test verifies that
++	# when this limit is reached, inserstion fails without crashing.
++
++	RET=0
++
++	local num_masks=32
++	local num_regions=15
++	local chain_failed
++	local mask_failed
++	local ret
++
++	if [[ "$tcflags" != "skip_sw" ]]; then
++		return 0;
++	fi
++
++	for ((i=1; i < $num_regions; i++)); do
++		for ((j=$num_masks; j >= 0; j--)); do
++			tc filter add dev $h2 ingress chain $i protocol ip \
++				pref $i	handle $j flower $tcflags \
++				dst_ip 192.1.0.0/$j &> /dev/null
++			ret=$?
++
++			if [ $ret -ne 0 ]; then
++				chain_failed=$i
++				mask_failed=$j
++				break 2
++			fi
++		done
++	done
++
++	# We expect to exceed the maximum number of eRP entries, so that
++	# insertion eventually fails. Otherwise, the test should be adjusted to
++	# add more filters.
++	check_fail $ret "expected to exceed number of eRP entries"
++
++	for ((; i >= 1; i--)); do
++		for ((j=0; j <= $num_masks; j++)); do
++			tc filter del dev $h2 ingress chain $i protocol ip \
++				pref $i handle $j flower &> /dev/null
++		done
++	done
++
++	log_test "max eRP entries test ($tcflags). " \
++		"max chain $chain_failed, mask $mask_failed"
++}
++
+ setup_prepare()
+ {
+ 	h1=${NETIFS[p1]}
+-- 
+2.43.2
+
+From a361c2c1da5dbb13ca67601cf961ab3ad68af383 Mon Sep 17 00:00:00 2001
+From: Ido Schimmel <idosch@nvidia.com>
+Date: Wed, 17 Jan 2024 16:04:18 +0100
+Subject: [PATCH 632/641] mlxsw: spectrum_acl_tcam: Fix stack corruption
+Status: RO
+Content-Length: 5756
+Lines: 154
+
+[ Upstream commit 483ae90d8f976f8339cf81066312e1329f2d3706 ]
+
+When tc filters are first added to a net device, the corresponding local
+port gets bound to an ACL group in the device. The group contains a list
+of ACLs. In turn, each ACL points to a different TCAM region where the
+filters are stored. During forwarding, the ACLs are sequentially
+evaluated until a match is found.
+
+One reason to place filters in different regions is when they are added
+with decreasing priorities and in an alternating order so that two
+consecutive filters can never fit in the same region because of their
+key usage.
+
+In Spectrum-2 and newer ASICs the firmware started to report that the
+maximum number of ACLs in a group is more than 16, but the layout of the
+register that configures ACL groups (PAGT) was not updated to account
+for that. It is therefore possible to hit stack corruption [1] in the
+rare case where more than 16 ACLs in a group are required.
+
+Fix by limiting the maximum ACL group size to the minimum between what
+the firmware reports and the maximum ACLs that fit in the PAGT register.
+
+Add a test case to make sure the machine does not crash when this
+condition is hit.
+
+[1]
+Kernel panic - not syncing: stack-protector: Kernel stack is corrupted in: mlxsw_sp_acl_tcam_group_update+0x116/0x120
+[...]
+ dump_stack_lvl+0x36/0x50
+ panic+0x305/0x330
+ __stack_chk_fail+0x15/0x20
+ mlxsw_sp_acl_tcam_group_update+0x116/0x120
+ mlxsw_sp_acl_tcam_group_region_attach+0x69/0x110
+ mlxsw_sp_acl_tcam_vchunk_get+0x492/0xa20
+ mlxsw_sp_acl_tcam_ventry_add+0x25/0xe0
+ mlxsw_sp_acl_rule_add+0x47/0x240
+ mlxsw_sp_flower_replace+0x1a9/0x1d0
+ tc_setup_cb_add+0xdc/0x1c0
+ fl_hw_replace_filter+0x146/0x1f0
+ fl_change+0xc17/0x1360
+ tc_new_tfilter+0x472/0xb90
+ rtnetlink_rcv_msg+0x313/0x3b0
+ netlink_rcv_skb+0x58/0x100
+ netlink_unicast+0x244/0x390
+ netlink_sendmsg+0x1e4/0x440
+ ____sys_sendmsg+0x164/0x260
+ ___sys_sendmsg+0x9a/0xe0
+ __sys_sendmsg+0x7a/0xc0
+ do_syscall_64+0x40/0xe0
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+Fixes: c3ab435466d5 ("mlxsw: spectrum: Extend to support Spectrum-2 ASIC")
+Reported-by: Orel Hagag <orelh@nvidia.com>
+Signed-off-by: Ido Schimmel <idosch@nvidia.com>
+Reviewed-by: Amit Cohen <amcohen@nvidia.com>
+Signed-off-by: Petr Machata <petrm@nvidia.com>
+Acked-by: Paolo Abeni <pabeni@redhat.com>
+Link: https://lore.kernel.org/r/2d91c89afba59c22587b444994ae419dbea8d876.1705502064.git.petrm@nvidia.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ .../mellanox/mlxsw/spectrum_acl_tcam.c        |  2 +
+ .../drivers/net/mlxsw/spectrum-2/tc_flower.sh | 56 ++++++++++++++++++-
+ 2 files changed, 57 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_tcam.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_tcam.c
+index 7d1e91196e94..50ea1eff02b2 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_tcam.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_acl_tcam.c
+@@ -1564,6 +1564,8 @@ int mlxsw_sp_acl_tcam_init(struct mlxsw_sp *mlxsw_sp,
+ 	tcam->max_groups = max_groups;
+ 	tcam->max_group_size = MLXSW_CORE_RES_GET(mlxsw_sp->core,
+ 						  ACL_MAX_GROUP_SIZE);
++	tcam->max_group_size = min_t(unsigned int, tcam->max_group_size,
++				     MLXSW_REG_PAGT_ACL_MAX_NUM);
+ 
+ 	err = ops->init(mlxsw_sp, tcam->priv, tcam);
+ 	if (err)
+diff --git a/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh b/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh
+index 7bf56ea161e3..616d3581419c 100755
+--- a/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh
++++ b/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/tc_flower.sh
+@@ -11,7 +11,7 @@ ALL_TESTS="single_mask_test identical_filters_test two_masks_test \
+ 	multiple_masks_test ctcam_edge_cases_test delta_simple_test \
+ 	delta_two_masks_one_key_test delta_simple_rehash_test \
+ 	bloom_simple_test bloom_complex_test bloom_delta_test \
+-	max_erp_entries_test"
++	max_erp_entries_test max_group_size_test"
+ NUM_NETIFS=2
+ source $lib_dir/lib.sh
+ source $lib_dir/tc_common.sh
+@@ -1033,6 +1033,60 @@ max_erp_entries_test()
+ 		"max chain $chain_failed, mask $mask_failed"
+ }
+ 
++max_group_size_test()
++{
++	# The number of ACLs in an ACL group is limited. Once the maximum
++	# number of ACLs has been reached, filters cannot be added. This test
++	# verifies that when this limit is reached, insertion fails without
++	# crashing.
++
++	RET=0
++
++	local num_acls=32
++	local max_size
++	local ret
++
++	if [[ "$tcflags" != "skip_sw" ]]; then
++		return 0;
++	fi
++
++	for ((i=1; i < $num_acls; i++)); do
++		if [[ $(( i % 2 )) == 1 ]]; then
++			tc filter add dev $h2 ingress pref $i proto ipv4 \
++				flower $tcflags dst_ip 198.51.100.1/32 \
++				ip_proto tcp tcp_flags 0x01/0x01 \
++				action drop &> /dev/null
++		else
++			tc filter add dev $h2 ingress pref $i proto ipv6 \
++				flower $tcflags dst_ip 2001:db8:1::1/128 \
++				action drop &> /dev/null
++		fi
++
++		ret=$?
++		[[ $ret -ne 0 ]] && max_size=$((i - 1)) && break
++	done
++
++	# We expect to exceed the maximum number of ACLs in a group, so that
++	# insertion eventually fails. Otherwise, the test should be adjusted to
++	# add more filters.
++	check_fail $ret "expected to exceed number of ACLs in a group"
++
++	for ((; i >= 1; i--)); do
++		if [[ $(( i % 2 )) == 1 ]]; then
++			tc filter del dev $h2 ingress pref $i proto ipv4 \
++				flower $tcflags dst_ip 198.51.100.1/32 \
++				ip_proto tcp tcp_flags 0x01/0x01 \
++				action drop &> /dev/null
++		else
++			tc filter del dev $h2 ingress pref $i proto ipv6 \
++				flower $tcflags dst_ip 2001:db8:1::1/128 \
++				action drop &> /dev/null
++		fi
++	done
++
++	log_test "max ACL group size test ($tcflags). max size $max_size"
++}
++
+ setup_prepare()
+ {
+ 	h1=${NETIFS[p1]}
+-- 
+2.43.2
+
+From c5aa144f2ace920fe55c086d16530fd6101fe842 Mon Sep 17 00:00:00 2001
+From: Petr Machata <petrm@nvidia.com>
+Date: Wed, 17 Jan 2024 16:04:19 +0100
+Subject: [PATCH 633/641] mlxsw: spectrum_router: Register netdevice notifier
+ before nexthop
+Status: RO
+Content-Length: 5622
+Lines: 106
+
+[ Upstream commit 62bef63646c194e0f82b40304a0f2d060b28687b ]
+
+If there are IPIP nexthops at the time when the driver is loaded (or the
+devlink instance reloaded), the driver looks up the corresponding IPIP
+entry. But IPIP entries are only created as a result of netdevice
+notifications. Since the netdevice notifier is registered after the nexthop
+notifier, mlxsw_sp_nexthop_type_init() never finds the IPIP entry,
+registers the nexthop MLXSW_SP_NEXTHOP_TYPE_ETH, and fails to assign a CRIF
+to the nexthop. Later on when the CRIF is necessary, the WARN_ON in
+mlxsw_sp_nexthop_rif() triggers, causing the splat [1].
+
+In order to fix the issue, reorder the netdevice notifier to be registered
+before the nexthop one.
+
+[1] (edited for clarity):
+
+    WARNING: CPU: 1 PID: 1364 at drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3245 mlxsw_sp_nexthop_rif (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3246 (discriminator 1)) mlxsw_spectrum
+    Hardware name: Mellanox Technologies Ltd. MSN4410/VMOD0010, BIOS 5.11 01/06/2019
+    Call Trace:
+    ? mlxsw_sp_nexthop_rif (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3246 (discriminator 1)) mlxsw_spectrum
+    __mlxsw_sp_nexthop_eth_update (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3637) mlxsw_spectrum
+    mlxsw_sp_nexthop_update (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3679 drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3727) mlxsw_spectrum
+    mlxsw_sp_nexthop_group_update (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:3757) mlxsw_spectrum
+    mlxsw_sp_nexthop_group_refresh (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:4112) mlxsw_spectrum
+    mlxsw_sp_nexthop_obj_event (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:5118 drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:5191 drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:5315 drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:5500) mlxsw_spectrum
+    nexthops_dump (net/ipv4/nexthop.c:217 net/ipv4/nexthop.c:440 net/ipv4/nexthop.c:3609)
+    register_nexthop_notifier (net/ipv4/nexthop.c:3624)
+    mlxsw_sp_router_init (drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c:11486) mlxsw_spectrum
+    mlxsw_sp_init (drivers/net/ethernet/mellanox/mlxsw/spectrum.c:3267) mlxsw_spectrum
+    __mlxsw_core_bus_device_register (drivers/net/ethernet/mellanox/mlxsw/core.c:2202) mlxsw_core
+    mlxsw_devlink_core_bus_device_reload_up (drivers/net/ethernet/mellanox/mlxsw/core.c:2265 drivers/net/ethernet/mellanox/mlxsw/core.c:1603) mlxsw_core
+    devlink_reload (net/devlink/dev.c:314 net/devlink/dev.c:475)
+    [...]
+
+Fixes: 9464a3d68ea9 ("mlxsw: spectrum_router: Track next hops at CRIFs")
+Reported-by: Maksym Yaremchuk <maksymy@nvidia.com>
+Signed-off-by: Petr Machata <petrm@nvidia.com>
+Reviewed-by: Ido Schimmel <idosch@nvidia.com>
+Acked-by: Paolo Abeni <pabeni@redhat.com>
+Link: https://lore.kernel.org/r/74edb8d45d004e8d8f5318eede6ccc3d786d8ba9.1705502064.git.petrm@nvidia.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ .../ethernet/mellanox/mlxsw/spectrum_router.c | 24 +++++++++----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c
+index 82a95125d9ca..39e6d941fd91 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_router.c
+@@ -11458,6 +11458,13 @@ int mlxsw_sp_router_init(struct mlxsw_sp *mlxsw_sp,
+ 	if (err)
+ 		goto err_register_netevent_notifier;
+ 
++	mlxsw_sp->router->netdevice_nb.notifier_call =
++		mlxsw_sp_router_netdevice_event;
++	err = register_netdevice_notifier_net(mlxsw_sp_net(mlxsw_sp),
++					      &mlxsw_sp->router->netdevice_nb);
++	if (err)
++		goto err_register_netdev_notifier;
++
+ 	mlxsw_sp->router->nexthop_nb.notifier_call =
+ 		mlxsw_sp_nexthop_obj_event;
+ 	err = register_nexthop_notifier(mlxsw_sp_net(mlxsw_sp),
+@@ -11473,22 +11480,15 @@ int mlxsw_sp_router_init(struct mlxsw_sp *mlxsw_sp,
+ 	if (err)
+ 		goto err_register_fib_notifier;
+ 
+-	mlxsw_sp->router->netdevice_nb.notifier_call =
+-		mlxsw_sp_router_netdevice_event;
+-	err = register_netdevice_notifier_net(mlxsw_sp_net(mlxsw_sp),
+-					      &mlxsw_sp->router->netdevice_nb);
+-	if (err)
+-		goto err_register_netdev_notifier;
+-
+ 	return 0;
+ 
+-err_register_netdev_notifier:
+-	unregister_fib_notifier(mlxsw_sp_net(mlxsw_sp),
+-				&mlxsw_sp->router->fib_nb);
+ err_register_fib_notifier:
+ 	unregister_nexthop_notifier(mlxsw_sp_net(mlxsw_sp),
+ 				    &mlxsw_sp->router->nexthop_nb);
+ err_register_nexthop_notifier:
++	unregister_netdevice_notifier_net(mlxsw_sp_net(mlxsw_sp),
++					  &router->netdevice_nb);
++err_register_netdev_notifier:
+ 	unregister_netevent_notifier(&mlxsw_sp->router->netevent_nb);
+ err_register_netevent_notifier:
+ 	unregister_inet6addr_validator_notifier(&router->inet6addr_valid_nb);
+@@ -11536,11 +11536,11 @@ void mlxsw_sp_router_fini(struct mlxsw_sp *mlxsw_sp)
+ {
+ 	struct mlxsw_sp_router *router = mlxsw_sp->router;
+ 
+-	unregister_netdevice_notifier_net(mlxsw_sp_net(mlxsw_sp),
+-					  &router->netdevice_nb);
+ 	unregister_fib_notifier(mlxsw_sp_net(mlxsw_sp), &router->fib_nb);
+ 	unregister_nexthop_notifier(mlxsw_sp_net(mlxsw_sp),
+ 				    &router->nexthop_nb);
++	unregister_netdevice_notifier_net(mlxsw_sp_net(mlxsw_sp),
++					  &router->netdevice_nb);
+ 	unregister_netevent_notifier(&router->netevent_nb);
+ 	unregister_inet6addr_validator_notifier(&router->inet6addr_valid_nb);
+ 	unregister_inetaddr_validator_notifier(&router->inetaddr_valid_nb);
+-- 
+2.43.2
+
+From 3bb5849675ae1d592929798a2b37ea450879c855 Mon Sep 17 00:00:00 2001
+From: Nikita Zhandarovich <n.zhandarovich@fintech.ru>
+Date: Wed, 17 Jan 2024 09:21:02 -0800
+Subject: [PATCH 635/641] ipv6: mcast: fix data-race in ipv6_mc_down /
+ mld_ifc_work
+Status: RO
+Content-Length: 2813
+Lines: 73
+
+[ Upstream commit 2e7ef287f07c74985f1bf2858bedc62bd9ebf155 ]
+
+idev->mc_ifc_count can be written over without proper locking.
+
+Originally found by syzbot [1], fix this issue by encapsulating calls
+to mld_ifc_stop_work() (and mld_gq_stop_work() for good measure) with
+mutex_lock() and mutex_unlock() accordingly as these functions
+should only be called with mc_lock per their declarations.
+
+[1]
+BUG: KCSAN: data-race in ipv6_mc_down / mld_ifc_work
+
+write to 0xffff88813a80c832 of 1 bytes by task 3771 on cpu 0:
+ mld_ifc_stop_work net/ipv6/mcast.c:1080 [inline]
+ ipv6_mc_down+0x10a/0x280 net/ipv6/mcast.c:2725
+ addrconf_ifdown+0xe32/0xf10 net/ipv6/addrconf.c:3949
+ addrconf_notify+0x310/0x980
+ notifier_call_chain kernel/notifier.c:93 [inline]
+ raw_notifier_call_chain+0x6b/0x1c0 kernel/notifier.c:461
+ __dev_notify_flags+0x205/0x3d0
+ dev_change_flags+0xab/0xd0 net/core/dev.c:8685
+ do_setlink+0x9f6/0x2430 net/core/rtnetlink.c:2916
+ rtnl_group_changelink net/core/rtnetlink.c:3458 [inline]
+ __rtnl_newlink net/core/rtnetlink.c:3717 [inline]
+ rtnl_newlink+0xbb3/0x1670 net/core/rtnetlink.c:3754
+ rtnetlink_rcv_msg+0x807/0x8c0 net/core/rtnetlink.c:6558
+ netlink_rcv_skb+0x126/0x220 net/netlink/af_netlink.c:2545
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:6576
+ netlink_unicast_kernel net/netlink/af_netlink.c:1342 [inline]
+ netlink_unicast+0x589/0x650 net/netlink/af_netlink.c:1368
+ netlink_sendmsg+0x66e/0x770 net/netlink/af_netlink.c:1910
+ ...
+
+write to 0xffff88813a80c832 of 1 bytes by task 22 on cpu 1:
+ mld_ifc_work+0x54c/0x7b0 net/ipv6/mcast.c:2653
+ process_one_work kernel/workqueue.c:2627 [inline]
+ process_scheduled_works+0x5b8/0xa30 kernel/workqueue.c:2700
+ worker_thread+0x525/0x730 kernel/workqueue.c:2781
+ ...
+
+Fixes: 2d9a93b4902b ("mld: convert from timer to delayed work")
+Reported-by: syzbot+a9400cabb1d784e49abf@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/all/000000000000994e09060ebcdffb@google.com/
+Signed-off-by: Nikita Zhandarovich <n.zhandarovich@fintech.ru>
+Acked-by: Taehee Yoo <ap420073@gmail.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Hangbin Liu <liuhangbin@gmail.com>
+Link: https://lore.kernel.org/r/20240117172102.12001-1-n.zhandarovich@fintech.ru
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv6/mcast.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/ipv6/mcast.c b/net/ipv6/mcast.c
+index b75d3c9d41bb..bc6e0a0bad3c 100644
+--- a/net/ipv6/mcast.c
++++ b/net/ipv6/mcast.c
+@@ -2722,8 +2722,12 @@ void ipv6_mc_down(struct inet6_dev *idev)
+ 	synchronize_net();
+ 	mld_query_stop_work(idev);
+ 	mld_report_stop_work(idev);
++
++	mutex_lock(&idev->mc_lock);
+ 	mld_ifc_stop_work(idev);
+ 	mld_gq_stop_work(idev);
++	mutex_unlock(&idev->mc_lock);
++
+ 	mld_dad_stop_work(idev);
+ }
  
 -- 
 2.43.2
