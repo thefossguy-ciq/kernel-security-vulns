@@ -1,58 +1,69 @@
-From 6eb14441f10602fa1cf691da9d685718b68b78a9 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 7 Feb 2024 18:49:51 +0100
-Subject: [PATCH 128/129] netfilter: nft_set_rbtree: skip end interval element
- from gc
+From 6b0d48647935e4b8c7b75d1eccb9043fcd4ee581 Mon Sep 17 00:00:00 2001
+From: Baokun Li <libaokun1@huawei.com>
+Date: Thu, 4 Jan 2024 22:20:35 +0800
+Subject: [PATCH 001/129] ext4: regenerate buddy after block freeing failed if
+ under fc replay
 Status: RO
-Content-Length: 1935
-Lines: 48
+Content-Length: 2024
+Lines: 59
 
-commit 60c0c230c6f046da536d3df8b39a20b9a9fd6af0 upstream.
+[ Upstream commit c9b528c35795b711331ed36dc3dbee90d5812d4e ]
 
-rbtree lazy gc on insert might collect an end interval element that has
-been just added in this transactions, skip end interval elements that
-are not yet active.
+This mostly reverts commit 6bd97bf273bd ("ext4: remove redundant
+mb_regenerate_buddy()") and reintroduces mb_regenerate_buddy(). Based on
+code in mb_free_blocks(), fast commit replay can end up marking as free
+blocks that are already marked as such. This causes corruption of the
+buddy bitmap so we need to regenerate it in that case.
 
-Fixes: f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
-Cc: stable@vger.kernel.org
-Reported-by: lonial con <kongln9170@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reported-by: Jan Kara <jack@suse.cz>
+Fixes: 6bd97bf273bd ("ext4: remove redundant mb_regenerate_buddy()")
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Link: https://lore.kernel.org/r/20240104142040.2835097-4-libaokun1@huawei.com
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_set_rbtree.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ext4/mballoc.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 5fd74f993988..9944fe479e53 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -234,7 +234,7 @@ static void nft_rbtree_gc_elem_remove(struct net *net, struct nft_set *set,
+diff --git a/fs/ext4/mballoc.c b/fs/ext4/mballoc.c
+index 8408318e1d32..3c5786841c6c 100644
+--- a/fs/ext4/mballoc.c
++++ b/fs/ext4/mballoc.c
+@@ -1233,6 +1233,24 @@ void ext4_mb_generate_buddy(struct super_block *sb,
+ 	atomic64_add(period, &sbi->s_mb_generation_time);
+ }
  
- static const struct nft_rbtree_elem *
- nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
--		   struct nft_rbtree_elem *rbe, u8 genmask)
-+		   struct nft_rbtree_elem *rbe)
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
-@@ -253,7 +253,7 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
- 	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		if (nft_rbtree_interval_end(rbe_prev) &&
--		    nft_set_elem_active(&rbe_prev->ext, genmask))
-+		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
- 			break;
- 
- 		prev = rb_prev(prev);
-@@ -365,7 +365,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
- 			const struct nft_rbtree_elem *removed_end;
- 
--			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
-+			removed_end = nft_rbtree_gc_elem(set, priv, rbe);
- 			if (IS_ERR(removed_end))
- 				return PTR_ERR(removed_end);
- 
++static void mb_regenerate_buddy(struct ext4_buddy *e4b)
++{
++	int count;
++	int order = 1;
++	void *buddy;
++
++	while ((buddy = mb_find_buddy(e4b, order++, &count)))
++		mb_set_bits(buddy, 0, count);
++
++	e4b->bd_info->bb_fragments = 0;
++	memset(e4b->bd_info->bb_counters, 0,
++		sizeof(*e4b->bd_info->bb_counters) *
++		(e4b->bd_sb->s_blocksize_bits + 2));
++
++	ext4_mb_generate_buddy(e4b->bd_sb, e4b->bd_buddy,
++		e4b->bd_bitmap, e4b->bd_group, e4b->bd_info);
++}
++
+ /* The buddy information is attached the buddy cache inode
+  * for convenience. The information regarding each group
+  * is loaded via ext4_mb_load_buddy. The information involve
+@@ -1921,6 +1939,8 @@ static void mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
+ 			ext4_mark_group_bitmap_corrupted(
+ 				sb, e4b->bd_group,
+ 				EXT4_GROUP_INFO_BBITMAP_CORRUPT);
++		} else {
++			mb_regenerate_buddy(e4b);
+ 		}
+ 		goto done;
+ 	}
 -- 
 2.43.2
 
@@ -130,75 +141,6 @@ index dd2913ac0fa2..78e19b128962 100644
  		return -ENODEV;
  
  	return phy->comparator->start_srp(phy->comparator);
--- 
-2.43.2
-
-From 6b0d48647935e4b8c7b75d1eccb9043fcd4ee581 Mon Sep 17 00:00:00 2001
-From: Baokun Li <libaokun1@huawei.com>
-Date: Thu, 4 Jan 2024 22:20:35 +0800
-Subject: [PATCH 001/129] ext4: regenerate buddy after block freeing failed if
- under fc replay
-Status: RO
-Content-Length: 2024
-Lines: 59
-
-[ Upstream commit c9b528c35795b711331ed36dc3dbee90d5812d4e ]
-
-This mostly reverts commit 6bd97bf273bd ("ext4: remove redundant
-mb_regenerate_buddy()") and reintroduces mb_regenerate_buddy(). Based on
-code in mb_free_blocks(), fast commit replay can end up marking as free
-blocks that are already marked as such. This causes corruption of the
-buddy bitmap so we need to regenerate it in that case.
-
-Reported-by: Jan Kara <jack@suse.cz>
-Fixes: 6bd97bf273bd ("ext4: remove redundant mb_regenerate_buddy()")
-Signed-off-by: Baokun Li <libaokun1@huawei.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Link: https://lore.kernel.org/r/20240104142040.2835097-4-libaokun1@huawei.com
-Signed-off-by: Theodore Ts'o <tytso@mit.edu>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- fs/ext4/mballoc.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
-
-diff --git a/fs/ext4/mballoc.c b/fs/ext4/mballoc.c
-index 8408318e1d32..3c5786841c6c 100644
---- a/fs/ext4/mballoc.c
-+++ b/fs/ext4/mballoc.c
-@@ -1233,6 +1233,24 @@ void ext4_mb_generate_buddy(struct super_block *sb,
- 	atomic64_add(period, &sbi->s_mb_generation_time);
- }
- 
-+static void mb_regenerate_buddy(struct ext4_buddy *e4b)
-+{
-+	int count;
-+	int order = 1;
-+	void *buddy;
-+
-+	while ((buddy = mb_find_buddy(e4b, order++, &count)))
-+		mb_set_bits(buddy, 0, count);
-+
-+	e4b->bd_info->bb_fragments = 0;
-+	memset(e4b->bd_info->bb_counters, 0,
-+		sizeof(*e4b->bd_info->bb_counters) *
-+		(e4b->bd_sb->s_blocksize_bits + 2));
-+
-+	ext4_mb_generate_buddy(e4b->bd_sb, e4b->bd_buddy,
-+		e4b->bd_bitmap, e4b->bd_group, e4b->bd_info);
-+}
-+
- /* The buddy information is attached the buddy cache inode
-  * for convenience. The information regarding each group
-  * is loaded via ext4_mb_load_buddy. The information involve
-@@ -1921,6 +1939,8 @@ static void mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
- 			ext4_mark_group_bitmap_corrupted(
- 				sb, e4b->bd_group,
- 				EXT4_GROUP_INFO_BBITMAP_CORRUPT);
-+		} else {
-+			mb_regenerate_buddy(e4b);
- 		}
- 		goto done;
- 	}
 -- 
 2.43.2
 
@@ -2084,6 +2026,64 @@ index 2877f5934177..975c9c18263d 100644
 +	_ASM_EXTABLE_UA(8b, __put_user_handle_exception)
 +	_ASM_EXTABLE_UA(10b, __put_user_handle_exception)
  #endif
+-- 
+2.43.2
+
+From 6eb14441f10602fa1cf691da9d685718b68b78a9 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 7 Feb 2024 18:49:51 +0100
+Subject: [PATCH 128/129] netfilter: nft_set_rbtree: skip end interval element
+ from gc
+Status: RO
+Content-Length: 1935
+Lines: 48
+
+commit 60c0c230c6f046da536d3df8b39a20b9a9fd6af0 upstream.
+
+rbtree lazy gc on insert might collect an end interval element that has
+been just added in this transactions, skip end interval elements that
+are not yet active.
+
+Fixes: f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
+Cc: stable@vger.kernel.org
+Reported-by: lonial con <kongln9170@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/netfilter/nft_set_rbtree.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 5fd74f993988..9944fe479e53 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -234,7 +234,7 @@ static void nft_rbtree_gc_elem_remove(struct net *net, struct nft_set *set,
+ 
+ static const struct nft_rbtree_elem *
+ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
+-		   struct nft_rbtree_elem *rbe, u8 genmask)
++		   struct nft_rbtree_elem *rbe)
+ {
+ 	struct nft_set *set = (struct nft_set *)__set;
+ 	struct rb_node *prev = rb_prev(&rbe->node);
+@@ -253,7 +253,7 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
+ 	while (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+ 		if (nft_rbtree_interval_end(rbe_prev) &&
+-		    nft_set_elem_active(&rbe_prev->ext, genmask))
++		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
+ 			break;
+ 
+ 		prev = rb_prev(prev);
+@@ -365,7 +365,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+ 			const struct nft_rbtree_elem *removed_end;
+ 
+-			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
++			removed_end = nft_rbtree_gc_elem(set, priv, rbe);
+ 			if (IS_ERR(removed_end))
+ 				return PTR_ERR(removed_end);
+ 
 -- 
 2.43.2
 
