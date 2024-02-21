@@ -1,0 +1,57 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# cve_publish_mbox - Send the pending mbox announvements out
+#
+#
+# Usage:
+#	cve_publish_mbox
+#
+# Requires:
+#  cve
+
+
+# don't use unset variables
+set -o nounset
+
+# set where the tool was run from,
+# the name of our script,
+# and the git version of it
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT=${0##*/}
+SCRIPT_VERSION=$(cd "${DIR}" && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h")
+
+help() {
+	echo "${SCRIPT}"
+	exit 1
+}
+
+cd "${DIR}"/../ || exit 1
+
+# Get a list of the json files that are modified in some way (not deleted) and
+# only submit those to the system, cutting down on round trips
+files=$(git status -s | grep -v "^ D" | cut -f 2 -d ' ' | grep "\.mbox$" )
+for file in ${files}; do
+	cve=$(echo "${file}" | cut -f 1 -d '.' | cut -f 4 -d '/')
+	root=$(echo "${file}" | cut -f 1 -d '.' )
+	sha_file="${root}.sha1"
+	sha=$(cat "${sha_file}")
+	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
+	#echo "id=${id} sha=${sha} cve=${cve}"
+	echo "Sending email for ${cve} for commit ${sha}"
+	git send-email "${file}"
+	#cve -u gregkh@kernel.org -o Linux publish "${cve}" -f "${root}.json"
+	good=$?
+	if [[ "${good}" == 0 ]]; then
+		echo "Email successfully sent"
+	else
+		echo "ERROR: Something went wrong sending email ${cve}"
+	fi
+	echo ""
+	#cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
+done
+
+# to list all published entries:
+# cve -u gregkh@linuxfoundation.org -o Linux -e test list

@@ -15,9 +15,14 @@ _help:
 	cd {{invocation_directory()}}; scripts/cve_update
 
 
-# Publish all current .json files with the CVE server
+# Publish all modified .json files with the CVE server
 @cve_publish_json:
 	cd {{invocation_directory()}}; scripts/cve_publish_json
+
+
+# Publish all modified .mbox messages with git-send-email
+@cve_publish_mbox:
+	cd {{invocation_directory()}}; scripts/cve_publish_mbox
 
 
 # Query the CVE server for the list of all ids assigned to us
