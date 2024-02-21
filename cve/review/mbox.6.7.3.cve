@@ -1,3 +1,172 @@
+From 7abdfd45a650c714d5ebab564bb1b988f14d9b49 Mon Sep 17 00:00:00 2001
+From: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Date: Thu, 14 Dec 2023 11:08:34 +0800
+Subject: [PATCH 014/347] crypto: lib/mpi - Fix unexpected pointer access in
+ mpi_ec_init
+Status: RO
+Content-Length: 1213
+Lines: 34
+
+commit ba3c5574203034781ac4231acf117da917efcd2a upstream.
+
+When the mpi_ec_ctx structure is initialized, some fields are not
+cleared, causing a crash when referencing the field when the
+structure was released. Initially, this issue was ignored because
+memory for mpi_ec_ctx is allocated with the __GFP_ZERO flag.
+For example, this error will be triggered when calculating the
+Za value for SM2 separately.
+
+Fixes: d58bb7e55a8a ("lib/mpi: Introduce ec implementation to MPI library")
+Cc: stable@vger.kernel.org # v6.5
+Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ lib/crypto/mpi/ec.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/crypto/mpi/ec.c b/lib/crypto/mpi/ec.c
+index 40f5908e57a4..e16dca1e23d5 100644
+--- a/lib/crypto/mpi/ec.c
++++ b/lib/crypto/mpi/ec.c
+@@ -584,6 +584,9 @@ void mpi_ec_init(struct mpi_ec_ctx *ctx, enum gcry_mpi_ec_models model,
+ 	ctx->a = mpi_copy(a);
+ 	ctx->b = mpi_copy(b);
+ 
++	ctx->d = NULL;
++	ctx->t.two_inv_p = NULL;
++
+ 	ctx->t.p_barrett = use_barrett > 0 ? mpi_barrett_init(ctx->p, 0) : NULL;
+ 
+ 	mpi_ec_get_reset(ctx);
+-- 
+2.43.2
+
+From 6822a14271786150e178869f1495cc03e74c5029 Mon Sep 17 00:00:00 2001
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Sat, 2 Dec 2023 09:01:54 +0800
+Subject: [PATCH 018/347] hwrng: core - Fix page fault dead lock on mmap-ed
+ hwrng
+Status: RO
+Content-Length: 3207
+Lines: 115
+
+commit 78aafb3884f6bc6636efcc1760c891c8500b9922 upstream.
+
+There is a dead-lock in the hwrng device read path.  This triggers
+when the user reads from /dev/hwrng into memory also mmap-ed from
+/dev/hwrng.  The resulting page fault triggers a recursive read
+which then dead-locks.
+
+Fix this by using a stack buffer when calling copy_to_user.
+
+Reported-by: Edward Adam Davis <eadavis@qq.com>
+Reported-by: syzbot+c52ab18308964d248092@syzkaller.appspotmail.com
+Fixes: 9996508b3353 ("hwrng: core - Replace u32 in driver API with byte array")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/char/hw_random/core.c | 36 +++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/char/hw_random/core.c b/drivers/char/hw_random/core.c
+index 420f155d251f..a3bbdd6e60fc 100644
+--- a/drivers/char/hw_random/core.c
++++ b/drivers/char/hw_random/core.c
+@@ -23,10 +23,13 @@
+ #include <linux/sched.h>
+ #include <linux/sched/signal.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/uaccess.h>
+ 
+ #define RNG_MODULE_NAME		"hw_random"
+ 
++#define RNG_BUFFER_SIZE (SMP_CACHE_BYTES < 32 ? 32 : SMP_CACHE_BYTES)
++
+ static struct hwrng *current_rng;
+ /* the current rng has been explicitly chosen by user via sysfs */
+ static int cur_rng_set_by_user;
+@@ -58,7 +61,7 @@ static inline int rng_get_data(struct hwrng *rng, u8 *buffer, size_t size,
+ 
+ static size_t rng_buffer_size(void)
+ {
+-	return SMP_CACHE_BYTES < 32 ? 32 : SMP_CACHE_BYTES;
++	return RNG_BUFFER_SIZE;
+ }
+ 
+ static void add_early_randomness(struct hwrng *rng)
+@@ -209,6 +212,7 @@ static inline int rng_get_data(struct hwrng *rng, u8 *buffer, size_t size,
+ static ssize_t rng_dev_read(struct file *filp, char __user *buf,
+ 			    size_t size, loff_t *offp)
+ {
++	u8 buffer[RNG_BUFFER_SIZE];
+ 	ssize_t ret = 0;
+ 	int err = 0;
+ 	int bytes_read, len;
+@@ -236,34 +240,37 @@ static ssize_t rng_dev_read(struct file *filp, char __user *buf,
+ 			if (bytes_read < 0) {
+ 				err = bytes_read;
+ 				goto out_unlock_reading;
+-			}
+-			data_avail = bytes_read;
+-		}
+-
+-		if (!data_avail) {
+-			if (filp->f_flags & O_NONBLOCK) {
++			} else if (bytes_read == 0 &&
++				   (filp->f_flags & O_NONBLOCK)) {
+ 				err = -EAGAIN;
+ 				goto out_unlock_reading;
+ 			}
+-		} else {
+-			len = data_avail;
++
++			data_avail = bytes_read;
++		}
++
++		len = data_avail;
++		if (len) {
+ 			if (len > size)
+ 				len = size;
+ 
+ 			data_avail -= len;
+ 
+-			if (copy_to_user(buf + ret, rng_buffer + data_avail,
+-								len)) {
++			memcpy(buffer, rng_buffer + data_avail, len);
++		}
++		mutex_unlock(&reading_mutex);
++		put_rng(rng);
++
++		if (len) {
++			if (copy_to_user(buf + ret, buffer, len)) {
+ 				err = -EFAULT;
+-				goto out_unlock_reading;
++				goto out;
+ 			}
+ 
+ 			size -= len;
+ 			ret += len;
+ 		}
+ 
+-		mutex_unlock(&reading_mutex);
+-		put_rng(rng);
+ 
+ 		if (need_resched())
+ 			schedule_timeout_interruptible(1);
+@@ -274,6 +281,7 @@ static ssize_t rng_dev_read(struct file *filp, char __user *buf,
+ 		}
+ 	}
+ out:
++	memzero_explicit(buffer, sizeof(buffer));
+ 	return ret ? : err;
+ 
+ out_unlock_reading:
+-- 
+2.43.2
+
 From eaef4650fa2050147ca25fd7ee43bc0082e03c87 Mon Sep 17 00:00:00 2001
 From: Christian Marangi <ansuelsmth@gmail.com>
 Date: Tue, 24 Oct 2023 20:30:15 +0200
@@ -140,6 +309,2344 @@ index b3a68d5833bd..907f50ab70ed 100644
  	return len;
  }
  
+-- 
+2.43.2
+
+From b0028f333420a65a53a63978522db680b37379dd Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 12 Jan 2024 13:26:57 +0000
+Subject: [PATCH 043/347] nbd: always initialize struct msghdr completely
+Status: RO
+Content-Length: 2814
+Lines: 74
+
+commit 78fbb92af27d0982634116c7a31065f24d092826 upstream.
+
+syzbot complains that msg->msg_get_inq value can be uninitialized [1]
+
+struct msghdr got many new fields recently, we should always make
+sure their values is zero by default.
+
+[1]
+ BUG: KMSAN: uninit-value in tcp_recvmsg+0x686/0xac0 net/ipv4/tcp.c:2571
+  tcp_recvmsg+0x686/0xac0 net/ipv4/tcp.c:2571
+  inet_recvmsg+0x131/0x580 net/ipv4/af_inet.c:879
+  sock_recvmsg_nosec net/socket.c:1044 [inline]
+  sock_recvmsg+0x12b/0x1e0 net/socket.c:1066
+  __sock_xmit+0x236/0x5c0 drivers/block/nbd.c:538
+  nbd_read_reply drivers/block/nbd.c:732 [inline]
+  recv_work+0x262/0x3100 drivers/block/nbd.c:863
+  process_one_work kernel/workqueue.c:2627 [inline]
+  process_scheduled_works+0x104e/0x1e70 kernel/workqueue.c:2700
+  worker_thread+0xf45/0x1490 kernel/workqueue.c:2781
+  kthread+0x3ed/0x540 kernel/kthread.c:388
+  ret_from_fork+0x66/0x80 arch/x86/kernel/process.c:147
+  ret_from_fork_asm+0x11/0x20 arch/x86/entry/entry_64.S:242
+
+Local variable msg created at:
+  __sock_xmit+0x4c/0x5c0 drivers/block/nbd.c:513
+  nbd_read_reply drivers/block/nbd.c:732 [inline]
+  recv_work+0x262/0x3100 drivers/block/nbd.c:863
+
+CPU: 1 PID: 7465 Comm: kworker/u5:1 Not tainted 6.7.0-rc7-syzkaller-00041-gf016f7547aee #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+Workqueue: nbd5-recv recv_work
+
+Fixes: f94fd25cb0aa ("tcp: pass back data left in socket after receive")
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: stable@vger.kernel.org
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: linux-block@vger.kernel.org
+Cc: nbd@other.debian.org
+Reviewed-by: Simon Horman <horms@kernel.org>
+Link: https://lore.kernel.org/r/20240112132657.647112-1-edumazet@google.com
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/block/nbd.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
+index b6414e1e645b..aa65313aabb8 100644
+--- a/drivers/block/nbd.c
++++ b/drivers/block/nbd.c
+@@ -510,7 +510,7 @@ static int __sock_xmit(struct nbd_device *nbd, struct socket *sock, int send,
+ 		       struct iov_iter *iter, int msg_flags, int *sent)
+ {
+ 	int result;
+-	struct msghdr msg;
++	struct msghdr msg = {} ;
+ 	unsigned int noreclaim_flag;
+ 
+ 	if (unlikely(!sock)) {
+@@ -526,10 +526,6 @@ static int __sock_xmit(struct nbd_device *nbd, struct socket *sock, int send,
+ 	do {
+ 		sock->sk->sk_allocation = GFP_NOIO | __GFP_MEMALLOC;
+ 		sock->sk->sk_use_task_frag = false;
+-		msg.msg_name = NULL;
+-		msg.msg_namelen = 0;
+-		msg.msg_control = NULL;
+-		msg.msg_controllen = 0;
+ 		msg.msg_flags = msg_flags | MSG_NOSIGNAL;
+ 
+ 		if (send)
+-- 
+2.43.2
+
+From 1818ee771c3afcff013fe25043b0ffa2017ecfb9 Mon Sep 17 00:00:00 2001
+From: Alfred Piccioni <alpic@google.com>
+Date: Tue, 19 Dec 2023 10:09:09 +0100
+Subject: [PATCH 092/347] lsm: new security_file_ioctl_compat() hook
+Status: RO
+Content-Length: 7554
+Lines: 196
+
+commit f1bb47a31dff6d4b34fb14e99850860ee74bb003 upstream.
+
+Some ioctl commands do not require ioctl permission, but are routed to
+other permissions such as FILE_GETATTR or FILE_SETATTR. This routing is
+done by comparing the ioctl cmd to a set of 64-bit flags (FS_IOC_*).
+
+However, if a 32-bit process is running on a 64-bit kernel, it emits
+32-bit flags (FS_IOC32_*) for certain ioctl operations. These flags are
+being checked erroneously, which leads to these ioctl operations being
+routed to the ioctl permission, rather than the correct file
+permissions.
+
+This was also noted in a RED-PEN finding from a while back -
+"/* RED-PEN how should LSM module know it's handling 32bit? */".
+
+This patch introduces a new hook, security_file_ioctl_compat(), that is
+called from the compat ioctl syscall. All current LSMs have been changed
+to support this hook.
+
+Reviewing the three places where we are currently using
+security_file_ioctl(), it appears that only SELinux needs a dedicated
+compat change; TOMOYO and SMACK appear to be functional without any
+change.
+
+Cc: stable@vger.kernel.org
+Fixes: 0b24dcb7f2f7 ("Revert "selinux: simplify ioctl checking"")
+Signed-off-by: Alfred Piccioni <alpic@google.com>
+Reviewed-by: Stephen Smalley <stephen.smalley.work@gmail.com>
+[PM: subject tweak, line length fixes, and alignment corrections]
+Signed-off-by: Paul Moore <paul@paul-moore.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ fs/ioctl.c                    |  3 +--
+ include/linux/lsm_hook_defs.h |  2 ++
+ include/linux/security.h      |  9 +++++++++
+ security/security.c           | 18 ++++++++++++++++++
+ security/selinux/hooks.c      | 28 ++++++++++++++++++++++++++++
+ security/smack/smack_lsm.c    |  1 +
+ security/tomoyo/tomoyo.c      |  1 +
+ 7 files changed, 60 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index f5fd99d6b0d4..76cf22ac97d7 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -920,8 +920,7 @@ COMPAT_SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd,
+ 	if (!f.file)
+ 		return -EBADF;
+ 
+-	/* RED-PEN how should LSM module know it's handling 32bit? */
+-	error = security_file_ioctl(f.file, cmd, arg);
++	error = security_file_ioctl_compat(f.file, cmd, arg);
+ 	if (error)
+ 		goto out;
+ 
+diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
+index ff217a5ce552..472cb16458b0 100644
+--- a/include/linux/lsm_hook_defs.h
++++ b/include/linux/lsm_hook_defs.h
+@@ -171,6 +171,8 @@ LSM_HOOK(int, 0, file_alloc_security, struct file *file)
+ LSM_HOOK(void, LSM_RET_VOID, file_free_security, struct file *file)
+ LSM_HOOK(int, 0, file_ioctl, struct file *file, unsigned int cmd,
+ 	 unsigned long arg)
++LSM_HOOK(int, 0, file_ioctl_compat, struct file *file, unsigned int cmd,
++	 unsigned long arg)
+ LSM_HOOK(int, 0, mmap_addr, unsigned long addr)
+ LSM_HOOK(int, 0, mmap_file, struct file *file, unsigned long reqprot,
+ 	 unsigned long prot, unsigned long flags)
+diff --git a/include/linux/security.h b/include/linux/security.h
+index 1d1df326c881..9d3138c6364c 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -389,6 +389,8 @@ int security_file_permission(struct file *file, int mask);
+ int security_file_alloc(struct file *file);
+ void security_file_free(struct file *file);
+ int security_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
++int security_file_ioctl_compat(struct file *file, unsigned int cmd,
++			       unsigned long arg);
+ int security_mmap_file(struct file *file, unsigned long prot,
+ 			unsigned long flags);
+ int security_mmap_addr(unsigned long addr);
+@@ -987,6 +989,13 @@ static inline int security_file_ioctl(struct file *file, unsigned int cmd,
+ 	return 0;
+ }
+ 
++static inline int security_file_ioctl_compat(struct file *file,
++					     unsigned int cmd,
++					     unsigned long arg)
++{
++	return 0;
++}
++
+ static inline int security_mmap_file(struct file *file, unsigned long prot,
+ 				     unsigned long flags)
+ {
+diff --git a/security/security.c b/security/security.c
+index dcb3e7014f9b..266cec94369b 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -2648,6 +2648,24 @@ int security_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ }
+ EXPORT_SYMBOL_GPL(security_file_ioctl);
+ 
++/**
++ * security_file_ioctl_compat() - Check if an ioctl is allowed in compat mode
++ * @file: associated file
++ * @cmd: ioctl cmd
++ * @arg: ioctl arguments
++ *
++ * Compat version of security_file_ioctl() that correctly handles 32-bit
++ * processes running on 64-bit kernels.
++ *
++ * Return: Returns 0 if permission is granted.
++ */
++int security_file_ioctl_compat(struct file *file, unsigned int cmd,
++			       unsigned long arg)
++{
++	return call_int_hook(file_ioctl_compat, 0, file, cmd, arg);
++}
++EXPORT_SYMBOL_GPL(security_file_ioctl_compat);
++
+ static inline unsigned long mmap_prot(struct file *file, unsigned long prot)
+ {
+ 	/*
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 0fb890bd72cb..102a1f0c09e0 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -3725,6 +3725,33 @@ static int selinux_file_ioctl(struct file *file, unsigned int cmd,
+ 	return error;
+ }
+ 
++static int selinux_file_ioctl_compat(struct file *file, unsigned int cmd,
++			      unsigned long arg)
++{
++	/*
++	 * If we are in a 64-bit kernel running 32-bit userspace, we need to
++	 * make sure we don't compare 32-bit flags to 64-bit flags.
++	 */
++	switch (cmd) {
++	case FS_IOC32_GETFLAGS:
++		cmd = FS_IOC_GETFLAGS;
++		break;
++	case FS_IOC32_SETFLAGS:
++		cmd = FS_IOC_SETFLAGS;
++		break;
++	case FS_IOC32_GETVERSION:
++		cmd = FS_IOC_GETVERSION;
++		break;
++	case FS_IOC32_SETVERSION:
++		cmd = FS_IOC_SETVERSION;
++		break;
++	default:
++		break;
++	}
++
++	return selinux_file_ioctl(file, cmd, arg);
++}
++
+ static int default_noexec __ro_after_init;
+ 
+ static int file_map_prot_check(struct file *file, unsigned long prot, int shared)
+@@ -7037,6 +7064,7 @@ static struct security_hook_list selinux_hooks[] __ro_after_init = {
+ 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
+ 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
+ 	LSM_HOOK_INIT(file_ioctl, selinux_file_ioctl),
++	LSM_HOOK_INIT(file_ioctl_compat, selinux_file_ioctl_compat),
+ 	LSM_HOOK_INIT(mmap_file, selinux_mmap_file),
+ 	LSM_HOOK_INIT(mmap_addr, selinux_mmap_addr),
+ 	LSM_HOOK_INIT(file_mprotect, selinux_file_mprotect),
+diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
+index 65130a791f57..1f1ea8529421 100644
+--- a/security/smack/smack_lsm.c
++++ b/security/smack/smack_lsm.c
+@@ -4973,6 +4973,7 @@ static struct security_hook_list smack_hooks[] __ro_after_init = {
+ 
+ 	LSM_HOOK_INIT(file_alloc_security, smack_file_alloc_security),
+ 	LSM_HOOK_INIT(file_ioctl, smack_file_ioctl),
++	LSM_HOOK_INIT(file_ioctl_compat, smack_file_ioctl),
+ 	LSM_HOOK_INIT(file_lock, smack_file_lock),
+ 	LSM_HOOK_INIT(file_fcntl, smack_file_fcntl),
+ 	LSM_HOOK_INIT(mmap_file, smack_mmap_file),
+diff --git a/security/tomoyo/tomoyo.c b/security/tomoyo/tomoyo.c
+index 255f1b470295..1bf4b3da9cbc 100644
+--- a/security/tomoyo/tomoyo.c
++++ b/security/tomoyo/tomoyo.c
+@@ -568,6 +568,7 @@ static struct security_hook_list tomoyo_hooks[] __ro_after_init = {
+ 	LSM_HOOK_INIT(path_rename, tomoyo_path_rename),
+ 	LSM_HOOK_INIT(inode_getattr, tomoyo_inode_getattr),
+ 	LSM_HOOK_INIT(file_ioctl, tomoyo_file_ioctl),
++	LSM_HOOK_INIT(file_ioctl_compat, tomoyo_file_ioctl),
+ 	LSM_HOOK_INIT(path_chmod, tomoyo_path_chmod),
+ 	LSM_HOOK_INIT(path_chown, tomoyo_path_chown),
+ 	LSM_HOOK_INIT(path_chroot, tomoyo_path_chroot),
+-- 
+2.43.2
+
+From baa0aaac16432019651e0d60c41cd34a0c3c3477 Mon Sep 17 00:00:00 2001
+From: Mark Rutland <mark.rutland@arm.com>
+Date: Tue, 16 Jan 2024 11:02:20 +0000
+Subject: [PATCH 108/347] arm64: entry: fix
+ ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+Status: RO
+Content-Length: 4447
+Lines: 131
+
+commit 832dd634bd1b4e3bbe9f10b9c9ba5db6f6f2b97f upstream.
+
+Currently the ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD workaround isn't
+quite right, as it is supposed to be applied after the last explicit
+memory access, but is immediately followed by an LDR.
+
+The ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD workaround is used to
+handle Cortex-A520 erratum 2966298 and Cortex-A510 erratum 3117295,
+which are described in:
+
+* https://developer.arm.com/documentation/SDEN2444153/0600/?lang=en
+* https://developer.arm.com/documentation/SDEN1873361/1600/?lang=en
+
+In both cases the workaround is described as:
+
+| If pagetable isolation is disabled, the context switch logic in the
+| kernel can be updated to execute the following sequence on affected
+| cores before exiting to EL0, and after all explicit memory accesses:
+|
+| 1. A non-shareable TLBI to any context and/or address, including
+|    unused contexts or addresses, such as a `TLBI VALE1 Xzr`.
+|
+| 2. A DSB NSH to guarantee completion of the TLBI.
+
+The important part being that the TLBI+DSB must be placed "after all
+explicit memory accesses".
+
+Unfortunately, as-implemented, the TLBI+DSB is immediately followed by
+an LDR, as we have:
+
+| alternative_if ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+| 	tlbi	vale1, xzr
+| 	dsb	nsh
+| alternative_else_nop_endif
+| alternative_if_not ARM64_UNMAP_KERNEL_AT_EL0
+| 	ldr	lr, [sp, #S_LR]
+| 	add	sp, sp, #PT_REGS_SIZE		// restore sp
+| 	eret
+| alternative_else_nop_endif
+|
+| [ ... KPTI exception return path ... ]
+
+This patch fixes this by reworking the logic to place the TLBI+DSB
+immediately before the ERET, after all explicit memory accesses.
+
+The ERET is currently in a separate alternative block, and alternatives
+cannot be nested. To account for this, the alternative block for
+ARM64_UNMAP_KERNEL_AT_EL0 is replaced with a single alternative branch
+to skip the KPTI logic, with the new shape of the logic being:
+
+| alternative_insn "b .L_skip_tramp_exit_\@", nop, ARM64_UNMAP_KERNEL_AT_EL0
+| 	[ ... KPTI exception return path ... ]
+| .L_skip_tramp_exit_\@:
+|
+| 	ldr	lr, [sp, #S_LR]
+| 	add	sp, sp, #PT_REGS_SIZE		// restore sp
+|
+| alternative_if ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+| 	tlbi	vale1, xzr
+| 	dsb	nsh
+| alternative_else_nop_endif
+| 	eret
+
+The new structure means that the workaround is only applied when KPTI is
+not in use; this is fine as noted in the documented implications of the
+erratum:
+
+| Pagetable isolation between EL0 and higher level ELs prevents the
+| issue from occurring.
+
+... and as per the workaround description quoted above, the workaround
+is only necessary "If pagetable isolation is disabled".
+
+Fixes: 471470bc7052 ("arm64: errata: Add Cortex-A520 speculative unprivileged load workaround")
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: stable@vger.kernel.org
+Link: https://lore.kernel.org/r/20240116110221.420467-2-mark.rutland@arm.com
+Signed-off-by: Will Deacon <will@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/arm64/kernel/entry.S | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
+index 544ab46649f3..7fcbee0f6c0e 100644
+--- a/arch/arm64/kernel/entry.S
++++ b/arch/arm64/kernel/entry.S
+@@ -428,16 +428,9 @@ alternative_else_nop_endif
+ 	ldp	x28, x29, [sp, #16 * 14]
+ 
+ 	.if	\el == 0
+-alternative_if ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+-	tlbi	vale1, xzr
+-	dsb	nsh
+-alternative_else_nop_endif
+-alternative_if_not ARM64_UNMAP_KERNEL_AT_EL0
+-	ldr	lr, [sp, #S_LR]
+-	add	sp, sp, #PT_REGS_SIZE		// restore sp
+-	eret
+-alternative_else_nop_endif
+ #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
++	alternative_insn "b .L_skip_tramp_exit_\@", nop, ARM64_UNMAP_KERNEL_AT_EL0
++
+ 	msr	far_el1, x29
+ 
+ 	ldr_this_cpu	x30, this_cpu_vector, x29
+@@ -446,7 +439,18 @@ alternative_else_nop_endif
+ 	ldr		lr, [sp, #S_LR]		// restore x30
+ 	add		sp, sp, #PT_REGS_SIZE	// restore sp
+ 	br		x29
++
++.L_skip_tramp_exit_\@:
+ #endif
++	ldr	lr, [sp, #S_LR]
++	add	sp, sp, #PT_REGS_SIZE		// restore sp
++
++	/* This must be after the last explicit memory access */
++alternative_if ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
++	tlbi	vale1, xzr
++	dsb	nsh
++alternative_else_nop_endif
++	eret
+ 	.else
+ 	ldr	lr, [sp, #S_LR]
+ 	add	sp, sp, #PT_REGS_SIZE		// restore sp
+-- 
+2.43.2
+
+From 3889a418b6eb9a1113fb989aaadecf2f64964767 Mon Sep 17 00:00:00 2001
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Date: Fri, 15 Dec 2023 20:07:52 +0800
+Subject: [PATCH 124/347] mm: migrate: fix getting incorrect page mapping
+ during page migration
+Status: RO
+Content-Length: 4770
+Lines: 126
+
+commit d1adb25df7111de83b64655a80b5a135adbded61 upstream.
+
+When running stress-ng testing, we found below kernel crash after a few hours:
+
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
+pc : dentry_name+0xd8/0x224
+lr : pointer+0x22c/0x370
+sp : ffff800025f134c0
+......
+Call trace:
+  dentry_name+0xd8/0x224
+  pointer+0x22c/0x370
+  vsnprintf+0x1ec/0x730
+  vscnprintf+0x2c/0x60
+  vprintk_store+0x70/0x234
+  vprintk_emit+0xe0/0x24c
+  vprintk_default+0x3c/0x44
+  vprintk_func+0x84/0x2d0
+  printk+0x64/0x88
+  __dump_page+0x52c/0x530
+  dump_page+0x14/0x20
+  set_migratetype_isolate+0x110/0x224
+  start_isolate_page_range+0xc4/0x20c
+  offline_pages+0x124/0x474
+  memory_block_offline+0x44/0xf4
+  memory_subsys_offline+0x3c/0x70
+  device_offline+0xf0/0x120
+  ......
+
+After analyzing the vmcore, I found this issue is caused by page migration.
+The scenario is that, one thread is doing page migration, and we will use the
+target page's ->mapping field to save 'anon_vma' pointer between page unmap and
+page move, and now the target page is locked and refcount is 1.
+
+Currently, there is another stress-ng thread performing memory hotplug,
+attempting to offline the target page that is being migrated. It discovers that
+the refcount of this target page is 1, preventing the offline operation, thus
+proceeding to dump the page. However, page_mapping() of the target page may
+return an incorrect file mapping to crash the system in dump_mapping(), since
+the target page->mapping only saves 'anon_vma' pointer without setting
+PAGE_MAPPING_ANON flag.
+
+There are seveval ways to fix this issue:
+(1) Setting the PAGE_MAPPING_ANON flag for target page's ->mapping when saving
+'anon_vma', but this can confuse PageAnon() for PFN walkers, since the target
+page has not built mappings yet.
+(2) Getting the page lock to call page_mapping() in __dump_page() to avoid crashing
+the system, however, there are still some PFN walkers that call page_mapping()
+without holding the page lock, such as compaction.
+(3) Using target page->private field to save the 'anon_vma' pointer and 2 bits
+page state, just as page->mapping records an anonymous page, which can remove
+the page_mapping() impact for PFN walkers and also seems a simple way.
+
+So I choose option 3 to fix this issue, and this can also fix other potential
+issues for PFN walkers, such as compaction.
+
+Link: https://lkml.kernel.org/r/e60b17a88afc38cb32f84c3e30837ec70b343d2b.1702641709.git.baolin.wang@linux.alibaba.com
+Fixes: 64c8902ed441 ("migrate_pages: split unmap_and_move() to _unmap() and _move()")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ mm/migrate.c | 27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
+
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 397f2a6e34cb..bad3039d165e 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -1025,38 +1025,31 @@ static int move_to_new_folio(struct folio *dst, struct folio *src,
+ }
+ 
+ /*
+- * To record some information during migration, we use some unused
+- * fields (mapping and private) of struct folio of the newly allocated
+- * destination folio.  This is safe because nobody is using them
+- * except us.
++ * To record some information during migration, we use unused private
++ * field of struct folio of the newly allocated destination folio.
++ * This is safe because nobody is using it except us.
+  */
+-union migration_ptr {
+-	struct anon_vma *anon_vma;
+-	struct address_space *mapping;
+-};
+-
+ enum {
+ 	PAGE_WAS_MAPPED = BIT(0),
+ 	PAGE_WAS_MLOCKED = BIT(1),
++	PAGE_OLD_STATES = PAGE_WAS_MAPPED | PAGE_WAS_MLOCKED,
+ };
+ 
+ static void __migrate_folio_record(struct folio *dst,
+-				   unsigned long old_page_state,
++				   int old_page_state,
+ 				   struct anon_vma *anon_vma)
+ {
+-	union migration_ptr ptr = { .anon_vma = anon_vma };
+-	dst->mapping = ptr.mapping;
+-	dst->private = (void *)old_page_state;
++	dst->private = (void *)anon_vma + old_page_state;
+ }
+ 
+ static void __migrate_folio_extract(struct folio *dst,
+ 				   int *old_page_state,
+ 				   struct anon_vma **anon_vmap)
+ {
+-	union migration_ptr ptr = { .mapping = dst->mapping };
+-	*anon_vmap = ptr.anon_vma;
+-	*old_page_state = (unsigned long)dst->private;
+-	dst->mapping = NULL;
++	unsigned long private = (unsigned long)dst->private;
++
++	*anon_vmap = (struct anon_vma *)(private & ~PAGE_OLD_STATES);
++	*old_page_state = private & PAGE_OLD_STATES;
+ 	dst->private = NULL;
+ }
+ 
+-- 
+2.43.2
+
+From 3a01daace71b521563c38bbbf874e14c3e58adb7 Mon Sep 17 00:00:00 2001
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Date: Fri, 13 Oct 2023 18:34:27 +0530
+Subject: [PATCH 125/347] mm/sparsemem: fix race in accessing
+ memory_section->usage
+Status: RO
+Content-Length: 8262
+Lines: 205
+
+commit 5ec8e8ea8b7783fab150cf86404fc38cb4db8800 upstream.
+
+The below race is observed on a PFN which falls into the device memory
+region with the system memory configuration where PFN's are such that
+[ZONE_NORMAL ZONE_DEVICE ZONE_NORMAL].  Since normal zone start and end
+pfn contains the device memory PFN's as well, the compaction triggered
+will try on the device memory PFN's too though they end up in NOP(because
+pfn_to_online_page() returns NULL for ZONE_DEVICE memory sections).  When
+from other core, the section mappings are being removed for the
+ZONE_DEVICE region, that the PFN in question belongs to, on which
+compaction is currently being operated is resulting into the kernel crash
+with CONFIG_SPASEMEM_VMEMAP enabled.  The crash logs can be seen at [1].
+
+compact_zone()			memunmap_pages
+-------------			---------------
+__pageblock_pfn_to_page
+   ......
+ (a)pfn_valid():
+     valid_section()//return true
+			      (b)__remove_pages()->
+				  sparse_remove_section()->
+				    section_deactivate():
+				    [Free the array ms->usage and set
+				     ms->usage = NULL]
+     pfn_section_valid()
+     [Access ms->usage which
+     is NULL]
+
+NOTE: From the above it can be said that the race is reduced to between
+the pfn_valid()/pfn_section_valid() and the section deactivate with
+SPASEMEM_VMEMAP enabled.
+
+The commit b943f045a9af("mm/sparse: fix kernel crash with
+pfn_section_valid check") tried to address the same problem by clearing
+the SECTION_HAS_MEM_MAP with the expectation of valid_section() returns
+false thus ms->usage is not accessed.
+
+Fix this issue by the below steps:
+
+a) Clear SECTION_HAS_MEM_MAP before freeing the ->usage.
+
+b) RCU protected read side critical section will either return NULL
+   when SECTION_HAS_MEM_MAP is cleared or can successfully access ->usage.
+
+c) Free the ->usage with kfree_rcu() and set ms->usage = NULL.  No
+   attempt will be made to access ->usage after this as the
+   SECTION_HAS_MEM_MAP is cleared thus valid_section() return false.
+
+Thanks to David/Pavan for their inputs on this patch.
+
+[1] https://lore.kernel.org/linux-mm/994410bb-89aa-d987-1f50-f514903c55aa@quicinc.com/
+
+On Snapdragon SoC, with the mentioned memory configuration of PFN's as
+[ZONE_NORMAL ZONE_DEVICE ZONE_NORMAL], we are able to see bunch of
+issues daily while testing on a device farm.
+
+For this particular issue below is the log.  Though the below log is
+not directly pointing to the pfn_section_valid(){ ms->usage;}, when we
+loaded this dump on T32 lauterbach tool, it is pointing.
+
+[  540.578056] Unable to handle kernel NULL pointer dereference at
+virtual address 0000000000000000
+[  540.578068] Mem abort info:
+[  540.578070]   ESR = 0x0000000096000005
+[  540.578073]   EC = 0x25: DABT (current EL), IL = 32 bits
+[  540.578077]   SET = 0, FnV = 0
+[  540.578080]   EA = 0, S1PTW = 0
+[  540.578082]   FSC = 0x05: level 1 translation fault
+[  540.578085] Data abort info:
+[  540.578086]   ISV = 0, ISS = 0x00000005
+[  540.578088]   CM = 0, WnR = 0
+[  540.579431] pstate: 82400005 (Nzcv daif +PAN -UAO +TCO -DIT -SSBSBTYPE=--)
+[  540.579436] pc : __pageblock_pfn_to_page+0x6c/0x14c
+[  540.579454] lr : compact_zone+0x994/0x1058
+[  540.579460] sp : ffffffc03579b510
+[  540.579463] x29: ffffffc03579b510 x28: 0000000000235800 x27:000000000000000c
+[  540.579470] x26: 0000000000235c00 x25: 0000000000000068 x24:ffffffc03579b640
+[  540.579477] x23: 0000000000000001 x22: ffffffc03579b660 x21:0000000000000000
+[  540.579483] x20: 0000000000235bff x19: ffffffdebf7e3940 x18:ffffffdebf66d140
+[  540.579489] x17: 00000000739ba063 x16: 00000000739ba063 x15:00000000009f4bff
+[  540.579495] x14: 0000008000000000 x13: 0000000000000000 x12:0000000000000001
+[  540.579501] x11: 0000000000000000 x10: 0000000000000000 x9 :ffffff897d2cd440
+[  540.579507] x8 : 0000000000000000 x7 : 0000000000000000 x6 :ffffffc03579b5b4
+[  540.579512] x5 : 0000000000027f25 x4 : ffffffc03579b5b8 x3 :0000000000000001
+[  540.579518] x2 : ffffffdebf7e3940 x1 : 0000000000235c00 x0 :0000000000235800
+[  540.579524] Call trace:
+[  540.579527]  __pageblock_pfn_to_page+0x6c/0x14c
+[  540.579533]  compact_zone+0x994/0x1058
+[  540.579536]  try_to_compact_pages+0x128/0x378
+[  540.579540]  __alloc_pages_direct_compact+0x80/0x2b0
+[  540.579544]  __alloc_pages_slowpath+0x5c0/0xe10
+[  540.579547]  __alloc_pages+0x250/0x2d0
+[  540.579550]  __iommu_dma_alloc_noncontiguous+0x13c/0x3fc
+[  540.579561]  iommu_dma_alloc+0xa0/0x320
+[  540.579565]  dma_alloc_attrs+0xd4/0x108
+
+[quic_charante@quicinc.com: use kfree_rcu() in place of synchronize_rcu(), per David]
+  Link: https://lkml.kernel.org/r/1698403778-20938-1-git-send-email-quic_charante@quicinc.com
+Link: https://lkml.kernel.org/r/1697202267-23600-1-git-send-email-quic_charante@quicinc.com
+Fixes: f46edbd1b151 ("mm/sparsemem: add helpers track active portions of a section at boot")
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ include/linux/mmzone.h | 14 +++++++++++---
+ mm/sparse.c            | 17 +++++++++--------
+ 2 files changed, 20 insertions(+), 11 deletions(-)
+
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 9db36e197712..a7c32324c263 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1793,6 +1793,7 @@ static inline unsigned long section_nr_to_pfn(unsigned long sec)
+ #define SUBSECTION_ALIGN_DOWN(pfn) ((pfn) & PAGE_SUBSECTION_MASK)
+ 
+ struct mem_section_usage {
++	struct rcu_head rcu;
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ 	DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION);
+ #endif
+@@ -1986,7 +1987,7 @@ static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+ {
+ 	int idx = subsection_map_index(pfn);
+ 
+-	return test_bit(idx, ms->usage->subsection_map);
++	return test_bit(idx, READ_ONCE(ms->usage)->subsection_map);
+ }
+ #else
+ static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+@@ -2010,6 +2011,7 @@ static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+ static inline int pfn_valid(unsigned long pfn)
+ {
+ 	struct mem_section *ms;
++	int ret;
+ 
+ 	/*
+ 	 * Ensure the upper PAGE_SHIFT bits are clear in the
+@@ -2023,13 +2025,19 @@ static inline int pfn_valid(unsigned long pfn)
+ 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+ 		return 0;
+ 	ms = __pfn_to_section(pfn);
+-	if (!valid_section(ms))
++	rcu_read_lock();
++	if (!valid_section(ms)) {
++		rcu_read_unlock();
+ 		return 0;
++	}
+ 	/*
+ 	 * Traditionally early sections always returned pfn_valid() for
+ 	 * the entire section-sized span.
+ 	 */
+-	return early_section(ms) || pfn_section_valid(ms, pfn);
++	ret = early_section(ms) || pfn_section_valid(ms, pfn);
++	rcu_read_unlock();
++
++	return ret;
+ }
+ #endif
+ 
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 77d91e565045..338cf946dee8 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -791,6 +791,13 @@ static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
+ 	if (empty) {
+ 		unsigned long section_nr = pfn_to_section_nr(pfn);
+ 
++		/*
++		 * Mark the section invalid so that valid_section()
++		 * return false. This prevents code from dereferencing
++		 * ms->usage array.
++		 */
++		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
++
+ 		/*
+ 		 * When removing an early section, the usage map is kept (as the
+ 		 * usage maps of other sections fall into the same page). It
+@@ -799,16 +806,10 @@ static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
+ 		 * was allocated during boot.
+ 		 */
+ 		if (!PageReserved(virt_to_page(ms->usage))) {
+-			kfree(ms->usage);
+-			ms->usage = NULL;
++			kfree_rcu(ms->usage, rcu);
++			WRITE_ONCE(ms->usage, NULL);
+ 		}
+ 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
+-		/*
+-		 * Mark the section invalid so that valid_section()
+-		 * return false. This prevents code from dereferencing
+-		 * ms->usage array.
+-		 */
+-		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
+ 	}
+ 
+ 	/*
+-- 
+2.43.2
+
+From aa74ce30a8a40d19a4256de4ae5322e71344a274 Mon Sep 17 00:00:00 2001
+From: Benjamin Berg <benjamin.berg@intel.com>
+Date: Mon, 15 Jan 2024 11:18:05 +0100
+Subject: [PATCH 139/347] wifi: ath11k: rely on mac80211 debugfs handling for
+ vif
+Status: RO
+Content-Length: 6034
+Lines: 162
+
+commit 556857aa1d0855aba02b1c63bc52b91ec63fc2cc upstream.
+
+mac80211 started to delete debugfs entries in certain cases, causing a
+ath11k to crash when it tried to delete the entries later. Fix this by
+relying on mac80211 to delete the entries when appropriate and adding
+them from the vif_add_debugfs handler.
+
+Fixes: 0a3d898ee9a8 ("wifi: mac80211: add/remove driver debugfs entries as appropriate")
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=218364
+Signed-off-by: Benjamin Berg <benjamin.berg@intel.com>
+Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://msgid.link/20240115101805.1277949-1-benjamin@sipsolutions.net
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/net/wireless/ath/ath11k/core.h    |  4 ----
+ drivers/net/wireless/ath/ath11k/debugfs.c | 25 +++++++++--------------
+ drivers/net/wireless/ath/ath11k/debugfs.h | 12 ++---------
+ drivers/net/wireless/ath/ath11k/mac.c     | 12 +----------
+ 4 files changed, 13 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath11k/core.h b/drivers/net/wireless/ath/ath11k/core.h
+index f12b606e2d2e..667d55e26156 100644
+--- a/drivers/net/wireless/ath/ath11k/core.h
++++ b/drivers/net/wireless/ath/ath11k/core.h
+@@ -368,10 +368,6 @@ struct ath11k_vif {
+ 	struct ieee80211_chanctx_conf chanctx;
+ 	struct ath11k_arp_ns_offload arp_ns_offload;
+ 	struct ath11k_rekey_data rekey_data;
+-
+-#ifdef CONFIG_ATH11K_DEBUGFS
+-	struct dentry *debugfs_twt;
+-#endif /* CONFIG_ATH11K_DEBUGFS */
+ };
+ 
+ struct ath11k_vif_iter {
+diff --git a/drivers/net/wireless/ath/ath11k/debugfs.c b/drivers/net/wireless/ath/ath11k/debugfs.c
+index be76e7d1c436..0796f4d92b47 100644
+--- a/drivers/net/wireless/ath/ath11k/debugfs.c
++++ b/drivers/net/wireless/ath/ath11k/debugfs.c
+@@ -1893,35 +1893,30 @@ static const struct file_operations ath11k_fops_twt_resume_dialog = {
+ 	.open = simple_open
+ };
+ 
+-void ath11k_debugfs_add_interface(struct ath11k_vif *arvif)
++void ath11k_debugfs_op_vif_add(struct ieee80211_hw *hw,
++			       struct ieee80211_vif *vif)
+ {
++	struct ath11k_vif *arvif = ath11k_vif_to_arvif(vif);
+ 	struct ath11k_base *ab = arvif->ar->ab;
++	struct dentry *debugfs_twt;
+ 
+ 	if (arvif->vif->type != NL80211_IFTYPE_AP &&
+ 	    !(arvif->vif->type == NL80211_IFTYPE_STATION &&
+ 	      test_bit(WMI_TLV_SERVICE_STA_TWT, ab->wmi_ab.svc_map)))
+ 		return;
+ 
+-	arvif->debugfs_twt = debugfs_create_dir("twt",
+-						arvif->vif->debugfs_dir);
+-	debugfs_create_file("add_dialog", 0200, arvif->debugfs_twt,
++	debugfs_twt = debugfs_create_dir("twt",
++					 arvif->vif->debugfs_dir);
++	debugfs_create_file("add_dialog", 0200, debugfs_twt,
+ 			    arvif, &ath11k_fops_twt_add_dialog);
+ 
+-	debugfs_create_file("del_dialog", 0200, arvif->debugfs_twt,
++	debugfs_create_file("del_dialog", 0200, debugfs_twt,
+ 			    arvif, &ath11k_fops_twt_del_dialog);
+ 
+-	debugfs_create_file("pause_dialog", 0200, arvif->debugfs_twt,
++	debugfs_create_file("pause_dialog", 0200, debugfs_twt,
+ 			    arvif, &ath11k_fops_twt_pause_dialog);
+ 
+-	debugfs_create_file("resume_dialog", 0200, arvif->debugfs_twt,
++	debugfs_create_file("resume_dialog", 0200, debugfs_twt,
+ 			    arvif, &ath11k_fops_twt_resume_dialog);
+ }
+ 
+-void ath11k_debugfs_remove_interface(struct ath11k_vif *arvif)
+-{
+-	if (!arvif->debugfs_twt)
+-		return;
+-
+-	debugfs_remove_recursive(arvif->debugfs_twt);
+-	arvif->debugfs_twt = NULL;
+-}
+diff --git a/drivers/net/wireless/ath/ath11k/debugfs.h b/drivers/net/wireless/ath/ath11k/debugfs.h
+index 3af0169f6cf2..6f630b42e95c 100644
+--- a/drivers/net/wireless/ath/ath11k/debugfs.h
++++ b/drivers/net/wireless/ath/ath11k/debugfs.h
+@@ -306,8 +306,8 @@ static inline int ath11k_debugfs_rx_filter(struct ath11k *ar)
+ 	return ar->debug.rx_filter;
+ }
+ 
+-void ath11k_debugfs_add_interface(struct ath11k_vif *arvif);
+-void ath11k_debugfs_remove_interface(struct ath11k_vif *arvif);
++void ath11k_debugfs_op_vif_add(struct ieee80211_hw *hw,
++			       struct ieee80211_vif *vif);
+ void ath11k_debugfs_add_dbring_entry(struct ath11k *ar,
+ 				     enum wmi_direct_buffer_module id,
+ 				     enum ath11k_dbg_dbr_event event,
+@@ -386,14 +386,6 @@ static inline int ath11k_debugfs_get_fw_stats(struct ath11k *ar,
+ 	return 0;
+ }
+ 
+-static inline void ath11k_debugfs_add_interface(struct ath11k_vif *arvif)
+-{
+-}
+-
+-static inline void ath11k_debugfs_remove_interface(struct ath11k_vif *arvif)
+-{
+-}
+-
+ static inline void
+ ath11k_debugfs_add_dbring_entry(struct ath11k *ar,
+ 				enum wmi_direct_buffer_module id,
+diff --git a/drivers/net/wireless/ath/ath11k/mac.c b/drivers/net/wireless/ath/ath11k/mac.c
+index 7f7b39817773..71c6dab1aedb 100644
+--- a/drivers/net/wireless/ath/ath11k/mac.c
++++ b/drivers/net/wireless/ath/ath11k/mac.c
+@@ -6750,13 +6750,6 @@ static int ath11k_mac_op_add_interface(struct ieee80211_hw *hw,
+ 		goto err;
+ 	}
+ 
+-	/* In the case of hardware recovery, debugfs files are
+-	 * not deleted since ieee80211_ops.remove_interface() is
+-	 * not invoked. In such cases, try to delete the files.
+-	 * These will be re-created later.
+-	 */
+-	ath11k_debugfs_remove_interface(arvif);
+-
+ 	memset(arvif, 0, sizeof(*arvif));
+ 
+ 	arvif->ar = ar;
+@@ -6933,8 +6926,6 @@ static int ath11k_mac_op_add_interface(struct ieee80211_hw *hw,
+ 
+ 	ath11k_dp_vdev_tx_attach(ar, arvif);
+ 
+-	ath11k_debugfs_add_interface(arvif);
+-
+ 	if (vif->type != NL80211_IFTYPE_MONITOR &&
+ 	    test_bit(ATH11K_FLAG_MONITOR_CONF_ENABLED, &ar->monitor_flags)) {
+ 		ret = ath11k_mac_monitor_vdev_create(ar);
+@@ -7050,8 +7041,6 @@ static void ath11k_mac_op_remove_interface(struct ieee80211_hw *hw,
+ 	/* Recalc txpower for remaining vdev */
+ 	ath11k_mac_txpower_recalc(ar);
+ 
+-	ath11k_debugfs_remove_interface(arvif);
+-
+ 	/* TODO: recal traffic pause state based on the available vdevs */
+ 
+ 	mutex_unlock(&ar->conf_mutex);
+@@ -9149,6 +9138,7 @@ static const struct ieee80211_ops ath11k_ops = {
+ #endif
+ 
+ #ifdef CONFIG_ATH11K_DEBUGFS
++	.vif_add_debugfs		= ath11k_debugfs_op_vif_add,
+ 	.sta_add_debugfs		= ath11k_debugfs_sta_op_add,
+ #endif
+ 
+-- 
+2.43.2
+
+From 34de0f04684ec00c093a0455648be055f0e8e24f Mon Sep 17 00:00:00 2001
+From: Qu Wenruo <wqu@suse.com>
+Date: Wed, 17 Jan 2024 11:02:25 +1030
+Subject: [PATCH 147/347] btrfs: scrub: avoid use-after-free when chunk length
+ is not 64K aligned
+Status: RO
+Content-Length: 6276
+Lines: 152
+
+[ Upstream commit f546c4282673497a06ecb6190b50ae7f6c85b02f ]
+
+[BUG]
+There is a bug report that, on a ext4-converted btrfs, scrub leads to
+various problems, including:
+
+- "unable to find chunk map" errors
+  BTRFS info (device vdb): scrub: started on devid 1
+  BTRFS critical (device vdb): unable to find chunk map for logical 2214744064 length 4096
+  BTRFS critical (device vdb): unable to find chunk map for logical 2214744064 length 45056
+
+  This would lead to unrepariable errors.
+
+- Use-after-free KASAN reports:
+  ==================================================================
+  BUG: KASAN: slab-use-after-free in __blk_rq_map_sg+0x18f/0x7c0
+  Read of size 8 at addr ffff8881013c9040 by task btrfs/909
+  CPU: 0 PID: 909 Comm: btrfs Not tainted 6.7.0-x64v3-dbg #11 c50636e9419a8354555555245df535e380563b2b
+  Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 2023.11-2 12/24/2023
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x43/0x60
+   print_report+0xcf/0x640
+   kasan_report+0xa6/0xd0
+   __blk_rq_map_sg+0x18f/0x7c0
+   virtblk_prep_rq.isra.0+0x215/0x6a0 [virtio_blk 19a65eeee9ae6fcf02edfad39bb9ddee07dcdaff]
+   virtio_queue_rqs+0xc4/0x310 [virtio_blk 19a65eeee9ae6fcf02edfad39bb9ddee07dcdaff]
+   blk_mq_flush_plug_list.part.0+0x780/0x860
+   __blk_flush_plug+0x1ba/0x220
+   blk_finish_plug+0x3b/0x60
+   submit_initial_group_read+0x10a/0x290 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   flush_scrub_stripes+0x38e/0x430 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   scrub_stripe+0x82a/0xae0 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   scrub_chunk+0x178/0x200 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   scrub_enumerate_chunks+0x4bc/0xa30 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   btrfs_scrub_dev+0x398/0x810 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   btrfs_ioctl+0x4b9/0x3020 [btrfs e57987a360bed82fe8756dcd3e0de5406ccfe965]
+   __x64_sys_ioctl+0xbd/0x100
+   do_syscall_64+0x5d/0xe0
+   entry_SYSCALL_64_after_hwframe+0x63/0x6b
+  RIP: 0033:0x7f47e5e0952b
+
+- Crash, mostly due to above use-after-free
+
+[CAUSE]
+The converted fs has the following data chunk layout:
+
+    item 2 key (FIRST_CHUNK_TREE CHUNK_ITEM 2214658048) itemoff 16025 itemsize 80
+        length 86016 owner 2 stripe_len 65536 type DATA|single
+
+For above logical bytenr 2214744064, it's at the chunk end
+(2214658048 + 86016 = 2214744064).
+
+This means btrfs_submit_bio() would split the bio, and trigger endio
+function for both of the two halves.
+
+However scrub_submit_initial_read() would only expect the endio function
+to be called once, not any more.
+This means the first endio function would already free the bbio::bio,
+leaving the bvec freed, thus the 2nd endio call would lead to
+use-after-free.
+
+[FIX]
+- Make sure scrub_read_endio() only updates bits in its range
+  Since we may read less than 64K at the end of the chunk, we should not
+  touch the bits beyond chunk boundary.
+
+- Make sure scrub_submit_initial_read() only to read the chunk range
+  This is done by calculating the real number of sectors we need to
+  read, and add sector-by-sector to the bio.
+
+Thankfully the scrub read repair path won't need extra fixes:
+
+- scrub_stripe_submit_repair_read()
+  With above fixes, we won't update error bit for range beyond chunk,
+  thus scrub_stripe_submit_repair_read() should never submit any read
+  beyond the chunk.
+
+Reported-by: Rongrong <i@rong.moe>
+Fixes: e02ee89baa66 ("btrfs: scrub: switch scrub_simple_mirror() to scrub_stripe infrastructure")
+Tested-by: Rongrong <i@rong.moe>
+Reviewed-by: Johannes Thumshirn <johannes.thumshirn@wdc.com>
+Signed-off-by: Qu Wenruo <wqu@suse.com>
+Signed-off-by: David Sterba <dsterba@suse.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/btrfs/scrub.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/fs/btrfs/scrub.c b/fs/btrfs/scrub.c
+index f62a408671cb..443d2519f0a9 100644
+--- a/fs/btrfs/scrub.c
++++ b/fs/btrfs/scrub.c
+@@ -1099,12 +1099,22 @@ static void scrub_stripe_read_repair_worker(struct work_struct *work)
+ static void scrub_read_endio(struct btrfs_bio *bbio)
+ {
+ 	struct scrub_stripe *stripe = bbio->private;
++	struct bio_vec *bvec;
++	int sector_nr = calc_sector_number(stripe, bio_first_bvec_all(&bbio->bio));
++	int num_sectors;
++	u32 bio_size = 0;
++	int i;
++
++	ASSERT(sector_nr < stripe->nr_sectors);
++	bio_for_each_bvec_all(bvec, &bbio->bio, i)
++		bio_size += bvec->bv_len;
++	num_sectors = bio_size >> stripe->bg->fs_info->sectorsize_bits;
+ 
+ 	if (bbio->bio.bi_status) {
+-		bitmap_set(&stripe->io_error_bitmap, 0, stripe->nr_sectors);
+-		bitmap_set(&stripe->error_bitmap, 0, stripe->nr_sectors);
++		bitmap_set(&stripe->io_error_bitmap, sector_nr, num_sectors);
++		bitmap_set(&stripe->error_bitmap, sector_nr, num_sectors);
+ 	} else {
+-		bitmap_clear(&stripe->io_error_bitmap, 0, stripe->nr_sectors);
++		bitmap_clear(&stripe->io_error_bitmap, sector_nr, num_sectors);
+ 	}
+ 	bio_put(&bbio->bio);
+ 	if (atomic_dec_and_test(&stripe->pending_io)) {
+@@ -1705,6 +1715,9 @@ static void scrub_submit_initial_read(struct scrub_ctx *sctx,
+ {
+ 	struct btrfs_fs_info *fs_info = sctx->fs_info;
+ 	struct btrfs_bio *bbio;
++	unsigned int nr_sectors = min(BTRFS_STRIPE_LEN, stripe->bg->start +
++				      stripe->bg->length - stripe->logical) >>
++				  fs_info->sectorsize_bits;
+ 	int mirror = stripe->mirror_num;
+ 
+ 	ASSERT(stripe->bg);
+@@ -1719,14 +1732,16 @@ static void scrub_submit_initial_read(struct scrub_ctx *sctx,
+ 	bbio = btrfs_bio_alloc(SCRUB_STRIPE_PAGES, REQ_OP_READ, fs_info,
+ 			       scrub_read_endio, stripe);
+ 
+-	/* Read the whole stripe. */
+ 	bbio->bio.bi_iter.bi_sector = stripe->logical >> SECTOR_SHIFT;
+-	for (int i = 0; i < BTRFS_STRIPE_LEN >> PAGE_SHIFT; i++) {
++	/* Read the whole range inside the chunk boundary. */
++	for (unsigned int cur = 0; cur < nr_sectors; cur++) {
++		struct page *page = scrub_stripe_get_page(stripe, cur);
++		unsigned int pgoff = scrub_stripe_get_page_offset(stripe, cur);
+ 		int ret;
+ 
+-		ret = bio_add_page(&bbio->bio, stripe->pages[i], PAGE_SIZE, 0);
++		ret = bio_add_page(&bbio->bio, page, fs_info->sectorsize, pgoff);
+ 		/* We should have allocated enough bio vectors. */
+-		ASSERT(ret == PAGE_SIZE);
++		ASSERT(ret == fs_info->sectorsize);
+ 	}
+ 	atomic_inc(&stripe->pending_io);
+ 
+-- 
+2.43.2
+
+From 8f3f9186e5bb96a9c9654c41653210e3ea7e48a6 Mon Sep 17 00:00:00 2001
+From: Wen Gu <guwen@linux.alibaba.com>
+Date: Thu, 18 Jan 2024 12:32:10 +0800
+Subject: [PATCH 148/347] net/smc: fix illegal rmb_desc access in SMC-D
+ connection dump
+Status: RO
+Content-Length: 2854
+Lines: 79
+
+[ Upstream commit dbc153fd3c142909e564bb256da087e13fbf239c ]
+
+A crash was found when dumping SMC-D connections. It can be reproduced
+by following steps:
+
+- run nginx/wrk test:
+  smc_run nginx
+  smc_run wrk -t 16 -c 1000 -d <duration> -H 'Connection: Close' <URL>
+
+- continuously dump SMC-D connections in parallel:
+  watch -n 1 'smcss -D'
+
+ BUG: kernel NULL pointer dereference, address: 0000000000000030
+ CPU: 2 PID: 7204 Comm: smcss Kdump: loaded Tainted: G	E      6.7.0+ #55
+ RIP: 0010:__smc_diag_dump.constprop.0+0x5e5/0x620 [smc_diag]
+ Call Trace:
+  <TASK>
+  ? __die+0x24/0x70
+  ? page_fault_oops+0x66/0x150
+  ? exc_page_fault+0x69/0x140
+  ? asm_exc_page_fault+0x26/0x30
+  ? __smc_diag_dump.constprop.0+0x5e5/0x620 [smc_diag]
+  ? __kmalloc_node_track_caller+0x35d/0x430
+  ? __alloc_skb+0x77/0x170
+  smc_diag_dump_proto+0xd0/0xf0 [smc_diag]
+  smc_diag_dump+0x26/0x60 [smc_diag]
+  netlink_dump+0x19f/0x320
+  __netlink_dump_start+0x1dc/0x300
+  smc_diag_handler_dump+0x6a/0x80 [smc_diag]
+  ? __pfx_smc_diag_dump+0x10/0x10 [smc_diag]
+  sock_diag_rcv_msg+0x121/0x140
+  ? __pfx_sock_diag_rcv_msg+0x10/0x10
+  netlink_rcv_skb+0x5a/0x110
+  sock_diag_rcv+0x28/0x40
+  netlink_unicast+0x22a/0x330
+  netlink_sendmsg+0x1f8/0x420
+  __sock_sendmsg+0xb0/0xc0
+  ____sys_sendmsg+0x24e/0x300
+  ? copy_msghdr_from_user+0x62/0x80
+  ___sys_sendmsg+0x7c/0xd0
+  ? __do_fault+0x34/0x160
+  ? do_read_fault+0x5f/0x100
+  ? do_fault+0xb0/0x110
+  ? __handle_mm_fault+0x2b0/0x6c0
+  __sys_sendmsg+0x4d/0x80
+  do_syscall_64+0x69/0x180
+  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+
+It is possible that the connection is in process of being established
+when we dump it. Assumed that the connection has been registered in a
+link group by smc_conn_create() but the rmb_desc has not yet been
+initialized by smc_buf_create(), thus causing the illegal access to
+conn->rmb_desc. So fix it by checking before dump.
+
+Fixes: 4b1b7d3b30a6 ("net/smc: add SMC-D diag support")
+Signed-off-by: Wen Gu <guwen@linux.alibaba.com>
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+Reviewed-by: Wenjia Zhang <wenjia@linux.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/smc/smc_diag.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
+index 5cc376834c57..fb9e5cc1285e 100644
+--- a/net/smc/smc_diag.c
++++ b/net/smc/smc_diag.c
+@@ -163,7 +163,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+ 	}
+ 	if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd &&
+ 	    (req->diag_ext & (1 << (SMC_DIAG_DMBINFO - 1))) &&
+-	    !list_empty(&smc->conn.lgr->list)) {
++	    !list_empty(&smc->conn.lgr->list) && smc->conn.rmb_desc) {
+ 		struct smc_connection *conn = &smc->conn;
+ 		struct smcd_diag_dmbinfo dinfo;
+ 		struct smcd_dev *smcd = conn->lgr->smcd;
+-- 
+2.43.2
+
+From 3982fe726a63fb3de6005e534e2ac8ca7e0aca2a Mon Sep 17 00:00:00 2001
+From: Zhengchao Shao <shaozhengchao@huawei.com>
+Date: Thu, 18 Jan 2024 09:20:19 +0800
+Subject: [PATCH 150/347] tcp: make sure init the accept_queue's spinlocks once
+Status: RO
+Content-Length: 7328
+Lines: 162
+
+[ Upstream commit 198bc90e0e734e5f98c3d2833e8390cac3df61b2 ]
+
+When I run syz's reproduction C program locally, it causes the following
+issue:
+pvqspinlock: lock 0xffff9d181cd5c660 has corrupted value 0x0!
+WARNING: CPU: 19 PID: 21160 at __pv_queued_spin_unlock_slowpath (kernel/locking/qspinlock_paravirt.h:508)
+Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+RIP: 0010:__pv_queued_spin_unlock_slowpath (kernel/locking/qspinlock_paravirt.h:508)
+Code: 73 56 3a ff 90 c3 cc cc cc cc 8b 05 bb 1f 48 01 85 c0 74 05 c3 cc cc cc cc 8b 17 48 89 fe 48 c7 c7
+30 20 ce 8f e8 ad 56 42 ff <0f> 0b c3 cc cc cc cc 0f 0b 0f 1f 40 00 90 90 90 90 90 90 90 90 90
+RSP: 0018:ffffa8d200604cb8 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff9d1ef60e0908
+RDX: 00000000ffffffd8 RSI: 0000000000000027 RDI: ffff9d1ef60e0900
+RBP: ffff9d181cd5c280 R08: 0000000000000000 R09: 00000000ffff7fff
+R10: ffffa8d200604b68 R11: ffffffff907dcdc8 R12: 0000000000000000
+R13: ffff9d181cd5c660 R14: ffff9d1813a3f330 R15: 0000000000001000
+FS:  00007fa110184640(0000) GS:ffff9d1ef60c0000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 000000011f65e000 CR4: 00000000000006f0
+Call Trace:
+<IRQ>
+  _raw_spin_unlock (kernel/locking/spinlock.c:186)
+  inet_csk_reqsk_queue_add (net/ipv4/inet_connection_sock.c:1321)
+  inet_csk_complete_hashdance (net/ipv4/inet_connection_sock.c:1358)
+  tcp_check_req (net/ipv4/tcp_minisocks.c:868)
+  tcp_v4_rcv (net/ipv4/tcp_ipv4.c:2260)
+  ip_protocol_deliver_rcu (net/ipv4/ip_input.c:205)
+  ip_local_deliver_finish (net/ipv4/ip_input.c:234)
+  __netif_receive_skb_one_core (net/core/dev.c:5529)
+  process_backlog (./include/linux/rcupdate.h:779)
+  __napi_poll (net/core/dev.c:6533)
+  net_rx_action (net/core/dev.c:6604)
+  __do_softirq (./arch/x86/include/asm/jump_label.h:27)
+  do_softirq (kernel/softirq.c:454 kernel/softirq.c:441)
+</IRQ>
+<TASK>
+  __local_bh_enable_ip (kernel/softirq.c:381)
+  __dev_queue_xmit (net/core/dev.c:4374)
+  ip_finish_output2 (./include/net/neighbour.h:540 net/ipv4/ip_output.c:235)
+  __ip_queue_xmit (net/ipv4/ip_output.c:535)
+  __tcp_transmit_skb (net/ipv4/tcp_output.c:1462)
+  tcp_rcv_synsent_state_process (net/ipv4/tcp_input.c:6469)
+  tcp_rcv_state_process (net/ipv4/tcp_input.c:6657)
+  tcp_v4_do_rcv (net/ipv4/tcp_ipv4.c:1929)
+  __release_sock (./include/net/sock.h:1121 net/core/sock.c:2968)
+  release_sock (net/core/sock.c:3536)
+  inet_wait_for_connect (net/ipv4/af_inet.c:609)
+  __inet_stream_connect (net/ipv4/af_inet.c:702)
+  inet_stream_connect (net/ipv4/af_inet.c:748)
+  __sys_connect (./include/linux/file.h:45 net/socket.c:2064)
+  __x64_sys_connect (net/socket.c:2073 net/socket.c:2070 net/socket.c:2070)
+  do_syscall_64 (arch/x86/entry/common.c:51 arch/x86/entry/common.c:82)
+  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:129)
+  RIP: 0033:0x7fa10ff05a3d
+  Code: 5b 41 5c c3 66 0f 1f 84 00 00 00 00 00 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89
+  c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ab a3 0e 00 f7 d8 64 89 01 48
+  RSP: 002b:00007fa110183de8 EFLAGS: 00000202 ORIG_RAX: 000000000000002a
+  RAX: ffffffffffffffda RBX: 0000000020000054 RCX: 00007fa10ff05a3d
+  RDX: 000000000000001c RSI: 0000000020000040 RDI: 0000000000000003
+  RBP: 00007fa110183e20 R08: 0000000000000000 R09: 0000000000000000
+  R10: 0000000000000000 R11: 0000000000000202 R12: 00007fa110184640
+  R13: 0000000000000000 R14: 00007fa10fe8b060 R15: 00007fff73e23b20
+</TASK>
+
+The issue triggering process is analyzed as follows:
+Thread A                                       Thread B
+tcp_v4_rcv	//receive ack TCP packet       inet_shutdown
+  tcp_check_req                                  tcp_disconnect //disconnect sock
+  ...                                              tcp_set_state(sk, TCP_CLOSE)
+    inet_csk_complete_hashdance                ...
+      inet_csk_reqsk_queue_add                 inet_listen  //start listen
+        spin_lock(&queue->rskq_lock)             inet_csk_listen_start
+        ...                                        reqsk_queue_alloc
+        ...                                          spin_lock_init
+        spin_unlock(&queue->rskq_lock)	//warning
+
+When the socket receives the ACK packet during the three-way handshake,
+it will hold spinlock. And then the user actively shutdowns the socket
+and listens to the socket immediately, the spinlock will be initialized.
+When the socket is going to release the spinlock, a warning is generated.
+Also the same issue to fastopenq.lock.
+
+Move init spinlock to inet_create and inet_accept to make sure init the
+accept_queue's spinlocks once.
+
+Fixes: fff1f3001cc5 ("tcp: add a spinlock to protect struct request_sock_queue")
+Fixes: 168a8f58059a ("tcp: TCP Fast Open Server - main code path")
+Reported-by: Ming Shu <sming56@aliyun.com>
+Signed-off-by: Zhengchao Shao <shaozhengchao@huawei.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Link: https://lore.kernel.org/r/20240118012019.1751966-1-shaozhengchao@huawei.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/net/inet_connection_sock.h | 8 ++++++++
+ net/core/request_sock.c            | 3 ---
+ net/ipv4/af_inet.c                 | 3 +++
+ net/ipv4/inet_connection_sock.c    | 4 ++++
+ 4 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/inet_connection_sock.h b/include/net/inet_connection_sock.h
+index d0a2f827d5f2..9ab4bf704e86 100644
+--- a/include/net/inet_connection_sock.h
++++ b/include/net/inet_connection_sock.h
+@@ -357,4 +357,12 @@ static inline bool inet_csk_has_ulp(const struct sock *sk)
+ 	return inet_test_bit(IS_ICSK, sk) && !!inet_csk(sk)->icsk_ulp_ops;
+ }
+ 
++static inline void inet_init_csk_locks(struct sock *sk)
++{
++	struct inet_connection_sock *icsk = inet_csk(sk);
++
++	spin_lock_init(&icsk->icsk_accept_queue.rskq_lock);
++	spin_lock_init(&icsk->icsk_accept_queue.fastopenq.lock);
++}
++
+ #endif /* _INET_CONNECTION_SOCK_H */
+diff --git a/net/core/request_sock.c b/net/core/request_sock.c
+index f35c2e998406..63de5c635842 100644
+--- a/net/core/request_sock.c
++++ b/net/core/request_sock.c
+@@ -33,9 +33,6 @@
+ 
+ void reqsk_queue_alloc(struct request_sock_queue *queue)
+ {
+-	spin_lock_init(&queue->rskq_lock);
+-
+-	spin_lock_init(&queue->fastopenq.lock);
+ 	queue->fastopenq.rskq_rst_head = NULL;
+ 	queue->fastopenq.rskq_rst_tail = NULL;
+ 	queue->fastopenq.qlen = 0;
+diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
+index ea0b0334a0fb..1c58bd72e124 100644
+--- a/net/ipv4/af_inet.c
++++ b/net/ipv4/af_inet.c
+@@ -330,6 +330,9 @@ static int inet_create(struct net *net, struct socket *sock, int protocol,
+ 	if (INET_PROTOSW_REUSE & answer_flags)
+ 		sk->sk_reuse = SK_CAN_REUSE;
+ 
++	if (INET_PROTOSW_ICSK & answer_flags)
++		inet_init_csk_locks(sk);
++
+ 	inet = inet_sk(sk);
+ 	inet_assign_bit(IS_ICSK, sk, INET_PROTOSW_ICSK & answer_flags);
+ 
+diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
+index 394a498c2823..762817d6c8d7 100644
+--- a/net/ipv4/inet_connection_sock.c
++++ b/net/ipv4/inet_connection_sock.c
+@@ -730,6 +730,10 @@ struct sock *inet_csk_accept(struct sock *sk, int flags, int *err, bool kern)
+ 	}
+ 	if (req)
+ 		reqsk_put(req);
++
++	if (newsk)
++		inet_init_csk_locks(newsk);
++
+ 	return newsk;
+ out_err:
+ 	newsk = NULL;
+-- 
+2.43.2
+
+From 5338331880831ca91598f3d7f4d57824a0556f4b Mon Sep 17 00:00:00 2001
+From: Michael Chan <michael.chan@broadcom.com>
+Date: Wed, 17 Jan 2024 15:45:14 -0800
+Subject: [PATCH 152/347] bnxt_en: Prevent kernel warning when running offline
+ self test
+Status: RO
+Content-Length: 4375
+Lines: 105
+
+[ Upstream commit c20f482129a582455f02eb9a6dcb2a4215274599 ]
+
+We call bnxt_half_open_nic() to setup the chip partially to run
+loopback tests.  The rings and buffers are initialized normally
+so that we can transmit and receive packets in loopback mode.
+That means page pool buffers are allocated for the aggregation ring
+just like the normal case.  NAPI is not needed because we are just
+polling for the loopback packets.
+
+When we're done with the loopback tests, we call bnxt_half_close_nic()
+to clean up.  When freeing the page pools, we hit a WARN_ON()
+in page_pool_unlink_napi() because the NAPI state linked to the
+page pool is uninitialized.
+
+The simplest way to avoid this warning is just to initialize the
+NAPIs during half open and delete the NAPIs during half close.
+Trying to skip the page pool initialization or skip linking of
+NAPI during half open will be more complicated.
+
+This fix avoids this warning:
+
+WARNING: CPU: 4 PID: 46967 at net/core/page_pool.c:946 page_pool_unlink_napi+0x1f/0x30
+CPU: 4 PID: 46967 Comm: ethtool Tainted: G S      W          6.7.0-rc5+ #22
+Hardware name: Dell Inc. PowerEdge R750/06V45N, BIOS 1.3.8 08/31/2021
+RIP: 0010:page_pool_unlink_napi+0x1f/0x30
+Code: 90 90 90 90 90 90 90 90 90 90 90 0f 1f 44 00 00 48 8b 47 18 48 85 c0 74 1b 48 8b 50 10 83 e2 01 74 08 8b 40 34 83 f8 ff 74 02 <0f> 0b 48 c7 47 18 00 00 00 00 c3 cc cc cc cc 66 90 90 90 90 90 90
+RSP: 0018:ffa000003d0dfbe8 EFLAGS: 00010246
+RAX: ff110003607ce640 RBX: ff110010baf5d000 RCX: 0000000000000008
+RDX: 0000000000000000 RSI: ff110001e5e522c0 RDI: ff110010baf5d000
+RBP: ff11000145539b40 R08: 0000000000000001 R09: ffffffffc063f641
+R10: ff110001361eddb8 R11: 000000000040000f R12: 0000000000000001
+R13: 000000000000001c R14: ff1100014553a080 R15: 0000000000003fc0
+FS:  00007f9301c4f740(0000) GS:ff1100103fd00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f91344fa8f0 CR3: 00000003527cc005 CR4: 0000000000771ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+PKRU: 55555554
+Call Trace:
+ <TASK>
+ ? __warn+0x81/0x140
+ ? page_pool_unlink_napi+0x1f/0x30
+ ? report_bug+0x102/0x200
+ ? handle_bug+0x44/0x70
+ ? exc_invalid_op+0x13/0x60
+ ? asm_exc_invalid_op+0x16/0x20
+ ? bnxt_free_ring.isra.123+0xb1/0xd0 [bnxt_en]
+ ? page_pool_unlink_napi+0x1f/0x30
+ page_pool_destroy+0x3e/0x150
+ bnxt_free_mem+0x441/0x5e0 [bnxt_en]
+ bnxt_half_close_nic+0x2a/0x40 [bnxt_en]
+ bnxt_self_test+0x21d/0x450 [bnxt_en]
+ __dev_ethtool+0xeda/0x2e30
+ ? native_queued_spin_lock_slowpath+0x17f/0x2b0
+ ? __link_object+0xa1/0x160
+ ? _raw_spin_unlock_irqrestore+0x23/0x40
+ ? __create_object+0x5f/0x90
+ ? __kmem_cache_alloc_node+0x317/0x3c0
+ ? dev_ethtool+0x59/0x170
+ dev_ethtool+0xa7/0x170
+ dev_ioctl+0xc3/0x530
+ sock_do_ioctl+0xa8/0xf0
+ sock_ioctl+0x270/0x310
+ __x64_sys_ioctl+0x8c/0xc0
+ do_syscall_64+0x3e/0xf0
+ entry_SYSCALL_64_after_hwframe+0x6e/0x76
+
+Fixes: 294e39e0d034 ("bnxt: hook NAPIs to page pools")
+Reviewed-by: Andy Gospodarek <andrew.gospodarek@broadcom.com>
+Reviewed-by: Ajit Khaparde <ajit.khaparde@broadcom.com>
+Signed-off-by: Michael Chan <michael.chan@broadcom.com>
+Link: https://lore.kernel.org/r/20240117234515.226944-5-michael.chan@broadcom.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index 1019b4dc7bed..22c8bfb5ed9d 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -10627,10 +10627,12 @@ int bnxt_half_open_nic(struct bnxt *bp)
+ 		netdev_err(bp->dev, "bnxt_alloc_mem err: %x\n", rc);
+ 		goto half_open_err;
+ 	}
++	bnxt_init_napi(bp);
+ 	set_bit(BNXT_STATE_HALF_OPEN, &bp->state);
+ 	rc = bnxt_init_nic(bp, true);
+ 	if (rc) {
+ 		clear_bit(BNXT_STATE_HALF_OPEN, &bp->state);
++		bnxt_del_napi(bp);
+ 		netdev_err(bp->dev, "bnxt_init_nic err: %x\n", rc);
+ 		goto half_open_err;
+ 	}
+@@ -10649,6 +10651,7 @@ int bnxt_half_open_nic(struct bnxt *bp)
+ void bnxt_half_close_nic(struct bnxt *bp)
+ {
+ 	bnxt_hwrm_resource_free(bp, false, true);
++	bnxt_del_napi(bp);
+ 	bnxt_free_skbs(bp);
+ 	bnxt_free_mem(bp, true);
+ 	clear_bit(BNXT_STATE_HALF_OPEN, &bp->state);
+-- 
+2.43.2
+
+From c451c008f563d56d5e676c9dcafae565fcad84bb Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Thu, 18 Jan 2024 18:36:25 +0000
+Subject: [PATCH 154/347] llc: make llc_ui_sendmsg() more robust against
+ bonding changes
+Status: RO
+Content-Length: 6150
+Lines: 146
+
+[ Upstream commit dad555c816a50c6a6a8a86be1f9177673918c647 ]
+
+syzbot was able to trick llc_ui_sendmsg(), allocating an skb with no
+headroom, but subsequently trying to push 14 bytes of Ethernet header [1]
+
+Like some others, llc_ui_sendmsg() releases the socket lock before
+calling sock_alloc_send_skb().
+Then it acquires it again, but does not redo all the sanity checks
+that were performed.
+
+This fix:
+
+- Uses LL_RESERVED_SPACE() to reserve space.
+- Check all conditions again after socket lock is held again.
+- Do not account Ethernet header for mtu limitation.
+
+[1]
+
+skbuff: skb_under_panic: text:ffff800088baa334 len:1514 put:14 head:ffff0000c9c37000 data:ffff0000c9c36ff2 tail:0x5dc end:0x6c0 dev:bond0
+
+ kernel BUG at net/core/skbuff.c:193 !
+Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 6875 Comm: syz-executor.0 Not tainted 6.7.0-rc8-syzkaller-00101-g0802e17d9aca-dirty #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/17/2023
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+ pc : skb_panic net/core/skbuff.c:189 [inline]
+ pc : skb_under_panic+0x13c/0x140 net/core/skbuff.c:203
+ lr : skb_panic net/core/skbuff.c:189 [inline]
+ lr : skb_under_panic+0x13c/0x140 net/core/skbuff.c:203
+sp : ffff800096f97000
+x29: ffff800096f97010 x28: ffff80008cc8d668 x27: dfff800000000000
+x26: ffff0000cb970c90 x25: 00000000000005dc x24: ffff0000c9c36ff2
+x23: ffff0000c9c37000 x22: 00000000000005ea x21: 00000000000006c0
+x20: 000000000000000e x19: ffff800088baa334 x18: 1fffe000368261ce
+x17: ffff80008e4ed000 x16: ffff80008a8310f8 x15: 0000000000000001
+x14: 1ffff00012df2d58 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000ff0100 x9 : e28a51f1087e8400
+x8 : e28a51f1087e8400 x7 : ffff80008028f8d0 x6 : 0000000000000000
+x5 : 0000000000000001 x4 : 0000000000000001 x3 : ffff800082b78714
+x2 : 0000000000000001 x1 : 0000000100000000 x0 : 0000000000000089
+Call trace:
+  skb_panic net/core/skbuff.c:189 [inline]
+  skb_under_panic+0x13c/0x140 net/core/skbuff.c:203
+  skb_push+0xf0/0x108 net/core/skbuff.c:2451
+  eth_header+0x44/0x1f8 net/ethernet/eth.c:83
+  dev_hard_header include/linux/netdevice.h:3188 [inline]
+  llc_mac_hdr_init+0x110/0x17c net/llc/llc_output.c:33
+  llc_sap_action_send_xid_c+0x170/0x344 net/llc/llc_s_ac.c:85
+  llc_exec_sap_trans_actions net/llc/llc_sap.c:153 [inline]
+  llc_sap_next_state net/llc/llc_sap.c:182 [inline]
+  llc_sap_state_process+0x1ec/0x774 net/llc/llc_sap.c:209
+  llc_build_and_send_xid_pkt+0x12c/0x1c0 net/llc/llc_sap.c:270
+  llc_ui_sendmsg+0x7bc/0xb1c net/llc/af_llc.c:997
+  sock_sendmsg_nosec net/socket.c:730 [inline]
+  __sock_sendmsg net/socket.c:745 [inline]
+  sock_sendmsg+0x194/0x274 net/socket.c:767
+  splice_to_socket+0x7cc/0xd58 fs/splice.c:881
+  do_splice_from fs/splice.c:933 [inline]
+  direct_splice_actor+0xe4/0x1c0 fs/splice.c:1142
+  splice_direct_to_actor+0x2a0/0x7e4 fs/splice.c:1088
+  do_splice_direct+0x20c/0x348 fs/splice.c:1194
+  do_sendfile+0x4bc/0xc70 fs/read_write.c:1254
+  __do_sys_sendfile64 fs/read_write.c:1322 [inline]
+  __se_sys_sendfile64 fs/read_write.c:1308 [inline]
+  __arm64_sys_sendfile64+0x160/0x3b4 fs/read_write.c:1308
+  __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+  invoke_syscall+0x98/0x2b8 arch/arm64/kernel/syscall.c:51
+  el0_svc_common+0x130/0x23c arch/arm64/kernel/syscall.c:136
+  do_el0_svc+0x48/0x58 arch/arm64/kernel/syscall.c:155
+  el0_svc+0x54/0x158 arch/arm64/kernel/entry-common.c:678
+  el0t_64_sync_handler+0x84/0xfc arch/arm64/kernel/entry-common.c:696
+  el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:595
+Code: aa1803e6 aa1903e7 a90023f5 94792f6a (d4210000)
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-and-tested-by: syzbot+2a7024e9502df538e8ef@syzkaller.appspotmail.com
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Kuniyuki Iwashima <kuniyu@amazon.com>
+Link: https://lore.kernel.org/r/20240118183625.4007013-1-edumazet@google.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/llc/af_llc.c | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/net/llc/af_llc.c b/net/llc/af_llc.c
+index 9b06c380866b..20551cfb7da6 100644
+--- a/net/llc/af_llc.c
++++ b/net/llc/af_llc.c
+@@ -928,14 +928,15 @@ static int llc_ui_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+  */
+ static int llc_ui_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
+ {
++	DECLARE_SOCKADDR(struct sockaddr_llc *, addr, msg->msg_name);
+ 	struct sock *sk = sock->sk;
+ 	struct llc_sock *llc = llc_sk(sk);
+-	DECLARE_SOCKADDR(struct sockaddr_llc *, addr, msg->msg_name);
+ 	int flags = msg->msg_flags;
+ 	int noblock = flags & MSG_DONTWAIT;
++	int rc = -EINVAL, copied = 0, hdrlen, hh_len;
+ 	struct sk_buff *skb = NULL;
++	struct net_device *dev;
+ 	size_t size = 0;
+-	int rc = -EINVAL, copied = 0, hdrlen;
+ 
+ 	dprintk("%s: sending from %02X to %02X\n", __func__,
+ 		llc->laddr.lsap, llc->daddr.lsap);
+@@ -955,22 +956,29 @@ static int llc_ui_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
+ 		if (rc)
+ 			goto out;
+ 	}
+-	hdrlen = llc->dev->hard_header_len + llc_ui_header_len(sk, addr);
++	dev = llc->dev;
++	hh_len = LL_RESERVED_SPACE(dev);
++	hdrlen = llc_ui_header_len(sk, addr);
+ 	size = hdrlen + len;
+-	if (size > llc->dev->mtu)
+-		size = llc->dev->mtu;
++	size = min_t(size_t, size, READ_ONCE(dev->mtu));
+ 	copied = size - hdrlen;
+ 	rc = -EINVAL;
+ 	if (copied < 0)
+ 		goto out;
+ 	release_sock(sk);
+-	skb = sock_alloc_send_skb(sk, size, noblock, &rc);
++	skb = sock_alloc_send_skb(sk, hh_len + size, noblock, &rc);
+ 	lock_sock(sk);
+ 	if (!skb)
+ 		goto out;
+-	skb->dev      = llc->dev;
++	if (sock_flag(sk, SOCK_ZAPPED) ||
++	    llc->dev != dev ||
++	    hdrlen != llc_ui_header_len(sk, addr) ||
++	    hh_len != LL_RESERVED_SPACE(dev) ||
++	    size > READ_ONCE(dev->mtu))
++		goto out;
++	skb->dev      = dev;
+ 	skb->protocol = llc_proto_type(addr->sllc_arphrd);
+-	skb_reserve(skb, hdrlen);
++	skb_reserve(skb, hh_len + hdrlen);
+ 	rc = memcpy_from_msg(skb_put(skb, copied), msg, copied);
+ 	if (rc)
+ 		goto out;
+-- 
+2.43.2
+
+From df57fc2f2abf548aa889a36ab0bdcc94a75399dc Mon Sep 17 00:00:00 2001
+From: Kuniyuki Iwashima <kuniyu@amazon.com>
+Date: Thu, 18 Jan 2024 17:55:15 -0800
+Subject: [PATCH 155/347] llc: Drop support for ETH_P_TR_802_2.
+Status: RO
+Content-Length: 4484
+Lines: 122
+
+[ Upstream commit e3f9bed9bee261e3347131764e42aeedf1ffea61 ]
+
+syzbot reported an uninit-value bug below. [0]
+
+llc supports ETH_P_802_2 (0x0004) and used to support ETH_P_TR_802_2
+(0x0011), and syzbot abused the latter to trigger the bug.
+
+  write$tun(r0, &(0x7f0000000040)={@val={0x0, 0x11}, @val, @mpls={[], @llc={@snap={0xaa, 0x1, ')', "90e5dd"}}}}, 0x16)
+
+llc_conn_handler() initialises local variables {saddr,daddr}.mac
+based on skb in llc_pdu_decode_sa()/llc_pdu_decode_da() and passes
+them to __llc_lookup().
+
+However, the initialisation is done only when skb->protocol is
+htons(ETH_P_802_2), otherwise, __llc_lookup_established() and
+__llc_lookup_listener() will read garbage.
+
+The missing initialisation existed prior to commit 211ed865108e
+("net: delete all instances of special processing for token ring").
+
+It removed the part to kick out the token ring stuff but forgot to
+close the door allowing ETH_P_TR_802_2 packets to sneak into llc_rcv().
+
+Let's remove llc_tr_packet_type and complete the deprecation.
+
+[0]:
+BUG: KMSAN: uninit-value in __llc_lookup_established+0xe9d/0xf90
+ __llc_lookup_established+0xe9d/0xf90
+ __llc_lookup net/llc/llc_conn.c:611 [inline]
+ llc_conn_handler+0x4bd/0x1360 net/llc/llc_conn.c:791
+ llc_rcv+0xfbb/0x14a0 net/llc/llc_input.c:206
+ __netif_receive_skb_one_core net/core/dev.c:5527 [inline]
+ __netif_receive_skb+0x1a6/0x5a0 net/core/dev.c:5641
+ netif_receive_skb_internal net/core/dev.c:5727 [inline]
+ netif_receive_skb+0x58/0x660 net/core/dev.c:5786
+ tun_rx_batched+0x3ee/0x980 drivers/net/tun.c:1555
+ tun_get_user+0x53af/0x66d0 drivers/net/tun.c:2002
+ tun_chr_write_iter+0x3af/0x5d0 drivers/net/tun.c:2048
+ call_write_iter include/linux/fs.h:2020 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x8ef/0x1490 fs/read_write.c:584
+ ksys_write+0x20f/0x4c0 fs/read_write.c:637
+ __do_sys_write fs/read_write.c:649 [inline]
+ __se_sys_write fs/read_write.c:646 [inline]
+ __x64_sys_write+0x93/0xd0 fs/read_write.c:646
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x44/0x110 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+Local variable daddr created at:
+ llc_conn_handler+0x53/0x1360 net/llc/llc_conn.c:783
+ llc_rcv+0xfbb/0x14a0 net/llc/llc_input.c:206
+
+CPU: 1 PID: 5004 Comm: syz-executor994 Not tainted 6.6.0-syzkaller-14500-g1c41041124bd #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/09/2023
+
+Fixes: 211ed865108e ("net: delete all instances of special processing for token ring")
+Reported-by: syzbot+b5ad66046b913bc04c6f@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=b5ad66046b913bc04c6f
+Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Link: https://lore.kernel.org/r/20240119015515.61898-1-kuniyu@amazon.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/net/llc_pdu.h | 6 ++----
+ net/llc/llc_core.c    | 7 -------
+ 2 files changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/include/net/llc_pdu.h b/include/net/llc_pdu.h
+index 7e73f8e5e497..1d55ba7c45be 100644
+--- a/include/net/llc_pdu.h
++++ b/include/net/llc_pdu.h
+@@ -262,8 +262,7 @@ static inline void llc_pdu_header_init(struct sk_buff *skb, u8 type,
+  */
+ static inline void llc_pdu_decode_sa(struct sk_buff *skb, u8 *sa)
+ {
+-	if (skb->protocol == htons(ETH_P_802_2))
+-		memcpy(sa, eth_hdr(skb)->h_source, ETH_ALEN);
++	memcpy(sa, eth_hdr(skb)->h_source, ETH_ALEN);
+ }
+ 
+ /**
+@@ -275,8 +274,7 @@ static inline void llc_pdu_decode_sa(struct sk_buff *skb, u8 *sa)
+  */
+ static inline void llc_pdu_decode_da(struct sk_buff *skb, u8 *da)
+ {
+-	if (skb->protocol == htons(ETH_P_802_2))
+-		memcpy(da, eth_hdr(skb)->h_dest, ETH_ALEN);
++	memcpy(da, eth_hdr(skb)->h_dest, ETH_ALEN);
+ }
+ 
+ /**
+diff --git a/net/llc/llc_core.c b/net/llc/llc_core.c
+index 6e387aadffce..4f16d9c88350 100644
+--- a/net/llc/llc_core.c
++++ b/net/llc/llc_core.c
+@@ -135,22 +135,15 @@ static struct packet_type llc_packet_type __read_mostly = {
+ 	.func = llc_rcv,
+ };
+ 
+-static struct packet_type llc_tr_packet_type __read_mostly = {
+-	.type = cpu_to_be16(ETH_P_TR_802_2),
+-	.func = llc_rcv,
+-};
+-
+ static int __init llc_init(void)
+ {
+ 	dev_add_pack(&llc_packet_type);
+-	dev_add_pack(&llc_tr_packet_type);
+ 	return 0;
+ }
+ 
+ static void __exit llc_exit(void)
+ {
+ 	dev_remove_pack(&llc_packet_type);
+-	dev_remove_pack(&llc_tr_packet_type);
+ }
+ 
+ module_init(llc_init);
+-- 
+2.43.2
+
+From 8072699aa9e67d1727692cfb3c347263bb627fb9 Mon Sep 17 00:00:00 2001
+From: Jakub Kicinski <kuba@kernel.org>
+Date: Thu, 18 Jan 2024 16:58:59 -0800
+Subject: [PATCH 158/347] net: fix removing a namespace with conflicting
+ altnames
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Status: RO
+Content-Length: 2802
+Lines: 70
+
+[ Upstream commit d09486a04f5da0a812c26217213b89a3b1acf836 ]
+
+Mark reports a BUG() when a net namespace is removed.
+
+    kernel BUG at net/core/dev.c:11520!
+
+Physical interfaces moved outside of init_net get "refunded"
+to init_net when that namespace disappears. The main interface
+name may get overwritten in the process if it would have
+conflicted. We need to also discard all conflicting altnames.
+Recent fixes addressed ensuring that altnames get moved
+with the main interface, which surfaced this problem.
+
+Reported-by: Марк Коренберг <socketpair@gmail.com>
+Link: https://lore.kernel.org/all/CAEmTpZFZ4Sv3KwqFOY2WKDHeZYdi0O7N5H1nTvcGp=SAEavtDg@mail.gmail.com/
+Fixes: 7663d522099e ("net: check for altname conflicts when changing netdev's netns")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Xin Long <lucien.xin@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/core/dev.c | 9 +++++++++
+ net/core/dev.h | 3 +++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index ad20bebe153f..add22ca0dff9 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -11509,6 +11509,7 @@ static struct pernet_operations __net_initdata netdev_net_ops = {
+ 
+ static void __net_exit default_device_exit_net(struct net *net)
+ {
++	struct netdev_name_node *name_node, *tmp;
+ 	struct net_device *dev, *aux;
+ 	/*
+ 	 * Push all migratable network devices back to the
+@@ -11531,6 +11532,14 @@ static void __net_exit default_device_exit_net(struct net *net)
+ 		snprintf(fb_name, IFNAMSIZ, "dev%d", dev->ifindex);
+ 		if (netdev_name_in_use(&init_net, fb_name))
+ 			snprintf(fb_name, IFNAMSIZ, "dev%%d");
++
++		netdev_for_each_altname_safe(dev, name_node, tmp)
++			if (netdev_name_in_use(&init_net, name_node->name)) {
++				netdev_name_node_del(name_node);
++				synchronize_rcu();
++				__netdev_name_node_alt_destroy(name_node);
++			}
++
+ 		err = dev_change_net_namespace(dev, &init_net, fb_name);
+ 		if (err) {
+ 			pr_emerg("%s: failed to move %s to init_net: %d\n",
+diff --git a/net/core/dev.h b/net/core/dev.h
+index 5aa45f0fd4ae..3f5eb92396b6 100644
+--- a/net/core/dev.h
++++ b/net/core/dev.h
+@@ -64,6 +64,9 @@ int dev_change_name(struct net_device *dev, const char *newname);
+ 
+ #define netdev_for_each_altname(dev, namenode)				\
+ 	list_for_each_entry((namenode), &(dev)->name_node->list, list)
++#define netdev_for_each_altname_safe(dev, namenode, next)		\
++	list_for_each_entry_safe((namenode), (next), &(dev)->name_node->list, \
++				 list)
+ 
+ int netdev_name_node_alt_create(struct net_device *dev, const char *name);
+ int netdev_name_node_alt_destroy(struct net_device *dev, const char *name);
+-- 
+2.43.2
+
+From 0b787c2dea15e7a2828fa3a74a5447df4ed57711 Mon Sep 17 00:00:00 2001
+From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+Date: Fri, 19 Jan 2024 17:48:39 -0800
+Subject: [PATCH 166/347] net/rds: Fix UBSAN: array-index-out-of-bounds in
+ rds_cmsg_recv
+Status: RO
+Content-Length: 2653
+Lines: 63
+
+[ Upstream commit 13e788deb7348cc88df34bed736c3b3b9927ea52 ]
+
+Syzcaller UBSAN crash occurs in rds_cmsg_recv(),
+which reads inc->i_rx_lat_trace[j + 1] with index 4 (3 + 1),
+but with array size of 4 (RDS_RX_MAX_TRACES).
+Here 'j' is assigned from rs->rs_rx_trace[i] and in-turn from
+trace.rx_trace_pos[i] in rds_recv_track_latency(),
+with both arrays sized 3 (RDS_MSG_RX_DGRAM_TRACE_MAX). So fix the
+off-by-one bounds check in rds_recv_track_latency() to prevent
+a potential crash in rds_cmsg_recv().
+
+Found by syzcaller:
+=================================================================
+UBSAN: array-index-out-of-bounds in net/rds/recv.c:585:39
+index 4 is out of range for type 'u64 [4]'
+CPU: 1 PID: 8058 Comm: syz-executor228 Not tainted 6.6.0-gd2f51b3516da #1
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+BIOS 1.15.0-1 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x136/0x150 lib/dump_stack.c:106
+ ubsan_epilogue lib/ubsan.c:217 [inline]
+ __ubsan_handle_out_of_bounds+0xd5/0x130 lib/ubsan.c:348
+ rds_cmsg_recv+0x60d/0x700 net/rds/recv.c:585
+ rds_recvmsg+0x3fb/0x1610 net/rds/recv.c:716
+ sock_recvmsg_nosec net/socket.c:1044 [inline]
+ sock_recvmsg+0xe2/0x160 net/socket.c:1066
+ __sys_recvfrom+0x1b6/0x2f0 net/socket.c:2246
+ __do_sys_recvfrom net/socket.c:2264 [inline]
+ __se_sys_recvfrom net/socket.c:2260 [inline]
+ __x64_sys_recvfrom+0xe0/0x1b0 net/socket.c:2260
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x40/0x110 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+==================================================================
+
+Fixes: 3289025aedc0 ("RDS: add receive message trace used by application")
+Reported-by: Chenyuan Yang <chenyuan0y@gmail.com>
+Closes: https://lore.kernel.org/linux-rdma/CALGdzuoVdq-wtQ4Az9iottBqC5cv9ZhcE5q8N7LfYFvkRsOVcw@mail.gmail.com/
+Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/rds/af_rds.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
+index 01c4cdfef45d..8435a20968ef 100644
+--- a/net/rds/af_rds.c
++++ b/net/rds/af_rds.c
+@@ -419,7 +419,7 @@ static int rds_recv_track_latency(struct rds_sock *rs, sockptr_t optval,
+ 
+ 	rs->rs_rx_traces = trace.rx_traces;
+ 	for (i = 0; i < rs->rs_rx_traces; i++) {
+-		if (trace.rx_trace_pos[i] > RDS_MSG_RX_DGRAM_TRACE_MAX) {
++		if (trace.rx_trace_pos[i] >= RDS_MSG_RX_DGRAM_TRACE_MAX) {
+ 			rs->rs_rx_traces = 0;
+ 			return -EFAULT;
+ 		}
+-- 
+2.43.2
+
+From bf4aeff7da85c3becd39fb73bac94122331c30fb Mon Sep 17 00:00:00 2001
+From: Petr Pavlu <petr.pavlu@suse.com>
+Date: Mon, 22 Jan 2024 16:09:28 +0100
+Subject: [PATCH 168/347] tracing: Ensure visibility when inserting an element
+ into tracing_map
+Status: RO
+Content-Length: 5812
+Lines: 121
+
+[ Upstream commit 2b44760609e9eaafc9d234a6883d042fc21132a7 ]
+
+Running the following two commands in parallel on a multi-processor
+AArch64 machine can sporadically produce an unexpected warning about
+duplicate histogram entries:
+
+ $ while true; do
+     echo hist:key=id.syscall:val=hitcount > \
+       /sys/kernel/debug/tracing/events/raw_syscalls/sys_enter/trigger
+     cat /sys/kernel/debug/tracing/events/raw_syscalls/sys_enter/hist
+     sleep 0.001
+   done
+ $ stress-ng --sysbadaddr $(nproc)
+
+The warning looks as follows:
+
+[ 2911.172474] ------------[ cut here ]------------
+[ 2911.173111] Duplicates detected: 1
+[ 2911.173574] WARNING: CPU: 2 PID: 12247 at kernel/trace/tracing_map.c:983 tracing_map_sort_entries+0x3e0/0x408
+[ 2911.174702] Modules linked in: iscsi_ibft(E) iscsi_boot_sysfs(E) rfkill(E) af_packet(E) nls_iso8859_1(E) nls_cp437(E) vfat(E) fat(E) ena(E) tiny_power_button(E) qemu_fw_cfg(E) button(E) fuse(E) efi_pstore(E) ip_tables(E) x_tables(E) xfs(E) libcrc32c(E) aes_ce_blk(E) aes_ce_cipher(E) crct10dif_ce(E) polyval_ce(E) polyval_generic(E) ghash_ce(E) gf128mul(E) sm4_ce_gcm(E) sm4_ce_ccm(E) sm4_ce(E) sm4_ce_cipher(E) sm4(E) sm3_ce(E) sm3(E) sha3_ce(E) sha512_ce(E) sha512_arm64(E) sha2_ce(E) sha256_arm64(E) nvme(E) sha1_ce(E) nvme_core(E) nvme_auth(E) t10_pi(E) sg(E) scsi_mod(E) scsi_common(E) efivarfs(E)
+[ 2911.174738] Unloaded tainted modules: cppc_cpufreq(E):1
+[ 2911.180985] CPU: 2 PID: 12247 Comm: cat Kdump: loaded Tainted: G            E      6.7.0-default #2 1b58bbb22c97e4399dc09f92d309344f69c44a01
+[ 2911.182398] Hardware name: Amazon EC2 c7g.8xlarge/, BIOS 1.0 11/1/2018
+[ 2911.183208] pstate: 61400005 (nZCv daif +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
+[ 2911.184038] pc : tracing_map_sort_entries+0x3e0/0x408
+[ 2911.184667] lr : tracing_map_sort_entries+0x3e0/0x408
+[ 2911.185310] sp : ffff8000a1513900
+[ 2911.185750] x29: ffff8000a1513900 x28: ffff0003f272fe80 x27: 0000000000000001
+[ 2911.186600] x26: ffff0003f272fe80 x25: 0000000000000030 x24: 0000000000000008
+[ 2911.187458] x23: ffff0003c5788000 x22: ffff0003c16710c8 x21: ffff80008017f180
+[ 2911.188310] x20: ffff80008017f000 x19: ffff80008017f180 x18: ffffffffffffffff
+[ 2911.189160] x17: 0000000000000000 x16: 0000000000000000 x15: ffff8000a15134b8
+[ 2911.190015] x14: 0000000000000000 x13: 205d373432323154 x12: 5b5d313131333731
+[ 2911.190844] x11: 00000000fffeffff x10: 00000000fffeffff x9 : ffffd1b78274a13c
+[ 2911.191716] x8 : 000000000017ffe8 x7 : c0000000fffeffff x6 : 000000000057ffa8
+[ 2911.192554] x5 : ffff0012f6c24ec0 x4 : 0000000000000000 x3 : ffff2e5b72b5d000
+[ 2911.193404] x2 : 0000000000000000 x1 : 0000000000000000 x0 : ffff0003ff254480
+[ 2911.194259] Call trace:
+[ 2911.194626]  tracing_map_sort_entries+0x3e0/0x408
+[ 2911.195220]  hist_show+0x124/0x800
+[ 2911.195692]  seq_read_iter+0x1d4/0x4e8
+[ 2911.196193]  seq_read+0xe8/0x138
+[ 2911.196638]  vfs_read+0xc8/0x300
+[ 2911.197078]  ksys_read+0x70/0x108
+[ 2911.197534]  __arm64_sys_read+0x24/0x38
+[ 2911.198046]  invoke_syscall+0x78/0x108
+[ 2911.198553]  el0_svc_common.constprop.0+0xd0/0xf8
+[ 2911.199157]  do_el0_svc+0x28/0x40
+[ 2911.199613]  el0_svc+0x40/0x178
+[ 2911.200048]  el0t_64_sync_handler+0x13c/0x158
+[ 2911.200621]  el0t_64_sync+0x1a8/0x1b0
+[ 2911.201115] ---[ end trace 0000000000000000 ]---
+
+The problem appears to be caused by CPU reordering of writes issued from
+__tracing_map_insert().
+
+The check for the presence of an element with a given key in this
+function is:
+
+ val = READ_ONCE(entry->val);
+ if (val && keys_match(key, val->key, map->key_size)) ...
+
+The write of a new entry is:
+
+ elt = get_free_elt(map);
+ memcpy(elt->key, key, map->key_size);
+ entry->val = elt;
+
+The "memcpy(elt->key, key, map->key_size);" and "entry->val = elt;"
+stores may become visible in the reversed order on another CPU. This
+second CPU might then incorrectly determine that a new key doesn't match
+an already present val->key and subsequently insert a new element,
+resulting in a duplicate.
+
+Fix the problem by adding a write barrier between
+"memcpy(elt->key, key, map->key_size);" and "entry->val = elt;", and for
+good measure, also use WRITE_ONCE(entry->val, elt) for publishing the
+element. The sequence pairs with the mentioned "READ_ONCE(entry->val);"
+and the "val->key" check which has an address dependency.
+
+The barrier is placed on a path executed when adding an element for
+a new key. Subsequent updates targeting the same key remain unaffected.
+
+From the user's perspective, the issue was introduced by commit
+c193707dde77 ("tracing: Remove code which merges duplicates"), which
+followed commit cbf4100efb8f ("tracing: Add support to detect and avoid
+duplicates"). The previous code operated differently; it inherently
+expected potential races which result in duplicates but merged them
+later when they occurred.
+
+Link: https://lore.kernel.org/linux-trace-kernel/20240122150928.27725-1-petr.pavlu@suse.com
+
+Fixes: c193707dde77 ("tracing: Remove code which merges duplicates")
+Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+Acked-by: Tom Zanussi <tom.zanussi@linux.intel.com>
+Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ kernel/trace/tracing_map.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/trace/tracing_map.c b/kernel/trace/tracing_map.c
+index c774e560f2f9..a4dcf0f24352 100644
+--- a/kernel/trace/tracing_map.c
++++ b/kernel/trace/tracing_map.c
+@@ -574,7 +574,12 @@ __tracing_map_insert(struct tracing_map *map, void *key, bool lookup_only)
+ 				}
+ 
+ 				memcpy(elt->key, key, map->key_size);
+-				entry->val = elt;
++				/*
++				 * Ensure the initialization is visible and
++				 * publish the elt.
++				 */
++				smp_wmb();
++				WRITE_ONCE(entry->val, elt);
+ 				atomic64_inc(&map->hits);
+ 
+ 				return entry->val;
+-- 
+2.43.2
+
+From c04709b2cc99ae31c346f79f0211752d7b74df01 Mon Sep 17 00:00:00 2001
+From: Ido Schimmel <idosch@nvidia.com>
+Date: Mon, 22 Jan 2024 15:28:43 +0200
+Subject: [PATCH 185/347] net/sched: flower: Fix chain template offload
+Status: RO
+Content-Length: 7693
+Lines: 182
+
+[ Upstream commit 32f2a0afa95fae0d1ceec2ff06e0e816939964b8 ]
+
+When a qdisc is deleted from a net device the stack instructs the
+underlying driver to remove its flow offload callback from the
+associated filter block using the 'FLOW_BLOCK_UNBIND' command. The stack
+then continues to replay the removal of the filters in the block for
+this driver by iterating over the chains in the block and invoking the
+'reoffload' operation of the classifier being used. In turn, the
+classifier in its 'reoffload' operation prepares and emits a
+'FLOW_CLS_DESTROY' command for each filter.
+
+However, the stack does not do the same for chain templates and the
+underlying driver never receives a 'FLOW_CLS_TMPLT_DESTROY' command when
+a qdisc is deleted. This results in a memory leak [1] which can be
+reproduced using [2].
+
+Fix by introducing a 'tmplt_reoffload' operation and have the stack
+invoke it with the appropriate arguments as part of the replay.
+Implement the operation in the sole classifier that supports chain
+templates (flower) by emitting the 'FLOW_CLS_TMPLT_{CREATE,DESTROY}'
+command based on whether a flow offload callback is being bound to a
+filter block or being unbound from one.
+
+As far as I can tell, the issue happens since cited commit which
+reordered tcf_block_offload_unbind() before tcf_block_flush_all_chains()
+in __tcf_block_put(). The order cannot be reversed as the filter block
+is expected to be freed after flushing all the chains.
+
+[1]
+unreferenced object 0xffff888107e28800 (size 2048):
+  comm "tc", pid 1079, jiffies 4294958525 (age 3074.287s)
+  hex dump (first 32 bytes):
+    b1 a6 7c 11 81 88 ff ff e0 5b b3 10 81 88 ff ff  ..|......[......
+    01 00 00 00 00 00 00 00 e0 aa b0 84 ff ff ff ff  ................
+  backtrace:
+    [<ffffffff81c06a68>] __kmem_cache_alloc_node+0x1e8/0x320
+    [<ffffffff81ab374e>] __kmalloc+0x4e/0x90
+    [<ffffffff832aec6d>] mlxsw_sp_acl_ruleset_get+0x34d/0x7a0
+    [<ffffffff832bc195>] mlxsw_sp_flower_tmplt_create+0x145/0x180
+    [<ffffffff832b2e1a>] mlxsw_sp_flow_block_cb+0x1ea/0x280
+    [<ffffffff83a10613>] tc_setup_cb_call+0x183/0x340
+    [<ffffffff83a9f85a>] fl_tmplt_create+0x3da/0x4c0
+    [<ffffffff83a22435>] tc_ctl_chain+0xa15/0x1170
+    [<ffffffff838a863c>] rtnetlink_rcv_msg+0x3cc/0xed0
+    [<ffffffff83ac87f0>] netlink_rcv_skb+0x170/0x440
+    [<ffffffff83ac6270>] netlink_unicast+0x540/0x820
+    [<ffffffff83ac6e28>] netlink_sendmsg+0x8d8/0xda0
+    [<ffffffff83793def>] ____sys_sendmsg+0x30f/0xa80
+    [<ffffffff8379d29a>] ___sys_sendmsg+0x13a/0x1e0
+    [<ffffffff8379d50c>] __sys_sendmsg+0x11c/0x1f0
+    [<ffffffff843b9ce0>] do_syscall_64+0x40/0xe0
+unreferenced object 0xffff88816d2c0400 (size 1024):
+  comm "tc", pid 1079, jiffies 4294958525 (age 3074.287s)
+  hex dump (first 32 bytes):
+    40 00 00 00 00 00 00 00 57 f6 38 be 00 00 00 00  @.......W.8.....
+    10 04 2c 6d 81 88 ff ff 10 04 2c 6d 81 88 ff ff  ..,m......,m....
+  backtrace:
+    [<ffffffff81c06a68>] __kmem_cache_alloc_node+0x1e8/0x320
+    [<ffffffff81ab36c1>] __kmalloc_node+0x51/0x90
+    [<ffffffff81a8ed96>] kvmalloc_node+0xa6/0x1f0
+    [<ffffffff82827d03>] bucket_table_alloc.isra.0+0x83/0x460
+    [<ffffffff82828d2b>] rhashtable_init+0x43b/0x7c0
+    [<ffffffff832aed48>] mlxsw_sp_acl_ruleset_get+0x428/0x7a0
+    [<ffffffff832bc195>] mlxsw_sp_flower_tmplt_create+0x145/0x180
+    [<ffffffff832b2e1a>] mlxsw_sp_flow_block_cb+0x1ea/0x280
+    [<ffffffff83a10613>] tc_setup_cb_call+0x183/0x340
+    [<ffffffff83a9f85a>] fl_tmplt_create+0x3da/0x4c0
+    [<ffffffff83a22435>] tc_ctl_chain+0xa15/0x1170
+    [<ffffffff838a863c>] rtnetlink_rcv_msg+0x3cc/0xed0
+    [<ffffffff83ac87f0>] netlink_rcv_skb+0x170/0x440
+    [<ffffffff83ac6270>] netlink_unicast+0x540/0x820
+    [<ffffffff83ac6e28>] netlink_sendmsg+0x8d8/0xda0
+    [<ffffffff83793def>] ____sys_sendmsg+0x30f/0xa80
+
+[2]
+ # tc qdisc add dev swp1 clsact
+ # tc chain add dev swp1 ingress proto ip chain 1 flower dst_ip 0.0.0.0/32
+ # tc qdisc del dev swp1 clsact
+ # devlink dev reload pci/0000:06:00.0
+
+Fixes: bbf73830cd48 ("net: sched: traverse chains in block with tcf_get_next_chain()")
+Signed-off-by: Ido Schimmel <idosch@nvidia.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/net/sch_generic.h |  4 ++++
+ net/sched/cls_api.c       |  9 ++++++++-
+ net/sched/cls_flower.c    | 23 +++++++++++++++++++++++
+ 3 files changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
+index dcb9160e6467..959a7725c27b 100644
+--- a/include/net/sch_generic.h
++++ b/include/net/sch_generic.h
+@@ -375,6 +375,10 @@ struct tcf_proto_ops {
+ 						struct nlattr **tca,
+ 						struct netlink_ext_ack *extack);
+ 	void			(*tmplt_destroy)(void *tmplt_priv);
++	void			(*tmplt_reoffload)(struct tcf_chain *chain,
++						   bool add,
++						   flow_setup_cb_t *cb,
++						   void *cb_priv);
+ 	struct tcf_exts *	(*get_exts)(const struct tcf_proto *tp,
+ 					    u32 handle);
+ 
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index 1976bd163986..02c594baa1d9 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -1536,6 +1536,9 @@ tcf_block_playback_offloads(struct tcf_block *block, flow_setup_cb_t *cb,
+ 	     chain_prev = chain,
+ 		     chain = __tcf_get_next_chain(block, chain),
+ 		     tcf_chain_put(chain_prev)) {
++		if (chain->tmplt_ops && add)
++			chain->tmplt_ops->tmplt_reoffload(chain, true, cb,
++							  cb_priv);
+ 		for (tp = __tcf_get_next_proto(chain, NULL); tp;
+ 		     tp_prev = tp,
+ 			     tp = __tcf_get_next_proto(chain, tp),
+@@ -1551,6 +1554,9 @@ tcf_block_playback_offloads(struct tcf_block *block, flow_setup_cb_t *cb,
+ 				goto err_playback_remove;
+ 			}
+ 		}
++		if (chain->tmplt_ops && !add)
++			chain->tmplt_ops->tmplt_reoffload(chain, false, cb,
++							  cb_priv);
+ 	}
+ 
+ 	return 0;
+@@ -2971,7 +2977,8 @@ static int tc_chain_tmplt_add(struct tcf_chain *chain, struct net *net,
+ 	ops = tcf_proto_lookup_ops(name, true, extack);
+ 	if (IS_ERR(ops))
+ 		return PTR_ERR(ops);
+-	if (!ops->tmplt_create || !ops->tmplt_destroy || !ops->tmplt_dump) {
++	if (!ops->tmplt_create || !ops->tmplt_destroy || !ops->tmplt_dump ||
++	    !ops->tmplt_reoffload) {
+ 		NL_SET_ERR_MSG(extack, "Chain templates are not supported with specified classifier");
+ 		module_put(ops->owner);
+ 		return -EOPNOTSUPP;
+diff --git a/net/sched/cls_flower.c b/net/sched/cls_flower.c
+index e5314a31f75a..efb9d2811b73 100644
+--- a/net/sched/cls_flower.c
++++ b/net/sched/cls_flower.c
+@@ -2721,6 +2721,28 @@ static void fl_tmplt_destroy(void *tmplt_priv)
+ 	kfree(tmplt);
+ }
+ 
++static void fl_tmplt_reoffload(struct tcf_chain *chain, bool add,
++			       flow_setup_cb_t *cb, void *cb_priv)
++{
++	struct fl_flow_tmplt *tmplt = chain->tmplt_priv;
++	struct flow_cls_offload cls_flower = {};
++
++	cls_flower.rule = flow_rule_alloc(0);
++	if (!cls_flower.rule)
++		return;
++
++	cls_flower.common.chain_index = chain->index;
++	cls_flower.command = add ? FLOW_CLS_TMPLT_CREATE :
++				   FLOW_CLS_TMPLT_DESTROY;
++	cls_flower.cookie = (unsigned long) tmplt;
++	cls_flower.rule->match.dissector = &tmplt->dissector;
++	cls_flower.rule->match.mask = &tmplt->mask;
++	cls_flower.rule->match.key = &tmplt->dummy_key;
++
++	cb(TC_SETUP_CLSFLOWER, &cls_flower, cb_priv);
++	kfree(cls_flower.rule);
++}
++
+ static int fl_dump_key_val(struct sk_buff *skb,
+ 			   void *val, int val_type,
+ 			   void *mask, int mask_type, int len)
+@@ -3628,6 +3650,7 @@ static struct tcf_proto_ops cls_fl_ops __read_mostly = {
+ 	.bind_class	= fl_bind_class,
+ 	.tmplt_create	= fl_tmplt_create,
+ 	.tmplt_destroy	= fl_tmplt_destroy,
++	.tmplt_reoffload = fl_tmplt_reoffload,
+ 	.tmplt_dump	= fl_tmplt_dump,
+ 	.get_exts	= fl_get_exts,
+ 	.owner		= THIS_MODULE,
+-- 
+2.43.2
+
+From 00c2c29aa36d1d1827c51a3720e9f893a22c7c6a Mon Sep 17 00:00:00 2001
+From: Florian Westphal <fw@strlen.de>
+Date: Fri, 19 Jan 2024 13:11:32 +0100
+Subject: [PATCH 199/347] netfilter: nft_limit: reject configurations that
+ cause integer overflow
+Status: RO
+Content-Length: 2452
+Lines: 74
+
+[ Upstream commit c9d9eb9c53d37cdebbad56b91e40baf42d5a97aa ]
+
+Reject bogus configs where internal token counter wraps around.
+This only occurs with very very large requests, such as 17gbyte/s.
+
+Its better to reject this rather than having incorrect ratelimit.
+
+Fixes: d2168e849ebf ("netfilter: nft_limit: add per-byte limiting")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nft_limit.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index 79039afde34e..cefa25e0dbb0 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -58,17 +58,19 @@ static inline bool nft_limit_eval(struct nft_limit_priv *priv, u64 cost)
+ static int nft_limit_init(struct nft_limit_priv *priv,
+ 			  const struct nlattr * const tb[], bool pkts)
+ {
++	u64 unit, tokens, rate_with_burst;
+ 	bool invert = false;
+-	u64 unit, tokens;
+ 
+ 	if (tb[NFTA_LIMIT_RATE] == NULL ||
+ 	    tb[NFTA_LIMIT_UNIT] == NULL)
+ 		return -EINVAL;
+ 
+ 	priv->rate = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_RATE]));
++	if (priv->rate == 0)
++		return -EINVAL;
++
+ 	unit = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_UNIT]));
+-	priv->nsecs = unit * NSEC_PER_SEC;
+-	if (priv->rate == 0 || priv->nsecs < unit)
++	if (check_mul_overflow(unit, NSEC_PER_SEC, &priv->nsecs))
+ 		return -EOVERFLOW;
+ 
+ 	if (tb[NFTA_LIMIT_BURST])
+@@ -77,18 +79,25 @@ static int nft_limit_init(struct nft_limit_priv *priv,
+ 	if (pkts && priv->burst == 0)
+ 		priv->burst = NFT_LIMIT_PKT_BURST_DEFAULT;
+ 
+-	if (priv->rate + priv->burst < priv->rate)
++	if (check_add_overflow(priv->rate, priv->burst, &rate_with_burst))
+ 		return -EOVERFLOW;
+ 
+ 	if (pkts) {
+-		tokens = div64_u64(priv->nsecs, priv->rate) * priv->burst;
++		u64 tmp = div64_u64(priv->nsecs, priv->rate);
++
++		if (check_mul_overflow(tmp, priv->burst, &tokens))
++			return -EOVERFLOW;
+ 	} else {
++		u64 tmp;
++
+ 		/* The token bucket size limits the number of tokens can be
+ 		 * accumulated. tokens_max specifies the bucket size.
+ 		 * tokens_max = unit * (rate + burst) / rate.
+ 		 */
+-		tokens = div64_u64(priv->nsecs * (priv->rate + priv->burst),
+-				 priv->rate);
++		if (check_mul_overflow(priv->nsecs, rate_with_burst, &tmp))
++			return -EOVERFLOW;
++
++		tokens = div64_u64(tmp, priv->rate);
+ 	}
+ 
+ 	if (tb[NFTA_LIMIT_FLAGS]) {
 -- 
 2.43.2
 
@@ -336,6 +2843,375 @@ index 1737884be52f..6575288b8580 100644
  			n_frags_free++;
  		} else {
  			skb_frag_size_sub(frag, shrink);
+-- 
+2.43.2
+
+From d8680b722f0ff6d7a01ddacc1844e0d52354d6ff Mon Sep 17 00:00:00 2001
+From: Omar Sandoval <osandov@fb.com>
+Date: Thu, 4 Jan 2024 11:48:46 -0800
+Subject: [PATCH 228/347] btrfs: don't abort filesystem when attempting to
+ snapshot deleted subvolume
+Status: RO
+Content-Length: 4247
+Lines: 94
+
+commit 7081929ab2572920e94d70be3d332e5c9f97095a upstream.
+
+If the source file descriptor to the snapshot ioctl refers to a deleted
+subvolume, we get the following abort:
+
+  BTRFS: Transaction aborted (error -2)
+  WARNING: CPU: 0 PID: 833 at fs/btrfs/transaction.c:1875 create_pending_snapshot+0x1040/0x1190 [btrfs]
+  Modules linked in: pata_acpi btrfs ata_piix libata scsi_mod virtio_net blake2b_generic xor net_failover virtio_rng failover scsi_common rng_core raid6_pq libcrc32c
+  CPU: 0 PID: 833 Comm: t_snapshot_dele Not tainted 6.7.0-rc6 #2
+  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-1.fc39 04/01/2014
+  RIP: 0010:create_pending_snapshot+0x1040/0x1190 [btrfs]
+  RSP: 0018:ffffa09c01337af8 EFLAGS: 00010282
+  RAX: 0000000000000000 RBX: ffff9982053e7c78 RCX: 0000000000000027
+  RDX: ffff99827dc20848 RSI: 0000000000000001 RDI: ffff99827dc20840
+  RBP: ffffa09c01337c00 R08: 0000000000000000 R09: ffffa09c01337998
+  R10: 0000000000000003 R11: ffffffffb96da248 R12: fffffffffffffffe
+  R13: ffff99820535bb28 R14: ffff99820b7bd000 R15: ffff99820381ea80
+  FS:  00007fe20aadabc0(0000) GS:ffff99827dc00000(0000) knlGS:0000000000000000
+  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  CR2: 0000559a120b502f CR3: 00000000055b6000 CR4: 00000000000006f0
+  Call Trace:
+   <TASK>
+   ? create_pending_snapshot+0x1040/0x1190 [btrfs]
+   ? __warn+0x81/0x130
+   ? create_pending_snapshot+0x1040/0x1190 [btrfs]
+   ? report_bug+0x171/0x1a0
+   ? handle_bug+0x3a/0x70
+   ? exc_invalid_op+0x17/0x70
+   ? asm_exc_invalid_op+0x1a/0x20
+   ? create_pending_snapshot+0x1040/0x1190 [btrfs]
+   ? create_pending_snapshot+0x1040/0x1190 [btrfs]
+   create_pending_snapshots+0x92/0xc0 [btrfs]
+   btrfs_commit_transaction+0x66b/0xf40 [btrfs]
+   btrfs_mksubvol+0x301/0x4d0 [btrfs]
+   btrfs_mksnapshot+0x80/0xb0 [btrfs]
+   __btrfs_ioctl_snap_create+0x1c2/0x1d0 [btrfs]
+   btrfs_ioctl_snap_create_v2+0xc4/0x150 [btrfs]
+   btrfs_ioctl+0x8a6/0x2650 [btrfs]
+   ? kmem_cache_free+0x22/0x340
+   ? do_sys_openat2+0x97/0xe0
+   __x64_sys_ioctl+0x97/0xd0
+   do_syscall_64+0x46/0xf0
+   entry_SYSCALL_64_after_hwframe+0x6e/0x76
+  RIP: 0033:0x7fe20abe83af
+  RSP: 002b:00007ffe6eff1360 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+  RAX: ffffffffffffffda RBX: 0000000000000004 RCX: 00007fe20abe83af
+  RDX: 00007ffe6eff23c0 RSI: 0000000050009417 RDI: 0000000000000003
+  RBP: 0000000000000003 R08: 0000000000000000 R09: 00007fe20ad16cd0
+  R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+  R13: 00007ffe6eff13c0 R14: 00007fe20ad45000 R15: 0000559a120b6d58
+   </TASK>
+  ---[ end trace 0000000000000000 ]---
+  BTRFS: error (device vdc: state A) in create_pending_snapshot:1875: errno=-2 No such entry
+  BTRFS info (device vdc: state EA): forced readonly
+  BTRFS warning (device vdc: state EA): Skipping commit of aborted transaction.
+  BTRFS: error (device vdc: state EA) in cleanup_transaction:2055: errno=-2 No such entry
+
+This happens because create_pending_snapshot() initializes the new root
+item as a copy of the source root item. This includes the refs field,
+which is 0 for a deleted subvolume. The call to btrfs_insert_root()
+therefore inserts a root with refs == 0. btrfs_get_new_fs_root() then
+finds the root and returns -ENOENT if refs == 0, which causes
+create_pending_snapshot() to abort.
+
+Fix it by checking the source root's refs before attempting the
+snapshot, but after locking subvol_sem to avoid racing with deletion.
+
+CC: stable@vger.kernel.org # 4.14+
+Reviewed-by: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Reviewed-by: Anand Jain <anand.jain@oracle.com>
+Signed-off-by: Omar Sandoval <osandov@fb.com>
+Reviewed-by: David Sterba <dsterba@suse.com>
+Signed-off-by: David Sterba <dsterba@suse.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ fs/btrfs/ioctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 3a846b983b28..69e91341fd63 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -790,6 +790,9 @@ static int create_snapshot(struct btrfs_root *root, struct inode *dir,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	if (btrfs_root_refs(&root->root_item) == 0)
++		return -ENOENT;
++
+ 	if (!test_bit(BTRFS_ROOT_SHAREABLE, &root->state))
+ 		return -EINVAL;
+ 
+-- 
+2.43.2
+
+From 6993328a4cd62a24df254b587c0796a4a1eecc95 Mon Sep 17 00:00:00 2001
+From: Lin Ma <linma@zju.edu.cn>
+Date: Sun, 21 Jan 2024 15:35:06 +0800
+Subject: [PATCH 239/347] ksmbd: fix global oob in ksmbd_nl_policy
+Status: RO
+Content-Length: 5591
+Lines: 125
+
+commit ebeae8adf89d9a82359f6659b1663d09beec2faa upstream.
+
+Similar to a reported issue (check the commit b33fb5b801c6 ("net:
+qualcomm: rmnet: fix global oob in rmnet_policy"), my local fuzzer finds
+another global out-of-bounds read for policy ksmbd_nl_policy. See bug
+trace below:
+
+==================================================================
+BUG: KASAN: global-out-of-bounds in validate_nla lib/nlattr.c:386 [inline]
+BUG: KASAN: global-out-of-bounds in __nla_validate_parse+0x24af/0x2750 lib/nlattr.c:600
+Read of size 1 at addr ffffffff8f24b100 by task syz-executor.1/62810
+
+CPU: 0 PID: 62810 Comm: syz-executor.1 Tainted: G                 N 6.1.0 #3
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x8b/0xb3 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x172/0x475 mm/kasan/report.c:395
+ kasan_report+0xbb/0x1c0 mm/kasan/report.c:495
+ validate_nla lib/nlattr.c:386 [inline]
+ __nla_validate_parse+0x24af/0x2750 lib/nlattr.c:600
+ __nla_parse+0x3e/0x50 lib/nlattr.c:697
+ __nlmsg_parse include/net/netlink.h:748 [inline]
+ genl_family_rcv_msg_attrs_parse.constprop.0+0x1b0/0x290 net/netlink/genetlink.c:565
+ genl_family_rcv_msg_doit+0xda/0x330 net/netlink/genetlink.c:734
+ genl_family_rcv_msg net/netlink/genetlink.c:833 [inline]
+ genl_rcv_msg+0x441/0x780 net/netlink/genetlink.c:850
+ netlink_rcv_skb+0x14f/0x410 net/netlink/af_netlink.c:2540
+ genl_rcv+0x24/0x40 net/netlink/genetlink.c:861
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x54e/0x800 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x930/0xe50 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0x154/0x190 net/socket.c:734
+ ____sys_sendmsg+0x6df/0x840 net/socket.c:2482
+ ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+ __sys_sendmsg+0xf3/0x1c0 net/socket.c:2565
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3b/0x90 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fdd66a8f359
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fdd65e00168 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007fdd66bbcf80 RCX: 00007fdd66a8f359
+RDX: 0000000000000000 RSI: 0000000020000500 RDI: 0000000000000003
+RBP: 00007fdd66ada493 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffc84b81aff R14: 00007fdd65e00300 R15: 0000000000022000
+ </TASK>
+
+The buggy address belongs to the variable:
+ ksmbd_nl_policy+0x100/0xa80
+
+The buggy address belongs to the physical page:
+page:0000000034f47940 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1ccc4b
+flags: 0x200000000001000(reserved|node=0|zone=2)
+raw: 0200000000001000 ffffea00073312c8 ffffea00073312c8 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffffffff8f24b000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffffff8f24b080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffffff8f24b100: f9 f9 f9 f9 00 00 f9 f9 f9 f9 f9 f9 00 00 07 f9
+                   ^
+ ffffffff8f24b180: f9 f9 f9 f9 00 05 f9 f9 f9 f9 f9 f9 00 00 00 05
+ ffffffff8f24b200: f9 f9 f9 f9 00 00 03 f9 f9 f9 f9 f9 00 00 04 f9
+==================================================================
+
+To fix it, add a placeholder named __KSMBD_EVENT_MAX and let
+KSMBD_EVENT_MAX to be its original value - 1 according to what other
+netlink families do. Also change two sites that refer the
+KSMBD_EVENT_MAX to correct value.
+
+Cc: stable@vger.kernel.org
+Fixes: 0626e6641f6b ("cifsd: add server handler for central processing and tranport layers")
+Signed-off-by: Lin Ma <linma@zju.edu.cn>
+Acked-by: Namjae Jeon <linkinjeon@kernel.org>
+Signed-off-by: Steve French <stfrench@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ fs/smb/server/ksmbd_netlink.h | 3 ++-
+ fs/smb/server/transport_ipc.c | 4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/fs/smb/server/ksmbd_netlink.h b/fs/smb/server/ksmbd_netlink.h
+index b7521e41402e..0ebf91ffa236 100644
+--- a/fs/smb/server/ksmbd_netlink.h
++++ b/fs/smb/server/ksmbd_netlink.h
+@@ -304,7 +304,8 @@ enum ksmbd_event {
+ 	KSMBD_EVENT_SPNEGO_AUTHEN_REQUEST,
+ 	KSMBD_EVENT_SPNEGO_AUTHEN_RESPONSE	= 15,
+ 
+-	KSMBD_EVENT_MAX
++	__KSMBD_EVENT_MAX,
++	KSMBD_EVENT_MAX = __KSMBD_EVENT_MAX - 1
+ };
+ 
+ /*
+diff --git a/fs/smb/server/transport_ipc.c b/fs/smb/server/transport_ipc.c
+index b49d47bdafc9..f29bb03f0dc4 100644
+--- a/fs/smb/server/transport_ipc.c
++++ b/fs/smb/server/transport_ipc.c
+@@ -74,7 +74,7 @@ static int handle_unsupported_event(struct sk_buff *skb, struct genl_info *info)
+ static int handle_generic_event(struct sk_buff *skb, struct genl_info *info);
+ static int ksmbd_ipc_heartbeat_request(void);
+ 
+-static const struct nla_policy ksmbd_nl_policy[KSMBD_EVENT_MAX] = {
++static const struct nla_policy ksmbd_nl_policy[KSMBD_EVENT_MAX + 1] = {
+ 	[KSMBD_EVENT_UNSPEC] = {
+ 		.len = 0,
+ 	},
+@@ -403,7 +403,7 @@ static int handle_generic_event(struct sk_buff *skb, struct genl_info *info)
+ 		return -EPERM;
+ #endif
+ 
+-	if (type >= KSMBD_EVENT_MAX) {
++	if (type > KSMBD_EVENT_MAX) {
+ 		WARN_ON(1);
+ 		return -EINVAL;
+ 	}
+-- 
+2.43.2
+
+From 2a4c6af7934a7b4c304542c38fee35e09cc1770c Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+Date: Wed, 3 Jan 2024 15:31:07 +0200
+Subject: [PATCH 310/347] drm/bridge: sii902x: Fix probing race issue
+Status: RO
+Content-Length: 4696
+Lines: 122
+
+[ Upstream commit 08ac6f132dd77e40f786d8af51140c96c6d739c9 ]
+
+A null pointer dereference crash has been observed rarely on TI
+platforms using sii9022 bridge:
+
+[   53.271356]  sii902x_get_edid+0x34/0x70 [sii902x]
+[   53.276066]  sii902x_bridge_get_edid+0x14/0x20 [sii902x]
+[   53.281381]  drm_bridge_get_edid+0x20/0x34 [drm]
+[   53.286305]  drm_bridge_connector_get_modes+0x8c/0xcc [drm_kms_helper]
+[   53.292955]  drm_helper_probe_single_connector_modes+0x190/0x538 [drm_kms_helper]
+[   53.300510]  drm_client_modeset_probe+0x1f0/0xbd4 [drm]
+[   53.305958]  __drm_fb_helper_initial_config_and_unlock+0x50/0x510 [drm_kms_helper]
+[   53.313611]  drm_fb_helper_initial_config+0x48/0x58 [drm_kms_helper]
+[   53.320039]  drm_fbdev_dma_client_hotplug+0x84/0xd4 [drm_dma_helper]
+[   53.326401]  drm_client_register+0x5c/0xa0 [drm]
+[   53.331216]  drm_fbdev_dma_setup+0xc8/0x13c [drm_dma_helper]
+[   53.336881]  tidss_probe+0x128/0x264 [tidss]
+[   53.341174]  platform_probe+0x68/0xc4
+[   53.344841]  really_probe+0x188/0x3c4
+[   53.348501]  __driver_probe_device+0x7c/0x16c
+[   53.352854]  driver_probe_device+0x3c/0x10c
+[   53.357033]  __device_attach_driver+0xbc/0x158
+[   53.361472]  bus_for_each_drv+0x88/0xe8
+[   53.365303]  __device_attach+0xa0/0x1b4
+[   53.369135]  device_initial_probe+0x14/0x20
+[   53.373314]  bus_probe_device+0xb0/0xb4
+[   53.377145]  deferred_probe_work_func+0xcc/0x124
+[   53.381757]  process_one_work+0x1f0/0x518
+[   53.385770]  worker_thread+0x1e8/0x3dc
+[   53.389519]  kthread+0x11c/0x120
+[   53.392750]  ret_from_fork+0x10/0x20
+
+The issue here is as follows:
+
+- tidss probes, but is deferred as sii902x is still missing.
+- sii902x starts probing and enters sii902x_init().
+- sii902x calls drm_bridge_add(). Now the sii902x bridge is ready from
+  DRM's perspective.
+- sii902x calls sii902x_audio_codec_init() and
+  platform_device_register_data()
+- The registration of the audio platform device causes probing of the
+  deferred devices.
+- tidss probes, which eventually causes sii902x_bridge_get_edid() to be
+  called.
+- sii902x_bridge_get_edid() tries to use the i2c to read the edid.
+  However, the sii902x driver has not set up the i2c part yet, leading
+  to the crash.
+
+Fix this by moving the drm_bridge_add() to the end of the
+sii902x_init(), which is also at the very end of sii902x_probe().
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+Fixes: 21d808405fe4 ("drm/bridge/sii902x: Fix EDID readback")
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Link: https://lore.kernel.org/r/20240103-si902x-fixes-v1-1-b9fd3e448411@ideasonboard.com
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+Link: https://patchwork.freedesktop.org/patch/msgid/20240103-si902x-fixes-v1-1-b9fd3e448411@ideasonboard.com
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/gpu/drm/bridge/sii902x.c | 29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/gpu/drm/bridge/sii902x.c b/drivers/gpu/drm/bridge/sii902x.c
+index 2bdc5b439beb..69da73e414a9 100644
+--- a/drivers/gpu/drm/bridge/sii902x.c
++++ b/drivers/gpu/drm/bridge/sii902x.c
+@@ -1080,16 +1080,6 @@ static int sii902x_init(struct sii902x *sii902x)
+ 			return ret;
+ 	}
+ 
+-	sii902x->bridge.funcs = &sii902x_bridge_funcs;
+-	sii902x->bridge.of_node = dev->of_node;
+-	sii902x->bridge.timings = &default_sii902x_timings;
+-	sii902x->bridge.ops = DRM_BRIDGE_OP_DETECT | DRM_BRIDGE_OP_EDID;
+-
+-	if (sii902x->i2c->irq > 0)
+-		sii902x->bridge.ops |= DRM_BRIDGE_OP_HPD;
+-
+-	drm_bridge_add(&sii902x->bridge);
+-
+ 	sii902x_audio_codec_init(sii902x, dev);
+ 
+ 	i2c_set_clientdata(sii902x->i2c, sii902x);
+@@ -1102,7 +1092,21 @@ static int sii902x_init(struct sii902x *sii902x)
+ 		return -ENOMEM;
+ 
+ 	sii902x->i2cmux->priv = sii902x;
+-	return i2c_mux_add_adapter(sii902x->i2cmux, 0, 0, 0);
++	ret = i2c_mux_add_adapter(sii902x->i2cmux, 0, 0, 0);
++	if (ret)
++		return ret;
++
++	sii902x->bridge.funcs = &sii902x_bridge_funcs;
++	sii902x->bridge.of_node = dev->of_node;
++	sii902x->bridge.timings = &default_sii902x_timings;
++	sii902x->bridge.ops = DRM_BRIDGE_OP_DETECT | DRM_BRIDGE_OP_EDID;
++
++	if (sii902x->i2c->irq > 0)
++		sii902x->bridge.ops |= DRM_BRIDGE_OP_HPD;
++
++	drm_bridge_add(&sii902x->bridge);
++
++	return 0;
+ }
+ 
+ static int sii902x_probe(struct i2c_client *client)
+@@ -1170,12 +1174,11 @@ static int sii902x_probe(struct i2c_client *client)
+ }
+ 
+ static void sii902x_remove(struct i2c_client *client)
+-
+ {
+ 	struct sii902x *sii902x = i2c_get_clientdata(client);
+ 
+-	i2c_mux_del_adapters(sii902x->i2cmux);
+ 	drm_bridge_remove(&sii902x->bridge);
++	i2c_mux_del_adapters(sii902x->i2cmux);
+ }
+ 
+ static const struct of_device_id sii902x_dt_ids[] = {
 -- 
 2.43.2
 
