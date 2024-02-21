@@ -45,10 +45,15 @@ help() {
 
 cd "${DIR}"/../ || exit 1
 
-for id in cve/published/*/*.sha1 ; do
-	sha=$(cat "${id}")
-	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
-	root=$(echo "${id}" | cut -f 1 -d '.')
+# Get a list of the json files that are modified in some way (not deleted) and
+# only submit those to the system, cutting down on round trips
+files=$(git status -s | grep -v "^ D" | cut -f 2 -d ' ' | grep "\.json$" )
+for file in ${files}; do
+	cve=$(echo "${file}" | cut -f 1 -d '.' | cut -f 4 -d '/')
+	root=$(echo "${file}" | cut -f 1 -d '.' )
+	sha_file="${root}.sha1"
+	sha=$(cat "${sha_file}")
+	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
 	#echo "id=${id} sha=${sha} cve=${cve}"
 	echo "Uploading ${cve} for commit ${sha}"
 	cve -u gregkh@kernel.org -o Linux publish "${cve}" -f "${root}.json"
