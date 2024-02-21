@@ -1,0 +1,20 @@
+8f9abaa6d7de0 powerpc/lib: Validate size for vector operations
+9862ec7ac1cbc FS:JFS:UBSAN:array-index-out-of-bounds in dbAdjTree
+27e56f59bab5d UBSAN: array-index-out-of-bounds in dtSplitRoot
+fa5492ee89463 jfs: fix slab-out-of-bounds Read in dtSearch
+74ecdda68242b jfs: fix array-index-out-of-bounds in dbAdjTree
+e0e1958f4c365 jfs: fix uaf in jfs_evict_inode
+d49270a04623c pstore/ram: Fix crash when setting number of cpus to an odd number
+49f9637aafa6e jfs: fix array-index-out-of-bounds in diNewExt
+31b62908693c9 SUNRPC: Fix a suspicious RCU usage warning
+5d1935ac02ca5 ext4: avoid online resizing failures due to oversized flex bg
+2adc886244dff wifi: ath9k: Fix potential array-index-out-of-bounds read in ath9k_htc_txstatus()
+169410eba271a bpf: Check rcu_read_lock_trace_held() before calling bpf map helpers
+9e4bf6a08d1e1 block/rnbd-srv: Check for unlikely string overflow
+df25461119d98 PCI: switchtec: Fix stdev_release() crash after surprise hot remove
+8d975c15c0cd7 ip6_tunnel: make sure to pull inner header in __ip6_tnl_rcv()
+e622502c310f1 ipmr: fix kernel panic when forwarding mcast packets
+577e4432f3ac8 tcp: add sanity checks to rx zerocopy
+aa2b2eb393485 llc: call sock_orphan() at release time
+f6564fce256a3 mm, kmsan: fix infinite recursion due to RCU critical section
+8059918a1377f netfilter: nft_ct: sanitize layer 3 and 4 protocol number in custom expectations

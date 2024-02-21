@@ -1,0 +1,20 @@
+c9b528c35795b ext4: regenerate buddy after block freeing failed if under fc replay
+7104ba0f1958a phy: ti: phy-omap-usb2: Fix NULL pointer dereference for SRP
+46eba193d04f8 net: stmmac: xgmac: fix handling of DPP safety error for DMA channels
+177fbbcb4ed6b wifi: cfg80211: detect stuck ECSA element in probe resp
+35e2385dbe787 wifi: mac80211: improve CSA/ECSA connection refusal
+ba5e1272142d0 netdevsim: avoid potential loop in nsim_dev_trap_report_work()
+2e7d3b67630df net: atlantic: Fix DMA mapping for PTP hwts ring
+d75abeec401f8 tunnels: fix out of bounds access when building IPv6 PMTU error
+4e440abc89458 hwmon: (coretemp) Fix out-of-bounds memory access
+eef00a82c5689 inet: read sk->sk_family once in inet_recv_error()
+1ad55cecf22f0 x86/efistub: Use 1:1 file:memory mapping for PE/COFF .compat section
+f31041417bf7f rxrpc: Fix generation of serial numbers to skip zero
+e7870cf13d20f rxrpc: Fix delayed ACKs to not set the reference serial number
+3871aa01e1a77 tipc: Check the bearer type before calling tipc_udp_nl_bearer_add()
+1279f9d9dec2d af_unix: Call kfree_skb() for dead unix_(sk)->oob_skb in GC.
+cb88cb53badb8 ppp_async: limit MRU to 64K
+b2dd7b953c25f fs/ntfs3: Fix an NULL dereference bug
+8e46a2d068c92 libceph: just wait for more data to be available on the socket
+8eed4e00a370b x86/lib: Revert to _ASM_EXTABLE_UA() for {get,put}_user() fixups
+60c0c230c6f04 netfilter: nft_set_rbtree: skip end interval element from gc

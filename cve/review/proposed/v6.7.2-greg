@@ -1,0 +1,55 @@
+bd68ffce69f6c powerpc/pseries/memhp: Fix access beyond end of drmem array
+1692cf434ba13 perf/x86/intel/uncore: Fix NULL pointer dereference issue in upi_fill_topology()
+a43bdc376deab mtd: Fix gluebi NULL pointer dereference caused by ftl notifier
+15ef92e9c4112 drivers/thermal/loongson2_thermal: Fix incorrect PTR_ERR() judgment
+bbf5a1d0e5d0f selinux: Fix error priority for bind with AF_UNSPEC on PF_INET6 socket
+67b164a871af1 crypto: af_alg - Disallow multiple in-flight AIO requests
+8fd183435728b crypto: sahara - remove FLAGS_NEW_KEY logic
+9f10bc28c0fb6 crypto: sahara - fix cbc selftest failure
+afffcf3db98b9 crypto: sahara - fix ahash selftest failure
+5b8668ce34528 crypto: sahara - fix processing requests with cryptlen < sg->length
+cabe13d0bd2ef crypto: hisilicon/qm - save capability registers in qm init process
+cf8b5156bbc8c crypto: hisilicon/hpre - save capability registers in probe process
+f1115b0096c31 crypto: hisilicon/sec2 - save capability registers in probe process
+2ff0ad847951d crypto: hisilicon/zip - save capability registers in probe process
+93d6fda7f9264 erofs: fix memory leak on short-lived bounced pages
+8877243beafa7 gfs2: Fix kernel NULL pointer dereference in gfs2_rgrp_dump
+71733b4922007 gfs2: fix kernel BUG in gfs2_quota_cleanup
+d1d6351e37aac crypto: sahara - handle zero-length aes requests
+744e1885922a9 crypto: scomp - fix req->dst buffer overflow
+a10a9233073d9 NFS: Use parent's objective cred in nfs_access_login_time()
+00384f565a91c wifi: rtw88: sdio: Honor the host max_req_size in the RX path
+0acd03a5bd188 bpf: enforce precision of R0 on callback return
+876673364161d bpf: Defer the free of inner map when necessary
+a833a17aeac73 bpf: Fix verification of indirect var-off stack access
+6b4a64bafd107 bpf: Fix accesses to uninit stack slots
+59e5791f59dd8 bpf: Fix a race condition between btf_put() and map_free()
+8b2efe51ba85c bpf: Limit the number of uprobes when attaching program to multiple uprobes
+d6d1e6c17cab2 bpf: Limit the number of kprobes when attaching program to multiple kprobes
+94d0539425440 Bluetooth: btnxpuart: fix recv_buf() return value
+64057f051f20c Bluetooth: btmtkuart: fix recv_buf() return value
+3f14b377d01d8 net/sched: act_ct: fix skb leak and crash on ooo frags
+d375b98e02489 ip6_tunnel: fix NEXTHDR_FRAGMENT handling in ip6_tnl_parse_tlv_enc_lim()
+ded85b0c0edd8 media: pvrusb2: fix use after free on context disconnection
+53edb549565f5 f2fs: fix to avoid dirent corruption
+9a9ab0d963621 binder: fix race between mmput() and do_exit()
+38d20c62903d6 ksmbd: fix UAF issue in ksmbd_tcp_new_connection()
+7bed6f3d08b7a block: Fix iterating over an empty bio with bio_for_each_folio_all
+715d82ba636cb bpf: Fix re-attachment branch in bpf_tracing_prog_attach
+cc6fc55c7ae04 (tag: refs/tags/qcom-arm32-for-6.8-2, refs/remotes/qcom/arm32-for-6.8) ARM: dts: qcom: sdx55: Fix the base address of PCIe PHY
+55a8210c9e7d2 apparmor: avoid crash when parsed profile name is empty
+017dbfc05c312 usb: xhci-mtk: fix a short packet issue of gen1 isoc-in transfer
+66ff70df1a919 mptcp: use OPTION_MPTCP_MPJ_SYN in subflow_check_req()
+482521d8e0c65 udp: annotate data-races around up->pending
+118a8cf504d7d erofs: fix inconsistent per-file compression format
+9181d6f8a2bb3 net: add more sanity check in virtio_net_hdr_to_skb()
+2242fd537fab5 bpf: Avoid iter->offset making backward progress in bpf_iter_udp
+22c7fa171a02d bpf: Reject variable offset alu on PTR_TO_FLOW_KEYS
+36a87385e31c9 LoongArch: BPF: Prevent out-of-bounds memory access
+ea937f7720832 net: netdevsim: don't try to destroy PHC on VFs
+3ce67e3793f48 netfilter: nf_tables: do not allow mismatch field size and set key length
+baa7d536077dc loop: fix the the direct I/O support check when used on top of block devices
+6d6eeabcfaba2 mlxsw: spectrum_acl_erp: Fix error flow of pool allocation failure
+483ae90d8f976 mlxsw: spectrum_acl_tcam: Fix stack corruption
+62bef63646c19 mlxsw: spectrum_router: Register netdevice notifier before nexthop
+2e7ef287f07c7 ipv6: mcast: fix data-race in ipv6_mc_down / mld_ifc_work

@@ -1,0 +1,24 @@
+ba3c557420303 crypto: lib/mpi - Fix unexpected pointer access in mpi_ec_init
+78aafb3884f6b hwrng: core - Fix page fault dead lock on mmap-ed hwrng
+08e23d05fa6dc PM / devfreq: Fix buffer overflow in trans_stat_show
+78fbb92af27d0 nbd: always initialize struct msghdr completely
+f1bb47a31dff6 lsm: new security_file_ioctl_compat() hook
+832dd634bd1b4 arm64: entry: fix ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+d1adb25df7111 mm: migrate: fix getting incorrect page mapping during page migration
+5ec8e8ea8b778 mm/sparsemem: fix race in accessing memory_section->usage
+556857aa1d085 wifi: ath11k: rely on mac80211 debugfs handling for vif
+f546c42826734 btrfs: scrub: avoid use-after-free when chunk length is not 64K aligned
+dbc153fd3c142 net/smc: fix illegal rmb_desc access in SMC-D connection dump
+198bc90e0e734 tcp: make sure init the accept_queue's spinlocks once
+c20f482129a58 bnxt_en: Prevent kernel warning when running offline self test
+dad555c816a50 llc: make llc_ui_sendmsg() more robust against bonding changes
+e3f9bed9bee26 llc: Drop support for ETH_P_TR_802_2.
+d09486a04f5da net: fix removing a namespace with conflicting altnames
+13e788deb7348 net/rds: Fix UBSAN: array-index-out-of-bounds in rds_cmsg_recv
+2b44760609e9e tracing: Ensure visibility when inserting an element into tracing_map
+32f2a0afa95fa net/sched: flower: Fix chain template offload
+c9d9eb9c53d37 netfilter: nft_limit: reject configurations that cause integer overflow
+c5114710c8ce8 xsk: fix usage of multi-buffer BPF helpers for ZC XDP
+7081929ab2572 btrfs: don't abort filesystem when attempting to snapshot deleted subvolume
+ebeae8adf89d9 ksmbd: fix global oob in ksmbd_nl_policy
+08ac6f132dd77 drm/bridge: sii902x: Fix probing race issue
