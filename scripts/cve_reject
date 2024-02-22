@@ -1,0 +1,119 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# cve_reject - Reject a reserved or published CVE entry.
+#
+# Usage:
+#	cve_reject [CVE_ENTRY]
+#
+
+# TODO - make these options that are not hard-coded
+
+KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
+
+# don't use unset variables
+set -o nounset
+
+# set where the tool was run from,
+# the name of our script,
+# and the git version of it
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT=${0##*/}
+SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
+
+help() {
+	echo "${SCRIPT} [CVE_ENTRY]"
+	exit 1
+}
+
+CVE_ENTRY="${1:-}"
+if [[ "${CVE_ENTRY}" == "" ]] ; then
+	help
+fi
+
+
+year_from_cve()
+{
+	local cve=$1
+	local array=(${cve//-/ })
+	local year=${array[1]}
+	echo "${year}"
+}
+
+
+CVE_ROOT="${DIR}/../cve/"
+
+# make sure that this is even a valid CVE for us to handle
+f=$(find "${CVE_ROOT}/" -type f | grep "${CVE_ENTRY}")
+if [[ "${f}" == "" ]]; then
+	echo "No CVE entry found for ${CVE_ENTRY}, are you sure it is correct?"
+	exit 1
+fi
+
+year=$(year_from_cve "${CVE_ENTRY}")
+#echo "year=${year}"
+
+RESERVED_DIR="${CVE_ROOT}reserved/${year}/"
+PUBLISHED_DIR="${CVE_ROOT}published/${year}/"
+REJECTED_DIR="${CVE_ROOT}rejected/${year}/"
+
+# find the files for a published CVE
+files=()
+f=$(find "${CVE_ROOT}/published" -type f | grep "${CVE_ENTRY}")
+if [[ "$f" != "" ]]; then
+	# found something, let's figure out if we have enough
+	for entry in ${f}; do
+		files+=(${entry})
+	done
+	#echo "files found = ${#files[@]}"
+	if [[ "${#files[@]}" != "4" ]]; then
+		echo "The number of files found is ${#files[@]}, when is should be 4, what is going on?"
+		echo "files are:"
+		for entry in "${files[@]}"; do
+			echo "	${entry}"
+			done
+		echo "Exiting, please fix up!"
+		exit 1
+	fi
+
+	# let's move all the files to the reserved directory for this year
+	mkdir "${REJECTED_DIR}" 2> /dev/null
+	for entry in "${files[@]}"; do
+		mv --force "${entry}" "${REJECTED_DIR}"
+	done
+
+	# Compose an email to send out, and set the "In-Reply-To:" field properly
+	rejected_mbox="${REJECTED_DIR}/${CVE_ENTRY}.mbox.rejected"
+	message_id=$(cat "${REJECTED_DIR}"/"${CVE_ENTRY}".mbox | grep "^Message-Id:" | awk '{print $2}')
+	subject=$(cat "${REJECTED_DIR}"/"${CVE_ENTRY}".mbox | grep "^Subject:" | sed -e 's/^Subject://')
+	cat << EOF > "${rejected_mbox}"
+${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: <linux-cve-announce@vger.kernel.org>
+Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: REJECTED:${subject}
+In-Reply-To: ${message_id}
+
+
+${CVE_ENTRY} has now been rejected and is no longer a valid CVE.
+
+EOF
+	echo "Rejected message is at ${rejected_mbox}"
+	echo "To send it, please run"
+	echo "	git send-email ${rejected_mbox}"
+	echo ""
+
+else
+	# Let's look in the reserved section
+	# FIXME: not done yet.
+	echo "FIXME!  ${CVE_ENTRY} not found in the published area, is it somewhere else?"
+	echo "the file ${f} seemed to match???"
+	exit 1
+fi
+
+echo "To reject the CVE with cve.org, please run:"
+echo "	cve -u gregkh@kernel.org -o Linux reject \"${CVE_ENTRY}\""
+
+exit

@@ -24,6 +24,9 @@ _help:
 @cve_publish_mbox:
 	scripts/cve_publish_mbox
 
+# Reject a published/reserved CVE
+@cve_reject CVE_ID:
+	scripts/cve_reject {{CVE_ID}}
 
 # Query the CVE server for the list of all ids assigned to us
 @list_ids:
