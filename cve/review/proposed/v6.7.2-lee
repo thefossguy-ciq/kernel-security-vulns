@@ -1,0 +1,75 @@
+475c58e1a471e EDAC/thunderx: Fix possible out-of-bounds string access
+bd68ffce69f6c powerpc/pseries/memhp: Fix access beyond end of drmem array
+1692cf434ba13 perf/x86/intel/uncore: Fix NULL pointer dereference issue in upi_fill_topology()
+0e8d2444168dd efivarfs: force RO when remounting if SetVariable is not supported
+04e6ccfc93c5a thermal: core: Fix NULL pointer dereference in zone registration error path
+34dfd5bb2e550 kunit: debugfs: Fix unchecked dereference in debugfs_print_results()
+1557e89d3af51 kunit: debugfs: Handle errors from alloc_string_stream()
+a43bdc376deab mtd: Fix gluebi NULL pointer dereference caused by ftl notifier
+15ef92e9c4112 drivers/thermal/loongson2_thermal: Fix incorrect PTR_ERR() judgment
+d872ca165cb67 crypto: rsa - add a check for allocation failure
+6627f03c21cb7 crypto: qat - fix error path in add_update_sla()
+a643212c9f28d crypto: qat - add NULL pointer check
+8877243beafa7 gfs2: Fix kernel NULL pointer dereference in gfs2_rgrp_dump
+744e1885922a9 crypto: scomp - fix req->dst buffer overflow
+00384f565a91c wifi: rtw88: sdio: Honor the host max_req_size in the RX path
+20c20bd11a070 bpf: Add map and need_defer parameters to .map_fd_put_ptr()
+876673364161d bpf: Defer the free of inner map when necessary
+ab125ed3ec1c1 bpf: fix check for attempt to corrupt spilled pointer
+706e83b33103f wifi: mt76: mt7996: fix uninitialized variable in parsing txfree
+8dd10296be856 scsi: hisi_sas: Check before using pointer variables
+59e5791f59dd8 bpf: Fix a race condition between btf_put() and map_free()
+cb2dfacb197be wifi: iwlwifi: fix out of bound copy_from_user
+3027e7b15b02d ice: Fix some null pointer dereference issues in ice_ptp.c
+3f14b377d01d8 net/sched: act_ct: fix skb leak and crash on ooo frags
+d375b98e02489 ip6_tunnel: fix NEXTHDR_FRAGMENT handling in ip6_tnl_parse_tlv_enc_lim()
+ca34d816558c3 Revert "drm/tidss: Annotate dma-fence critical section in commit path"
+9d7c8c066916f Revert "drm/omapdrm: Annotate dma-fence critical section in commit path"
+ded85b0c0edd8 media: pvrusb2: fix use after free on context disconnection
+2bbe6ab2be538 drm/sched: Fix bounds limiting when given a malformed entity
+53edb549565f5 f2fs: fix to avoid dirent corruption
+b719a9c15d52d drm/amd/display: Fix NULL pointer dereference at hibernate
+3de6ee94aae70 media: v4l: async: Fix duplicated list deletion
+7a2464fac80d4 drm/radeon: check the alloc_workqueue return value in radeon_crtc_init()
+28dd788382c43 drivers/amd/pm: fix a use-after-free in kv_parse_power_table
+a9f07790a4b22 accel/habanalabs: fix information leak in sec_attest_info()
+93ec4a3b76404 class: fix use-after-free in class_register()
+0f35b0a7b8fa4 Revert "drm/amdkfd: Relocate TBA/TMA to opposite side of VM hole"
+9a9ab0d963621 binder: fix race between mmput() and do_exit()
+38d20c62903d6 ksmbd: fix UAF issue in ksmbd_tcp_new_connection()
+6f64f866aa1ae block: add check that partition length needs to be aligned with block size
+7bed6f3d08b7a block: Fix iterating over an empty bio with bio_for_each_folio_all
+a297d07b9a1e4 pwm: Fix out-of-bounds access in of_pwm_single_xlate()
+715d82ba636cb bpf: Fix re-attachment branch in bpf_tracing_prog_attach
+cc6fc55c7ae04 (tag: refs/tags/qcom-arm32-for-6.8-2, refs/remotes/qcom/arm32-for-6.8) ARM: dts: qcom: sdx55: Fix the base address of PCIe PHY
+ad362fe07fecf KVM: arm64: vgic-its: Avoid potential UAF in LPI translation cache
+a25a7df518fc7 iio: adc: ad7091r: Pass iio_dev to event handler
+41673c66b3d0c mfd: syscon: Fix null pointer dereference in of_syscon_register()
+89c4b588d11e9 MIPS: Alchemy: Fix an out-of-bound access in db1200_dev_setup()
+3c1e5abcda64b MIPS: Alchemy: Fix an out-of-bound access in db1550_dev_setup()
+6b4a64bafd107 bpf: Fix accesses to uninit stack slots
+b55d073e6501d power: supply: bq256xx: fix some problem in bq256xx_hw_init
+3171e46d677a6 PCI: Avoid potential out-of-bounds read in pci_dev_for_each_resource()
+ad90d0358bd3b serial: 8250: omap: Don't skip resource freeing if pm_runtime_resume_and_get() failed
+f9c4289883038 staging: vc04_services: vchiq_core: Log through struct vchiq_instance
+78d60dae9a0c9 serial: imx: fix tx statemachine deadlock
+79eba8c924f7d selftests/sgx: Fix uninitialized pointer dereference in error path
+b84fc2e0139ba selftests/sgx: Fix uninitialized pointer dereferences in encl_get_entry
+bb57f6705960b iommu: Don't reserve 0-length IOVA region
+88f04bc3e7371 power: supply: Fix null pointer dereference in smb2_probe
+efa56305908ba nvmet-tcp: Fix a kernel panic when host sends an invalid H2C PDU length
+0849a5441358c nvmet-tcp: fix a crash in nvmet_req_complete()
+9c51f8788b5d4 perf env: Avoid recursively taking env->bpf_progs.lock
+55a8210c9e7d2 apparmor: avoid crash when parsed profile name is empty
+1e24ce402c97d perf db-export: Fix missing reference count get in call_path_from_sample()
+be12ad45e15b5 hisi_acc_vfio_pci: Update migration data pointer correctly on saving/resume
+b33fb5b801c6d net: qualcomm: rmnet: fix global oob in rmnet_policy
+844f104790bd6 net: dsa: fix netdev_priv() dereference before check on non-DSA netdevice events
+118a8cf504d7d erofs: fix inconsistent per-file compression format
+22c7fa171a02d bpf: Reject variable offset alu on PTR_TO_FLOW_KEYS
+36a87385e31c9 LoongArch: BPF: Prevent out-of-bounds memory access
+ea937f7720832 net: netdevsim: don't try to destroy PHC on VFs
+4f41d30cd6dc8 kdb: Fix a potential buffer overflow in kdb_local()
+efeb7dfea8ee1 mlxsw: spectrum_acl_tcam: Fix NULL pointer dereference in error path
+483ae90d8f976 mlxsw: spectrum_acl_tcam: Fix stack corruption
+2e7ef287f07c7 ipv6: mcast: fix data-race in ipv6_mc_down / mld_ifc_work
