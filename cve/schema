@@ -63,5 +63,4 @@ Rejected
 
 Ids become "rejected" when they are not deemed to be actual issues.  When
 rejected, any previously published information shall move to the rejected/
-directory, and the json file will be updated with the needed information to be
-submitted to CVE for publication.
+directory, and the CVE will be submitted to cve.org to be rejected.
