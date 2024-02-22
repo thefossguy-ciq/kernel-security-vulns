@@ -1,0 +1,170 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright 2024 Google LLC
+#
+# Author: Lee Jones <lee@kernel.org>
+#
+# Usage
+#   voting_results [ v6.7.1..v6.7.2 ]
+#
+# * Conducts 3 way voting system between the present reviewers
+#   - If reviewers change, future work will involve making this more generic
+#
+# Requires:
+#  * Remember to change the user-specific variables a few lines down
+#  * Expected to be executed from inside a kernel Git repository
+
+# set -x                       # Uncomment to enable debugging
+set -e                         # Exit on any error
+
+# -------   ACTION REQUIRED   -------
+# Change these to suit your own setup
+STABLEREMOTE=stable     # Whatever you called your Stable remote
+
+print_red()
+{
+    echo -e "\e[01;31m$@\e[0m"
+}
+
+print_blue()
+{
+    echo -e "\e[01;34m$@\e[0m"
+}
+
+while [ $# -gt 0 ]; do
+    case $1 in
+        *..*)
+            RANGE=${1}
+            ;;
+        *)
+            print_red "Unrecognised argument: ${1}"
+            usage
+            ;;
+    esac
+    shift
+done
+
+if [ "${RANGE}" == "" ]; then
+    print_red "Please supply a Git range (e.g v6.7.1..v6.7.2)"
+    exit
+fi
+
+if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
+    print_red "Not in a kernel directory"
+    exit 1
+fi
+
+print_blue "Fetching from ${STABLEREMOTE}"
+git fetch ${STABLEREMOTE}
+
+TOP=${RANGE#*..}
+BOTTOM=${RANGE%..*}
+SCRIPTDIR=$(dirname ${0})
+PROPOSED=${SCRIPTDIR}/../cve/review/proposed
+FILES=$(ls ${PROPOSED} | grep "${TOP}" | grep "lee$\|sasha$\|greg$")
+
+ALL=()
+GREGLEE=()
+GREGSASHA=()
+LEESASHA=()
+GREG=()
+LEE=()
+SASHA=()
+
+for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
+    mainlinelongsha=$(git --no-pager log -n1 ${stablesha} | grep -i upstream | grep -oE "[a-f0-9]{40,}") || true
+
+    # If the commit does not contain a Mainline SHA, we'll assume it's Stable only
+    if [ "${mainlinesha}" == "" ]; then
+        mainlinesha=${stablesha}
+    fi
+
+    oneline=$(git --no-pager log --format="%h %s" -n1 ${mainlinelongsha})
+    subject=$(echo ${oneline} | cut -d' ' -f 2-)
+    mainlinesha=$(echo ${oneline} | cut -d' ' -f 1)
+    greg=0; lee=0; sasha=0; votes=0
+
+    for f in ${FILES}; do
+        USER=${f#*-}
+
+        if grep -qF "${subject}" ${PROPOSED}/${f}; then
+            case ${USER} in
+                greg)
+                    greg=1
+                    ;;
+                lee)
+                    lee=1
+                    ;;
+                sasha)
+                    sasha=1
+                    ;;
+                *)
+                    echo "Unexpected user"
+                    exit 1
+            esac
+            votes=$((votes + 1))
+        fi
+    done
+
+    if [ ${votes} == 0 ]; then
+        continue
+    fi
+
+    if [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
+        ALL+=("${oneline}")
+    elif [ ${greg} == 1 -a ${lee} == 1 ]; then
+        GREGLEE+=("${oneline}")
+    elif [ ${greg} == 1 -a ${sasha} == 1 ]; then
+        GREGSASHA+=("${oneline}")
+    elif [ ${lee} == 1 -a ${sasha} == 1 ]; then
+        LEESASHA+=("${oneline}")
+    elif [ ${greg} == 1 ]; then
+        GREG+=("${oneline}")
+    elif [ ${lee} == 1 ]; then
+        LEE+=("${oneline}")
+    elif [ ${sasha} == 1 ]; then
+        SASHA+=("${oneline}")
+    fi
+
+    echo "${oneline}"
+    echo -e "Greg:\t${greg}"
+    echo -e "Lee:\t${lee}"
+    echo -e "Sasha:\t${sasha}"
+done
+
+print_blue "\nEveryone agrees"
+for c in "${ALL[@]}"; do
+    echo "  ${c}"
+done
+
+print_blue "\nGreg and Lee agree"
+for c in "${GREGLEE[@]}"; do
+    echo "  ${c}"
+done
+
+print_blue "\nGreg and Sasha agree"
+for c in "${GREGSASHA[@]}"; do
+    echo "  ${c}"
+done
+
+print_blue "\nLee and Sasha agree"
+for c in "${LEESASHA[@]}"; do
+    echo "  ${c}"
+done
+
+print_blue "\nGreg only"
+for c in "${GREG[@]}"; do
+    echo "  ${c}"
+done
+
+print_blue "\nLee only"
+for c in "${LEE[@]}"; do
+    echo "  ${c}"
+done
+
+print_blue "\nSasha only"
+for c in "${SASHA[@]}"; do
+    echo "  ${c}"
+done
+
