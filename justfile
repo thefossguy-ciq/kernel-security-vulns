@@ -7,22 +7,22 @@ _help:
 
 # Create a CVE for a specific Linux kernel git commit id
 @cve_create GIT_ID:
-	cd {{invocation_directory()}}; scripts/cve_create {{GIT_ID}}
+	scripts/cve_create {{GIT_ID}}
 
 
 # Update all allocated CVE entries with the latest version information
 @cve_update:
-	cd {{invocation_directory()}}; scripts/cve_update
+	scripts/cve_update
 
 
 # Publish all modified .json files with the CVE server
 @cve_publish_json:
-	cd {{invocation_directory()}}; scripts/cve_publish_json
+	scripts/cve_publish_json
 
 
 # Publish all modified .mbox messages with git-send-email
 @cve_publish_mbox:
-	cd {{invocation_directory()}}; scripts/cve_publish_mbox
+	scripts/cve_publish_mbox
 
 
 # Query the CVE server for the list of all ids assigned to us
