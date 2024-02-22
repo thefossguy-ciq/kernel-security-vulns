@@ -1,0 +1,55 @@
+d872ca165cb6 crypto: rsa - add a check for allocation failure
+3171e46d677a PCI: Avoid potential out-of-bounds read in pci_dev_for_each_resource()
+ded85b0c0edd media: pvrusb2: fix use after free on context disconnection
+d8212c5c87c1 media: mtk-jpeg: Remove cancel worker in mtk_jpeg_remove to avoid the crash of multi-core JPEG devices
+475c58e1a471 EDAC/thunderx: Fix possible out-of-bounds string access
+ad90d0358bd3 serial: 8250: omap: Don't skip resource freeing if pm_runtime_resume_and_get() failed
+2bbe6ab2be53 drm/sched: Fix bounds limiting when given a malformed entity
+53edb549565f f2fs: fix to avoid dirent corruption
+1692cf434ba1 perf/x86/intel/uncore: Fix NULL pointer dereference issue in upi_fill_topology()
+b719a9c15d52 drm/amd/display: Fix NULL pointer dereference at hibernate
+bd68ffce69f6 powerpc/pseries/memhp: Fix access beyond end of drmem array
+3de6ee94aae7 media: v4l: async: Fix duplicated list deletion
+876673364161 bpf: Defer the free of inner map when necessary
+ab125ed3ec1c bpf: fix check for attempt to corrupt spilled pointer
+7a2464fac80d drm/radeon: check the alloc_workqueue return value in radeon_crtc_init()
+41673c66b3d0 mfd: syscon: Fix null pointer dereference in of_syscon_register()
+78d60dae9a0c serial: imx: fix tx statemachine deadlock
+6b4a64bafd10 bpf: Fix accesses to uninit stack slots
+0e8d2444168d efivarfs: force RO when remounting if SetVariable is not supported
+a2dd235df435 media: dvbdev: drop refcount on error path in dvb_device_open()
+6f64f866aa1a block: add check that partition length needs to be aligned with block size
+28dd788382c4 drivers/amd/pm: fix a use-after-free in kv_parse_power_table
+59e5791f59dd bpf: Fix a race condition between btf_put() and map_free()
+f200fff8d019 spmi: mtk-pmif: Serialize PMIF status check and command submission
+04e6ccfc93c5 thermal: core: Fix NULL pointer dereference in zone registration error path
+86d7d57a3f09 f2fs: fix to check return value of f2fs_recover_xattr_data
+8877243beafa gfs2: Fix kernel NULL pointer dereference in gfs2_rgrp_dump
+bb57f6705960 iommu: Don't reserve 0-length IOVA region
+08e4c8c5919f netfilter: nf_tables: mark newset as dead on transaction abort
+a43bdc376dea mtd: Fix gluebi NULL pointer dereference caused by ftl notifier
+da9065caa594 Bluetooth: Fix atomicity violation in {min,max}_key_size_set
+88f04bc3e737 power: supply: Fix null pointer dereference in smb2_probe
+3027e7b15b02 ice: Fix some null pointer dereference issues in ice_ptp.c
+efa56305908b nvmet-tcp: Fix a kernel panic when host sends an invalid H2C PDU length
+9c51f8788b5d perf env: Avoid recursively taking env->bpf_progs.lock
+16b2f264983d bpf: sockmap, fix proto update hook to avoid dup calls
+55a8210c9e7d apparmor: avoid crash when parsed profile name is empty
+93ec4a3b7640 class: fix use-after-free in class_register()
+ad362fe07fec KVM: arm64: vgic-its: Avoid potential UAF in LPI translation cache
+1e24ce402c97 perf db-export: Fix missing reference count get in call_path_from_sample()
+715d82ba636c bpf: Fix re-attachment branch in bpf_tracing_prog_attach
+2dd23cc4d0e6 usb: mon: Fix atomicity violation in mon_bin_vma_fault
+be12ad45e15b hisi_acc_vfio_pci: Update migration data pointer correctly on saving/resume
+c12ca110c613 PCI: keystone: Fix race condition when initializing PHYs
+b33fb5b801c6 net: qualcomm: rmnet: fix global oob in rmnet_policy
+844f104790bd net: dsa: fix netdev_priv() dereference before check on non-DSA netdevice events
+a297d07b9a1e pwm: Fix out-of-bounds access in of_pwm_single_xlate()
+118a8cf504d7 erofs: fix inconsistent per-file compression format
+38d20c62903d ksmbd: fix UAF issue in ksmbd_tcp_new_connection()
+22c7fa171a02 bpf: Reject variable offset alu on PTR_TO_FLOW_KEYS
+36a87385e31c LoongArch: BPF: Prevent out-of-bounds memory access
+ea937f772083 net: netdevsim: don't try to destroy PHC on VFs
+b7c510d04904 arm64/ptrace: Don't flush ZA/ZT storage when writing ZA via ptrace
+efeb7dfea8ee mlxsw: spectrum_acl_tcam: Fix NULL pointer dereference in error path
+483ae90d8f97 mlxsw: spectrum_acl_tcam: Fix stack corruption

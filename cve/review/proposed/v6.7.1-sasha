@@ -1,0 +1,2 @@
+3f489c2067c5 binder: fix use-after-free in shinker's callback
+0c9ae0b86050 uio: Fix use-after-free in uio_open
