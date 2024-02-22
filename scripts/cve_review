@@ -1,0 +1,176 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright 2024 Google LLC
+#
+# Author: Lee Jones <lee@kernel.org>
+#
+# Usage
+#   cve_review v6.7.1..v6.7.2
+#
+# * Highlights key words often used to make sane judgements
+# * Provides an on-going progress report in the form "x of y (z%)"
+# * Presents commit on a clean terminal without clipping scroll-back
+# * Tracks progress of reviews and will skip commits already processed
+#   - Progress is tracked in <VULNS>/tmp/cve-review (which Git ignores)
+# * Clips commits to a little less than the size of your terminal
+#   - This ensures that commit message is always visible
+#   - The remainder of the commit message can be seen by pressing 'M'
+#
+# Requires:
+#  * Expected to be executed from inside a kernel Git repository
+
+# set -x                         # Uncomment to enable debugging
+set -e                          # Exit on any error
+
+# Change these to suit your own setup
+NAME="lee"              # Your name here
+STABLEREMOTE=stable     # Whatever you called your Stable remote
+
+function usage()
+{
+    echo "Usage: $(basename ${0}) {rangebottom..rangetop}"
+    exit 1
+}
+
+print_red()
+{
+    echo -e "\e[01;31m$@\e[0m"
+}
+
+print_blue()
+{
+    echo -e "\e[01;34m$@\e[0m"
+}
+
+while [ $# -gt 0 ]; do
+    case $1 in
+        *..*)
+            RANGE=${1}
+            ;;
+        *)
+            print_red "Unrecognised argument: ${1}"
+            usage
+            ;;
+    esac
+    shift
+done
+
+if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
+    print_red "Not in a kernel directory"
+    exit 1
+fi
+
+git fetch ${STABLEREMOTE}
+
+SHAS=$(git log --reverse --format=%h ${RANGE})
+NOSHAS=$(echo ${SHAS} | wc -w)
+if [ ${#SHAS[@]} -le 0 ]; then
+    print_red "No commits to review"
+    exit 0
+fi
+
+TAG=${RANGE#*..}
+SCRIPTDIR=$(dirname ${0})
+FINALDIR=${SCRIPTDIR}/../cve/review/proposed
+WORKDIR=${SCRIPTDIR}/../tmp/cve-review
+PROCESSEDDIR=${WORKDIR}/processed
+RESULTSDIR=${WORKDIR}/results
+PROCESSEDFILE=${PROCESSEDDIR}/${TAG}
+CVEME=${RESULTSDIR}/${TAG}-${NAME}
+CLIPCOMMITTO=$(($(tput lines) - 10))
+
+mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
+
+print_blue "Reviewing ${NOSHAS} commits"
+count=0
+
+for h in ${SHAS}; do
+    oneline=$(git --no-pager log ${h} -n1 --format="%h %s")
+    subject=$(echo ${oneline} | cut -d' ' -f 2-)
+    count=$((count + 1))
+    percentage=$(echo "scale=4; (${count}/${NOSHAS})*100" | bc | awk '{printf "%.2f\n", $0}')
+
+    if grep -q -s -F "${oneline}" ${PROCESSEDFILE}; then
+        print_blue "Skipping already processed commit: ${oneline}"
+        continue
+    fi
+
+    # Shift the screen up without loosing scroll-back
+    for l in $(seq 1 $(tput lines)); do
+        printf '\n';
+    done
+    clear
+
+    print_blue "Processing ${TAG} fix: ${count} of ${NOSHAS} (%${percentage})"
+
+    print_blue "\nSummary:\n"
+
+    MATCHES="use[-\s_]*after|after[-\s_]*free|\
+dereference|null|deref|\
+dead|[-\s_]lock|\
+under[-\s_]*run|under[-\s_]*flow|\
+over[-\s_]*run|over[-\s_]*flow|\
+race|racing|\
+bound|bounds|\
+corrupt|\
+crash|\
+denial|\
+dos|\
+fault|\
+oob|\
+panic|\
+uaf\
+"
+    commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
+    commitfile=$(mktemp /tmp/cve-review-XXXXX)
+
+    git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
+
+    cat ${commitmsgfile} | grep -C99999 --color=always -Pi "${MATCHES}" > ${commitfile} || true
+
+    if [ ! -s ${commitfile} ]; then
+         cat ${commitmsgfile} > ${commitfile}
+    fi
+
+    git --no-pager log -p --format="" --color=always -n1 ${h} >> ${commitfile}
+    commitlen=$(cat ${commitfile} | wc -l)
+
+    if [ ${commitlen} -gt ${CLIPCOMMITTO} ]; then
+        head -n ${CLIPCOMMITTO} ${commitfile}
+        print_blue "\nCommit has been clipped, press M to see the remainder"
+    else
+        cat ${commitfile}
+        print_blue "\nCommit not clipped"
+    fi
+
+    print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
+    echo -n "> "
+    read CHOICE
+
+    if [[ "${CHOICE}" == "m" || "${CHOICE}" == "M" ]]; then
+        echo
+        tail -n $((commitlen - ${CLIPCOMMITTO})) ${commitfile}
+
+        print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
+        echo -n "> "
+        read CHOICE
+    fi
+
+    if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" ]]; then
+        mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}")
+        git --no-pager log --oneline -n1 ${mainlinesha} >> ${CVEME}
+    fi
+
+    rm -f ${commitmsgfile}
+    rm -f ${commitfile}
+
+    if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
+        print_blue "Exiting"
+        exit 0
+    fi
+
+    echo ${oneline} >> ${PROCESSEDFILE}
+done
+
+cp ${CVEME} ${FINALDIR}
