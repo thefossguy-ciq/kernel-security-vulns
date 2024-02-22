@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+use Mail::Box::Manager;
+
+my $mgr = Mail::Box::Manager->new;
+my $folder = $mgr->open(folder => $ARGV[0], type => 'Mail::Box::Mbox', access => 'rw');
+my $msg = $folder->message(0);
+my Mail::Message::Head $head = $msg->head;
+
+my $subject = $head->get('Subject');
+#print "subject = '$subject'\n";
+
+my $user = `whoami`;
+chomp($user);
+#print "user = $user\n";
+
+my @subject_array = split(": ", "$subject");
+#foreach my $cve_split (@subject_array) {
+#	print "cve_split = '$cve_split'\n";
+#}
+
+my $cve=$subject_array[0];
+#print "cve = '$cve'\n";
+
+my $rand=`openssl rand -hex 2`;
+chomp($rand);
+
+my $date=`date +%Y%m%d%S`;
+chomp($date);
+
+my $msg_id = "$date-$cve-$rand\@$user";
+
+#my $msg_id = `/home/gregkh/bin/make_message_id`;
+
+print "msg id = $msg_id\n";
+print $head;
+print $head->get('Message-Id'), "\n";
+
+$head->delete('Message-Id');
+$head->add("Message-Id: <${msg_id}>");
+print $head;
+$folder->close;
+
+`patatt sign --hook "${ARGV[0]}"`
+
