@@ -51,3 +51,10 @@ summary:
 		echo "	${dir}:	${count}"
 	done
 
+	cd ../../cve/rejected
+	echo "Number of rejected CVE ids, by year:"
+	for dir in $(ls); do
+		count=$(find ${dir}/ -type f | grep "sha1" | wc -l)
+		echo "	${dir}:	${count}"
+	done
+
