@@ -1,0 +1,15 @@
+c9b528c35795b ext4: regenerate buddy after block freeing failed if under fc replay
+7104ba0f1958a phy: ti: phy-omap-usb2: Fix NULL pointer dereference for SRP
+7f3d03c48b1eb drm/msm/dpu: check for valid hw_pp in dpu_encoder_helper_phys_cleanup
+9480adfe4e0f0 wifi: mac80211: fix RCU use in TDLS fast-xmit
+d75abeec401f8 tunnels: fix out of bounds access when building IPv6 PMTU error
+4e440abc89458 hwmon: (coretemp) Fix out-of-bounds memory access
+3871aa01e1a77 tipc: Check the bearer type before calling tipc_udp_nl_bearer_add()
+e96fddb32931d drm/amd/display: Fix 'panel_cntl' could be null in 'dcn21_set_backlight_level()'
+66951d98d9bf4 drm/amd/display: Add NULL test for 'timing generator' in 'dcn21_set_pipe()'
+58fca355ad37d drm/amd/display: Implement bounds check for stream encoder creation in DCN301
+b2dd7b953c25f fs/ntfs3: Fix an NULL dereference bug
+2a427b49d0299 blk-iocost: Fix an UBSAN shift-out-of-bounds warning
+7c4650ded49e5 xhci: handle isoc Babble and Buffer Overrun events properly
+1e560864159d0 PCI/ASPM: Fix deadlock when enabling ASPM
+2acc59dd88d27 bcachefs: grab s_umount only if snapshotting
