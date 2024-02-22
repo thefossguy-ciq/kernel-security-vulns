@@ -89,7 +89,7 @@ if [[ "$f" != "" ]]; then
 	message_id=$(cat "${REJECTED_DIR}"/"${CVE_ENTRY}".mbox | grep "^Message-Id:" | awk '{print $2}')
 	subject=$(cat "${REJECTED_DIR}"/"${CVE_ENTRY}".mbox | grep "^Subject:" | sed -e 's/^Subject://')
 	cat << EOF > "${rejected_mbox}"
-${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
+From ${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
@@ -114,6 +114,6 @@ else
 fi
 
 echo "To reject the CVE with cve.org, please run:"
-echo "	cve -u gregkh@kernel.org -o Linux reject \"${CVE_ENTRY}\""
+echo "	cve -u gregkh@kernel.org -o Linux reject ${CVE_ENTRY} -j '{\"rejectedReasons\": [{\"lang\": \"en\", \"value\": \"This CVE ID has been rejected or withdrawn by its CVE Numbering Authority.\"}]}'"
 
 exit
