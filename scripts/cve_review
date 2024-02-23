@@ -107,6 +107,8 @@ for h in ${SHAS}; do
     print_blue "\nSummary:\n"
 
     MATCHES="use[-\s_]*after|after[-\s_]*free|\
+call[-\s_]trace|\
+kernel[-\s_]bug|\
 dereference|null|deref|\
 dead|[-\s_]lock|\
 under[-\s_]*run|under[-\s_]*flow|\
@@ -120,6 +122,10 @@ dos|\
 fault|\
 oob|\
 panic|\
+leak|\
+syzkaller|\
+syzbot|\
+oops|\
 uaf\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
