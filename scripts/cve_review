@@ -131,10 +131,10 @@ for h in ${SHAS[@]}; do
     print_blue "\nSummary:\n"
 
     MATCHES="use[-\s_]*after|after[-\s_]*free|\
-call[-\s_]trace|\
-kernel[-\s_]bug|\
+call[-\s_]*trace|\
+kernel[-\s_]*bug|\
 dereference|null|deref|\
-dead|[-\s_]lock|\
+dead|[-\s_]*lock|\
 under[-\s_]*run|under[-\s_]*flow|\
 over[-\s_]*run|over[-\s_]*flow|\
 race|racing|\
