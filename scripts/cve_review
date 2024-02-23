@@ -19,11 +19,13 @@
 #   - The remainder of the commit message can be seen by pressing 'M'
 #
 # Requires:
+#  * Remember to change the user-specific variables a few lines down
 #  * Expected to be executed from inside a kernel Git repository
 
-# set -x                         # Uncomment to enable debugging
+# set -x                        # Uncomment to enable debugging
 set -e                          # Exit on any error
 
+# -------   ACTION REQUIRED   -------
 # Change these to suit your own setup
 STABLEREMOTE=stable     # Whatever you called your Stable remote
 
@@ -69,6 +71,7 @@ fi
 
 NAME=$(whoami)
 
+print_blue "Fetching from ${STABLEREMOTE}"
 git fetch ${STABLEREMOTE}
 
 if [ -s "${FILE}" ]; then
