@@ -24,7 +24,6 @@
 set -e                          # Exit on any error
 
 # Change these to suit your own setup
-NAME="lee"              # Your name here
 STABLEREMOTE=stable     # Whatever you called your Stable remote
 
 function usage()
@@ -60,6 +59,8 @@ if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
     print_red "Not in a kernel directory"
     exit 1
 fi
+
+NAME=$(whoami)
 
 git fetch ${STABLEREMOTE}
 
