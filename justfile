@@ -6,7 +6,7 @@ _help:
 
 # Search for a specific git id in the list of published CVE ids
 @cve_search GIT_ID:
-	scripts/cve_search {{GIT_ID}}
+	-scripts/cve_search {{GIT_ID}}
 
 
 # Create a CVE for a specific Linux kernel git commit id
