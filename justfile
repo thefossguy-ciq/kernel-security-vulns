@@ -11,7 +11,7 @@ _help:
 
 # Create a CVE for a specific Linux kernel git commit id
 @cve_create GIT_ID:
-	scripts/cve_create {{GIT_ID}}
+	-scripts/cve_create {{GIT_ID}}
 
 
 # Update all allocated CVE entries with the latest version information

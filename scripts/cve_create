@@ -25,6 +25,7 @@
 KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
 
 # Colors are good!
+txtred=$(tput setaf 1)		# Red
 txtgrn=$(tput setaf 2)		# Green
 txtblu=$(tput setaf 4)		# Blue
 txtcyn=$(tput setaf 6)		# Cyan
@@ -72,9 +73,11 @@ RESERVED_DIR="${CVE_ROOT}reserved/${YEAR}/"
 PUBLISHED_DIR="${CVE_ROOT}published/${YEAR}/"
 
 # make sure we haven't allocated a CVE already for this id
-found=$(grep -r -l "${GIT_SHA_FULL}" "${CVE_ROOT}"/published/)
-if [[ "${found}" != "" ]]; then
-	echo "The git id ${GIT_SHA_FULL} is already assigned a cve, look in ${found} for details"
+found=$(${DIR}/cve_search ${GIT_SHA_FULL})
+found_result=$?
+if [[ "${found_result}" == "0" ]]; then
+	exist=$(echo "${found}" | awk '{print $1}')
+	echo "${txtred}ERROR: The git id ${txtcyn}${GIT_SHA_FULL}${txtrst} is already assigned to ${txtgrn}${exist}${txtrst}"
 	exit 1
 fi
 
