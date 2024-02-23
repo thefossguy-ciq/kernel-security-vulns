@@ -21,9 +21,14 @@
 #  A kernel git tree with the SHA to be used in it
 #  bippy
 
-# TODO - make these options that are not hard-coded
-
+# TODO - make this options that are not hard-coded
 KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
+
+# Colors are good!
+txtgrn=$(tput setaf 2)		# Green
+txtblu=$(tput setaf 4)		# Blue
+txtcyn=$(tput setaf 6)		# Cyan
+txtrst=$(tput sgr0)		# Text reset
 
 # don't use unset variables
 set -o nounset
@@ -52,12 +57,14 @@ if [[ "${GIT_SHA_FULL}" == "" ]] ; then
 	exit 1
 fi
 
+GIT_COMMIT=$(cd ${KERNEL_TREE} && git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n" "${GIT_SHA_FULL}")
+
 YEAR=$(cd ${KERNEL_TREE} && git log -1 --format="%as" "${GIT_SHA_FULL}" | cut -f 1 -d '-')
 if [[ "${YEAR}" == "" ]] ; then
 	echo "error: can not determine the date of the commit!"
 	exit 1
 fi
-echo "year = ${YEAR}"
+#echo "year = ${YEAR}"
 
 CVE_ROOT="${DIR}/../cve/"
 
@@ -87,7 +94,7 @@ if [[ "${ID}" == "" ]] ; then
 	echo "Should you allocate some more for that year?"
 	exit 1
 fi
-echo "ID=${ID}"
+#echo "ID=${ID}"
 
 # Make the new year directory, if it is not present
 # fixme, test if present first, as we shouldn't be rude here
@@ -102,5 +109,4 @@ echo "${GIT_SHA_FULL}" > "${PUBLISHED_DIR}/${ID}.sha1"
 "${DIR}"/bippy --cve="${ID}" --sha="${GIT_SHA_FULL}" --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
 
 # say all is good, and give the id
-echo "CVE id ${ID} was allocated for git commit ${GIT_SHA_FULL}"
-echo "be sure to submit it properly using ...."
+echo "${txtcyn}${ID}${txtrst} is now allocated for git commit ${txtgrn}${GIT_COMMIT}${txtrst}"
