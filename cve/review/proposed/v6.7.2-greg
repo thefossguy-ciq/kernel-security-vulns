@@ -53,3 +53,20 @@ baa7d536077dc loop: fix the the direct I/O support check when used on top of blo
 483ae90d8f976 mlxsw: spectrum_acl_tcam: Fix stack corruption
 62bef63646c19 mlxsw: spectrum_router: Register netdevice notifier before nexthop
 2e7ef287f07c7 ipv6: mcast: fix data-race in ipv6_mc_down / mld_ifc_work
+efeb7dfea8ee mlxsw: spectrum_acl_tcam: Fix NULL pointer dereference in error path
+844f104790bd net: dsa: fix netdev_priv() dereference before check on non-DSA netdevice events
+b33fb5b801c6 net: qualcomm: rmnet: fix global oob in rmnet_policy
+be12ad45e15b hisi_acc_vfio_pci: Update migration data pointer correctly on saving/resume
+efa56305908b nvmet-tcp: Fix a kernel panic when host sends an invalid H2C PDU length
+bb57f6705960 iommu: Don't reserve 0-length IOVA region
+78d60dae9a0c serial: imx: fix tx statemachine deadlock
+ad90d0358bd3 serial: 8250: omap: Don't skip resource freeing if pm_runtime_resume_and_get() failed
+ad362fe07fec KVM: arm64: vgic-its: Avoid potential UAF in LPI translation cache
+a297d07b9a1e pwm: Fix out-of-bounds access in of_pwm_single_xlate()
+6f64f866aa1a block: add check that partition length needs to be aligned with block size
+3de6ee94aae7 media: v4l: async: Fix duplicated list deletion
+b719a9c15d52 drm/amd/display: Fix NULL pointer dereference at hibernate
+2bbe6ab2be53 drm/sched: Fix bounds limiting when given a malformed entity
+ab125ed3ec1c bpf: fix check for attempt to corrupt spilled pointer
+0e8d2444168d efivarfs: force RO when remounting if SetVariable is not supported
+475c58e1a471 EDAC/thunderx: Fix possible out-of-bounds string access
