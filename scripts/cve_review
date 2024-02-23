@@ -6,9 +6,10 @@
 # Author: Lee Jones <lee@kernel.org>
 #
 # Usage
-#   cve_review v6.7.1..v6.7.2
+#   cve_review [ v6.7.1..v6.7.2 | filename ]
 #
 # * Highlights key words often used to make sane judgements
+# * Able to accept a Stable Git range or a file in `git log --oneline` format
 # * Provides an on-going progress report in the form "x of y (z%)"
 # * Presents commit on a clean terminal without clipping scroll-back
 # * Tracks progress of reviews and will skip commits already processed
@@ -48,6 +49,12 @@ while [ $# -gt 0 ]; do
             RANGE=${1}
             ;;
         *)
+            if [ -s "${1}" ]; then
+                FILE=${1};
+                shift
+                continue
+            fi
+
             print_red "Unrecognised argument: ${1}"
             usage
             ;;
@@ -64,14 +71,28 @@ NAME=$(whoami)
 
 git fetch ${STABLEREMOTE}
 
-SHAS=$(git log --reverse --format=%h ${RANGE})
-NOSHAS=$(echo ${SHAS} | wc -w)
+if [ -s "${FILE}" ]; then
+    TAG="fromfile-${FILE}"
+
+    while read line; do
+        SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
+    done < ${FILE}
+
+else
+    TAG=${RANGE#*..}
+
+    H=$(git log --reverse --format=%h ${RANGE})
+    for h in ${H}; do
+        SHAS+=($h)
+    done
+fi
+
+NOSHAS=$(echo ${SHAS[@]} | wc -w)
 if [ ${#SHAS[@]} -le 0 ]; then
     print_red "No commits to review"
     exit 0
 fi
 
-TAG=${RANGE#*..}
 SCRIPTDIR=$(dirname ${0})
 FINALDIR=${SCRIPTDIR}/../cve/review/proposed
 WORKDIR=${SCRIPTDIR}/../tmp/cve-review
@@ -86,7 +107,7 @@ mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
 print_blue "Reviewing ${NOSHAS} commits"
 count=0
 
-for h in ${SHAS}; do
+for h in ${SHAS[@]}; do
     oneline=$(git --no-pager log ${h} -n1 --format="%h %s")
     subject=$(echo ${oneline} | cut -d' ' -f 2-)
     count=$((count + 1))
@@ -165,7 +186,13 @@ uaf\
     fi
 
     if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" ]]; then
-        mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}")
+        mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
+
+        # If the commit does not contain a Mainline SHA, we'll assume it *is* a Mainline SHA
+        if [ "${mainlinesha}" == "" ]; then
+            mainlinesha="${h}"
+        fi
+
         git --no-pager log --oneline -n1 ${mainlinesha} >> ${CVEME}
     fi
 
