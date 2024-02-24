@@ -16,7 +16,6 @@
 #  * Expected to be executed from inside a kernel Git repository
 
 # set -x                       # Uncomment to enable debugging
-set -e                         # Exit on any error
 
 # -------   ACTION REQUIRED   -------
 # Change these to suit your own setup
@@ -71,6 +70,7 @@ LEESASHA=()
 GREG=()
 LEE=()
 SASHA=()
+CVE=()
 
 for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     mainlinelongsha=$(git --no-pager log -n1 ${stablesha} | grep -i upstream | grep -oE "[a-f0-9]{40,}") || true
@@ -83,7 +83,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     oneline=$(git --no-pager log --format="%h %s" -n1 ${mainlinelongsha})
     subject=$(echo ${oneline} | cut -d' ' -f 2-)
     mainlinesha=$(echo ${oneline} | cut -d' ' -f 1)
-    greg=0; lee=0; sasha=0; votes=0
+    cve=0; greg=0; lee=0; sasha=0; votes=0
 
     for f in ${FILES}; do
         USER=${f#*-}
@@ -111,7 +111,15 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
         continue
     fi
 
-    if [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
+    found=$(${SCRIPTDIR}/cve_search ${mainlinesha})
+    found_result=$?
+    if [ "${found_result}" == "0" ]; then
+        cve=1
+    fi
+
+    if [ ${cve} == 1 ]; then
+        CVE+=("${oneline}")
+    elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
         ALL+=("${oneline}")
     elif [ ${greg} == 1 -a ${lee} == 1 ]; then
         GREGLEE+=("${oneline}")
@@ -128,9 +136,12 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     fi
 
     echo "${oneline}"
-    echo -e "Greg:\t${greg}"
-    echo -e "Lee:\t${lee}"
-    echo -e "Sasha:\t${sasha}"
+    echo -e "\tCVE:\t${cve}\tGreg:\t${greg}\tLee:\t${lee}\tSasha:\t${sasha}"
+done
+
+print_blue "\nAlready assigned a CVE"
+for c in "${CVE[@]}"; do
+    echo "  ${c}"
 done
 
 print_blue "\nEveryone agrees"
