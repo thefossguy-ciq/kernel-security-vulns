@@ -18,3 +18,4 @@ b2dd7b953c25f fs/ntfs3: Fix an NULL dereference bug
 8e46a2d068c92 libceph: just wait for more data to be available on the socket
 8eed4e00a370b x86/lib: Revert to _ASM_EXTABLE_UA() for {get,put}_user() fixups
 60c0c230c6f04 netfilter: nft_set_rbtree: skip end interval element from gc
+1e560864159d PCI/ASPM: Fix deadlock when enabling ASPM
