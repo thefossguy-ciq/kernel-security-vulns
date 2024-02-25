@@ -70,3 +70,12 @@ b719a9c15d52 drm/amd/display: Fix NULL pointer dereference at hibernate
 ab125ed3ec1c bpf: fix check for attempt to corrupt spilled pointer
 0e8d2444168d efivarfs: force RO when remounting if SetVariable is not supported
 475c58e1a471 EDAC/thunderx: Fix possible out-of-bounds string access
+88f04bc3e737 power: supply: Fix null pointer dereference in smb2_probe
+3171e46d677a PCI: Avoid potential out-of-bounds read in pci_dev_for_each_resource()
+41673c66b3d0 mfd: syscon: Fix null pointer dereference in of_syscon_register()
+93ec4a3b7640 class: fix use-after-free in class_register()
+28dd788382c4 drivers/amd/pm: fix a use-after-free in kv_parse_power_table
+7a2464fac80d drm/radeon: check the alloc_workqueue return value in radeon_crtc_init()
+3027e7b15b02 ice: Fix some null pointer dereference issues in ice_ptp.c
+d872ca165cb6 crypto: rsa - add a check for allocation failure
+04e6ccfc93c5 thermal: core: Fix NULL pointer dereference in zone registration error path
