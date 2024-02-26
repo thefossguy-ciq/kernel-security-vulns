@@ -11,6 +11,7 @@ This directory contains 3 "root" directories:
 These 3 directories contain the CVE ids allocated to us that are in one of the
 three states.
 
+
 Reserved
 --------
 
@@ -30,6 +31,7 @@ assigned for the year 2023.
 Note, the file may contain text information based on stuff the kernel cve team
 deems is needed.  More documentation will be written in the future as we figure
 out what is needed.
+
 
 Published
 ---------
@@ -57,6 +59,14 @@ to CVE when published.
 
 The .mbox file shall contain the mail message of the CVE entry that can be
 submitted to the public mailing list for publication in human-readable format.
+
+If a:
+	published/YEAR/CVE-YEAR-ID.vulnerable
+file is present, the cve_update script will us the git sha in that file as the
+"commit where the vulnerability showed up" for doing the logic of creating the
+.json and .mbox files.  This allows us to set the commit id for this for
+commits that do NOT have a "Fixes:" tag, or if the "Fixes:" tag is incorrect.
+
 
 Rejected
 --------
