@@ -51,6 +51,7 @@ help() {
 	echo "Arguments:"
 	echo " -c, --cve=CVE_NUMBER		The full CVE number to assign"
 	echo " -s, --sha=GIT_SHA		The kernel git sha1 to assign the CVE to"
+	echo " --vulnerable=GIT_SHA		The kernel git sha1 that this issue became vulnerable at (optional)"
 	echo " -j, --json=JSON_FILENAME	Output a JSON report to submit to CVE to the"
 	echo "				specified filename"
 	echo " -m, --mbox=MBOX_FILENAME	Output a mbox file to submit to the CVE"
@@ -72,23 +73,25 @@ dbg() {
 
 # Parse the command line
 short_opts="j:m:c:s:hv"
-long_opts="json:,mbox:,cve:,sha:,help,verbose"
+long_opts="json:,mbox:,cve:,sha:,vulnerable:,help,verbose"
 JSON_FILE=""
 MBOX_FILE=""
 CVE_NUMBER=""
 GIT_SHA=""
+GIT_VULNERABLE=""
 
 TMP=$(getopt -o "${short_opts}" --long "${long_opts}" --name="${SCRIPT}" -- "$@")
 eval set -- "${TMP}"
 while :; do
 	dbg "arg=${1}"
 	case "${1}" in
-		-j | --json	) JSON_FILE="${2}";	shift 2 ;;
-		-m | --mbox	) MBOX_FILE="${2}";	shift 2 ;;
-		-c | --cve	) CVE_NUMBER="${2}";	shift 2 ;;
-		-s | --sha	) GIT_SHA="${2}";	shift 2 ;;
-		-h | --help	) help ;;
-		-v | --verbose	) DEBUG=1;		shift ;;
+		-j | --json	) JSON_FILE="${2}";		shift 2 ;;
+		-m | --mbox	) MBOX_FILE="${2}";		shift 2 ;;
+		-c | --cve	) CVE_NUMBER="${2}";		shift 2 ;;
+		-s | --sha	) GIT_SHA="${2}";		shift 2 ;;
+		--vulnerable	) GIT_VULNERABLE="${2}";	shift 2 ;;
+		-h | --help	) help;				shift ;;
+		-v | --verbose	) DEBUG=1;			shift ;;
 		-- )		  shift; break ;;
 		*		) help ;;
 	esac
@@ -98,6 +101,7 @@ dbg "CVE_NUMBER=${CVE_NUMBER}"
 dbg "GIT_SHA=${GIT_SHA}"
 dbg "JSON_FILE=${JSON_FILE}"
 dbg "MBOX_FILE=${MBOX_FILE}"
+dbg "GIT_VULNERABLE=${GIT_VULNERABLE}"
 
 if [[ "${CVE_NUMBER}" == "" || "${GIT_SHA}" == "" ]] ; then
 	help
@@ -106,6 +110,10 @@ if [[ "${JSON_FILE}" == "" && "${MBOX_FILE}" == "" ]] ; then
 	help
 fi
 
+# The directory where CVEs are published
+CVE_ROOT="${DIR}/../cve/"
+YEAR=$(echo "${CVE_NUMBER}" | cut -f 2 -d '-')
+PUBLISHED_DIR="${CVE_ROOT}published/${YEAR}/"
 
 # Functions for us to use, main flow starts below at ======= point
 
@@ -410,7 +418,7 @@ commit_text=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%B" "$
 # the most obvious, so here's our current solution in pseudo-code:
 #  For every fixed_entry in fixed_kernels do:
 #    if fixed_entry is a -rc kernel
-#      continue
+#      treat it as a mainline kernel
 #    if og_vuln == 0
 #      create fix_pair(og_vuln, fixed_entry)
 #      continue
@@ -434,6 +442,11 @@ commit_text=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%B" "$
 #	38d75297745f ("watchdog: set cdev owner before adding")
 #
 
+# "default" to the original git commit in case we do not have a "Fixes:" tag
+# Logic below detects if we have actually found og_vuln so it is safe to test
+# for 0 or not.
+og_vuln="0"
+og_git="1da177e4c3f4"	# "Linux-2.6.12-rc2"
 
 # Look in the commit text to see if there is any "Fixes:" lines
 # if so, look them up to see what kernels they were released in.  Need to do
@@ -441,8 +454,6 @@ commit_text=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%B" "$
 # false-positives when it shows up in other Fixes: tags
 fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
 dbg "fixes_lines=${fixes_lines}"
-og_vuln="0"
-og_git="1da177e4c3f4"	# "Linux-2.6.12-rc2"
 if [[ "${fixes_lines}" != "" ]] ; then
 	# figure out what kernels this commit fixes, (i.e. which are
 	# vulnerable) and turn them into an array
@@ -486,9 +497,18 @@ if [[ "${fixes_lines}" != "" ]] ; then
 			# to set it again.
 		fi
 	fi
-	dbg "og_vuln=${og_vuln}"
-	dbg "og_git=${og_git}"
+else
+	# We don't know when this issue first showed up, but maybe we were
+	# given the info on the command line?
+	if [[ "${GIT_VULNERABLE}" != "" ]]; then
+		# We were!  So look up the git release that this commit was in
+		# as the "og_vuln" release number
+		og_git=${GIT_VULNERABLE}
+		og_vuln=$(cd "${KERNEL_TREE}" && git describe --contains "${og_git}" | cut -f 1 -d '-' | sed -e 's/v//g')
+	fi
 fi
+dbg "og_vuln=${og_vuln}"
+dbg "og_git=${og_git}"
 
 # Find the fixed kernels where this release was done
 fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
@@ -631,8 +651,10 @@ if [[ "${default_status}" == "affected" ]]; then
 		fix_git=${x[3]}
 
 		if [[ "${vuln}" == "0" ]]; then
-			#FIXME this needs to handle this case
-			dbg "FIXME, vuln=${0}"
+			# We do not know when this first was a problem, so we
+			# default to 0 and handle it elsewhere in the logic as
+			# everything is "affected"
+			dbg "vuln=${vuln}"
 		else
 			version_is_mainline "${vuln}"
 			is_mainline=$?
