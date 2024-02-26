@@ -1,0 +1,5 @@
+To reserve some cves:
+
+cve -u gregkh@kernel.org -o Linux reserve -y 2019 50 > x.2019
+
+
