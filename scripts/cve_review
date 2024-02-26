@@ -30,6 +30,10 @@ set -e                          # Exit on any error
 NAME=lee
 STABLEREMOTE=stable     # Whatever you called your Stable remote
 
+if [[ "$(whoami)" == "gregkh" ]]; then
+    NAME=greg
+fi
+
 function usage()
 {
     echo "Usage: $(basename ${0}) {rangebottom..rangetop}"
