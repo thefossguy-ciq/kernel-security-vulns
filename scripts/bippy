@@ -129,7 +129,7 @@ find_fix() {
 		return
 	fi
 
-	long_id=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${id}")
+	long_id=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${id}")
 	if [ "${long_id}" == "" ] ; then
 		# git id is not a valid one, so just return
 		return
@@ -237,6 +237,49 @@ function version_is_mainline
 	return 0
 }
 
+create_fix_pair()
+{
+	local v=$1
+	local f=$2
+	local v_git=$3
+	local f_git=$4
+	fixed_pairs+=("${v}:${f}:${v_git}:${f_git}")
+
+	dbg "pair=${v}:${f}:${v_git}:${f_git}"
+}
+
+find_stable_git_id()
+{
+	#>&2 echo "find_stable_git_id: \"${1}\" \"${2}\""
+	local og_git=${1}
+	local fixed_version=${2}
+
+	local fixed_array=(${fixed_version//./ })
+	local fixed_major=${fixed_array[0]}
+	local fixed_minor=${fixed_array[1]}
+
+	local stable_git=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --oneline --grep="${og_git}" "v${fixed_major}.${fixed_minor}..v${fixed_version}" | awk '{print $1}')
+	#>&2 echo "fine_stable_git_id: stable_git=${stable_git}"
+
+	echo "${stable_git}"
+}
+
+find_mainline_git_id()
+{
+	local fixed_version=${1}
+	local stable_git=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --oneline "v${fixed_version}" | awk '{print $1}')
+	echo "${stable_git}"
+}
+
+git_full_id()
+{
+	local short_id=${1}
+	local long_id=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${short_id}")
+	echo "${long_id}"
+}
+
+
+
 # =======
 # Main logic starts here
 
@@ -259,17 +302,17 @@ dbg "orig_id=${orig_id}"
 # many of the searches we do later on.  If we stuck with a short one, some of
 # the searches would give us false-positives as people use short shas in commit
 # messages.
-GIT_SHA_FULL=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${GIT_SHA}")
+GIT_SHA_FULL=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${GIT_SHA}")
 if [[ "${GIT_SHA_FULL}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
 fi
 
 # Grab a "real" 12 character short sha to use as well, we "know" this will not fail.
-GIT_SHA_SHORT=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --format="%h" "${GIT_SHA_FULL}")
+GIT_SHA_SHORT=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --format="%h" "${GIT_SHA_FULL}")
 
 # Get the subject line of our sha
-subject=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%s" "${GIT_SHA_FULL}" 2> /dev/null)
+subject=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%s" "${GIT_SHA_FULL}" 2> /dev/null)
 if [[ "${subject}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA_FULL} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
@@ -277,7 +320,7 @@ fi
 dbg "subject=${subject}"
 
 # Get the list of files affected in the change
-files=$(cd ${KERNEL_TREE} && git diff --name-only "${GIT_SHA_FULL}"^.."${GIT_SHA_FULL}" 2> /dev/null)
+files=$(cd "${KERNEL_TREE}" && git diff --name-only "${GIT_SHA_FULL}"^.."${GIT_SHA_FULL}" 2> /dev/null)
 dbg "${GIT_SHA_FULL} touched the following files:"
 while IFS= read -r entry; do
 	dbg "	${entry}"
@@ -286,7 +329,7 @@ done <<< "${files}"
 # Grab the full commit text, we will use that for many things
 # We strip off the signed-off-by stuff AFTER we are done with parsing
 # this text
-commit_text=$(cd ${KERNEL_TREE} && git show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
+commit_text=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
 
 #echo "commit_text=${commit_text}"
 
@@ -405,7 +448,7 @@ if [[ "${fixes_lines}" != "" ]] ; then
 	# vulnerable) and turn them into an array
 	v=()
 	for fix_line in ${fixes_lines}; do
-		x=$(find_fix ${fix_line})
+		x=$(find_fix "${fix_line}")
 		v+=${x}
 		og_git=${fix_line}	# fixme, what about multiples?
 	done
@@ -417,14 +460,14 @@ if [[ "${fixes_lines}" != "" ]] ; then
 		dbg "no vuln_kernels_found!"
 	else
 		dbg "${#vuln_kernels[@]} vuln_kernels found:"
-		for x in ${vuln_kernels[@]}; do
+		for x in "${vuln_kernels[@]}"; do
 			dbg "	$x"
 		done
 
 		# Figure out the "original" oldest commit where this showed up,
 		# we need this as a default value in case we can't match up
 		# anything else to it, this must be a Linus release
-		for x in ${vuln_kernels[@]}; do
+		for x in "${vuln_kernels[@]}"; do
 			version_is_mainline "${x}"
 			mainline=$?
 			if [[ "${mainline}" == "1" ]] ; then
@@ -452,55 +495,13 @@ fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
 dbg "fixed_kernels=${fixed_kernels}"
 
 
-create_fix_pair()
-{
-	local v=$1
-	local f=$2
-	local v_git=$3
-	local f_git=$4
-	fixed_pairs+=("${v}:${f}:${v_git}:${f_git}")
-
-	dbg "pair=${v}:${f}:${v_git}:${f_git}"
-}
-
-find_stable_git_id()
-{
-	#>&2 echo "find_stable_git_id: \"${1}\" \"${2}\""
-	local og_git=${1}
-	local fixed_version=${2}
-
-	local fixed_array=(${fixed_version//./ })
-	local fixed_major=${fixed_array[0]}
-	local fixed_minor=${fixed_array[1]}
-
-	local stable_git=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --oneline --grep=${og_git} "v${fixed_major}.${fixed_minor}".."v${fixed_version}" | awk '{print $1}')
-	#>&2 echo "fine_stable_git_id: stable_git=${stable_git}"
-
-	echo "${stable_git}"
-}
-
-find_mainline_git_id()
-{
-	local fixed_version=${1}
-	local stable_git=$(cd ${KERNEL_TREE} && git log -1 --abbrev=12 --oneline "v${fixed_version}" | awk '{print $1}')
-	echo "${stable_git}"
-}
-
-git_full_id()
-{
-	local short_id=${1}
-	local long_id=$(cd ${KERNEL_TREE} && git log -1 --format="%H" "${short_id}")
-	echo "${long_id}"
-}
-
-
 # Do the crazy matching mess listed up above
 fe=""
 ve=""
 # the default state is unaffected, unless a mainline kernel is touched,
 # and then we will switch it below to affected.
 default_status="unaffected"
-for fixed_entry in ${fixed_kernels[@]}; do
+for fixed_entry in ${fixed_kernels}; do
 	create=0
 
 	# figure out if this is a -rc kernel or not
@@ -542,17 +543,17 @@ for fixed_entry in ${fixed_kernels[@]}; do
 	# If we do not know what the root release is, then just create the pair
 	if [[ "${og_vuln}" == "0" ]] ; then
 		if [[ "${fixed_entry_mainline}" == "1" ]]; then
-			create_fix_pair ${og_vuln} ${fixed_entry} ${og_git} ${GIT_SHA_SHORT}
+			create_fix_pair "${og_vuln}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
 			default_status="affected"
 		else
-			fe=$(find_stable_git_id ${GIT_SHA_FULL} ${fixed_entry})
-			create_fix_pair ${og_vuln} ${fixed_entry} ${og_git} ${fe}
+			fe=$(find_stable_git_id "${GIT_SHA_FULL}" "${fixed_entry}")
+			create_fix_pair "${og_vuln}" "${fixed_entry}" "${og_git}" "${fe}"
 		fi
 		create=1
 		continue
 	fi
 
-	for vuln_entry in ${vuln_kernels[@]}; do
+	for vuln_entry in "${vuln_kernels[@]}"; do
 		if [[ "${fixed_entry}" == "${vuln_entry}" ]] ; then
 			# this entry was broken and fixed in the same version,
 			# so skip it
@@ -564,32 +565,32 @@ for fixed_entry in ${fixed_kernels[@]}; do
 		vuln_entry_mainline=$?
 		if [[ "${vuln_entry_mainline}" == "1" ]] ; then
 			if [[ "${fixed_entry_mainline}" == "1" ]]; then
-				create_fix_pair ${vuln_entry} ${fixed_entry} ${og_git} ${GIT_SHA_SHORT}
+				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
 				default_status="affected"
 			else
-				fe=$(find_stable_git_id ${GIT_SHA_FULL} ${fixed_entry})
-				create_fix_pair ${vuln_entry} ${fixed_entry} ${og_git} ${fe}
+				fe=$(find_stable_git_id "${GIT_SHA_FULL}" "${fixed_entry}")
+				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${og_git}" "${fe}"
 			fi
 			create=1
 			break
 		fi
 
-		version_match ${vuln_entry} ${fixed_entry}
+		version_match "${vuln_entry}" "${fixed_entry}"
 		match=$?
 		if [[ "${match}" == "1" ]] ; then
 			if [[ "${fixed_entry_mainline}" == "1" ]]; then
-				create_fix_pair ${vuln_entry} ${fixed_entry} ${og_git} ${GIT_SHA_SHORT}
+				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
 				default_status="affected"
 			else
-				ve=$(find_stable_git_id ${og_git} ${vuln_entry})
+				ve=$(find_stable_git_id "${og_git}" "${vuln_entry}")
 				if [[ "${ve}" == "" ]] ; then
 					ve=${og_git}
 				fi
-				fe=$(find_stable_git_id ${GIT_SHA_FULL} ${fixed_entry})
+				fe=$(find_stable_git_id "${GIT_SHA_FULL}" "${fixed_entry}")
 				if [[ "${fe}" == "" ]] ; then
 					fe=${GIT_SHA_SHORT}
 				fi
-				create_fix_pair ${vuln_entry} ${fixed_entry} "${ve}" "${fe}"
+				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${ve}" "${fe}"
 			fi
 			create=1
 			break
@@ -598,7 +599,7 @@ for fixed_entry in ${fixed_kernels[@]}; do
 
 	# If we haven't created anything yet, this must be it
 	if [[ ${create} == 0 ]] ; then
-		create_fix_pair ${og_vuln} ${fixed_entry} ${og_git} "${GIT_SHA_SHORT}"
+		create_fix_pair "${og_vuln}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
 		default_status="affected"
 	fi
 done
@@ -618,7 +619,7 @@ vuln_array_json=""
 vuln_array_mbox=()
 url_array=()
 url_string_json=""
-git_array_json=()
+git_array_json=""
 if [[ "${default_status}" == "affected" ]]; then
 	# we need to now say what the "unaffected" range is, so loop
 	# through and find the "mainline" part to figure that out.
@@ -755,7 +756,9 @@ done
 #    commit_text=$(echo "${commit_text}" | sed -e '/^cc:/Id;/^signed-off-by:/Id')
 # calls.
 sed_script=""
-for tag in $(cat "${DIR}"/tags); do
+readarray -t tags < <(cat "${DIR}"/tags)
+#for tag in $(cat "${DIR}"/tags); do
+for tag in "${tags[@]}"; do
 	sed_script+="/^${tag}:/Id;"
 done
 #dbg "sed_script=${sed_script}"
