@@ -1,0 +1,98 @@
+4ef9ad19e176 mm: huge_memory: don't force huge page alignment on 32 bit
+e03ee2fe873e btrfs: do not ASSERT() if the newly created subvolume already got read
+a8df35619948 btrfs: forbid deleting live subvol qgroup
+1bd96c92c6a0 btrfs: reject encoded write if inode has nodatasum flag set
+5571e41ec6e5 btrfs: don't drop extent_map for free space inode on write error
+03facb39d6c6 drm/msm/gem: Fix double resv lock aquire
+b5fbde22684a ASoC: Intel: avs: Fix pci_probe() error path
+d7332c4a4f1a ASoC: SOF: ipc3-topology: Fix pipeline tear down logic
+53c0441dd2c4 dpll: fix possible deadlock during netlink dump operation
+aa1eec2f546f net/mlx5: DPLL, Fix possible use after free after delayed work timer triggers
+4e1d71cabb19 net/handshake: Fix handshake_req_destroy_test1
+15faa1f67ab4 lan966x: Fix crash when adding interface under a lag
+aec7961916f3 tls: fix race between async notify and socket close
+32b55c5ff910 net: tls: fix use-after-free with partial reads and async decrypt
+d55347bfe4e6 MIPS: Add 'memory' clobber to csum_ipv6_magic() inline assembler
+73d9629e1c8c i40e: Do not allow untrusted VF to remove administratively set MAC
+c73729b64bb6 i40e: Fix waiting for queues of all VSIs to be disabled
+96204e15310c mm: thp_get_unmapped_area must honour topdown preference
+67695f18d559 userfaultfd: fix mmap_changing checking in mfill_atomic_hugetlb
+19d3e2218077 fs/hugetlbfs/inode.c: mm/memory-failure.c: fix hugetlbfs hwpoison handling
+9319b647902c mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+39126abc5e20 nouveau: offload fence uevents work to workqueue
+0a9bab391e33 dm-crypt, dm-verity: disable tasklets
+7cdd2108903a HID: bpf: remove double fdget()
+89be8aa5b0ec HID: bpf: actually free hdev memory after attaching a HID-BPF program
+00aab7dcb226 HID: i2c-hid-of: fix NULL-deref on failed power up
+12783c0b9e2c usb: core: Prevent null pointer dereference in update_port_device_state
+61a348857e86 usb: dwc3: gadget: Fix NULL pointer dereference in dwc3_gadget_suspend
+85e985a4f46e interconnect: qcom: sc8180x: Mark CO0 BCM keepalive
+dc9ceb90c4b4 media: ir_toy: fix a memleak in irtoy_tx
+4a7aee96200a powerpc/kasan: Fix addr error caused by page alignment
+3ca8fbabcceb Revert "kobject: Remove redundant checks for whether ktype is NULL"
+a22b0a2be69a iio: adc: ad4130: zero-initialize clock init data
+cffe487026be cifs: fix underflow in parse_server_interfaces()
+83ef106fa732 i2c: qcom-geni: Correct I2C TRE sequence
+0846dd77c834 powerpc/iommu: Fix the missing iommu_group_put() during platform domain attach
+c1c9d0f6f7f1 i2c: i801: Fix block process call transactions
+b6c620dc43cc mptcp: fix data re-injection from stale subflow
+337cebbd850f mptcp: really cope with fastopen race
+e56c671c2272 spi: omap2-mcspi: Revert FIFO support without DMA
+bfb007aebe6b nfc: nci: free rx_data_reassembly skb on NCI device cleanup
+37e8c97e5390 net: hsr: remove WARN_ONCE() in send_hsr_supervision_frame()
+4896bb7c0b31 net: stmmac: do not clear TBS enable bit on link up/down
+7b55984c96ff xen-netback: properly sync TX responses
+97830f3c3088 binder: signal epoll threads of self-work
+a4e61de63e34 misc: fastrpc: Mark all sessions as invalid in cb_remove
+55583e899a53 ext4: fix double-free of blocks due to wrong extents moved_len
+2331fd4a4986 ext4: avoid bb_free and bb_fragments inconsistency in mb_free_blocks()
+1389358bb008 tracing/timerlat: Move hrtimer_init to timerlat_fd open()
+6db053cd949f staging: iio: ad5933: fix type mismatch regression
+792595bab492 iio: magnetometer: rm3100: add boundary check for the value read from RM3100_REG_TMRC
+95a0d596bbd0 iio: core: fix memleak in iio_device_register_sysfs
+862cf85fef85 iio: commom: st_sensors: ensure proper DMA alignment
+59598510be1d iio: adc: ad_sigma_delta: ensure proper DMA alignment
+8e98b87f515d iio: imu: adis: ensure proper DMA alignment
+6a9d552483d5 media: rc: bpf attach/detach requires write permission
+e6a7df96facd drm/amd/display: Fix MST Null Ptr for RV
+46806e59a877 drm/amd/display: Fix array-index-out-of-bounds in dcn35_clkmgr
+e0526ec5360a hv_netvsc: Fix race condition between netvsc_probe and netvsc_remove
+585b40e25dc9 net: dsa: mv88e6xxx: Fix failed probe due to unsupported C45 reads
+3a007b8009b5 nfp: flower: fix hardware offload for the transfer layer port
+38296afe3c6e nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
+ccb88e9549e7 crypto: ccp - Fix null pointer dereference in __sev_platform_shutdown_locked
+24c890dd712f crypto: algif_hash - Remove bogus SGL free on zero-length error path
+353d321f63f7 wifi: iwlwifi: fix double-free bug
+c98d8836b817 wifi: mac80211: reload info pointer in ieee80211_tx_dequeue()
+b7198383ef2d wifi: iwlwifi: mvm: fix a crash when we run out of stations
+b5d1b4b46f85 PCI: dwc: Fix a 64bit bug in dw_pcie_ep_raise_msix_irq()
+b0344d6854d2 irqchip/irq-brcmstb-l2: Add write memory barrier before exit
+8b02da04ad97 irqchip/gic-v3-its: Restore quirk probing for ACPI-based systems
+af9acbfc2c4b irqchip/gic-v3-its: Fix GICv4.1 VPE affinity update
+ec4d82f855ce thunderbolt: Fix setting the CNS bit in ROUTER_CS_5
+4508ec173570 smb: client: set correct id, uid and cruid for multiuser automounts
+4860abb91f3d smb: Fix regression in writes when non-standard maximum write size negotiated
+fe752331d4b3 KVM: s390: vsie: fix race during shadow creation
+10c02aad111d KVM: arm64: Fix circular locking dependency
+14db5f64a971 zonefs: Improve error handling
+61da7c8e2a60 arm64/signal: Don't assume that TIF_SVE means we saved SVE state
+fb091ff39479 arm64: Subscribe Microsoft Azure Cobalt 100 to ARM Neoverse N2 errata
+46f5ab762d04 fs: relax mount_setattr() permission checks
+bc4ce46b1e3d net: ethernet: ti: cpsw: enable mac_managed_pm to fix mdio
+2fe8a236436f s390/qeth: Fix potential loss of L3-IP@ in case of network issues
+9def04e759ca net: ethernet: ti: cpsw_new: enable mac_managed_pm to fix mdio
+38cc3c6dcc09 net: stmmac: protect updates of 64-bit statistics counters
+9cae43da9867 hv_netvsc: Register VF in netvsc_probe if NET_DEVICE_REGISTER missed
+cda4672da1c2 ceph: prevent use-after-free in encode_cap_msg()
+79d72c68c587 fs,hugetlb: fix NULL pointer dereference in hugetlbs_fill_super
+e656c7a9e596 mm: hugetlb pages should not be reserved by shmat() if SHM_NORESERVE
+f814bdda774c blk-wbt: Fix detection of dirty-throttled tasks
+fa765c4b4aed xen/events: close evtchn after mapping cleanup
+2aa0a5e65eae can: netlink: Fix TDCO calculation using the old data bittiming
+6cdedc18ba7b can: j1939: prevent deadlock by changing j1939_socks_lock to rwlock
+efe7cf828039 can: j1939: Fix UAF in j1939_sk_match_filter during setsockopt(SO_J1939_FILTER)
+7601df8031fd fs/proc: do_task_stat: use sig->stats_lock to gather the threads/children stats
+5ea9a7c5fe41 nfsd: don't take fi_lock in nfsd_break_deleg_cb()
+944d5fe50f3f sched/membarrier: reduce the ability to hammer on sys_membarrier
+5bc09b397cbf nilfs2: fix potential bug in end_buffer_async_write
+bd504bcfec41 dm: limit the number of targets and parameter size area
