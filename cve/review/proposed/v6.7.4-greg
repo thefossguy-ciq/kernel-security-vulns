@@ -18,3 +18,24 @@ e622502c310f1 ipmr: fix kernel panic when forwarding mcast packets
 aa2b2eb393485 llc: call sock_orphan() at release time
 f6564fce256a3 mm, kmsan: fix infinite recursion due to RCU critical section
 8059918a1377f netfilter: nft_ct: sanitize layer 3 and 4 protocol number in custom expectations
+7e82a8745b95 pds_core: Prevent race issues involving the adminq
+4d322dce82a1 af_unix: fix lockdep positive in sk_diag_dump_icons()
+4373534a9850 scsi: core: Move scsi_host_busy() out of host lock for waking up EH handler
+b493ad718b1f ceph: fix deadlock or deadcode of misusing dget()
+47bf0f83fc86 drm/amdkfd: Fix lock dependency warning
+e821d50ab5b9 spmi: mediatek: Fix UAF on device remove
+b8d55a90fd55 drm/amdgpu: Fix possible NULL dereference in amdgpu_ras_query_error_status_helper()
+45284ff733e4 drm/msm/dpu: Add mutex lock in control vblank irq
+4f973e211b3b IB/ipoib: Fix mcast list locking
+4961acdd65c9 f2fs: fix to tag gcing flag on page during block migration
+870565f063a5 media: rkisp1: Fix IRQ disable race issue
+9d618d19b29c ocfs2: Avoid touching renamed directory if parent does not change
+49db9b1b86a8 reiserfs: Avoid touching renamed directory if parent does not change
+fe0a7776d4d1 wifi: wfx: fix possible NULL pointer dereference in wfx_set_mfp_ap()
+5082b3e3027e wifi: ath11k: fix race due to setting ATH11K_FLAG_EXT_IRQ_ENABLED too early
+a11d965a218f wifi: rt2x00: restart beacon queue when hardware reset
+315552310c7d sysctl: Fix out of bounds access for empty sysctl registers
+b988b1bb0053 KVM: s390: fix setting of fpc register
+8b13601d19c5 s390/ptrace: handle setting of fpc register correctly
+72d9b9747e78 ACPI: extlog: fix NULL pointer dereference check
+f46c8a75263f powerpc/mm: Fix null-pointer dereference in pgtable_cache_add
