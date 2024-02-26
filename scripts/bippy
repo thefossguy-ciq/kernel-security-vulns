@@ -505,6 +505,7 @@ else
 		# as the "og_vuln" release number
 		og_git=${GIT_VULNERABLE}
 		og_vuln=$(cd "${KERNEL_TREE}" && git describe --contains "${og_git}" | cut -f 1 -d '-' | sed -e 's/v//g')
+		vuln_kernels=("${og_vuln}")
 	fi
 fi
 dbg "og_vuln=${og_vuln}"
