@@ -1,10 +1,3 @@
----------------------
-NOTE, this is still using the testing data, not the "real" CVE api server just
-yet, these are NOT valid CVE entries at all.  When we are "live", this note
-will be removed.  For now, ignore this as we are getting things working
-properly...
----------------------
-
 List of CVEs assigned to the Linux project.
 
 They are in one of 3 states, that map directly to the subdirectories here:
