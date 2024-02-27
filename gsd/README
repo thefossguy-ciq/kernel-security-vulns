@@ -1,0 +1,8 @@
+This is a collection of the "raw" data that was submitted to the GSD project
+(https://gsd.id/) for the kernel for many years.
+
+It was submitted in csv format:
+	GIT_ID_VULNERABLE,VERSION_VULNERABLE,GIT_ID_FIXED,VERSION_FIXED
+
+Note, the GIT_ID_* values are references to the stable.git branches, the "root"
+fix should be looked up in the mainline branch.
