@@ -30,6 +30,8 @@ help() {
 
 cd "${DIR}"/../ || exit 1
 
+send_email_files=""
+
 # Get a list of the json files that are modified in some way (not deleted) and
 # only submit those to the system, cutting down on round trips
 files=$(git status -s | grep -v "^ D" | cut -f 2 -d ' ' | grep "\.mbox$" )
@@ -41,17 +43,13 @@ for file in ${files}; do
 	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
 	#echo "id=${id} sha=${sha} cve=${cve}"
 	echo "Sending email for ${cve} for commit ${sha}"
-	git send-email "${file}"
-	#cve -u gregkh@kernel.org -o Linux publish "${cve}" -f "${root}.json"
-	good=$?
-	if [[ "${good}" == 0 ]]; then
-		echo "Email successfully sent"
-	else
-		echo "ERROR: Something went wrong sending email ${cve}"
-	fi
-	echo ""
-	#cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
+	send_email_files+=" ${file}"
 done
 
-# to list all published entries:
-# cve -u gregkh@linuxfoundation.org -o Linux -e test list
+git send-email --no-thread ${send_email_files}
+good=$?
+if [[ "${good}" == 0 ]]; then
+	echo "Emails successfully sent"
+else
+	echo "ERROR: Something went wrong sending email ${cve}"
+fi
