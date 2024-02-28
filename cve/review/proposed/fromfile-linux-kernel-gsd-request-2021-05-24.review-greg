@@ -1,0 +1,116 @@
+402be8a10119 drm/i915: Fix crash in auto_retire
+5104d7ffcf24 KVM: VMX: Disable preemption when probing user return MSRs
+f5c7e8425f18 KVM: nVMX: Always make an attempt to map eVMCS after migration
+901f84de0e16 iio: core: fix ioctl handlers removal
+1f4642b72be7 usb: typec: ucsi: Retrieve all the PDOs instead of just the first 4
+79ebe9110fa4 nbd: Fix NULL pointer in flush_workqueue
+a949dc5f2c5c f2fs: compress: fix race condition of overwrite vs truncate
+8cc365f9559b nvmet-rdma: Fix NULL deref when SEND is completed with error
+efed9a3337e3 kyber: fix out of bounds access when preempted
+0c8bd174f0fc ACPI: scan: Fix a memory leak in an error handling path
+bb9c74a5bd14 usb: dwc3: gadget: Free gadget structure only after freeing endpoints
+f9baa501b4fd btrfs: fix deadlock when cloning inline extents and using qgroups
+7ed9d238c7db userfaultfd: release page in error path to avoid BUG_ON
+c3187cf32216 hfsplus: prevent corruption in shrinking truncate
+aec86b052df6 powerpc/64s: Fix crashes when toggling entry flush barrier
+38318f23a7ef i40e: Fix use-after-free in i40e_client_subtask()
+a54754ec9891 netfilter: nftables: avoid overflows in nft_hash_buckets()
+6d2f8909a5fa sched: Fix out-of-bound access in uclamp
+03c427147b2d can: mcp251x: fix resume from sleep before interface was brought up
+4cc7faa40697 can: mcp251xfd: mcp251xfd_probe(): fix an error pointer dereference in probe
+85dfd816fabf netfilter: nftables: Fix a memleak from userdata error path in new objects
+4d6a38da8e79 arm64: entry: always set GIC_PRIO_PSR_I_SET during entry
+643001b47adc ethernet:enic: Fix a use after free bug in enic_hard_start_xmit
+35b4f24415c8 sctp: do asoc update earlier in sctp_sf_do_dupcook_a
+1775c7ddacfc ceph: fix inode leak on getattr error in __fh_to_dentry
+35d8b10a2588 xprtrdma: Fix cwnd update ordering
+b9f83ffaa0c0 SUNRPC: Fix null pointer dereference in svc_rqst_free()
+28ac8e03c43d dmaengine: idxd: Fix potential null dereference on pointer status
+61461fc921b7 f2fs: fix to avoid touching checkpointed data in get_victim()
+6613bc2301ba PCI: endpoint: Fix NULL pointer dereference for ->get_features()
+a506bd575629 ARM: 9064/1: hw_breakpoint: Do not directly check the event's overflow_handler hook
+3ab0598e6d86 f2fs: fix panic during f2fs_resize_fs()
+a3ba26ecfb56 KVM: SVM: Make sure GHCB is mapped before updating
+83a775d5f9bf KEYS: trusted: Fix memory leak on object td
+8d432592f30f net: Only allow init netns to set default tcp cong to a restricted algo
+9f38f03ae8d5 mm: memcontrol: slab: fix obtain a reference to a freeing memcg
+3093ee182f01 RDMA/siw: Fix a use after free in siw_alloc_mr
+6d72e7c767ac net:emac/emac-mac: Fix a use after free in emac_mac_tx_buf_send
+f77bd544a6bb net/sched: act_ct: fix wild memory access when clearing fragments
+bbd6f0a94813 bnxt_en: Fix RX consumer index logic in the error path.
+a9a4c080deb3 wlcore: Fix buffer overrun by snprintf due to incorrect buffer size
+8392df5d7e0b ath10k: Fix a use after free in ath10k_htc_send_bundle
+9ccba66d4d2a powerpc/64: Fix the definition of the fixmap area
+fe3fccde8870 mt76: mt7921: fix possible invalid register access
+4a52d6abb193 mt76: mt7615: Fix a dereference of pointer sta before it is null checked
+e9d32af478cf mt76: mt7915: fix memleak when mt7915_unregister_device()
+8ab31da7b89f mt76: mt7615: fix memleak when mt7615_unregister_device()
+333980481b99 net: marvell: prestera: fix port event handling on init
+8432b8114957 vsock/virtio: free queued packets when closing socket
+b34ea31fe013 iommu/mediatek: Always enable the clk on resume
+a85c5c7a3aa8 i2c: xiic: fix reference leak when pm_runtime_get_sync fails
+2c662660ce2b i2c: stm32f7: fix reference leak when pm_runtime_get_sync fails
+3a4f32646311 i2c: sprd: fix reference leak when pm_runtime_get_sync fails
+47ff617217ca i2c: imx: fix reference leak when pm_runtime_get_sync fails
+278e5bbdb9a9 i2c: imx-lpi2c: fix reference leak when pm_runtime_get_sync fails
+223125e37af8 i2c: img-scb: fix reference leak when pm_runtime_get_sync fails
+23ceb8462dc6 i2c: cadence: fix reference leak when pm_runtime_get_sync fails
+7f4a8592ff29 RDMA/rtrs-clt: destroy sysfs after removing session from active list
+e230f0c44f01 mt76: mt7921: fix kernel crash when the firmware fails to download
+f43b941fd610 mt76: mt7915: fix txrate reporting
+c996f0346e40 mt76: connac: fix kernel warning adding monitor interface
+49cc85059a2c mt76: mt7615: fix memory leak in mt7615_coredump_work
+782b3e86ea97 mt76: mt7921: fix memory leak in mt7921_coredump_work
+7dcf3c04f0ac mt76: mt7915: fix tx skb dma unmap
+ebee7885bb12 mt76: mt7615: fix tx skb dma unmap
+b8b2f37cf632 powerpc/64s: Fix pte update for kernel memory on radix
+eea53c581688 iommu/vt-d: Remove WO permissions on second-level paging entries
+18f25dc39990 udp: skip L4 aggregation for UDP tunnel packets
+96fadf7e8ff4 ASoC: q6afe-clocks: fix reprobing of the driver
+17486960d79b Bluetooth: avoid deadlock between hci_dev->lock and socket lock
+1ffec389a643 ataflop: potential out of bounds in do_format()
+38134ada0cee io_uring: fix overflows checks in provide buffers
+b5332a9f3f3d nvmet-tcp: fix incorrect locking in state_change sk callback
+616cf23b6cf4 drm/amd/display: Free local data after use
+ba11bbf303fa media: atomisp: Fix use after free in atomisp_alloc_css_stat_bufs()
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+5a465c5391a8 media: venus: core: Fix some resource leaks in the error path of 'venus_probe()'
+3536169f8531 media: aspeed: fix clock handling logic
+39a2a6eb5c9b sched/fair: Fix shift-out-of-bounds in load_balance()
+8dd1c125f7f8 scsi: lpfc: Fix null pointer dereference in lpfc_prep_els_iocb()
+8e6fafd5a22e drm/amd/display: Fix off by one in hdmi_14_process_transaction()
+126bdb606fd2 spi: spi-zynqmp-gqspi: return -ENOMEM if dma_map_single fails
+a2c5bedb2d55 spi: spi-zynqmp-gqspi: fix use-after-free in zynqmp_qspi_exec_op
+3e9bf43f7f7a Drivers: hv: vmbus: Use after free in __vmbus_open()
+59e27d7c94aa memory: renesas-rpc-if: fix possible NULL pointer dereference of resource
+a03675497970 spi: fsl-lpspi: Fix PM reference leak in lpspi_prepare_xfer_hardware()
+854b77371998 crypto: sa2ul - Fix memory leak of rxd
+50274b01ac16 crypto: sun8i-ss - Fix memory leak of pad
+794aaf01444d spi: Fix use-after-free with devm_spi_alloc_*
+43262178c043 m68k: mvme147,mvme16x: Don't wipe PCC timer config bits
+48f17f96a817 soundwire: stream: fix memory leak in stream config error path
+ac6ad7c2a862 bus: qcom: Put child node before return
+1e97743fd180 mtd: require write permissions for locking and badblock ioctls
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+8609f5cfdc87 crypto: qat - ADF_STATUS_PF_RUNNING should be set after adf_dev_init
+79c6246ae879 spi: stm32: Fix use-after-free on unbind
+98b5ef3e97b1 crypto: sun8i-ss - Fix memory leak of object d when dma_iv fails to map
+e41a962f82e7 regmap: set debugfs_name to NULL after it is freed
+1dbc6a1e25be crypto: sun8i-ss - fix result memory leak on error path
+5d3c4c79384a KVM: Stop looking for coalesced MMIO zones if the bus is destroyed
+2ee3757424be KVM: Destroy I/O bus devices on unregister failure _after_ sync'ing SRCU
+c36b16d29f3a KVM: SVM: Use online_vcpus, not created_vcpus, to iterate over vCPUs
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+4d906839d321 drm: bridge/panel: Cleanup connector on bridge detach
+b4403cee6400 mt76: fix potential DMA mapping leak
+2ff25985ea9c rtw88: Fix array overrun in rtw_get_tx_power_params()
+ceaf2966ab08 async_xor: increase src_offs when dropping destination page
+ef85bb582c41 soc/tegra: regulators: Fix locking up when voltage-spread is out of range
+c61760e6940d net/nfc: fix use-after-free llcp_sock_bind/connect
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
+6045b01dd0e3 media: [next] staging: media: atomisp: fix memory leak of object flash
