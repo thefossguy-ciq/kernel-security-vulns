@@ -25,10 +25,6 @@ DEBUG=0
 KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
 FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
 
-# Might be dropped if we don't need the full "container" output, see at the
-# bottom for more details
-USER="gregkh@linuxfoundation.org"
-
 # don't use unset variables
 set -o nounset
 
@@ -56,10 +52,11 @@ help() {
 	echo "				specified filename"
 	echo " -m, --mbox=MBOX_FILENAME	Output a mbox file to submit to the CVE"
 	echo "				announce mailing list"
+	echo " -u, --user=EMAIL			Email of user creating the record"
 	echo " -h, --help			This information"
 	echo " -v, --verbose			Show debugging information to stdout"
 	echo ""
-	echo "Note, CVE_NUMBER and GIT_SHA are required, as well as at least one of"
+	echo "Note, CVE_NUMBER, GIT_SHA, and EMAIL are required, as well as at least one of"
 	echo "JSON_FILENAME and/or MBOX_FILENAME."
 	exit 1
 }
@@ -72,13 +69,14 @@ dbg() {
 
 
 # Parse the command line
-short_opts="j:m:c:s:hv"
-long_opts="json:,mbox:,cve:,sha:,vulnerable:,help,verbose"
+short_opts="j:m:c:s:u:hv"
+long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,help,verbose"
 JSON_FILE=""
 MBOX_FILE=""
 CVE_NUMBER=""
 GIT_SHA=""
 GIT_VULNERABLE=""
+USER=""
 
 TMP=$(getopt -o "${short_opts}" --long "${long_opts}" --name="${SCRIPT}" -- "$@")
 eval set -- "${TMP}"
@@ -89,6 +87,7 @@ while :; do
 		-m | --mbox	) MBOX_FILE="${2}";		shift 2 ;;
 		-c | --cve	) CVE_NUMBER="${2}";		shift 2 ;;
 		-s | --sha	) GIT_SHA="${2}";		shift 2 ;;
+		-u | --user	) USER="${2}";			shift 2 ;;
 		--vulnerable	) GIT_VULNERABLE="${2}";	shift 2 ;;
 		-h | --help	) help;				shift ;;
 		-v | --verbose	) DEBUG=1;			shift ;;
@@ -103,7 +102,7 @@ dbg "JSON_FILE=${JSON_FILE}"
 dbg "MBOX_FILE=${MBOX_FILE}"
 dbg "GIT_VULNERABLE=${GIT_VULNERABLE}"
 
-if [[ "${CVE_NUMBER}" == "" || "${GIT_SHA}" == "" ]] ; then
+if [[ "${CVE_NUMBER}" == "" || "${GIT_SHA}" == ""  || "${USER}" == "" ]] ; then
 	help
 fi
 if [[ "${JSON_FILE}" == "" && "${MBOX_FILE}" == "" ]] ; then
@@ -907,7 +906,7 @@ fi	# end json creation
 if [[ "${MBOX_FILE}" != "" ]] ; then
 	cat << EOF > "${MBOX_FILE}"
 From ${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: ${USER}
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
 Subject: ${CVE_NUMBER}: ${subject}
