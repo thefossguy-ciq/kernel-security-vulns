@@ -1,0 +1,135 @@
+Notes on "how to assign an id and push it out to the world"
+
+Prep work
+========
+
+Things you need to have installed to get this all working:
+
+Binaries needed on your path to run automatically:
+	jo - https://github.com/jpmens/jo
+	cvelib - https://github.com/RedHatProductSecurity/cvelib.git
+
+Binaries that are nice to have:
+	just - https://github.com/casey/just.git
+	patatt - part of 'b4', needed to sign emails with the git send-email hook
+
+Source repos that are required:
+	Full linux-stable tree for git lookups.
+		git@gitolite.kernel.org:/pub/scm/linux/kernel/git/stable/linux
+
+	linux-stable_commit_tree, scripts used to figure out what commit was released in what directory.
+		https://git.sr.ht/~gregkh/linux-stable_commit_tree
+
+	Keep these two repos up to date, they are updated with each new kernel release (stable and -rc)
+
+
+Right now, the tools in scripts/ have hard-coded locations for the above 2
+source repos.  Edit them to point to where you place them in your directory
+tree, and maybe let's figure out how to specify them somehow on the command
+line or environment variables...
+
+Set the environment variable CVE_USER="your email address used for CVE"
+
+You can set CVE_API_KEY environment variable as well, or you can type it in
+each time you access the CVE.org site, your call.
+
+To test the ability to access the CVE database, run:
+	cve -o Linux org
+
+the output should look something like:
+	kernel.org — Linux
+	├─ Roles:	CNA
+	├─ Created:	Wed Feb 14 06:36:05 2024 +0000
+	└─ Modified:	Tue Feb 27 18:42:56 2024 +0000
+
+If this doesn't work, poke Greg to work through what went wrong.
+
+Install the git send-email hook that will sign the emails when sent out, and
+set a "pretty" Message-Id: value.
+	cp git_hooks/sendemail-validate .git/hooks/
+
+Verify the hook works it should fail with the following error:
+	$ .git/hooks/sendemail-validate
+	WARNING: Folder does not exist, failed opening mbox folder /var/spool/mail/gregkh.
+	Can't call method "message" on an undefined value at .git/hooks/sendemail-validate line 8.
+
+If you get warnings about missing Perl modules, go find them on your distro, or
+don't worry about it and delete the hook, your call.
+
+
+Assigning an id
+===============
+
+Start with a git id, let's use 5f449e245e5b ("riscv: mm: Fixup compat mode boot
+failure") as an example for all of this.
+
+In the main vulns.git repo, run 'just' to see the available options:
+$ just
+Available recipes:
+    cve_create GIT_ID # Create a CVE for a specific Linux kernel git commit id
+    cve_publish_json  # Publish all modified .json files with the CVE server
+    cve_publish_mbox  # Publish all modified .mbox messages with git-send-email
+    cve_reject CVE_ID # Reject a published/reserved CVE
+    cve_search GIT_ID # Search for a specific git id in the list of published CVE ids
+    cve_update        # Update all allocated CVE entries with the latest version information
+    list_ids          # Query the CVE server for the list of all ids assigned to us
+    summary           # List a summary of the ids at this point in time
+
+
+You can run the cve_* scripts directly from scripts/ or you can use 'just' to
+run them instead, your call.
+
+To create a cve id, do:
+	just cve_create 5f449e245e5b
+or
+	scripts/cve_create 5f449e245e5b
+
+the output should look something like:
+	CVE-2023-52475 is now allocated for commit 5f449e245e5b ("riscv: mm: Fixup compat mode boot failure")
+(it should be in color)
+
+Great, it's created, but what happened?  Look at git:
+	$ git status -s
+	 D cve/reserved/2023/CVE-2023-52475
+	?? cve/published/2023/CVE-2023-52475
+	?? cve/published/2023/CVE-2023-52475.json
+	?? cve/published/2023/CVE-2023-52475.mbox
+	?? cve/published/2023/CVE-2023-52475.sha1
+
+The CVE id was moved from the reserved directory into the published directory,
+if all went well.
+
+Look at the .mbox file, and verify that it looks sane, the "Affected and fixed
+versions" looks correct, and that the version and git ids are correct.  You can
+manually check the links at the bottom of the email as well to verify this.
+Also verify that the email address at the top of the email is correctly set to
+yours.
+
+If that looks good, look at the .json file and be thankful that we don't have
+to type this by hand all the time, hopefully it also looks correct.
+
+Submit the cve id to cve.org:
+	just cve_publish_json
+or
+	scripts/cve_publish_json
+
+The script will iterate through the uncommitted or modified json files and
+submit them to cve.org.  The response should be "success", if not, work through
+it with Greg.
+
+Send the email for the new cve id:
+	just cve_publish_mbox
+or
+	scripts/cve_publish_mbox
+
+The script will iterate through the uncommited mbox files and run 'git
+send-email' on them to send them to the linux-cve-announce mailing list.
+
+If the git hook is installed, patatt will ask to sign the messages with your
+gpg key before sending them out.
+
+Now that the json file is submitted, and the .mbox file is sent out, that's it,
+so just commit the changes to the git repo:
+	git add cve/
+	git commit -a
+and provide a changelog message and push the repo to the server.
