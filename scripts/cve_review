@@ -170,7 +170,9 @@ uaf\
     git --no-pager log -p --format="" --color=always -n1 ${h} >> ${commitfile}
     commitlen=$(cat ${commitfile} | wc -l)
 
-    if [ ${commitlen} -gt ${CLIPCOMMITTO} ]; then
+    if [ "${NAME}" == "greg" ]; then
+        bat ${commitfile}
+    elif [ ${commitlen} -gt ${CLIPCOMMITTO} ]; then
         head -n ${CLIPCOMMITTO} ${commitfile}
         print_blue "\nCommit has been clipped, press M to see the remainder"
     else
