@@ -56,7 +56,7 @@ for file in ${files}; do
 	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
 	#echo "id=${id} sha=${sha} cve=${cve}"
 	echo "Uploading ${cve} for commit ${sha}"
-	cve -u gregkh@kernel.org -o Linux publish "${cve}" -f "${root}.json"
+	cve -o Linux publish "${cve}" -f "${root}.json"
 	good=$?
 	if [[ "${good}" == 0 ]]; then
 		echo "CVE published successfully at: https://cve.org/CVERecord/?id=${cve}"

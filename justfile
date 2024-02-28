@@ -34,8 +34,7 @@ _help:
 
 # Query the CVE server for the list of all ids assigned to us
 @list_ids:
-	cve -u gregkh@kernel.org -o Linux list
-	#cve -u gregkh@linuxfoundation.org -o Linux -e test list
+	cve -o Linux list
 
 
 # List a summary of the ids at this point in time

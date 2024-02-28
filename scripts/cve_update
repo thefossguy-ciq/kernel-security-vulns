@@ -37,12 +37,18 @@ SCRIPT=${0##*/}
 
 help() {
 	echo "${SCRIPT}"
+	echo "	Note, CVE_USER must be set to your CVE_USER email address"
 	exit 1
 }
 
 if [[ "${TMPDIR}" == "" ]]; then
 	echo "TMPDIR environment variable must be set, exiting ${SCRIPT}"
 	exit 1
+fi
+
+USER="${CVE_USER:-}"
+if [[ "${USER}" == "" ]] ; then
+	help
 fi
 
 # don't use unset variables
@@ -72,7 +78,7 @@ for id in cve/published/*/*.sha1 ; do
 	fi
 
 	# Create the new json and mbox files
-	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}"
+	"${DIR}"/bippy --cve="${cve}" --user="${USER}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}"
 
 	# see if the json and/or mbox files actually changed, EXCEPT for the bippy-VERSIONINFO string
 	changed=0
