@@ -61,7 +61,7 @@ TOP=${RANGE#*..}
 BOTTOM=${RANGE%..*}
 SCRIPTDIR=$(dirname ${0})
 PROPOSED=${SCRIPTDIR}/../cve/review/proposed
-FILES=$(ls ${PROPOSED} | grep "${TOP}" | grep "lee$\|sasha$\|greg$")
+FILES=$(ls ${PROPOSED} | grep -E "${TOP}-(lee|sasha|greg)$")
 
 ALL=()
 GREGLEE=()
