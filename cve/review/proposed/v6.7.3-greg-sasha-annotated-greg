@@ -1,0 +1,7 @@
+437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
+- [greg] "This addresses a possible race condition in which a spurious IRQ from a previous timed-out reply which arrived late could be wrongly associated with the next pending transaction."
+edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
+- [greg] "This is clearly a protocol violation and with the Linux NFS client it can cause incorrect behaviour."
+76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
+- [greg] Should not be marked for a CVE
+
