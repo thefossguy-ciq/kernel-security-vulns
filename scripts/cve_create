@@ -42,17 +42,11 @@ SCRIPT=${0##*/}
 
 help() {
 	echo "${SCRIPT} [GIT_SHA]"
-	echo "	Note, CVE_USER must be set to your CVE_USER email address"
 	exit 1
 }
 
 GIT_SHA="${1:-}"
 if [[ "${GIT_SHA}" == "" ]] ; then
-	help
-fi
-
-USER="${CVE_USER:-}"
-if [[ "${USER}" == "" ]] ; then
 	help
 fi
 
@@ -115,7 +109,7 @@ mv "${ID}" "${PUBLISHED_DIR}"
 echo "${GIT_SHA_FULL}" > "${PUBLISHED_DIR}/${ID}.sha1"
 
 # write the new json and mbox entry out, using bippy
-"${DIR}"/bippy --cve="${ID}" --user="${USER}" --sha="${GIT_SHA_FULL}" --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
+"${DIR}"/bippy --cve="${ID}" --sha="${GIT_SHA_FULL}" --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
 result=$?
 if [[ "${result}" != 0 ]]; then
 	# move the id back to the reserved area and delete the .sha1 file
