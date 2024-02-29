@@ -1,0 +1,57 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright 2024 Google LLC
+#
+# Author: Lee Jones <lee@kernel.org>
+#
+# Usage
+#   cve_create_batch filename
+#
+# * Takes a file containing an upstream SHA in the first column
+#   - Everything else (including leading whitespace is ignored)
+# * Ensures commits are valid upstream commits
+#   - Skips over invalid entries
+# * Calls ${scripts}/cve_create on each valid commit
+
+# set -x                        # Uncomment to enable debugging
+
+# User variables
+MAINLINEREMOTE=mainline
+
+FILE=${1}
+if [ ! -s ${FILE} ]; then
+    echo "The only argument should be the file to parse"
+    exit 1
+fi
+
+KERNEL_TREE=${CVEKERNELTREE}
+if [ ! -d ${KERNEL_TREE} ]; then
+       echo "CVEERNELTREE needs setting to the stable repo directory"
+       echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+       echo "See HOWTO in the root of this repo"
+       exit 1
+fi
+
+SCRIPTDIR=$(dirname ${0})
+
+while read line; do
+    # Skip annotations
+    if echo ${line} | grep -q "^\s*-"; then
+        continue
+    fi
+
+    SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
+done < ${FILE}
+
+for s in ${SHAS[@]}; do
+    pushd ${KERNEL_TREE}> /dev/null
+    # if ! git --no-pager log --oneline -n1 ${s} ${MAINLINEREMOTE}/master 2>&1 | grep -q "^${s} "; then
+    if ! git --no-pager branch -a ${MAINLINEREMOTE}/master --contains ${s} > /dev/null 2>&1; then
+    	echo "${s} does not appear to be a valid mainline commit - skipping"
+        continue
+    fi
+    popd > /dev/null # ${KERNEL_TREE}
+
+    ${SCRIPTDIR}/cve_create ${s}
+done
