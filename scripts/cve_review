@@ -95,7 +95,7 @@ if [ -s "${FILE}" ]; then
 
     while read line; do
         # Skip annotations (TODO: Collect these and present them during review)
-        if echo ${line} | grep -E "^\s*-"; then
+        if echo ${line} | grep -Eq "^\s*-"; then
             continue
         fi
 
