@@ -1,0 +1,72 @@
+Already assigned a CVE
+
+Everyone agrees
+  08ac6f132dd77 drm/bridge: sii902x: Fix probing race issue
+  8892780834ae2 drm/amd/display: Wake DMCUB before sending a command
+  cb4daf271302d drm: Don't unref the same fb many times by mistake due to deadlock handling
+  ebeae8adf89d9 ksmbd: fix global oob in ksmbd_nl_policy
+  f342de4e2f33e netfilter: nf_tables: reject QUEUE/DROP verdict parameters
+  cf4a0d840ecc7 wifi: iwlwifi: fix a memory corruption
+  c5114710c8ce8 xsk: fix usage of multi-buffer BPF helpers for ZC XDP
+  d76fdd31f953a net/mlx5e: Fix peer flow lists handling
+  3be0b3ed1d76c netfs, fscache: Prevent Oops in fscache_put_cache()
+  13e788deb7348 net/rds: Fix UBSAN: array-index-out-of-bounds in rds_cmsg_recv
+  198bc90e0e734 tcp: make sure init the accept_queue's spinlocks once
+  dbc153fd3c142 net/smc: fix illegal rmb_desc access in SMC-D connection dump
+  f546c42826734 btrfs: scrub: avoid use-after-free when chunk length is not 64K aligned
+  5ec8e8ea8b778 mm/sparsemem: fix race in accessing memory_section->usage
+  d1adb25df7111 mm: migrate: fix getting incorrect page mapping during page migration
+  4cccb6221cae6 fs/proc/task_mmu: move mmu notification mechanism inside mm lock
+  dc7eb8755797e arm64/sme: Always exit sme_alloc() early with existing storage
+  206c857dd17d4 media: mtk-jpeg: Fix use after free bug due to error path handling in mtk_jpeg_dec_device_run
+  78996eee79ebd riscv: Fix module loading free order
+  f5c24d94512f1 dmaengine: fix NULL pointer in channel unregistration function
+  01bd694ac2f68 bus: mhi: host: Drop chan lock before queuing buffers
+  eff9704f5332a bus: mhi: host: Add alignment check for event ring read pointer
+  c4fb7d2eac9ff soc: qcom: pmic_glink_altmode: fix port sanity check
+  a7d84a2e7663b mtd: maps: vmu-flash: Fix the (mtd core) switch to ref counters
+  3c12466b6b7bf erofs: fix lz4 inplace decompression
+  7839d0078e0d5 PM: sleep: Fix possible deadlocks in core system-wide PM code
+
+Greg and Lee agree
+  d09486a04f5da net: fix removing a namespace with conflicting altnames
+  e3f9bed9bee26 llc: Drop support for ETH_P_TR_802_2.
+  dad555c816a50 llc: make llc_ui_sendmsg() more robust against bonding changes
+  556857aa1d085 wifi: ath11k: rely on mac80211 debugfs handling for vif
+  78fbb92af27d0 nbd: always initialize struct msghdr completely
+  08e23d05fa6dc PM / devfreq: Fix buffer overflow in trans_stat_show
+  78aafb3884f6b hwrng: core - Fix page fault dead lock on mmap-ed hwrng
+  ba3c557420303 crypto: lib/mpi - Fix unexpected pointer access in mpi_ec_init
+
+Greg and Sasha agree
+  437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
+  edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
+  dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions for FIFO
+  76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
+  850fb7fa8c684 s390/vfio-ap: always filter entire AP matrix
+
+Lee and Sasha agree
+
+Greg only
+  7081929ab2572 btrfs: don't abort filesystem when attempting to snapshot deleted subvolume
+  c9d9eb9c53d37 netfilter: nft_limit: reject configurations that cause integer overflow
+  32f2a0afa95fa net/sched: flower: Fix chain template offload
+  2b44760609e9e tracing: Ensure visibility when inserting an element into tracing_map
+  c20f482129a58 bnxt_en: Prevent kernel warning when running offline self test
+  832dd634bd1b4 arm64: entry: fix ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+  f1bb47a31dff6 lsm: new security_file_ioctl_compat() hook
+
+Lee only
+  e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
+  8e57c06bf4b0f drm/amd/display: Refactor DMCUB enter/exit idle interface
+  97566d09fd02d thermal: intel: hfi: Add syscore callbacks for system-wide PM
+  3bb9b1f958c3d drm/amd/display: Fix late derefrence 'dsc' check in 'link_set_dsc_pps_packet()'
+  7073934f5d73f drm/amd/display: Fix variable deferencing before NULL check in edp_setup_replay()
+  bc03c02cc1991 drm/amdgpu: Fix the null pointer when load rlc firmware
+  5913320eb0b3e platform/x86: p2sb: Allow p2sb_bar() calls during PCI device probe
+  3876638b2c7eb net/mlx5e: Fix operation precedence bug in port timestamping napi_poll context
+  5f449e245e5b0 riscv: mm: Fixup compat mode boot failure
+  482b718a84f08 powerpc/ps3_defconfig: Disable PPC64_BIG_ENDIAN_ELF_ABI_V2
+  020e71c7ffc25 iio: adc: ad7091r: Allow users to configure device events
+
+Sasha only
