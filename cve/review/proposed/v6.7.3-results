@@ -14,6 +14,8 @@ Everyone agrees
   198bc90e0e734 tcp: make sure init the accept_queue's spinlocks once
   dbc153fd3c142 net/smc: fix illegal rmb_desc access in SMC-D connection dump
   f546c42826734 btrfs: scrub: avoid use-after-free when chunk length is not 64K aligned
+  dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions for FIFO
+  - [lee] Promoted to 3/3
   5ec8e8ea8b778 mm/sparsemem: fix race in accessing memory_section->usage
   d1adb25df7111 mm: migrate: fix getting incorrect page mapping during page migration
   4cccb6221cae6 fs/proc/task_mmu: move mmu notification mechanism inside mm lock
@@ -23,6 +25,8 @@ Everyone agrees
   f5c24d94512f1 dmaengine: fix NULL pointer in channel unregistration function
   01bd694ac2f68 bus: mhi: host: Drop chan lock before queuing buffers
   eff9704f5332a bus: mhi: host: Add alignment check for event ring read pointer
+  850fb7fa8c684 s390/vfio-ap: always filter entire AP matrix
+  - [lee] Promoted to 3/3
   c4fb7d2eac9ff soc: qcom: pmic_glink_altmode: fix port sanity check
   a7d84a2e7663b mtd: maps: vmu-flash: Fix the (mtd core) switch to ref counters
   3c12466b6b7bf erofs: fix lz4 inplace decompression
@@ -40,10 +44,11 @@ Greg and Lee agree
 
 Greg and Sasha agree
   437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
+  - [lee] What are the consequences of the race?
   edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
-  dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions for FIFO
+  - [lee] Only consequence seen is "incorrect behaviour"?
   76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
-  850fb7fa8c684 s390/vfio-ap: always filter entire AP matrix
+  - [lee] How is incorrectly returning -EINVAL a CVE?
 
 Lee and Sasha agree
 
@@ -58,15 +63,26 @@ Greg only
 
 Lee only
   e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
+  - [lee] System hang
   8e57c06bf4b0f drm/amd/display: Refactor DMCUB enter/exit idle interface
+  - [lee] Hang
   97566d09fd02d thermal: intel: hfi: Add syscore callbacks for system-wide PM
+  - [lee] Memory curruption
   3bb9b1f958c3d drm/amd/display: Fix late derefrence 'dsc' check in 'link_set_dsc_pps_packet()'
+  - [lee] Junk pointer dereference
   7073934f5d73f drm/amd/display: Fix variable deferencing before NULL check in edp_setup_replay()
+  - [lee] Junk pointer dereference
   bc03c02cc1991 drm/amdgpu: Fix the null pointer when load rlc firmware
+  - [lee] Junk pointer dereference
   5913320eb0b3e platform/x86: p2sb: Allow p2sb_bar() calls during PCI device probe
+  - [lee] Deadlock
   3876638b2c7eb net/mlx5e: Fix operation precedence bug in port timestamping napi_poll context
+  - [lee] OOB read followed by junk dereference
   5f449e245e5b0 riscv: mm: Fixup compat mode boot failure
+  - [lee] Boot failure
   482b718a84f08 powerpc/ps3_defconfig: Disable PPC64_BIG_ENDIAN_ELF_ABI_V2
+  - [lee] NULL pointer dereference
   020e71c7ffc25 iio: adc: ad7091r: Allow users to configure device events
+  - [lee] NULL pointer dereference
 
 Sasha only
