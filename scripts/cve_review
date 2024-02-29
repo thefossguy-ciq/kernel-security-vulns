@@ -94,6 +94,11 @@ if [ -s "${FILE}" ]; then
     fi
 
     while read line; do
+        # Skip annotations (TODO: Collect these and present them during review)
+        if echo ${line} | grep -E "^\s*-"; then
+            continue
+        fi
+
         SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
     done < ${FILE}
 
