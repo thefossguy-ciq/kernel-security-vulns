@@ -1,0 +1,22 @@
+e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
+- [lee] System hang
+8e57c06bf4b0f drm/amd/display: Refactor DMCUB enter/exit idle interface
+- [lee] Hang
+97566d09fd02d thermal: intel: hfi: Add syscore callbacks for system-wide PM
+- [lee] Memory curruption
+3bb9b1f958c3d drm/amd/display: Fix late derefrence 'dsc' check in 'link_set_dsc_pps_packet()'
+- [lee] Junk pointer dereference
+7073934f5d73f drm/amd/display: Fix variable deferencing before NULL check in edp_setup_replay()
+- [lee] Junk pointer dereference
+bc03c02cc1991 drm/amdgpu: Fix the null pointer when load rlc firmware
+- [lee] Junk pointer dereference
+5913320eb0b3e platform/x86: p2sb: Allow p2sb_bar() calls during PCI device probe
+- [lee] Deadlock
+3876638b2c7eb net/mlx5e: Fix operation precedence bug in port timestamping napi_poll context
+- [lee] OOB read followed by junk dereference
+5f449e245e5b0 riscv: mm: Fixup compat mode boot failure
+- [lee] Boot failure
+482b718a84f08 powerpc/ps3_defconfig: Disable PPC64_BIG_ENDIAN_ELF_ABI_V2
+- [lee] NULL pointer dereference
+020e71c7ffc25 iio: adc: ad7091r: Allow users to configure device events
+- [lee] NULL pointer dereference
