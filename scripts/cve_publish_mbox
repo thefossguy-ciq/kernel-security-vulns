@@ -46,7 +46,7 @@ for file in ${files}; do
 	send_email_files+=" ${file}"
 done
 
-git send-email --no-thread ${send_email_files}
+git send-email --no-thread --to=linux-cve-announce@vger.kernel.org ${send_email_files}
 good=$?
 if [[ "${good}" == 0 ]]; then
 	echo "Emails successfully sent"
