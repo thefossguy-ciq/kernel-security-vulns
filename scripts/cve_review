@@ -138,7 +138,7 @@ for h in ${SHAS[@]}; do
 call[-\s_]*trace|\
 kernel[-\s_]*bug|\
 dereference|null|deref|\
-dead|[-\s_]*lock|\
+dead[-\s_]*lock|lock[-\s_]*up|lock|\
 under[-\s_]*run|under[-\s_]*flow|\
 over[-\s_]*run|over[-\s_]*flow|\
 race|racing|\
@@ -148,6 +148,7 @@ crash|\
 denial|\
 dos|\
 fault|\
+[-\s_]hang|\
 oob|\
 panic|\
 leak|\
