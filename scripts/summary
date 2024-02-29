@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# Print out a bunch of stats about the current state of the cves
+#
+
+# get where the tool was run from,
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+total_reserved=0
+total_assigned=0
+total_rejected=0
+total_sum=0
+
+printf " Year\tReserved\tAssigned\tRejected\tTotal\n"
+
+for year in {2010..2030}; do
+	reserved=0
+	assigned=0
+	rejected=0
+	sum=0
+
+	d="${DIR}/../cve/reserved/${year}"
+	if [[ -d "${d}" ]]; then
+		reserved=$(find "${d}/" -type f | wc -l)
+		total_reserved=$((total_reserved + reserved))
+	fi
+
+	d="${DIR}/../cve/published/${year}"
+	if [[ -d "${d}" ]]; then
+		assigned=$(find "${d}/" -type f | grep -c "sha1")
+		total_assigned=$((total_assigned + assigned ))
+	fi
+
+	d="${DIR}/../cve/rejected/${year}"
+	if [[ -d "${d}" ]]; then
+		rejected=$(find "${d}/" -type f | grep -c "sha1")
+		total_rejected=$((total_rejected + rejected))
+	fi
+
+	sum=$((reserved + assigned + rejected))
+	total_sum=$((total_sum + sum))
+	if [[ "${sum}" != "0" ]]; then
+		printf "  %d:\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "${year}" "${reserved}" "${assigned}" "${rejected}" "${sum}"
+	fi
+
+done
+printf " %s:\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "Total" "${total_reserved}" "${total_assigned}" "${total_rejected}" "${total_sum}"

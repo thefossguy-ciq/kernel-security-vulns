@@ -39,34 +39,4 @@ _help:
 
 # List a summary of the ids at this point in time
 summary:
-	#!/usr/bin/env bash
-	cd cve/reserved
-	echo "Number of allocated, but not assigned CVE ids, by year:"
-	sum=0
-	for dir in $(ls); do
-		count=$(find ${dir}/ -type f | wc -l)
-		printf "	%s:	%5d\n" "${dir}" "${count}"
-		sum=$((${sum}+${count}))
-	done
-	printf "	%s:	%5d\n" "Total" "${sum}"
-
-	cd ../../cve/published
-	echo "Number of assigned CVE ids, by year:"
-	sum=0
-	for dir in $(ls); do
-		count=$(find ${dir}/ -type f | grep "sha1" | wc -l)
-		printf "	%s:	%5d\n" "${dir}" "${count}"
-		sum=$((${sum}+${count}))
-	done
-	printf "	%s:	%5d\n" "Total" "${sum}"
-
-	cd ../../cve/rejected
-	echo "Number of rejected CVE ids, by year:"
-	sum=0
-	for dir in $(ls); do
-		count=$(find ${dir}/ -type f | grep "sha1" | wc -l)
-		printf "	%s:	%5d\n" "${dir}" "${count}"
-		sum=$((${sum}+${count}))
-	done
-	printf "	%s:	%5d\n" "Total" "${sum}"
-
+	scripts/summary
