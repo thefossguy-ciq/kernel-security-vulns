@@ -21,8 +21,14 @@
 #  A kernel git tree with the SHA to be used in it
 #  bippy
 
-# TODO - make this options that are not hard-coded
-KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
+KERNEL_TREE=${CVEKERNELTREE}
+
+if [ ! -d ${KERNEL_TREE} ]; then
+       echo "CVEERNELTREE needs setting to the stable repo directory"
+       echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+       echo "See HOWTO in the root of this repo"
+       exit 1
+fi
 
 # Colors are good!
 txtred=$(tput setaf 1)		# Red

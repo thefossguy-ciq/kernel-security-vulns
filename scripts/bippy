@@ -21,9 +21,17 @@
 # set to 1 to get some debugging logging messages (or use -v/--verbose option)
 DEBUG=0
 
-# TODO - make these options that are not hard-coded
-KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
-FOUND_IN="/home/gregkh/linux/stable/commit_tree/id_found_in"
+KERNEL_TREE=${CVEKERNELTREE}
+COMMIT_TREE=${CVECOMMITTREE}
+FOUND_IN=${COMMIT_TREE}/id_found_in
+
+if [ ! -d ${KERNEL_TREE} ] || [ ! -d ${COMMIT_TREE} ]; then
+	echo "CVEKERNELTREE needs setting to the stable repo directory"
+	echo "CVECOMMITTREE needs setting to the Stable commit tree"
+	echo -e "\nEither manually export them or add them to your .bashrc/.zshrc et al."
+	echo -e "\nSee HOWTO in the root of this repo"
+	exit 1
+fi
 
 # don't use unset variables
 set -o nounset

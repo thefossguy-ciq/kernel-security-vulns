@@ -22,6 +22,12 @@ Source repos that are required:
 
 	Keep these two repos up to date, they are updated with each new kernel release (stable and -rc)
 
+	Export the following environment variables with full paths to both repos.
+
+	  export CVEKERNELTREE="${HOME}/<path_to_kernel>"
+	  export CVECOMMITTREE="${HOME}/<path_to_commit_tree>"
+
+	If it helps, add them to your terminal rc file (~/.bashrc|~/.zshrc) et al.
 
 Right now, the tools in scripts/ have hard-coded locations for the above 2
 source repos.  Edit them to point to where you place them in your directory
