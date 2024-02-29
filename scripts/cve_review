@@ -55,6 +55,9 @@ while [ $# -gt 0 ]; do
         *[0-9]..*)
             RANGE=${1}
             ;;
+        --annotate|-a)
+            MAYBEANNOTATE=true
+            ;;
         *)
             if [ -s "${1}" ]; then
                 FILE=${1};
@@ -68,6 +71,11 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+
+if [[ "${MAYBEANNOTATE}" == "true" && "${FILE}" != "" ]]; then
+    ANNOTATE=true
+    ANNOTATENAME=-annotated
+fi
 
 if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
     print_red "Not in a kernel directory"
@@ -105,7 +113,7 @@ WORKDIR=${SCRIPTDIR}/../tmp/cve-review
 PROCESSEDDIR=${WORKDIR}/processed
 RESULTSDIR=${WORKDIR}/results
 PROCESSEDFILE=${PROCESSEDDIR}/${TAG}
-CVEME=${RESULTSDIR}/${TAG}-${NAME}
+CVEME=${RESULTSDIR}/${TAG}${ANNOTATENAME}-${NAME}
 CLIPCOMMITTO=$(($(tput lines) - 10))
 
 mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
@@ -181,7 +189,11 @@ uaf\
         print_blue "\nCommit not clipped"
     fi
 
-    print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
+    if [ "${ANNOTATE}" != "true" ]; then
+        print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
+    else
+        print_blue "\nPlease annotate <description/q>"
+    fi
     echo -n "> "
     read CHOICE
 
@@ -189,12 +201,16 @@ uaf\
         echo
         tail -n $((commitlen - ${CLIPCOMMITTO})) ${commitfile}
 
-        print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
+        if [ "${ANNOTATE}" != "true" ]; then
+            print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
+        else
+            print_blue "\nPlease annotate <description/q>:"
+        fi
         echo -n "> "
         read CHOICE
     fi
 
-    if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" ]]; then
+    if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" || "${ANNOTATE}" == "true" ]]; then
         mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
 
         # If the commit does not contain a Mainline SHA, we'll assume it *is* a Mainline SHA
@@ -203,6 +219,10 @@ uaf\
         fi
 
         git --no-pager log --oneline -n1 ${mainlinesha} >> ${CVEME}
+
+        if [ "${ANNOTATE}" == "true" ]; then
+            echo "- [${NAME}] ${CHOICE}" >> ${CVEME}
+        fi
     fi
 
     rm -f ${commitmsgfile}
