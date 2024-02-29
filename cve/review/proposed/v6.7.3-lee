@@ -43,3 +43,5 @@ cb4daf271302d drm: Don't unref the same fb many times by mistake due to deadlock
 8892780834ae2 drm/amd/display: Wake DMCUB before sending a command
 e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
 08ac6f132dd77 drm/bridge: sii902x: Fix probing race issue
+dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions for FIFO
+850fb7fa8c684 s390/vfio-ap: always filter entire AP matrix
