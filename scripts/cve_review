@@ -74,7 +74,6 @@ done
 
 if [[ "${MAYBEANNOTATE}" == "true" && "${FILE}" != "" ]]; then
     ANNOTATE=true
-    ANNOTATENAME=-annotated
 fi
 
 if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
@@ -86,7 +85,13 @@ print_blue "Fetching from ${STABLEREMOTE}"
 git fetch ${STABLEREMOTE}
 
 if [ -s "${FILE}" ]; then
-    TAG="fromfile-$(basename ${FILE})"
+    TAG="$(basename ${FILE})"
+
+    if [ "${ANNOTATE}" == "true" ]; then
+        TAG=${TAG}-annotated
+    else
+        TAG=${TAG}-fromfile
+    fi
 
     while read line; do
         SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
@@ -113,7 +118,7 @@ WORKDIR=${SCRIPTDIR}/../tmp/cve-review
 PROCESSEDDIR=${WORKDIR}/processed
 RESULTSDIR=${WORKDIR}/results
 PROCESSEDFILE=${PROCESSEDDIR}/${TAG}
-CVEME=${RESULTSDIR}/${TAG}${ANNOTATENAME}-${NAME}
+CVEME=${RESULTSDIR}/${TAG}-${NAME}
 CLIPCOMMITTO=$(($(tput lines) - 10))
 
 mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
