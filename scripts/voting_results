@@ -31,6 +31,19 @@ print_blue()
     echo -e "\e[01;34m$@\e[0m"
 }
 
+function print_annotations()
+{
+    oneline="${1}"
+    sha="$(echo ${oneline} | cut -d' ' -f1)"
+
+    for f in ${ANNOTATEDFILES}; do
+        annotation=$(grep -A1 ${sha} ${PROPOSED}/${f} | tail -n1)
+        if [ "${annotation}" != "" ]; then
+            echo "  ${annotation}"
+        fi
+    done
+}
+
 while [ $# -gt 0 ]; do
     case $1 in
         *..*)
@@ -61,7 +74,8 @@ TOP=${RANGE#*..}
 BOTTOM=${RANGE%..*}
 SCRIPTDIR=$(dirname ${0})
 PROPOSED=${SCRIPTDIR}/../cve/review/proposed
-FILES=$(ls ${PROPOSED} | grep -E "${TOP}-(lee|sasha|greg)$")
+REVIEWFILES=$(ls ${PROPOSED} | grep -E "${TOP}-(lee|sasha|greg)$")
+ANNOTATEDFILES=$(ls ${PROPOSED} | grep -E "${TOP}.*-annotated-(lee|sasha|greg)$")
 
 ALL=()
 GREGLEE=()
@@ -85,7 +99,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     mainlinesha=$(echo ${oneline} | cut -d' ' -f 1)
     cve=0; greg=0; lee=0; sasha=0; votes=0
 
-    for f in ${FILES}; do
+    for f in ${REVIEWFILES}; do
         USER=${f#*-}
 
         if grep -qF "${subject}" ${PROPOSED}/${f}; then
@@ -142,40 +156,48 @@ done
 print_blue "\nAlready assigned a CVE"
 for c in "${CVE[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nEveryone agrees"
 for c in "${ALL[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nGreg and Lee agree"
 for c in "${GREGLEE[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nGreg and Sasha agree"
 for c in "${GREGSASHA[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nLee and Sasha agree"
 for c in "${LEESASHA[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nGreg only"
 for c in "${GREG[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nLee only"
 for c in "${LEE[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
 print_blue "\nSasha only"
 for c in "${SASHA[@]}"; do
     echo "  ${c}"
+    print_annotations "${c}"
 done
 
