@@ -1,6 +1,4 @@
 Already assigned a CVE
-
-Everyone agrees
   08ac6f132dd77 drm/bridge: sii902x: Fix probing race issue
   8892780834ae2 drm/amd/display: Wake DMCUB before sending a command
   cb4daf271302d drm: Don't unref the same fb many times by mistake due to deadlock handling
@@ -32,6 +30,8 @@ Everyone agrees
   3c12466b6b7bf erofs: fix lz4 inplace decompression
   7839d0078e0d5 PM: sleep: Fix possible deadlocks in core system-wide PM code
 
+Everyone agrees
+
 Greg and Lee agree
   d09486a04f5da net: fix removing a namespace with conflicting altnames
   e3f9bed9bee26 llc: Drop support for ETH_P_TR_802_2.
@@ -44,10 +44,13 @@ Greg and Lee agree
 
 Greg and Sasha agree
   437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
+  - [greg] "This addresses a possible race condition in which a spurious IRQ from a previous timed-out reply which arrived late could be wrongly associated with the next pending transaction."
   - [lee] What are the consequences of the race?
   edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
+  - [greg] "This is clearly a protocol violation and with the Linux NFS client it can cause incorrect behaviour."
   - [lee] Only consequence seen is "incorrect behaviour"?
   76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
+  - [greg] Should not be marked for a CVE
   - [lee] How is incorrectly returning -EINVAL a CVE?
 
 Lee and Sasha agree
