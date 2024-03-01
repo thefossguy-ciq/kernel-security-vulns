@@ -1,0 +1,13 @@
+a11ddb37bf36 ipc/mqueue, msg, sem: avoid relying on a stack reference past its expiry
+0b0226be3a52 uio_hv_generic: Fix another memory leak in error handling paths
+3ee098f96b8b uio_hv_generic: Fix a memory leak in error handling paths
+54a40fc3a1da btrfs: fix removed dentries still existing after log is synced
+3a53587423d2 platform/x86: dell-smbios-wmi: Fix oops on rmmod dell_smbios
+03504e3b54cc nvme-loop: fix memory leak in nvme_loop_create_ctrl()
+fec356a61aa3 nvmet: fix memory leak in nvmet_alloc_ctrl()
+dc07628bd2bb RDMA/rxe: Return CQE error if invalid lkey was supplied
+73578af92a0f scsi: qedf: Add pointer checks in qedf_update_link_speed()
+67f29896fdc8 RDMA/rxe: Clear all QP fields if creation failed
+ff67dbd554b2 platform/x86: ideapad-laptop: fix a NULL pointer dereference
+54d87913f147 RDMA/core: Prevent divide-by-zero error triggered by the user
+115726c5d312 habanalabs/gaudi: Fix a potential use after free in gaudi_memset_device_memory
