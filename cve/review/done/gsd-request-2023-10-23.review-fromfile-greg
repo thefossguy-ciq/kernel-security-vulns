@@ -1,0 +1,69 @@
+5c15c60e7be6 Input: powermate - fix use-after-free in powermate_config_complete
+e53899771a02 perf/x86/lbr: Filter vsyscall addresses
+f74a7afc224a usb: hub: Guard against accesses to uninitialized BOS descriptors
+dac501397b9d HID: logitech-hidpp: Fix kernel crash on receiver USB disconnect
+c69813471a1e ksmbd: fix uaf in smb20_oplock_break_ack
+53ff5cf89142 ksmbd: fix race condition between session lookup and expire
+471470bc7052 arm64: errata: Add Cortex-A520 speculative unprivileged load workaround
+a5ef7d68cea1 x86/srso: Add SRSO mitigation for Hygon processors
+5093bbfc10ab mctp: perform route lookups under a RCU read-side lock
+d5afb4b47e13 iommu/arm-smmu-v3: Fix soft lockup triggered by arm_smmu_mm_invalidate_range
+f0eee815babe powerpc/47x: Fix 47x syscall return crash
+c13e73317458 scsi: pm80xx: Avoid leaking tags when processing OPC_INB_SET_CONTROLLER_CONFIG command
+95a404bd60af ring-buffer: Do not attempt to read past "commit"
+31c07dffafce net: nfc: fix races in nfc_llcp_sock_get() and nfc_llcp_sock_get_sn()
+f4384b3e54ea tee: amdtee: fix use-after-free vulnerability in amdtee_close_session
+d35652a5fc99 x86/alternatives: Disable KASAN in apply_alternatives()
+139ad1143151 phy: lynx-28g: serialize concurrent phy_set_mode_ext() calls to shared registers
+b795fb9f5861 LoongArch: Set all reserved memblocks on Node#0 at initialization
+354a6e707e29 nfc: nci: assert requested protocol is valid
+8ae5b3a685dc nvme-fc: Prevent null pointer dereference in nvme_fc_io_getuuid()
+397144287071 ravb: Fix use-after-free issue in ravb_tx_timeout_work()
+f990874b1c98 ieee802154: ca8210: Fix a potential UAF in ca8210_probe
+171f8a49f212 spi: sun6i: reduce DMA RX transfer width to single byte
+87d315a34133 pinctrl: nuvoton: wpcm450: fix out of bounds write
+53a3f7770497 RDMA/siw: Fix connection failure handling
+e3dfcab2080d ceph: drop messages from MDS when unmounting
+b23c83ad2c63 x86/reboot: VMCLEAR active VMCSes before emergency reboot
+e193b7955dfa RDMA/srp: Do not call scsi_done() from srp_abort()
+fb5a4315591d dma-debug: don't call __dma_entry_alloc_check_leak() under free_entries_lock
+1f11f4202caf spi: sun6i: fix race between DMA RX transfer completion and RX FIFO drain
+8f02139ad9a7 HID: intel-ish-hid: ipc: Disable and reenable ACPI GPE bit
+528ab3e605ca platform/x86: think-lmi: Fix reference leak
+6a86b5b5cd76 bpf: Annotate bpf_long_memcpy with data_race
+25563b581ba3 net: fix possible store tearing in neigh_periodic_work()
+b80e31baa436 bpf, sockmap: Reject sk_msg egress redirects to non-TCP sockets
+dfc7f7a988da net: nfc: llcp: Add lock when modifying device list
+aef7a0300047 wifi: mwifiex: Fix oob check condition in mwifiex_process_rx_packet
+75a5221630fe erofs: fix memory leak of LZMA global compressed deduplication
+9d4c75800f61 ipv4, ipv6: Fix handling of transhdrlen in __ip{,6}_append_data()
+e9c65989920f net: usb: smsc75xx: Fix uninit-value access in __smsc75xx_read_reg
+e1cd4004cde7 HID: sony: Fix a potential memory leak in sony_probe()
+31db78a4923e wifi: mac80211: fix potential key use-after-free
+8ba438ef3cac wifi: iwlwifi: mvm: Fix a memory corruption issue
+b2b000069a4c net: mana: Fix TX CQE error handling
+b938790e7054 Bluetooth: hci_codec: Fix leaking content of local_codecs
+59df44bfb0ca iommu/vt-d: Avoid memory allocation in iommu_suspend()
+45120b15743f mm/damon/vaddr-test: fix memory leak in damon_do_test_apply_three_regions()
+110e70fccce4 arm64: dts: qcom: sdm845-db845c: Mark cont splash memory region as reserved
+46a9ea668190 mm/slab_common: fix slab_caches list corruption after kmem_cache_destroy()
+099f0af9d982 drm/meson: fix memory leak on ->hpd_notify callback
+29346e217b8a Revert "tty: n_gsm: fix UAF in gsm_cleanup_mux"
+41ebaa5e0eeb media: uvcvideo: Fix OOB read
+7ee29facd8a9 nilfs2: fix potential use after free in nilfs_gccache_submit_read_data()
+cce7fc8b2996 serial: 8250_port: Check IRQ data before use
+c6c2adcba50c x86/sgx: Resolves SECS reclaim vs. page fault for EAUG race
+2c58c3931ede btrfs: remove BUG() after failure to insert delayed dir index item
+c777b11d34e0 vfio/mdev: Fix a null-ptr-deref bug for mdev_unregister_parent()
+488ef44c068e power: supply: rk817: Fix node refcount leak
+d527f51331ca cifs: Fix UAF in cifs_demultiplex_thread()
+f1d95df0f310 net: rds: Fix possible NULL-pointer dereference
+492032760127 team: fix null-ptr-deref when team device type is changed
+01b057b2f4cc x86/srso: Fix SBPB enablement for spec_rstack_overflow=off
+34cf99c250d5 x86/mm, kexec, ima: Use memblock_free_late() from ima_free_kexec_buffer()
+6af289746a63 dccp: fix dccp_v4_err()/dccp_v6_err() again
+44bdb313da57 net: bridge: use DEV_STATS_INC()
+0113d9c9d1cc ipv4: fix null-deref in ipv4_link_failure
+75ad80ed88a1 net/core: Fix ETH_P_1588 flow dissector
+cf5000a7787c netfilter: nf_tables: fix memleak when more than 255 elements expired
+df1c357f25d8 netfs: Only call folio_start_fscache() one time for each folio
