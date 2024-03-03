@@ -59,6 +59,9 @@ RESERVED_DIR="${CVE_ROOT}reserved/${year}/"
 PUBLISHED_DIR="${CVE_ROOT}published/${year}/"
 REJECTED_DIR="${CVE_ROOT}rejected/${year}/"
 
+EMAIL="$(git config --get user.email)"
+NAME="$(git config --get user.name)"
+
 # find the files for a published CVE
 files=()
 f=$(find "${CVE_ROOT}/published" -type f | grep "${CVE_ENTRY}")
@@ -90,7 +93,7 @@ if [[ "$f" != "" ]]; then
 	subject=$(cat "${REJECTED_DIR}"/"${CVE_ENTRY}".mbox | grep "^Subject:" | sed -e 's/^Subject://')
 	cat << EOF > "${rejected_mbox}"
 From ${SCRIPT}-${SCRIPT_VERSION} Mon Sep 17 00:00:00 2001
-From: ${CVE_USER}
+From: ${NAME} <${EMAIL}>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
 Subject: REJECTED:${subject}
