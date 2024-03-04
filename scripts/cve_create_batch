@@ -49,6 +49,7 @@ for s in ${SHAS[@]}; do
     # if ! git --no-pager log --oneline -n1 ${s} ${MAINLINEREMOTE}/master 2>&1 | grep -q "^${s} "; then
     if ! git --no-pager branch -a ${MAINLINEREMOTE}/master --contains ${s} > /dev/null 2>&1; then
     	echo "${s} does not appear to be a valid mainline commit - skipping"
+        popd > /dev/null # ${KERNEL_TREE}
         continue
     fi
     popd > /dev/null # ${KERNEL_TREE}
