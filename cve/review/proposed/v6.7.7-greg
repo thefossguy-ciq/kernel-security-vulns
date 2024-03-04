@@ -1,0 +1,71 @@
+83ab68168a3d scsi: target: core: Add TMF to tmr_list handling
+bcbc84af1183 wifi: mac80211: fix race condition on enabling fast-xmit
+04e5eac8f3ab fbdev: savage: Error out if pixclock equals zero
+e421946be7d9 fbdev: sis: Error out if pixclock equals zero
+de8b6e1c231a spi: hisi-sfc-v3xx: Return IRQ_NONE if no interrupts were detected
+13f3956eb568 block: Fix WARNING in _copy_from_iter
+e169bd4fb2b3 aoe: avoid potential deadlock at set_capacity
+f9f4b0c6425e spi: cs42l43: Handle error from devm_pm_runtime_enable
+993bf0f4c393 ext4: avoid dividing by 0 in mb_update_avg_fragment_size() when block bitmap corrupt
+4530b3660d39 ext4: avoid allocating blocks from corrupted group in ext4_mb_try_best_found()
+832698373a25 ext4: avoid allocating blocks from corrupted group in ext4_mb_find_by_goal()
+6e2276203ac9 dmaengine: ti: edma: Add some null pointer checks to the edma_probe
+b6eda11c44dc HID: nvidia-shield: Add missing null pointer checks to LED initialization
+710c69dbaccd nvmet-fc: avoid deadlock on delete association path
+731ab1f98288 fs/ntfs3: Fix oob in ntfs_listxattr
+de1034b38a34 efi: runtime: Fix potential overflow of soft-reserved region size
+b513d30d59bb scsi: ufs: core: Fix shift issue in ufshcd_clear_cmd()
+4551b30525cf LoongArch: Change acpi_core_pic[NR_CPUS] to acpi_core_pic[MAX_CORE_PIC]
+0484e05d048b drm/amd/display: fixed integer types and null check locations
+e6f57c688191 IB/hfi1: Fix sdma.h tx->num_descs off-by-one error
+1001db6c42e4 LoongArch: Disable IRQ before init_fn() for nonboot CPUs
+752cd08da320 LoongArch: Update cpu_sibling_map when disabling nonboot CPUs
+b820de741ae4 fs/aio: Restrict kiocb_set_cancel_fn() to I/O submitted via libaio
+42e15d12070b dm-crypt: recheck the integrity tag after a failure
+c88f5e553fe3 dm-integrity: recheck the integrity tag after a failure
+50c70240097c dm-crypt: don't modify the data when using authenticated encryption
+9177f3c0dea6 dm-verity: recheck the hash after a failure
+eef5c7b28dbe cxl/pci: Skip to handle RAS errors if CXL.mem device is detached
+0cab68720598 cxl/pci: Fix disabling memory if DVSEC CXL Range does not match a CFMWS window
+13ddaf26be32 mm/swap: fix race when skipping swapcache
+e21a2f17566c cachefiles: fix memory leak in cachefiles_add_cache()
+1baae052cccd md: Don't ignore suspended array in md_check_recovery()
+55a48ad2db64 md: Don't ignore read-only array in md_check_recovery()
+ad39c08186f8 md: Don't register sync_thread for reshape directly
+9e46c70e829b md: Don't suspend the array for interrupted reshape
+855678ed8534 md: Fix missing release of 'active_io' for flush
+136cfaca2256 gtp: fix use-after-free and null-ptr-deref in gtp_genl_dump_pdp()
+c0ec2a712daf crypto: virtio/akcipher - Fix stack overflow on memcpy
+359e54a93ab4 l2tp: pass correct message length to ip6_append_data
+fdf87a0dc26d ARM: ep93xx: Add terminator to gpiod_lookup_table
+66ad2fbcdbea dm-integrity, dm-verity: reduce stack usage for recheck
+cd45f99034b0 usb: cdns3: fixed memory use after free at cdns3_gadget_ep_disable()
+5fd9e45f1ebc usb: cdns3: fix memory double free when handle zero packet
+1c9be13846c0 usb: roles: fix NULL pointer issue when put module's reference
+809aa64ebff5 IB/hfi1: Fix a memleak in init_credit_return
+bd97cea7b18a RDMA/irdma: Fix KASAN issue with tasklet
+fdfa083549de RDMA/srpt: Support specifying the srpt_service_guid parameter
+5ba4e6d5863c RDMA/qedr: Fix qedr_create_user_qp error flow
+5761eb9761d2 scsi: smartpqi: Fix disable_managed_interrupts
+dc489f86257c net: bridge: switchdev: Skip MDB replays of deferred events on offload
+66b60b0c8c4a dccp/tcp: Unhash sk from ehash for tb2 alloc failure after check_estalblished().
+a5c57fd2e9bd powerpc/pseries/iommu: DLPAR add doesn't completely initialize pci_controller
+0281b919e175 bpf: Fix racing between bpf_timer_cancel_and_free and bpf_timer_cancel
+6f7d0f5fd8e4 platform/x86: think-lmi: Fix password opcode ordering for workstations
+5559cea2d5aa ipv6: sr: fix possible use-after-free and null-ptr-deref
+a7d6027790ac arp: Prevent overflow in arp_req_get().
+20c8c4dafe93 KVM: PPC: Book3S HV: Fix L2 guest reboot failure due to empty 'arch_compat'
+9533864816fb arm64/sme: Restore SME registers on exit from suspend
+d7b77a0d565b arm64/sme: Restore SMCR_EL1.EZT0 on exit from suspend
+427c70dec738 platform/x86: thinkpad_acpi: Only update profile if successfully converted
+56667da7399e net: implement lockless setsockopt(SO_PEEK_OFF)
+4cd12c6065df bpf, sockmap: Fix NULL pointer dereference in sk_psock_verdict_data_ready()
+d56e460e19ea hwmon: (nct6775) Fix access to temperature configuration registers
+bccebf647017 netfilter: nf_tables: set dormant flag on hook register failure
+8762785f459b netfilter: nft_flow_offload: release dst in case direct xmit path is used
+d2b48f340d9e drm/amd/display: Fix potential null pointer dereference in dc_dmub_srv
+bae67893578d drm/amd/display: Fix memory leak in dm_sw_fini()
+967176179215 drm/amd/display: fix null-pointer dereference on edid reading
+87aec499368d i2c: imx: when being a target, mark the last read as processed
+e3b63e966cac mm: zswap: fix missing folio cleanup in writeback race path
+678e54d4bb9a mm/zswap: invalidate duplicate entry when !zswap_enabled
