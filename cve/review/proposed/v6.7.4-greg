@@ -39,3 +39,4 @@ b988b1bb0053 KVM: s390: fix setting of fpc register
 8b13601d19c5 s390/ptrace: handle setting of fpc register correctly
 72d9b9747e78 ACPI: extlog: fix NULL pointer dereference check
 f46c8a75263f powerpc/mm: Fix null-pointer dereference in pgtable_cache_add
+fc3a5534e2a8 libbpf: Fix NULL pointer dereference in bpf_object__collect_prog_relos
