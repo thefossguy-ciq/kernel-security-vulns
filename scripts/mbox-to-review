@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Convert a mbox file into a review file as processed by voting_results
+#
+# Warning, almost no error checking, this is a hack to get things converted only.
+#
+
+in_file=$1
+out_file=$2
+
+shas=$(grep -i upstream ${in_file} | grep -oE "[a-f0-9]{40,}")
+for s in ${shas}; do
+	oneline=$(git --no-pager log ${s} -n1 --format="%h %s")
+	echo ${oneline} | tee -a ${out_file}
+done
