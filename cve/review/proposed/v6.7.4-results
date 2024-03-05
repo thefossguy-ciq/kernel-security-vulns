@@ -4,13 +4,19 @@ Everyone agrees
   7e82a8745b951 pds_core: Prevent race issues involving the adminq
   4d322dce82a1d af_unix: fix lockdep positive in sk_diag_dump_icons()
   aa2b2eb393485 llc: call sock_orphan() at release time
+  e622502c310f1 ipmr: fix kernel panic when forwarding mcast packets
+  - [lee] Promoted to 3/3
   4373534a98506 scsi: core: Move scsi_host_busy() out of host lock for waking up EH handler
   b493ad718b1f0 ceph: fix deadlock or deadcode of misusing dget()
   47bf0f83fc86d drm/amdkfd: Fix lock dependency warning
   e821d50ab5b95 spmi: mediatek: Fix UAF on device remove
   b8d55a90fd55b drm/amdgpu: Fix possible NULL dereference in amdgpu_ras_query_error_status_helper()
+  45284ff733e4c drm/msm/dpu: Add mutex lock in control vblank irq
+  - [lee] Promoted to 3/3
   4f973e211b3b1 IB/ipoib: Fix mcast list locking
   4961acdd65c95 f2fs: fix to tag gcing flag on page during block migration
+  870565f063a58 media: rkisp1: Fix IRQ disable race issue
+  - [lee] Promoted to 3/3
   9d618d19b29c2 ocfs2: Avoid touching renamed directory if parent does not change
   49db9b1b86a82 reiserfs: Avoid touching renamed directory if parent does not change
   fc3a5534e2a88 libbpf: Fix NULL pointer dereference in bpf_object__collect_prog_relos
@@ -39,10 +45,8 @@ Greg and Lee agree
   d49270a04623c pstore/ram: Fix crash when setting number of cpus to an odd number
 
 Greg and Sasha agree
-  e622502c310f1 ipmr: fix kernel panic when forwarding mcast packets
-  45284ff733e4c drm/msm/dpu: Add mutex lock in control vblank irq
-  870565f063a58 media: rkisp1: Fix IRQ disable race issue
   5082b3e3027ea wifi: ath11k: fix race due to setting ATH11K_FLAG_EXT_IRQ_ENABLED too early
+  - [lee] Only results in timeout
 
 Lee and Sasha agree
 
@@ -67,3 +71,5 @@ Lee only
   - [lee] Corruption
   78a509fba9c9b x86/boot: Ignore NMIs during very early boot
   - [lee] Race in NMI
+
+Sasha only
