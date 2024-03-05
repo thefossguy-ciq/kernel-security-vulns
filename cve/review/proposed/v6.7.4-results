@@ -54,9 +54,16 @@ Greg only
 
 Lee only
   5266caaf56605 blk-mq: fix IO hang from sbitmap wakeup race
+  - [lee] Fixes a hang
   2a9de42e8d3c8 drm/amdkfd: Fix lock dependency warning with srcu
+  - [lee] Circular locking dependency / lock-up
   abe4eaa8618bb um: time-travel: fix time corruption
+  - [lee] Crash
   4f32504a2f85a drm/amdgpu: Fix variable 'mca_funcs' dereferenced before NULL check in 'amdgpu_mca_smu_get_mca_entry()'
+  - [lee] Possible null-ptr-deref
   2ce156482a6fe drm/amd/display: Fix disable_otg_wa logic
+  - [lee] System hang
   aed5ed595960c PM / devfreq: Synchronize devfreq_monitor_[start/stop]
+  - [lee] Corruption
   78a509fba9c9b x86/boot: Ignore NMIs during very early boot
+  - [lee] Race in NMI
