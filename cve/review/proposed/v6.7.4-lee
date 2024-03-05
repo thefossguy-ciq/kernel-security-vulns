@@ -39,3 +39,6 @@ aa2b2eb393485 llc: call sock_orphan() at release time
 4d322dce82a1d af_unix: fix lockdep positive in sk_diag_dump_icons()
 7e82a8745b951 pds_core: Prevent race issues involving the adminq
 f6564fce256a3 mm, kmsan: fix infinite recursion due to RCU critical section
+e622502c310f1 ipmr: fix kernel panic when forwarding mcast packets
+45284ff733e4c drm/msm/dpu: Add mutex lock in control vblank irq
+870565f063a58 media: rkisp1: Fix IRQ disable race issue
