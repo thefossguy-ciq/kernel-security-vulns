@@ -156,11 +156,11 @@ for h in ${SHAS[@]}; do
 call[-\s_]*trace|\
 kernel[-\s_]*bug|\
 dereference|null|deref|\
-dead[-\s_]*lock|lock[-\s_]*up|lock|\
-under[-\s_]*run|under[-\s_]*flow|\
+dead[-\s_]*lock|lock[-\s_]*up|[-\s_]lock|\
 over[-\s_]*run|over[-\s_]*flow|\
 race|racing|\
-bound|bounds|\
+out[-\s_]*of[-\s_]*bounds|bounds|bound|\
+circular|\
 corrupt|\
 crash|\
 denial|\
@@ -169,7 +169,6 @@ fault|\
 [-\s_]hang|\
 oob|\
 panic|\
-leak|\
 syzkaller|\
 syzbot|\
 oops|\
