@@ -1,3 +1,13 @@
+437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
+- [lee] What are the consequences of the race?
+edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
+- [lee] Only consequence seen is "incorrect behaviour"?
+dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions for FIFO
+- [lee] Promoted to 3/3
+76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
+- [lee] How is incorrectly returning -EINVAL a CVE?
+850fb7fa8c684 s390/vfio-ap: always filter entire AP matrix
+- [lee] Promoted to 3/3
 e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
 - [lee] System hang
 8e57c06bf4b0f drm/amd/display: Refactor DMCUB enter/exit idle interface
