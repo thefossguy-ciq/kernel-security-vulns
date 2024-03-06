@@ -234,6 +234,14 @@ uaf\
         read CHOICE
     fi
 
+    rm -f ${commitmsgfile}
+    rm -f ${commitfile}
+
+    if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
+        print_blue "Exiting"
+        exit 0
+    fi
+
     if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" || "${ANNOTATE}" == "true" ]]; then
         mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
 
@@ -247,14 +255,6 @@ uaf\
         if [ "${ANNOTATE}" == "true" ]; then
             echo "- [${NAME}] ${CHOICE}" >> ${CVEME}
         fi
-    fi
-
-    rm -f ${commitmsgfile}
-    rm -f ${commitfile}
-
-    if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
-        print_blue "Exiting"
-        exit 0
     fi
 
     echo ${oneline} >> ${PROCESSEDFILE}
