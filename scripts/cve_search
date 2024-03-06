@@ -36,7 +36,7 @@ CVE_ROOT="${DIR}/../cve/"
 PUBLISHED_DIR="${CVE_ROOT}published/"
 
 # make sure we haven't allocated a CVE already for this id
-found=$(grep -r -l "${STRING}" "${CVE_ROOT}"/published/ | grep "sha1")
+found=$(grep -r -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
 if [[ "${found}" == "" ]]; then
 	echo "${STRING} not found in any CVE record, sorry."
 	exit 1
