@@ -140,6 +140,7 @@ PROCESSEDFILE=${PROCESSEDDIR}/${TAG}
 CVEMEFILE=${TAG}-${NAME}
 CVEME=${RESULTSDIR}/${CVEMEFILE}
 CLIPCOMMITTO=$(($(tput lines) - 10))
+UPDATEFINALDIR=""
 
 mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
 
@@ -255,9 +256,13 @@ uaf\
         if [ "${ANNOTATE}" == "true" ]; then
             echo "- [${NAME}] ${CHOICE}" >> ${CVEME}
         fi
+
+        UPDATEFINALDIR=true
     fi
 
     echo ${oneline} >> ${PROCESSEDFILE}
 done
 
-cat ${CVEME} >> ${FINALDIR}/${CVEMEFILE}
+if [ "${UPDATEFINALDIR}" == "true" ]; then
+    cat ${CVEME} >> ${FINALDIR}/${CVEMEFILE}
+fi
