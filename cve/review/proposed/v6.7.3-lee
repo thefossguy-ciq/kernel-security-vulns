@@ -45,3 +45,6 @@ e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
 08ac6f132dd77 drm/bridge: sii902x: Fix probing race issue
 dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions for FIFO
 850fb7fa8c684 s390/vfio-ap: always filter entire AP matrix
+a10a9233073d9 NFS: Use parent's objective cred in nfs_access_login_time()
+2dd23cc4d0e6a usb: mon: Fix atomicity violation in mon_bin_vma_fault
+08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort

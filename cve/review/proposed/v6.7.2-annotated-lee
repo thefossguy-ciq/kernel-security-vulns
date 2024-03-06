@@ -18,3 +18,81 @@ d8212c5c87c14 media: mtk-jpeg: Remove cancel worker in mtk_jpeg_remove to avoid 
 - [lee] This talks about a UAF fix in a previous commit
 08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort
 - [lee] Promoted to 2/3
+b7c510d049049 arm64/ptrace: Don't flush ZA/ZT storage when writing ZA via ptrace
+- [lee] It's unclear what corrupting the ZT0 value could do?
+c12ca110c613a PCI: keystone: Fix race condition when initializing PHYs
+- [lee] Is the system affected by the race?  Looks device related.
+f200fff8d019f spmi: mtk-pmif: Serialize PMIF status check and command submission
+- [lee] Affects seem to be "slowing down the system"
+da9065caa594d Bluetooth: Fix atomicity violation in {min,max}_key_size_set
+- [lee] What are the security ramifications of not being atomic?
+2dd23cc4d0e6a usb: mon: Fix atomicity violation in mon_bin_vma_fault
+- [lee] Promoted to 2/3
+86d7d57a3f096 f2fs: fix to check return value of f2fs_recover_xattr_data
+- [lee] No security issues seen
+a2dd235df435a media: dvbdev: drop refcount on error path in dvb_device_open()
+- [lee] Looks like a leak rather than a security issue
+d8212c5c87c14 media: mtk-jpeg: Remove cancel worker in mtk_jpeg_remove to avoid the crash of multi-core JPEG devices
+- [lee] Is crashing a co-processor(?) a security concern?
+16b2f264983dc bpf: sockmap, fix proto update hook to avoid dup calls
+- [lee] This talks about a UAF fix in a previous commit
+08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort
+- [lee] Promoted to 2/3
+62bef63646c19 mlxsw: spectrum_router: Register netdevice notifier before nexthop
+- [lee] Not sure of the security implications of this
+6d6eeabcfaba2 mlxsw: spectrum_acl_erp: Fix error flow of pool allocation failure
+- [lee] Double free leading to a BUG()
+baa7d536077dc loop: fix the the direct I/O support check when used on top of block devices
+- [lee] Can't see the security implication
+3ce67e3793f48 netfilter: nf_tables: do not allow mismatch field size and set key length
+- [lee] Not able to crash
+2242fd537fab5 bpf: Avoid iter->offset making backward progress in bpf_iter_udp
+- [lee] Security implication unseen
+9181d6f8a2bb3 net: add more sanity check in virtio_net_hdr_to_skb()
+- [lee] Reading uninitialised value
+482521d8e0c65 udp: annotate data-races around up->pending
+- [lee] Incorrect data value
+66ff70df1a919 mptcp: use OPTION_MPTCP_MPJ_SYN in subflow_check_req()
+- [lee] Reading uninitialised value
+017dbfc05c312 usb: xhci-mtk: fix a short packet issue of gen1 isoc-in transfer
+- [lee] Results in an exeption on the device
+64057f051f20c Bluetooth: btmtkuart: fix recv_buf() return value
+- [lee] Can't see any security implications
+94d0539425440 Bluetooth: btnxpuart: fix recv_buf() return value
+- [lee] Can't see any security implications
+d6d1e6c17cab2 bpf: Limit the number of kprobes when attaching program to multiple kprobes
+- [lee] Can't see any security implications
+8b2efe51ba85c bpf: Limit the number of uprobes when attaching program to multiple uprobes
+- [lee] Can't see any security implications
+a833a17aeac73 bpf: Fix verification of indirect var-off stack access
+- [lee] Can't see anything in the description that says this was causing OOB
+0acd03a5bd188 bpf: enforce precision of R0 on callback return
+- [lee] Can't see any security implications
+a10a9233073d9 NFS: Use parent's objective cred in nfs_access_login_time()
+- [lee] Promoted to 2/3
+d1d6351e37aac crypto: sahara - handle zero-length aes requests
+- [lee] Can't see any security implications
+71733b4922007 gfs2: fix kernel BUG in gfs2_quota_cleanup
+- [lee] Misfired BUG - is this a concern?
+93d6fda7f9264 erofs: fix memory leak on short-lived bounced pages
+- [lee] Memory leak
+2ff0ad847951d crypto: hisilicon/zip - save capability registers in probe process
+- [lee] Can't see any security implications
+f1115b0096c31 crypto: hisilicon/sec2 - save capability registers in probe process
+- [lee] Can't see any security implications
+cf8b5156bbc8c crypto: hisilicon/hpre - save capability registers in probe process
+- [lee] Can't see any security implications
+cabe13d0bd2ef crypto: hisilicon/qm - save capability registers in qm init process
+- [lee] Can't see any security implications
+5b8668ce34528 crypto: sahara - fix processing requests with cryptlen < sg->length
+- [lee] Can't see any security implications
+afffcf3db98b9 crypto: sahara - fix ahash selftest failure
+- [lee] Can't see any security implications
+9f10bc28c0fb6 crypto: sahara - fix cbc selftest failure
+- [lee] Can't see any security implications
+8fd183435728b crypto: sahara - remove FLAGS_NEW_KEY logic
+- [lee] Can't see any security implications
+67b164a871af1 crypto: af_alg - Disallow multiple in-flight AIO requests
+- [lee] Can't see any security implications
+bbf5a1d0e5d0f selinux: Fix error priority for bind with AF_UNSPEC on PF_INET6 socket
+- [lee] Can't see any security implications
