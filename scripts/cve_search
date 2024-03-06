@@ -3,15 +3,30 @@
 #
 # Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 #
-# cve_search - Search the published CVE records for the specified git id.
+# cve_search - Search the published CVE records for the specified git id, or
+# for the git id of a specified CVE
 #
-# If it is found, the CVE id is returned.
+# If it is found, the CVE id or the git id is returned.
 # If it is not found, returns an error.
 #
 # Usage:
 #	cve_search [GIT_ID]
 #
 
+# Colors are good!
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
 
 # don't use unset variables
 set -o nounset
@@ -35,14 +50,21 @@ fi
 CVE_ROOT="${DIR}/../cve/"
 PUBLISHED_DIR="${CVE_ROOT}published/"
 
-# make sure we haven't allocated a CVE already for this id
+# Treat the string as a SHA1 first:
 found=$(grep -r -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
-if [[ "${found}" == "" ]]; then
-	echo "${STRING} not found in any CVE record, sorry."
-	exit 1
+if [[ "${found}" != "" ]]; then
+	cve=$(basename "${found}" | cut -f 1 -d '.')
+	echo "${txtcyn}${cve} is assigned to git id ${txtgrn}${STRING}${txtrst}"
+	exit 0
 fi
 
-cve=$(basename "${found}" | cut -f 1 -d '.')
+# Treat the string as a CVE id
+found=$(find "${CVE_ROOT}/" -type f | grep "${STRING}" | grep "sha1")
+if [[ "${found}" != "" ]]; then
+	sha=$(cat ${found})
+	echo "${txtcyn}${STRING}${txtrst} is assigned to git id ${txtgrn}${sha}${txtrst}"
+        exit 0
+fi
 
-echo "${cve} is assigned to git id ${STRING}"
-exit
+echo "${STRING} not found in any CVE record, sorry."
+exit 1
