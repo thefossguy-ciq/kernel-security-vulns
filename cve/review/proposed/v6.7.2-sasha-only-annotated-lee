@@ -1,0 +1,20 @@
+b7c510d049049 arm64/ptrace: Don't flush ZA/ZT storage when writing ZA via ptrace
+- [lee] It's unclear what corrupting the ZT0 value could do?
+c12ca110c613a PCI: keystone: Fix race condition when initializing PHYs
+- [lee] Is the system affected by the race?  Looks device related.
+f200fff8d019f spmi: mtk-pmif: Serialize PMIF status check and command submission
+- [lee] Affects seem to be "slowing down the system"
+da9065caa594d Bluetooth: Fix atomicity violation in {min,max}_key_size_set
+- [lee] What are the security ramifications of not being atomic?
+2dd23cc4d0e6a usb: mon: Fix atomicity violation in mon_bin_vma_fault
+- [lee] Promoted to 2/3
+86d7d57a3f096 f2fs: fix to check return value of f2fs_recover_xattr_data
+- [lee] No security issues seen
+a2dd235df435a media: dvbdev: drop refcount on error path in dvb_device_open()
+- [lee] Looks like a leak rather than a security issue
+d8212c5c87c14 media: mtk-jpeg: Remove cancel worker in mtk_jpeg_remove to avoid the crash of multi-core JPEG devices
+- [lee] Is crashing a co-processor(?) a security concern?
+16b2f264983dc bpf: sockmap, fix proto update hook to avoid dup calls
+- [lee] This talks about a UAF fix in a previous commit
+08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort
+- [lee] Promoted to 2/3
