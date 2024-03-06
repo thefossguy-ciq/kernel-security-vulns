@@ -76,6 +76,13 @@ if [[ "${MAYBEANNOTATE}" == "true" && "${FILE}" != "" ]]; then
     ANNOTATE=true
 fi
 
+if [[ "${FILE}" == "" || "${ANNOTATE}" == "true" ]]; then
+    if [ "${RANGE}" == "" ]; then
+        print_red "A range must be provided e.g. 6.7.2..6.7.2"
+        exit 1
+    fi
+fi
+
 if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
     print_red "Not in a kernel directory"
     exit 1
@@ -84,13 +91,13 @@ fi
 print_blue "Fetching from ${STABLEREMOTE}"
 git fetch ${STABLEREMOTE}
 
+TAG=${RANGE#*..}
 if [ -s "${FILE}" ]; then
-    TAG="$(basename ${FILE})"
 
     if [ "${ANNOTATE}" == "true" ]; then
         TAG=${TAG}-annotated
     else
-        TAG=${TAG}-fromfile
+        TAG="$(basename ${FILE})-fromfile"
     fi
 
     while read line; do
@@ -103,8 +110,6 @@ if [ -s "${FILE}" ]; then
     done < ${FILE}
 
 else
-    TAG=${RANGE#*..}
-
     H=$(git log --reverse --format=%h ${RANGE})
     for h in ${H}; do
         SHAS+=($h)
@@ -123,7 +128,8 @@ WORKDIR=${SCRIPTDIR}/../tmp/cve-review
 PROCESSEDDIR=${WORKDIR}/processed
 RESULTSDIR=${WORKDIR}/results
 PROCESSEDFILE=${PROCESSEDDIR}/${TAG}
-CVEME=${RESULTSDIR}/${TAG}-${NAME}
+CVEMEFILE=${TAG}-${NAME}
+CVEME=${RESULTSDIR}/${CVEMEFILE}
 CLIPCOMMITTO=$(($(tput lines) - 10))
 
 mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
@@ -245,4 +251,4 @@ uaf\
     echo ${oneline} >> ${PROCESSEDFILE}
 done
 
-cp ${CVEME} ${FINALDIR}
+cat ${CVEME} >> ${FINALDIR}/${CVEMEFILE}
