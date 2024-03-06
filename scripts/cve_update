@@ -23,6 +23,21 @@
 #  bippy
 
 # Colors are good!
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
+
+# Colors are good!
 txtred=$(tput setaf 1)		# Red
 txtgrn=$(tput setaf 2)		# Green
 txtblu=$(tput setaf 4)		# Blue
@@ -46,13 +61,17 @@ if [[ "${TMPDIR}" == "" ]]; then
 	exit 1
 fi
 
+CVE=$1
+
 # don't use unset variables
 set -o nounset
 
 cd "${DIR}"/../ || exit 1
 
-for id in cve/published/*/*.sha1 ; do
-#for id in $(ls cve/published/*/*.sha1) ; do
+update_cve()
+{
+	local id=$1
+
 	tmp_json=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.json" || exit 1)
 	tmp_mbox=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.mbox" || exit 1)
 	sha=$(cat "${id}")
@@ -107,5 +126,22 @@ for id in cve/published/*/*.sha1 ; do
 	else
 		echo "	Updated ${txtblu}${updated_file}${txtrst}"
 	fi
-done
+}
+
+if [[ "${CVE}" == "" ]]; then
+	# Nothing specified on the command line, so just update everything
+	for id in cve/published/*/*.sha1 ; do
+		#echo "id=${id}"
+		update_cve ${id}
+	done
+else
+	CVE_ROOT="${DIR}/../cve/"
+	found=$(find "${CVE_ROOT}" -type f | grep "${CVE}" | grep "sha1")
+	if [[ "${found}" == "" ]]; then
+		echo "${txtred}ERROR:${txtrst} ${txtcyn}${CVE}${txtrst} is not found to be updated."
+		exit 1
+	fi
+	# strip off the CVE root, as that's what update_cve is expecting:
+	update_cve "cve/${found/#$CVE_ROOT}"
+fi
 
