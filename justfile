@@ -14,9 +14,9 @@ _help:
 	-scripts/cve_create {{GIT_ID}}
 
 
-# Update all allocated CVE entries with the latest version information
-@cve_update:
-	scripts/cve_update
+# Update all, or just one, CVE entries with the latest version information
+@cve_update *GIT_ID:
+	scripts/cve_update {{GIT_ID}}
 
 
 # Publish all modified .json files with the CVE server
