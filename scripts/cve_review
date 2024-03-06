@@ -56,7 +56,7 @@ while [ $# -gt 0 ]; do
             RANGE=${1}
             ;;
         --annotate|-a)
-            MAYBEANNOTATE=true
+            ANNOTATE=true
             ;;
         *)
             if [ -s "${1}" ]; then
@@ -72,8 +72,9 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [[ "${MAYBEANNOTATE}" == "true" && "${FILE}" != "" ]]; then
-    ANNOTATE=true
+if [[ "${ANNOTATE}" == "true" && "${FILE}" == "" ]]; then
+    print_red "When annotating, a file containing commits in --oneline format must be provided"
+    exit 1
 fi
 
 if [[ "${FILE}" == "" || "${ANNOTATE}" == "true" ]]; then
