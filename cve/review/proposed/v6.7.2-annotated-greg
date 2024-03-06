@@ -6,3 +6,5 @@
 - [greg] Fixes a WARN from triggering
 94d053942544 Bluetooth: btnxpuart: fix recv_buf() return value
 - [greg] Fixes a WARN from triggering
+62bef63646c1 mlxsw: spectrum_router: Register netdevice notifier before nexthop
+- [greg] Fixes a WARN from triggering
