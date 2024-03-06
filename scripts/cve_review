@@ -34,6 +34,10 @@ if [[ "$(whoami)" == "gregkh" ]]; then
     NAME=greg
 fi
 
+if [[ "$(whoami)" == "sasha" ]]; then
+    NAME=sasha
+fi
+
 function usage()
 {
     echo "Usage: $(basename ${0}) {rangebottom..rangetop}"
