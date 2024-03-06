@@ -33,7 +33,6 @@ b8d55a90fd55 drm/amdgpu: Fix possible NULL dereference in amdgpu_ras_query_error
 9d618d19b29c ocfs2: Avoid touching renamed directory if parent does not change
 49db9b1b86a8 reiserfs: Avoid touching renamed directory if parent does not change
 fe0a7776d4d1 wifi: wfx: fix possible NULL pointer dereference in wfx_set_mfp_ap()
-5082b3e3027e wifi: ath11k: fix race due to setting ATH11K_FLAG_EXT_IRQ_ENABLED too early
 a11d965a218f wifi: rt2x00: restart beacon queue when hardware reset
 315552310c7d sysctl: Fix out of bounds access for empty sysctl registers
 b988b1bb0053 KVM: s390: fix setting of fpc register
