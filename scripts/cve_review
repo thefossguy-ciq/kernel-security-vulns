@@ -50,9 +50,13 @@ print_blue()
     echo -e "\e[01;34m$@\e[0m"
 }
 
+shopt -s extglob
 while [ $# -gt 0 ]; do
     case $1 in
-        *[0-9]..*)
+        *+([0-9])\.\.*)
+            RANGE=${1}
+            ;;
+        *+([0-9])\.*+([0-9]))
             RANGE=${1}
             ;;
         --annotate|-a)
@@ -71,15 +75,19 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+shopt -u extglob
 
 if [[ "${ANNOTATE}" == "true" && "${FILE}" == "" ]]; then
     print_red "When annotating, a file containing commits in --oneline format must be provided"
     exit 1
 fi
 
-if [[ "${FILE}" == "" || "${ANNOTATE}" == "true" ]]; then
-    if [ "${RANGE}" == "" ]; then
-        print_red "A range must be provided e.g. 6.7.2..6.7.2"
+if [ "${RANGE}" == "" ]; then
+    if [ "${ANNOTATE}" == "true" ]; then
+        print_red "A version must be provided e.g. v6.7.2"
+        exit 1
+    elif [ "${FILE}" == "" ]; then
+        print_red "A range must be provided e.g. v6.7.2..v6.7.3"
         exit 1
     fi
 fi
