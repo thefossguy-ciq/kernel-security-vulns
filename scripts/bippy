@@ -639,6 +639,34 @@ for fixed_entry in ${fixed_kernels}; do
 	fi
 done
 
+# verify that all vulnerable branches have a fix, if not, we need to report that
+for vuln_entry in "${vuln_kernels[@]}"; do
+	found=0
+	for entry in "${fixed_pairs[@]}"; do
+		x=(${entry//:/ })
+		vuln=${x[0]}
+		if [[ "${vuln_entry}" == "${vuln}" ]]; then
+			found=1
+		fi
+	done
+	if [[ "${found}" == "0" ]]; then
+		dbg "	${vuln_entry} is not part of a fixed pair!"
+		fe=$(find_stable_git_id "${og_git}" "${vuln_entry}")
+		# Sometimes, with multiple "Fixes:" lines, one will be
+		# mainline, and so there is not a matching pair as the commit
+		# so we can drop that one safely.  Hopefully.  Revisit this if
+		# it ends up creating not enough entries, but for now, the ones
+		# I checked by hand were ok.  Look at commit 5578de4834fe
+		# ("netlabel: fix out-of-bounds memory accesses") for a good
+		# test case for this logic
+		if [[ "${fe}" != "" ]]; then
+			# 0 is a flag for "no fix" we look at later when creating the
+			# json and mbox files
+			create_fix_pair "${vuln_entry}" "0" "${fe}" "0"
+		fi
+	fi
+done
+
 dbg "We have found ${#fixed_pairs[@]} vulnerable:fixed kernel pairs"
 if [[ "${#fixed_pairs[@]}" == "0" ]] ; then
 	echo "No vulnerable and then fixed pairs of kernels were found for commit ${GIT_SHA_SHORT}"
@@ -697,6 +725,28 @@ for entry in "${fixed_pairs[@]}"; do
 	fix=${x[1]}
 	vuln_git=${x[2]}
 	fix_git=${x[3]}
+	dbg "	vuln=${vuln}	fix=${fix}	vuln_git=${vuln_git}	fix_git=${fix_git}"
+
+	if [[ "${fix}" == "0" ]]; then
+# FIXME: We are not generating the json pairs for this properly just yet.  The
+# mbox file update works, but let's not show the information there until we get
+# it working in both places.  When that is done, uncoment out the lines below
+# (and fix the json creation...)
+#		# there is no fix, so handle this pair a bit differently
+#		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git}")
+#
+#		vuln_array_json+="versions[]=$(jo --	\
+#			-s version="${vuln}"	\
+#			-s status="affected"	\
+#			-s versionType="custom"	\
+#			) "
+#		git_array_json+="versions[]=$(jo --	\
+#			-s version="${vuln_git}"	\
+#			-s status="affected"		\
+#			-s versionType="git"		\
+#			) "
+		continue
+	fi
 
 	# create the json array for the version numbers
 	if [[ "${default_status}" == "unaffected" ]]; then
