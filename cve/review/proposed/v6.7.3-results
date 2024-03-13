@@ -31,6 +31,12 @@ Already assigned a CVE
   7839d0078e0d5 PM: sleep: Fix possible deadlocks in core system-wide PM code
 
 Everyone agrees
+  437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
+  - [greg] "This addresses a possible race condition in which a spurious IRQ from a previous timed-out reply which arrived late could be wrongly associated with the next pending transaction."
+  - [lee] What are the consequences of the race?
+  edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
+  - [greg] "This is clearly a protocol violation and with the Linux NFS client it can cause incorrect behaviour."
+  - [lee] Only consequence seen is "incorrect behaviour"?
 
 Greg and Lee agree
   d09486a04f5da net: fix removing a namespace with conflicting altnames
@@ -43,15 +49,6 @@ Greg and Lee agree
   ba3c557420303 crypto: lib/mpi - Fix unexpected pointer access in mpi_ec_init
 
 Greg and Sasha agree
-  437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
-  - [greg] "This addresses a possible race condition in which a spurious IRQ from a previous timed-out reply which arrived late could be wrongly associated with the next pending transaction."
-  - [lee] What are the consequences of the race?
-  edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
-  - [greg] "This is clearly a protocol violation and with the Linux NFS client it can cause incorrect behaviour."
-  - [lee] Only consequence seen is "incorrect behaviour"?
-  76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
-  - [greg] Should not be marked for a CVE
-  - [lee] How is incorrectly returning -EINVAL a CVE?
 
 Lee and Sasha agree
 
@@ -89,3 +86,6 @@ Lee only
   - [lee] NULL pointer dereference
 
 Sasha only
+  76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
+  - [greg] Should not be marked for a CVE
+  - [lee] How is incorrectly returning -EINVAL a CVE?

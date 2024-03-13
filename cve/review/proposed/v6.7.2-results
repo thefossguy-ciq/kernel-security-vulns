@@ -14,6 +14,7 @@ Already assigned a CVE
   bb57f6705960b iommu: Don't reserve 0-length IOVA region
   78d60dae9a0c9 serial: imx: fix tx statemachine deadlock
   ad90d0358bd3b serial: 8250: omap: Don't skip resource freeing if pm_runtime_resume_and_get() failed
+  3171e46d677a6 PCI: Avoid potential out-of-bounds read in pci_dev_for_each_resource()
   41673c66b3d0c mfd: syscon: Fix null pointer dereference in of_syscon_register()
   ad362fe07fecf KVM: arm64: vgic-its: Avoid potential UAF in LPI translation cache
   715d82ba636cb bpf: Fix re-attachment branch in bpf_tracing_prog_attach
@@ -43,7 +44,6 @@ Already assigned a CVE
   475c58e1a471e EDAC/thunderx: Fix possible out-of-bounds string access
 
 Everyone agrees
-  3171e46d677a6 PCI: Avoid potential out-of-bounds read in pci_dev_for_each_resource()
 
 Greg and Lee agree
   2e7ef287f07c7 ipv6: mcast: fix data-race in ipv6_mc_down / mld_ifc_work
@@ -61,6 +61,10 @@ Greg and Sasha agree
 Lee and Sasha agree
   1e24ce402c97d perf db-export: Fix missing reference count get in call_path_from_sample()
   9c51f8788b5d4 perf env: Avoid recursively taking env->bpf_progs.lock
+  2dd23cc4d0e6a usb: mon: Fix atomicity violation in mon_bin_vma_fault
+  - [lee] Promoted to 2/3
+  08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort
+  - [lee] Promoted to 2/3
 
 Greg only
   62bef63646c19 mlxsw: spectrum_router: Register netdevice notifier before nexthop
@@ -154,8 +158,6 @@ Sasha only
   - [lee] Affects seem to be "slowing down the system"
   da9065caa594d Bluetooth: Fix atomicity violation in {min,max}_key_size_set
   - [lee] What are the security ramifications of not being atomic?
-  2dd23cc4d0e6a usb: mon: Fix atomicity violation in mon_bin_vma_fault
-  - [lee] Promoted to 2/3
   86d7d57a3f096 f2fs: fix to check return value of f2fs_recover_xattr_data
   - [lee] No security issues seen
   a2dd235df435a media: dvbdev: drop refcount on error path in dvb_device_open()
@@ -164,5 +166,3 @@ Sasha only
   - [lee] Is crashing a co-processor(?) a security concern?
   16b2f264983dc bpf: sockmap, fix proto update hook to avoid dup calls
   - [lee] This talks about a UAF fix in a previous commit
-  08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort
-  - [lee] Promoted to 2/3

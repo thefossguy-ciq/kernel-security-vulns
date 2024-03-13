@@ -1,6 +1,4 @@
 Already assigned a CVE
-
-Everyone agrees
   7e82a8745b951 pds_core: Prevent race issues involving the adminq
   4d322dce82a1d af_unix: fix lockdep positive in sk_diag_dump_icons()
   aa2b2eb393485 llc: call sock_orphan() at release time
@@ -36,6 +34,8 @@ Everyone agrees
   8f9abaa6d7de0 powerpc/lib: Validate size for vector operations
   f46c8a75263f9 powerpc/mm: Fix null-pointer dereference in pgtable_cache_add
 
+Everyone agrees
+
 Greg and Lee agree
   f6564fce256a3 mm, kmsan: fix infinite recursion due to RCU critical section
   577e4432f3ac8 tcp: add sanity checks to rx zerocopy
@@ -45,8 +45,6 @@ Greg and Lee agree
   d49270a04623c pstore/ram: Fix crash when setting number of cpus to an odd number
 
 Greg and Sasha agree
-  5082b3e3027ea wifi: ath11k: fix race due to setting ATH11K_FLAG_EXT_IRQ_ENABLED too early
-  - [lee] Only results in timeout
 
 Lee and Sasha agree
 
@@ -73,3 +71,6 @@ Lee only
   - [lee] Race in NMI
 
 Sasha only
+  5082b3e3027ea wifi: ath11k: fix race due to setting ATH11K_FLAG_EXT_IRQ_ENABLED too early
+  - [greg] Agree, timeout only, not an issue
+  - [lee] Only results in timeout
