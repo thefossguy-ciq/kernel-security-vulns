@@ -34,7 +34,6 @@ dbf4ab821804 serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions f
 4cccb6221cae fs/proc/task_mmu: move mmu notification mechanism inside mm lock
 dc7eb8755797 arm64/sme: Always exit sme_alloc() early with existing storage
 206c857dd17d media: mtk-jpeg: Fix use after free bug due to error path handling in mtk_jpeg_dec_device_run
-76025cc2285d smb: client: fix parsing of SMB3.1.1 POSIX create context
 78996eee79eb riscv: Fix module loading free order
 f5c24d94512f dmaengine: fix NULL pointer in channel unregistration function
 01bd694ac2f6 bus: mhi: host: Drop chan lock before queuing buffers

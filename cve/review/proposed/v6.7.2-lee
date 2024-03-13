@@ -73,3 +73,5 @@ ea937f7720832 net: netdevsim: don't try to destroy PHC on VFs
 efeb7dfea8ee1 mlxsw: spectrum_acl_tcam: Fix NULL pointer dereference in error path
 483ae90d8f976 mlxsw: spectrum_acl_tcam: Fix stack corruption
 2e7ef287f07c7 ipv6: mcast: fix data-race in ipv6_mc_down / mld_ifc_work
+2dd23cc4d0e6a usb: mon: Fix atomicity violation in mon_bin_vma_fault
+08e4c8c5919fd netfilter: nf_tables: mark newset as dead on transaction abort
