@@ -20,7 +20,7 @@
 MAINLINEREMOTE=mainline
 
 FILE=${1}
-if [ ! -s ${FILE} ]; then
+if [ ! -s "${FILE}" ]; then
     echo "The only argument should be the file to parse"
     exit 1
 fi
