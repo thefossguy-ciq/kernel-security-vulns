@@ -30,3 +30,19 @@ e622502c310f ipmr: fix kernel panic when forwarding mcast packets
 aa2b2eb39348 llc: call sock_orphan() at release time
 4d322dce82a1 af_unix: fix lockdep positive in sk_diag_dump_icons()
 7e82a8745b95 pds_core: Prevent race issues involving the adminq
+f6564fce256a3 mm, kmsan: fix infinite recursion due to RCU critical section
+577e4432f3ac8 tcp: add sanity checks to rx zerocopy
+8d975c15c0cd7 ip6_tunnel: make sure to pull inner header in __ip6_tnl_rcv()
+df25461119d98 PCI: switchtec: Fix stdev_release() crash after surprise hot remove
+9e4bf6a08d1e1 block/rnbd-srv: Check for unlikely string overflow
+d49270a04623c pstore/ram: Fix crash when setting number of cpus to an odd number
+8059918a1377f netfilter: nft_ct: sanitize layer 3 and 4 protocol number in custom expectations
+169410eba271a bpf: Check rcu_read_lock_trace_held() before calling bpf map helpers
+5d1935ac02ca5 ext4: avoid online resizing failures due to oversized flex bg
+31b62908693c9 SUNRPC: Fix a suspicious RCU usage warning
+5266caaf56605 blk-mq: fix IO hang from sbitmap wakeup race
+2a9de42e8d3c8 drm/amdkfd: Fix lock dependency warning with srcu
+abe4eaa8618bb um: time-travel: fix time corruption
+4f32504a2f85a drm/amdgpu: Fix variable 'mca_funcs' dereferenced before NULL check in 'amdgpu_mca_smu_get_mca_entry()'
+2ce156482a6fe drm/amd/display: Fix disable_otg_wa logic
+aed5ed595960c PM / devfreq: Synchronize devfreq_monitor_[start/stop]

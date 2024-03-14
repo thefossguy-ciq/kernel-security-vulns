@@ -29,3 +29,25 @@ edcf9725150e nfsd: fix RELEASE_LOCKOWNER
 f342de4e2f33 netfilter: nf_tables: reject QUEUE/DROP verdict parameters
 c5114710c8ce xsk: fix usage of multi-buffer BPF helpers for ZC XDP
 ebeae8adf89d ksmbd: fix global oob in ksmbd_nl_policy
+d09486a04f5da net: fix removing a namespace with conflicting altnames
+e3f9bed9bee26 llc: Drop support for ETH_P_TR_802_2.
+dad555c816a50 llc: make llc_ui_sendmsg() more robust against bonding changes
+556857aa1d085 wifi: ath11k: rely on mac80211 debugfs handling for vif
+78fbb92af27d0 nbd: always initialize struct msghdr completely
+08e23d05fa6dc PM / devfreq: Fix buffer overflow in trans_stat_show
+78aafb3884f6b hwrng: core - Fix page fault dead lock on mmap-ed hwrng
+ba3c557420303 crypto: lib/mpi - Fix unexpected pointer access in mpi_ec_init
+7081929ab2572 btrfs: don't abort filesystem when attempting to snapshot deleted subvolume
+c9d9eb9c53d37 netfilter: nft_limit: reject configurations that cause integer overflow
+32f2a0afa95fa net/sched: flower: Fix chain template offload
+2b44760609e9e tracing: Ensure visibility when inserting an element into tracing_map
+832dd634bd1b4 arm64: entry: fix ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+e5ffd1263dd5b drm/amd/display: Wake DMCUB before executing GPINT commands
+8e57c06bf4b0f drm/amd/display: Refactor DMCUB enter/exit idle interface
+97566d09fd02d thermal: intel: hfi: Add syscore callbacks for system-wide PM
+3bb9b1f958c3d drm/amd/display: Fix late derefrence 'dsc' check in 'link_set_dsc_pps_packet()'
+7073934f5d73f drm/amd/display: Fix variable deferencing before NULL check in edp_setup_replay()
+bc03c02cc1991 drm/amdgpu: Fix the null pointer when load rlc firmware
+5913320eb0b3e platform/x86: p2sb: Allow p2sb_bar() calls during PCI device probe
+3876638b2c7eb net/mlx5e: Fix operation precedence bug in port timestamping napi_poll context
+020e71c7ffc25 iio: adc: ad7091r: Allow users to configure device events

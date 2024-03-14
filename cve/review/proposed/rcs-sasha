@@ -1,3 +1,0 @@
-560ea72c76eb drm/i915/dp_mst: Fix race between connector registration and setup
-514a1cc940c2 drm/amd/display: Fix array-index-out-of-bounds in dml2
-65a618dd7321 drm/amdkfd: svm range always mapped flag not working on APU
