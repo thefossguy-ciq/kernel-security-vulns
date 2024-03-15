@@ -1,0 +1,24 @@
+8deeefb24786 Revert "net/mlx5: Block entering switchdev mode with ns inconsistency"
+b7cf07586c40 net/mlx5e: Use a memory barrier to enforce PTP WQ xmit submission tracking occurs after populating the metadata_map
+1ca1ba465e55 geneve: make sure to pull inner header in geneve_rx()
+89d72d4125e9 net: sparx5: Fix use after free inside sparx5_del_mact_entry
+06e456a05d66 net: ice: Fix potential NULL pointer dereference in ice_bridge_setlink()
+9224fc86f177 ice: fix uninitialized dplls mutex usage
+ef27f655b438 igc: avoid returning frame twice in XDP_REDIRECT
+685f7d531264 net/ipv6: avoid possible UAF in ip6_route_mpath_notify()
+e9a8e5a587ca bpf: check bpf_func_state->callback_depth when pruning states
+2487007aa3b9 cpumap: Zero-initialise xdp_rxq_info struct before running XDP program
+767146637efc netfilter: nf_conntrack_h323: Add protection for bmp length out of range
+958d6145a6d9 netrom: Fix a data-race around sysctl_netrom_default_path_quality
+cfd9f4a740f7 netrom: Fix a data-race around sysctl_netrom_obsolescence_count_initialiser
+119cae5ea3f9 netrom: Fix data-races around sysctl_netrom_network_ttl_initialiser
+60a7a152abd4 netrom: Fix a data-race around sysctl_netrom_transport_timeout
+e799299aafed netrom: Fix a data-race around sysctl_netrom_transport_maximum_tries
+806f462ba902 netrom: Fix a data-race around sysctl_netrom_transport_acknowledge_delay
+43547d869943 netrom: Fix a data-race around sysctl_netrom_transport_busy_delay
+a2e706841488 netrom: Fix a data-race around sysctl_netrom_transport_requested_window_size
+f99b494b4043 netrom: Fix a data-race around sysctl_netrom_transport_no_activity_timeout
+b5dffcb8f71b netrom: Fix a data-race around sysctl_netrom_routing_control
+bc76645ebdd0 netrom: Fix a data-race around sysctl_netrom_link_fails_count
+d380ce70058a netrom: Fix data-races around sysctl_net_busy_read
+ba18deddd6d5 net: pds_core: Fix possible double free in error handling path
