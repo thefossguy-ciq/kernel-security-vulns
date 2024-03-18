@@ -172,26 +172,29 @@ for h in ${SHAS[@]}; do
 
     print_blue "\nSummary:\n"
 
-    MATCHES="use[-\s_]*after|after[-\s_]*free|\
+    MATCHES="\
 call[-\s_]*trace|\
-kernel[-\s_]*bug|\
-dereference|null|deref|\
 dead[-\s_]*lock|lock[-\s_]*up|[-\s_]lock|\
+dereference|null|deref|\
+double[-\s_]*free|\
+kernel[-\s_]*bug|\
 over[-\s_]*run|over[-\s_]*flow|\
-race|racing|\
 out[-\s_]*of[-\s_]*bounds|bounds|bound|\
+[-\s_]race|[-\s_]racing|\
+use[-\s_]*after[-\s_]*free|use[-\s_]*after|after[-\s_]*free|\
 circular|\
 corrupt|\
 crash|\
 denial|\
 dos|\
 fault|\
-[-\s_]hang|\
+[-\s_]hang|hung|\
+memory|\
 oob|\
+oops|\
 panic|\
 syzkaller|\
 syzbot|\
-oops|\
 uaf\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
