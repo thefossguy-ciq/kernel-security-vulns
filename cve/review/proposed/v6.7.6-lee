@@ -1,0 +1,49 @@
+e03ee2fe873eb btrfs: do not ASSERT() if the newly created subvolume already got read
+5571e41ec6e56 btrfs: don't drop extent_map for free space inode on write error
+53c0441dd2c44 dpll: fix possible deadlock during netlink dump operation
+aa1eec2f546f2 net/mlx5: DPLL, Fix possible use after free after delayed work timer triggers
+15faa1f67ab40 lan966x: Fix crash when adding interface under a lag
+aec7961916f3f tls: fix race between async notify and socket close
+32b55c5ff9103 net: tls: fix use-after-free with partial reads and async decrypt
+6ef5d5b92f711 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()
+962ac2dce56bb drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
+9319b647902cb mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+0a9bab391e336 dm-crypt, dm-verity: disable tasklets
+985d053f7633d nouveau: offload fence uevents work to workqueue
+00aab7dcb2267 HID: i2c-hid-of: fix NULL-deref on failed power up
+12783c0b9e2c7 usb: core: Prevent null pointer dereference in update_port_device_state
+61a348857e869 usb: dwc3: gadget: Fix NULL pointer dereference in dwc3_gadget_suspend
+85e985a4f46e4 interconnect: qcom: sc8180x: Mark CO0 BCM keepalive
+ed8b94f6e0acd powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
+4a7aee96200ad powerpc/kasan: Fix addr error caused by page alignment
+a22b0a2be69a3 iio: adc: ad4130: zero-initialize clock init data
+f1acb109505d9 powerpc/kasan: Limit KASAN thread size increase to 32KB
+0846dd77c8349 powerpc/iommu: Fix the missing iommu_group_put() during platform domain attach
+337cebbd850f9 mptcp: really cope with fastopen race
+37e8c97e53901 net: hsr: remove WARN_ONCE() in send_hsr_supervision_frame()
+8b1d72395635a parisc: Fix random data corruption from exception handler
+913b9d443a018 parisc: BTLB: Fix crash when setting up BTLB at CPU bringup
+55583e899a535 ext4: fix double-free of blocks due to wrong extents moved_len
+1389358bb008e tracing/timerlat: Move hrtimer_init to timerlat_fd open()
+792595bab4925 iio: magnetometer: rm3100: add boundary check for the value read from RM3100_REG_TMRC
+852e46e239ee6 eventfs: Do not create dentries nor inodes in iterate_shared
+e6a7df96facdc drm/amd/display: Fix MST Null Ptr for RV
+46806e59a8779 drm/amd/display: Fix array-index-out-of-bounds in dcn35_clkmgr
+e0526ec5360a4 hv_netvsc: Fix race condition between netvsc_probe and netvsc_remove
+67b8bcbaed477 nilfs2: fix data corruption in dsync block recovery for small block sizes
+38296afe3c6ee nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
+ccb88e9549e7c crypto: ccp - Fix null pointer dereference in __sev_platform_shutdown_locked
+353d321f63f7d wifi: iwlwifi: fix double-free bug
+b7198383ef2de wifi: iwlwifi: mvm: fix a crash when we run out of stations
+4860abb91f3d7 smb: Fix regression in writes when non-standard maximum write size negotiated
+fe752331d4b36 KVM: s390: vsie: fix race during shadow creation
+10c02aad111df KVM: arm64: Fix circular locking dependency
+30369084ac6e2 tools/rtla: Fix clang warning about mount_point var size
+38cc3c6dcc09d net: stmmac: protect updates of 64-bit statistics counters
+cda4672da1c26 ceph: prevent use-after-free in encode_cap_msg()
+79d72c68c5878 fs,hugetlb: fix NULL pointer dereference in hugetlbs_fill_super
+fa765c4b4aed2 xen/events: close evtchn after mapping cleanup
+6cdedc18ba7b9 can: j1939: prevent deadlock by changing j1939_socks_lock to rwlock
+efe7cf828039a can: j1939: Fix UAF in j1939_sk_match_filter during setsockopt(SO_J1939_FILTER)
+7601df8031fd6 fs/proc: do_task_stat: use sig->stats_lock to gather the threads/children stats
+5bc09b397cbf1 nilfs2: fix potential bug in end_buffer_async_write
