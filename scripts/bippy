@@ -994,7 +994,7 @@ EOF
 
 	cat << EOF >> "${MBOX_FILE}"
 
-Please see https://www.kernel.org or a full list of currently supported
+Please see https://www.kernel.org for a full list of currently supported
 kernel versions by the kernel community.
 
 Unaffected versions might change over time as fixes are backported to
