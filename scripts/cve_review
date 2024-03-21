@@ -184,12 +184,12 @@ out[-\s_]*of[-\s_]*bounds|bounds|bound|\
 [-\s_]race|[-\s_]racing|\
 use[-\s_]*after[-\s_]*free|use[-\s_]*after|after[-\s_]*free|\
 circular|\
-corrupt|\
+corrupt[a-z]*|\
 crash[a-z]*|\
 denial|\
 dos|\
-fault|\
-[-\s_]hang[-\s_a-z]*|hung|\
+[-\s_]fault|\
+[-\s_]hang[a-z]*|hung|\
 memory|\
 oob|\
 oops|\
