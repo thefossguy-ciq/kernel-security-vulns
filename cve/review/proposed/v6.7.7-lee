@@ -1,0 +1,55 @@
+bcbc84af1183 wifi: mac80211: fix race condition on enabling fast-xmit
+04e5eac8f3ab fbdev: savage: Error out if pixclock equals zero
+e421946be7d9 fbdev: sis: Error out if pixclock equals zero
+de8b6e1c231a spi: hisi-sfc-v3xx: Return IRQ_NONE if no interrupts were detected
+e169bd4fb2b3 aoe: avoid potential deadlock at set_capacity
+993bf0f4c393 ext4: avoid dividing by 0 in mb_update_avg_fragment_size() when block bitmap corrupt
+4530b3660d39 ext4: avoid allocating blocks from corrupted group in ext4_mb_try_best_found()
+832698373a25 ext4: avoid allocating blocks from corrupted group in ext4_mb_find_by_goal()
+6e2276203ac9 dmaengine: ti: edma: Add some null pointer checks to the edma_probe
+b6eda11c44dc HID: nvidia-shield: Add missing null pointer checks to LED initialization
+70fbfc47a392 nvme-fc: do not wait in vain when unloading module
+710c69dbaccd nvmet-fc: avoid deadlock on delete association path
+aaab47f204aa fs/ntfs3: Add NULL ptr dereference checking at the end of attr_allocate_frame()
+731ab1f98288 fs/ntfs3: Fix oob in ntfs_listxattr
+4551b30525cf LoongArch: Change acpi_core_pic[NR_CPUS] to acpi_core_pic[MAX_CORE_PIC]
+0484e05d048b drm/amd/display: fixed integer types and null check locations
+e6f57c688191 IB/hfi1: Fix sdma.h tx->num_descs off-by-one error
+1001db6c42e4 LoongArch: Disable IRQ before init_fn() for nonboot CPUs
+b820de741ae4 fs/aio: Restrict kiocb_set_cancel_fn() to I/O submitted via libaio
+50c70240097c dm-crypt: don't modify the data when using authenticated encryption
+eef5c7b28dbe cxl/pci: Skip to handle RAS errors if CXL.mem device is detached
+0cab68720598 cxl/pci: Fix disabling memory if DVSEC CXL Range does not match a CFMWS window
+de959094eb21 scsi: target: pscsi: Fix bio_put() for error case
+13ddaf26be32 mm/swap: fix race when skipping swapcache
+1baae052cccd md: Don't ignore suspended array in md_check_recovery()
+55a48ad2db64 md: Don't ignore read-only array in md_check_recovery()
+ad39c08186f8 md: Don't register sync_thread for reshape directly
+9e46c70e829b md: Don't suspend the array for interrupted reshape
+136cfaca2256 gtp: fix use-after-free and null-ptr-deref in gtp_genl_dump_pdp()
+c0ec2a712daf crypto: virtio/akcipher - Fix stack overflow on memcpy
+359e54a93ab4 l2tp: pass correct message length to ip6_append_data
+fdf87a0dc26d ARM: ep93xx: Add terminator to gpiod_lookup_table
+66ad2fbcdbea dm-integrity, dm-verity: reduce stack usage for recheck
+cd45f99034b0 usb: cdns3: fixed memory use after free at cdns3_gadget_ep_disable()
+5fd9e45f1ebc usb: cdns3: fix memory double free when handle zero packet
+1c9be13846c0 usb: roles: fix NULL pointer issue when put module's reference
+45be0882c5f9 smb3: add missing null server pointer check
+97cba232549b drm/amd/display: Fix buffer overflow in 'get_host_router_total_dp_tunnel_bw()'
+fdfa083549de RDMA/srpt: Support specifying the srpt_service_guid parameter
+5ba4e6d5863c RDMA/qedr: Fix qedr_create_user_qp error flow
+5761eb9761d2 scsi: smartpqi: Fix disable_managed_interrupts
+66b60b0c8c4a dccp/tcp: Unhash sk from ehash for tb2 alloc failure after check_estalblished().
+52f671db1882 net/sched: act_mirred: use the backlog for mirred ingress
+166c2c8a6a4d net/sched: act_mirred: don't override retval if we already lost the skb
+a5c57fd2e9bd powerpc/pseries/iommu: DLPAR add doesn't completely initialize pci_controller
+0281b919e175 bpf: Fix racing between bpf_timer_cancel_and_free and bpf_timer_cancel
+6ea38e2aeb72 afs: Increase buffer size in afs_update_volume_status()
+5559cea2d5aa ipv6: sr: fix possible use-after-free and null-ptr-deref
+def689fc26b9 devlink: fix possible use-after-free and memory leaks in devlink_init()
+a7d6027790ac arp: Prevent overflow in arp_req_get().
+56667da7399e net: implement lockless setsockopt(SO_PEEK_OFF)
+4cd12c6065df bpf, sockmap: Fix NULL pointer dereference in sk_psock_verdict_data_ready()
+d56e460e19ea hwmon: (nct6775) Fix access to temperature configuration registers
+d2b48f340d9e drm/amd/display: Fix potential null pointer dereference in dc_dmub_srv
+967176179215 drm/amd/display: fix null-pointer dereference on edid reading
