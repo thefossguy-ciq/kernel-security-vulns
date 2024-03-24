@@ -11,3 +11,14 @@ here:
 
 Note that in the future, this repo might also track other security identifiers,
 as they are created / mandated by different government agencies.
+
+
+LICENSES
+
+The license for the data for CVE information in this repo is under the
+CVE-ToU license, as described at:
+	https://www.cve.org/Legal/TermsOfUse
+and copied in the LICENSES/cve-tou.txt file in this repository.
+
+The files in the scripts/ directory are licensed under the GPL-v2-only
+license, as documented in the files themselves.
