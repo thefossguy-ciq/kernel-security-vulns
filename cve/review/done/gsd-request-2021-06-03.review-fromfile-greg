@@ -1,0 +1,42 @@
+9453d45ecb6c net: zero-initialize tc skb extension on allocation
+c7718ee96dbc net: lantiq: fix memory corruption in RX ring
+88c380df84fb cxgb4: avoid accessing registers when clearing filters
+a289a7e5c1d4 net: hns3: put off calling register_netdev() until client initialize complete
+d6177a6556f8 iommu/amd: Clear DMA ops when switching domain
+5218e919c8d0 gve: Add NULL pointer checks when freeing irqs.
+1e5c37385097 drm/amdgpu: Fix a use-after-free
+444d7be9532d net/smc: remove device from smcd_dev_list after failed device_add()
+fa7e6abc75f3 drm/amd/amdgpu: fix refcount leak
+91df99a6eb50 btrfs: do not BUG_ON in link_to_fixup_dir
+020ef930b826 mld: fix panic in mld_newpack()
+9c1bb37f8cad ptp: ocp: Fix a resource leak in an error handling path
+e5cc361e2164 octeontx2-pf: fix a buffer overflow in otx2_set_rxfh_context()
+52202be1cd99 net: fujitsu: fix potential null-ptr-deref
+619fee9eb13b net: fec: fix the potential memory leak in fec_enet_init()
+a00593737f8b interconnect: qcom: bcm-voter: add a missing of_node_put()
+29249eac5225 mptcp: fix data stream corruption
+e4d8716c3dce i2c: i801: Don't generate an interrupt on bus reset
+cec279a898a3 net: dsa: sja1105: add error handling in sja1105_setup()
+a269333fa5c0 net: dsa: fix a crash if ->get_sset_count() fails
+474a2ddaa192 net: dsa: mt7530: fix VLAN traffic leaks
+680ec0549a05 spi: spi-fsl-dspi: Fix a resource leak in an error handling path
+b7df21cf1b79 tipc: skb_linearize the head skb when reassembling msgs
+04c26faa51d1 tipc: wait and exit until all work queues are done
+83026d83186b net/mlx5e: Fix null deref accessing lag dev
+7cfc4ea78fc1 drm/meson: fix shutdown crash when component not probed
+0d0ea309357d NFS: Don't corrupt the value of pg_bytes_written in nfs_do_recoalesce()
+8da3a0b87f4f Bluetooth: cmtp: fix file refcount when cmtp_attach_device fails
+56517ab958b7 NFS: Fix an Oopsable condition in __nfs_pageio_add_request()
+769b01ea68b6 NFS: fix an incorrect limit in filelayout_decode_layout()
+016002848c82 serial: rp2: use 'request_firmware' instead of 'request_firmware_nowait'
+4f2629ea67e7 USB: usbfs: Don't WARN about excessively large memory allocations
+46a8b29c6306 net: usb: fix memory leak in smsc75xx_bind
+f2a772c51206 iio: adc: ad7124: Fix potential overflow due to non sequential channel numbers
+dcb4b8ad6a44 misc/uss720: fix memory leak in uss720_probe
+f0b3d338064e netfilter: nft_set_pipapo_avx2: Add irq_fpu_usable() check, fallback to non-AVX2 version
+e70f7a11876a net/sched: fq_pie: fix OOB access in the traffic path
+c0c8a8397fa8 s390/dasd: add missing discipline function
+0ee74d5a4863 iommu/vt-d: Fix sysfs leak in alloc_iommu()
+70ca3c57ff91 scsi: target: core: Avoid smp_processor_id() in preemptible code
+a421d218603f NFSv4: Fix a NULL pointer dereference in pnfs_mark_matching_lsegs_return()
+e0652f8bb44d NFC: nci: fix memory leak in nci_allocate_device
