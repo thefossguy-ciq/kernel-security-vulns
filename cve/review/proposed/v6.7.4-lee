@@ -42,3 +42,6 @@ f6564fce256a3 mm, kmsan: fix infinite recursion due to RCU critical section
 e622502c310f1 ipmr: fix kernel panic when forwarding mcast packets
 45284ff733e4c drm/msm/dpu: Add mutex lock in control vblank irq
 870565f063a58 media: rkisp1: Fix IRQ disable race issue
+169410eba271 bpf: Check rcu_read_lock_trace_held() before calling bpf map helpers
+5d1935ac02ca ext4: avoid online resizing failures due to oversized flex bg
+31b62908693c SUNRPC: Fix a suspicious RCU usage warning
