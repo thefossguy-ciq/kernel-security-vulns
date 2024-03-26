@@ -20,3 +20,11 @@ aed5ed595960c PM / devfreq: Synchronize devfreq_monitor_[start/stop]
 - [lee] Corruption
 78a509fba9c9b x86/boot: Ignore NMIs during very early boot
 - [lee] Race in NMI
+8059918a1377 netfilter: nft_ct: sanitize layer 3 and 4 protocol number in custom expectations
+- [lee] Can't see what this has to do with security
+169410eba271 bpf: Check rcu_read_lock_trace_held() before calling bpf map helpers
+- [lee] Promote to 3/3
+5d1935ac02ca ext4: avoid online resizing failures due to oversized flex bg
+- [lee] Promote to 3/3
+31b62908693c SUNRPC: Fix a suspicious RCU usage warning
+- [lee] Promote to 3/3
