@@ -43,3 +43,12 @@ c4fb7d2eac9f soc: qcom: pmic_glink_altmode: fix port sanity check
 a7d84a2e7663 mtd: maps: vmu-flash: Fix the (mtd core) switch to ref counters
 3c12466b6b7b erofs: fix lz4 inplace decompression
 7839d0078e0d PM: sleep: Fix possible deadlocks in core system-wide PM code
+e5ffd1263dd5 drm/amd/display: Wake DMCUB before executing GPINT commands
+8e57c06bf4b0 drm/amd/display: Refactor DMCUB enter/exit idle interface
+97566d09fd02 thermal: intel: hfi: Add syscore callbacks for system-wide PM
+3bb9b1f958c3 drm/amd/display: Fix late derefrence 'dsc' check in 'link_set_dsc_pps_packet()'
+7073934f5d73 drm/amd/display: Fix variable deferencing before NULL check in edp_setup_replay()
+bc03c02cc199 drm/amdgpu: Fix the null pointer when load rlc firmware
+5913320eb0b3 platform/x86: p2sb: Allow p2sb_bar() calls during PCI device probe
+3876638b2c7e net/mlx5e: Fix operation precedence bug in port timestamping napi_poll context
+020e71c7ffc2 iio: adc: ad7091r: Allow users to configure device events
