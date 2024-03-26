@@ -30,3 +30,13 @@ bc03c02cc1991 drm/amdgpu: Fix the null pointer when load rlc firmware
 - [lee] NULL pointer dereference
 020e71c7ffc25 iio: adc: ad7091r: Allow users to configure device events
 - [lee] NULL pointer dereference
+7081929ab257 btrfs: don't abort filesystem when attempting to snapshot deleted subvolume
+- [lee] Promote to 3/3
+c9d9eb9c53d3 netfilter: nft_limit: reject configurations that cause integer overflow
+- [lee] Integer overflow causing rate-limit to be incorrect
+32f2a0afa95f net/sched: flower: Fix chain template offload
+- [lee] No security implications seen
+2b44760609e9 tracing: Ensure visibility when inserting an element into tracing_map
+- [lee] Promote to 3/3
+832dd634bd1b arm64: entry: fix ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+- [lee] No security implications spotted

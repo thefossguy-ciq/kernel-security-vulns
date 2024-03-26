@@ -48,3 +48,5 @@ dbf4ab821804d serial: sc16is7xx: convert from _raw_ to _noinc_ regmap functions 
 a10a9233073d9 NFS: Use parent's objective cred in nfs_access_login_time()
 437a310b22244 firmware: arm_scmi: Check mailbox/SMT channel for consistency
 edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
+7081929ab257 btrfs: don't abort filesystem when attempting to snapshot deleted subvolume
+2b44760609e9 tracing: Ensure visibility when inserting an element into tracing_map
