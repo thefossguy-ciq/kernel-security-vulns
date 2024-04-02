@@ -96,3 +96,11 @@ efe7cf828039 can: j1939: Fix UAF in j1939_sk_match_filter during setsockopt(SO_J
 944d5fe50f3f sched/membarrier: reduce the ability to hammer on sys_membarrier
 5bc09b397cbf nilfs2: fix potential bug in end_buffer_async_write
 bd504bcfec41 dm: limit the number of targets and parameter size area
+67b8bcbaed47 nilfs2: fix data corruption in dsync block recovery for small block sizes
+852e46e239ee eventfs: Do not create dentries nor inodes in iterate_shared
+913b9d443a01 parisc: BTLB: Fix crash when setting up BTLB at CPU bringup
+8b1d72395635 parisc: Fix random data corruption from exception handler
+f1acb109505d powerpc/kasan: Limit KASAN thread size increase to 32KB
+ed8b94f6e0ac powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
+962ac2dce56b drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
+6ef5d5b92f71 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()

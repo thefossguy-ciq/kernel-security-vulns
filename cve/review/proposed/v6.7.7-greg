@@ -69,3 +69,11 @@ bae67893578d drm/amd/display: Fix memory leak in dm_sw_fini()
 87aec499368d i2c: imx: when being a target, mark the last read as processed
 e3b63e966cac mm: zswap: fix missing folio cleanup in writeback race path
 678e54d4bb9a mm/zswap: invalidate duplicate entry when !zswap_enabled
+def689fc26b9 devlink: fix possible use-after-free and memory leaks in devlink_init()
+6ea38e2aeb72 afs: Increase buffer size in afs_update_volume_status()
+166c2c8a6a4d net/sched: act_mirred: don't override retval if we already lost the skb
+52f671db1882 net/sched: act_mirred: use the backlog for mirred ingress
+97cba232549b drm/amd/display: Fix buffer overflow in 'get_host_router_total_dp_tunnel_bw()'
+45be0882c5f9 smb3: add missing null server pointer check
+de959094eb21 scsi: target: pscsi: Fix bio_put() for error case
+aaab47f204aa fs/ntfs3: Add NULL ptr dereference checking at the end of attr_allocate_frame()

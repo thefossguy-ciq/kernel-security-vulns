@@ -23,3 +23,15 @@ aa82ac51d633 af_unix: Drop oob_skb ref before purging queue in GC.
 d3ea125df37d dmaengine: idxd: Ensure safe user copy of completion record
 09a3c1e46142 powerpc/pseries/iommu: IOMMU table is not initialized for kdump over SR-IOV
 fad87dbd4815 powerpc/rtas: use correct function name for resetting TCE tables
+d6a9608af9a7 mptcp: fix possible deadlock in subflow diag
+6b1ba3f9040b mmc: mmci: stm32: fix DMA API overlapping mappings warning
+1c0cf6d19690 crypto: arm64/neonbs - fix out-of-bounds access on short input
+9845664b9ee4 btrfs: dev-replace: properly validate device names
+a11dd49dcb93 riscv: Sparse-Memory/vmemmap out-of-bounds fix
+0f8ca019544a drm/amd/display: Prevent potential buffer overflow in map_hw_resources
+c14f09f010cc ASoC: cs35l56: Fix deadlock in ASP1 mixer register initialization
+1382d8b55129 ASoC: qcom: Fix uninitialized pointer dmactl
+13114dc55430 tls: fix use-after-free on failed backlog decryption
+fe9f801355f0 net: veth: clear GRO when clearing XDP even when down
+959043afe53a spi: cadence-qspi: remove system-wide suspend helper calls from runtime PM hooks
+32ce3bb57b6b spi: cadence-qspi: fix pointer reference in runtime PM hooks
