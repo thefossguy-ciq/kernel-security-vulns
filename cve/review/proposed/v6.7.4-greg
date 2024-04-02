@@ -39,3 +39,9 @@ b988b1bb0053 KVM: s390: fix setting of fpc register
 72d9b9747e78 ACPI: extlog: fix NULL pointer dereference check
 f46c8a75263f powerpc/mm: Fix null-pointer dereference in pgtable_cache_add
 fc3a5534e2a8 libbpf: Fix NULL pointer dereference in bpf_object__collect_prog_relos
+5266caaf5660 blk-mq: fix IO hang from sbitmap wakeup race
+2a9de42e8d3c drm/amdkfd: Fix lock dependency warning with srcu
+abe4eaa8618b um: time-travel: fix time corruption
+4f32504a2f85 drm/amdgpu: Fix variable 'mca_funcs' dereferenced before NULL check in 'amdgpu_mca_smu_get_mca_entry()'
+2ce156482a6f drm/amd/display: Fix disable_otg_wa logic
+aed5ed595960 PM / devfreq: Synchronize devfreq_monitor_[start/stop]
