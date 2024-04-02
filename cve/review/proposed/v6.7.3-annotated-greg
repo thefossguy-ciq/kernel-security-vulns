@@ -4,4 +4,8 @@ edcf9725150e4 nfsd: fix RELEASE_LOCKOWNER
 - [greg] "This is clearly a protocol violation and with the Linux NFS client it can cause incorrect behaviour."
 76025cc2285d9 smb: client: fix parsing of SMB3.1.1 POSIX create context
 - [greg] Should not be marked for a CVE
+32f2a0afa95fa net/sched: flower: Fix chain template offload
+- [greg] memory leak caused by userspace
+832dd634bd1b arm64: entry: fix ARM64_WORKAROUND_SPECULATIVE_UNPRIV_LOAD
+- [greg] fix to make the security fix actually work properly
 
