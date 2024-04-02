@@ -293,6 +293,14 @@ find_mainline_git_id()
 	echo "${stable_git}"
 }
 
+#############################
+# git_full_id()
+#	returns the "FULL" sha1 of the short git id passed in
+# arguments
+#	"git id"
+# returns
+#	"full git id" if found, "" if not found
+#############################
 git_full_id()
 {
 	local short_id=${1}
@@ -300,6 +308,21 @@ git_full_id()
 	echo "${long_id}"
 }
 
+#############################
+# git_short_id()
+#	returns the "SHORT" sha1 of the short git id passed in
+# arguments
+#	"git id"
+# returns
+#	"short git id" if found, "" if not found
+#############################
+git_short_id()
+{
+	local id=${1}
+	local short_id
+	short_id=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --format="%h" "${id}" 2> /dev/null)
+	echo "${short_id}"
+}
 
 
 # =======
@@ -723,8 +746,8 @@ for entry in "${fixed_pairs[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
 	fix=${x[1]}
-	vuln_git=${x[2]}
-	fix_git=${x[3]}
+	vuln_git=$(git_short_id "${x[2]}")	# unify the git id
+	fix_git=$(git_short_id "${x[3]}")	# unify the git id
 	dbg "	vuln=${vuln}	fix=${fix}	vuln_git=${vuln_git}	fix_git=${fix_git}"
 
 	if [[ "${fix}" == "0" ]]; then
