@@ -13,6 +13,9 @@ _help:
 @cve_create GIT_ID:
 	-scripts/cve_create {{GIT_ID}}
 
+# Create a bunch of CVEs that are contained, one per line, in FILENAME
+@cve_create_batch FILENAME:
+	-scripts/cve_create_batch {{FILENAME}}
 
 # Update all, or just one, CVE entries with the latest version information
 @cve_update *GIT_ID:
