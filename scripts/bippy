@@ -43,6 +43,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT=${0##*/}
 SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
 
+# location of dyad helper script
+dyad="${DIR}/dyad"
+
 # global variables
 vuln_kernels=()
 fixed_pairs=()
@@ -485,6 +488,25 @@ commit_text=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%B" "$
 og_vuln="0"
 og_git="1da177e4c3f4"	# "Linux-2.6.12-rc2"
 
+# Use dyad to find our pairs of vulnerable:fixed entries
+v=""
+if [[ "${GIT_VULNERABLE}" != "" ]]; then
+	v="--vulnerable=${GIT_VULNERABLE}"
+fi
+
+# We want to call dyad with out quotes as we "know" these arguments are ok
+# shellcheck disable=SC2086
+dyad_out=$("${dyad}" ${v} ${GIT_SHA_FULL} | grep -v "^#")
+dbg "dyad_out=${dyad_out}"
+dyad_entries=()
+
+for dyad_entry in ${dyad_out}; do
+	dyad_entries+=("${dyad_entry}")
+done
+dbg "dyad_entries: ${#dyad_entries[@]}"
+
+# TODO: delete the logic down below, it's not going to be needed now that we have dyad
+
 # If the vunerable commit is specified on the command line, there's no need to
 # look anything up, just use it.
 if [[ "${GIT_VULNERABLE}" != "" ]]; then
@@ -742,6 +764,38 @@ if [[ "${default_status}" == "affected" ]]; then
 	done
 fi
 
+# Create the mail message strings.  Simpler than the json strings, so do it in one pass
+for entry in "${dyad_entries[@]}"; do
+	x=(${entry//:/ })
+	vuln=${x[0]}
+	vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+	fix=${x[2]}
+	fix_git=${x[3]}
+	dbg "	mbox:	vuln=${vuln}	vuln_git=${vuln_git}	fix=${fix}	fix_git=${fix_git}"
+
+	if [[ "${fix}" == "0" ]]; then
+		# Issue is not fixed, so say that:
+		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git}")
+		continue
+	fi
+
+	fix_git=$(git_short_id "${x[3]}")	# shorten the git id
+	# if the vulnerability showed up in the same releasae it was
+	# fixed in, then skip it for the mail message
+	if [[ "${vuln}" != "${fix}" ]]; then
+		if [[ "${vuln}" == "0" ]] ; then
+			# We do not know when it showed up, so just say it is fixed
+			vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
+		else
+			# Report when it was introduced and when it was fixed.
+			vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
+		fi
+	fi
+	long_id=$(git_full_id "${fix_git}")
+	url_array+=("https://git.kernel.org/stable/c/${long_id}")
+done
+
+
 for entry in "${fixed_pairs[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
@@ -831,20 +885,20 @@ for entry in "${fixed_pairs[@]}"; do
 		-s versionType="git"		\
 		) "
 
-	# If this issue has always been there, just say when it was
-	# fixed, otherwise try to give a hint when it was introduced.
-	# The json file just wants 0 for "always been there", so no need
-	# to check it for the array.
-	if [[ "${vuln}" == "0" ]] ; then
-		vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
-	else
-		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
-	fi
+#	# If this issue has always been there, just say when it was
+#	# fixed, otherwise try to give a hint when it was introduced.
+#	# The json file just wants 0 for "always been there", so no need
+#	# to check it for the array.
+#	if [[ "${vuln}" == "0" ]] ; then
+#		vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
+#	else
+#		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
+#	fi
 
 	# Add the git sha of the fix to the url array so we can print
 	# them later
 	long_id=$(git_full_id "${fix_git}")
-	url_array+=("https://git.kernel.org/stable/c/${long_id}")
+#	url_array+=("https://git.kernel.org/stable/c/${long_id}")
 	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
 
 done
