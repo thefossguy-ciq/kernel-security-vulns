@@ -795,8 +795,8 @@ if [[ "${default_status}" != "${dyad_default_status}" ]]; then
 fi
 
 dyad_vuln_array_json=""
-dyad_url_string_json=""
-dyad_git_array_json=""
+url_string_json=""
+git_array_json=""
 #
 # If this is an "affected" kernel, then we need to find the first mainline
 # kernel where things went wrong, so create an "affected" and "unaffected" json
@@ -838,8 +838,6 @@ fi
 
 # Generate the "vulnerable" kernel json information
 vuln_array_json=""
-url_string_json=""
-git_array_json=""
 if [[ "${default_status}" == "affected" ]]; then
 	# we need to now say what the "unaffected" range is, so loop
 	# through and find the "mainline" part to figure that out.
@@ -900,8 +898,14 @@ for entry in "${dyad_entries[@]}"; do
 		continue
 	fi
 
+	# If the vulnerable kernel is 0 then the git id is the first in
+	# history, which we just manually substitute in here.
+	if [[ "${vuln}" == "0" ]]; then
+		vuln_git="1da177e4c3f4"	# ("Linux-2.6.12-rc2")
+	fi
+
 	# create the json array for the git ids
-	dyad_git_array_json+="versions[]=$(jo --\
+	git_array_json+="versions[]=$(jo --	\
 		-s version="${vuln_git}"	\
 		-s lessThan="${fix_git}"	\
 		-s status="affected"		\
@@ -910,7 +914,7 @@ for entry in "${dyad_entries[@]}"; do
 
 	# Add the git sha of the fix to the "all fix commits" array
 	long_id=$(git_full_id "${fix_git}")
-	dyad_url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
+	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
 	# If the commit was found and fixed in the same release, let's not
 	# create a version number range as that will just confuse everyone
 	if [[ "${vuln}" == "${fix}" ]]; then
@@ -1048,13 +1052,13 @@ for entry in "${fixed_pairs[@]}"; do
 	fi
 
 
-	# create the json array for the git ids
-	git_array_json+="versions[]=$(jo --	\
-		-s version="${vuln_git}"	\
-		-s lessThan="${fix_git}"	\
-		-s status="affected"		\
-		-s versionType="git"		\
-		) "
+#	# create the json array for the git ids
+#	git_array_json+="versions[]=$(jo --	\
+#		-s version="${vuln_git}"	\
+#		-s lessThan="${fix_git}"	\
+#		-s status="affected"		\
+#		-s versionType="git"		\
+#		) "
 
 #	# If this issue has always been there, just say when it was
 #	# fixed, otherwise try to give a hint when it was introduced.
@@ -1070,7 +1074,7 @@ for entry in "${fixed_pairs[@]}"; do
 	# them later
 	long_id=$(git_full_id "${fix_git}")
 #	url_array+=("https://git.kernel.org/stable/c/${long_id}")
-	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
+#	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
 
 done
 
@@ -1083,32 +1087,13 @@ else
 	dbg "second pass FAILED"
 fi
 
-dbg "second pass:"
-dbg "	     git_array_json=${git_array_json}"
-dbg "	dyad_git_array_json=${dyad_git_array_json}"
-if [[ "${git_array_json}" == "${dyad_git_array_json}" ]]; then
-	dbg "second pass SUCCEED"
-else
-	dbg "second pass FAILED"
-fi
-
-dbg "second pass:"
-dbg "     url_string_json=${url_string_json}"
-dbg "dyad_url_string_json=${dyad_url_string_json}"
-if [[ "${url_string_json}" == "${dyad_url_string_json}" ]]; then
-	dbg "second pass SUCCEED"
-else
-	dbg "second pass FAILED"
-fi
+dbg "git_array_json=${git_array_json}"
+dbg "url_string_json=${url_string_json}"
 
 #dbg "vuln_array_json=${vuln_array_json}"
-#dbg "git_array_json=${git_array_json}"
 #dbg "vuln_array_mbox="
 #for entry in "${vuln_array_mbox[@]}"; do
 #	dbg "	${entry}"
-#done
-#for entry in "${url_string_json[@]}"; do
-#	dbg "url_string_json=${entry}"
 #done
 
 # Strip off all of the signed-off-by stuff out of the commit text.
@@ -1214,13 +1199,13 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 
 	affected=$(jo -a -- "${ag}" "${a}")
 
-	# We want dyad_url_string_json to be expanded without quotes
+	# We want url_string_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	cna=$(jo --	\
 		providerMetadata="${providerMetadata}"	\
 		descriptions="${descriptions}"		\
 		affected="${affected}"			\
-		${dyad_url_string_json}			\
+		${url_string_json}			\
 		title="${subject}"			\
 		x_generator="${x_generator}"		\
 	)
