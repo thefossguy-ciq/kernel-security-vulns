@@ -795,7 +795,7 @@ if [[ "${default_status}" != "${dyad_default_status}" ]]; then
 fi
 
 dyad_vuln_array_json=""
-dyad_vuln_string_json=""
+dyad_url_string_json=""
 dyad_git_array_json=""
 #
 # If this is an "affected" kernel, then we need to find the first mainline
@@ -878,7 +878,7 @@ fi
 
 dbg "first pass:"
 dbg "	     vuln_array_json=${vuln_array_json}"
-dbg "	dyad_vuln_array_json=${vuln_array_json}"
+dbg "	dyad_vuln_array_json=${dyad_vuln_array_json}"
 if [[ "${vuln_array_json}" == "${dyad_vuln_array_json}" ]]; then
 	dbg "first pass SUCCEED"
 else
@@ -897,6 +897,23 @@ for entry in "${dyad_entries[@]}"; do
 	if [[ "${fix}" == "0" ]]; then
 		# FIXME: We are not generating the json pairs for this properly just yet.
 		# Our attempts at this seem to break something, so save this for later..
+		continue
+	fi
+
+	# create the json array for the git ids
+	dyad_git_array_json+="versions[]=$(jo --\
+		-s version="${vuln_git}"	\
+		-s lessThan="${fix_git}"	\
+		-s status="affected"		\
+		-s versionType="git"		\
+		) "
+
+	# Add the git sha of the fix to the "all fix commits" array
+	long_id=$(git_full_id "${fix_git}")
+	dyad_url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
+	# If the commit was found and fixed in the same release, let's not
+	# create a version number range as that will just confuse everyone
+	if [[ "${vuln}" == "${fix}" ]]; then
 		continue
 	fi
 
@@ -1059,24 +1076,40 @@ done
 
 dbg "second pass:"
 dbg "	     vuln_array_json=${vuln_array_json}"
-dbg "	dyad_vuln_array_json=${vuln_array_json}"
+dbg "	dyad_vuln_array_json=${dyad_vuln_array_json}"
 if [[ "${vuln_array_json}" == "${dyad_vuln_array_json}" ]]; then
 	dbg "second pass SUCCEED"
 else
 	dbg "second pass FAILED"
 fi
 
+dbg "second pass:"
+dbg "	     git_array_json=${git_array_json}"
+dbg "	dyad_git_array_json=${dyad_git_array_json}"
+if [[ "${git_array_json}" == "${dyad_git_array_json}" ]]; then
+	dbg "second pass SUCCEED"
+else
+	dbg "second pass FAILED"
+fi
 
+dbg "second pass:"
+dbg "     url_string_json=${url_string_json}"
+dbg "dyad_url_string_json=${dyad_url_string_json}"
+if [[ "${url_string_json}" == "${dyad_url_string_json}" ]]; then
+	dbg "second pass SUCCEED"
+else
+	dbg "second pass FAILED"
+fi
 
-dbg "vuln_array_json=${vuln_array_json}"
-dbg "git_array_json=${git_array_json}"
-dbg "vuln_array_mbox="
-for entry in "${vuln_array_mbox[@]}"; do
-	dbg "	${entry}"
-done
-for entry in "${url_string_json[@]}"; do
-	dbg "url_string_json=${entry}"
-done
+#dbg "vuln_array_json=${vuln_array_json}"
+#dbg "git_array_json=${git_array_json}"
+#dbg "vuln_array_mbox="
+#for entry in "${vuln_array_mbox[@]}"; do
+#	dbg "	${entry}"
+#done
+#for entry in "${url_string_json[@]}"; do
+#	dbg "url_string_json=${entry}"
+#done
 
 # Strip off all of the signed-off-by stuff out of the commit text.
 # We have a long list of "tags" to drop in the file, "tags", so compose
@@ -1181,13 +1214,13 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 
 	affected=$(jo -a -- "${ag}" "${a}")
 
-	# We want url_string_json to be expanded without quotes
+	# We want dyad_url_string_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	cna=$(jo --	\
 		providerMetadata="${providerMetadata}"	\
 		descriptions="${descriptions}"		\
 		affected="${affected}"			\
-		${url_string_json}			\
+		${dyad_url_string_json}			\
 		title="${subject}"			\
 		x_generator="${x_generator}"		\
 	)
