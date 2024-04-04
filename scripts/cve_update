@@ -102,7 +102,7 @@ update_cve()
 
 	# see if the json and/or mbox files actually changed, EXCEPT for the bippy-VERSIONINFO string
 	updated_file=""
-	diff=$(diff -u "${root}.json" "${tmp_json}" | grep -v "${tmp_json}" | grep -v "${root}.json" | grep -v "bippy-" | grep -v "^@@ " | grep "^[+|-]" | grep -v "kernel.org" | grep -v "linuxfoundation.org")
+	diff=$(diff -u "${root}.json" "${tmp_json}" | grep -v "${tmp_json}" | grep -v "${root}.json" | grep -v "bippy" | grep -v "^@@ " | grep "^[+|-]" | grep -v "@kernel.org" | grep -v "@linuxfoundation.org")
 	#echo "diff json=${diff}"
 	if [[ "${diff}" != "" ]] ; then
 		mv -f "${tmp_json}" "${root}.json"
@@ -112,7 +112,7 @@ update_cve()
 		#echo "diff for json was empty"
 	fi
 
-	diff=$(diff -u "${root}.mbox" "${tmp_mbox}" | grep -v "${tmp_mbox}" | grep -v "${root}.mbox" | grep -v "bippy-" | grep -v "^@@ " | grep "^+" | grep -v "kernel.org" | grep -v "linuxfoundation.org")
+	diff=$(diff -u "${root}.mbox" "${tmp_mbox}" | grep -v "${tmp_mbox}" | grep -v "${root}.mbox" | grep -v "bippy-" | grep -v "^@@ " | grep "^[+|-]" | grep -v "@kernel.org" | grep -v "@linuxfoundation.org")
 	#echo "diff mbox=${diff}"
 	if [[ "${diff}" != "" ]] ; then
 		mv -f "${tmp_mbox}" "${root}.mbox"
