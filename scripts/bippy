@@ -775,8 +775,6 @@ dyad_default_status="unaffected"
 for entry in "${dyad_entries[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
-	fix=${x[2]}
-	fix_git=${x[3]}
 
 	# if vuln == 0 then the kernel has always been vulnerable
 	if [[ "${vuln}" == "0" ]]; then
@@ -794,6 +792,48 @@ done
 dbg "dyad_default_status=${dyad_default_status}"
 if [[ "${default_status}" != "${dyad_default_status}" ]]; then
 	dbg "dyad default status != default status, what went wrong???"
+fi
+
+dyad_vuln_array_json=""
+dyad_vuln_string_json=""
+dyad_git_array_json=""
+#
+# If this is an "affected" kernel, then we need to find the first mainline
+# kernel where things went wrong, so create an "affected" and "unaffected" json
+# entry for just this type of thing
+if [[ "${dyad_default_status}" == "affected" ]]; then
+	for entry in "${dyad_entries[@]}"; do
+		x=(${entry//:/ })
+		vuln=${x[0]}
+		vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+		fix=${x[2]}
+		fix_git=$(git_short_id "${x[3]}")	# shorten the git id
+		dbg "	json:	vuln=${vuln}	vuln_git=${vuln_git}	fix=${fix}	fix_git=${fix_git}"
+
+		if [[ "${vuln}" == "0" ]]; then
+			# We do not know when this first was a problem, so we
+			# default to 0 and handle it elsewhere in the logic as
+			# everything is "affected"
+			dbg "vuln=${vuln}"
+		else
+			version_is_mainline "${vuln}"
+			is_mainline=$?
+			if [[ "${is_mainline}" == "1" ]]; then
+				dbg "	adding ${vuln} as where everything was affected"
+				dyad_vuln_array_json+="versions[]=$(jo --	\
+					-s version="${vuln}"	\
+					-s status="affected"	\
+					) "
+				dyad_vuln_array_json+="versions[]=$(jo --	\
+					-s version="0"		\
+					-s lessThan="${vuln}"	\
+					-s status="unaffected"	\
+					-s versionType="custom"	\
+					) "
+				break
+			fi
+		fi
+	done
 fi
 
 # Generate the "vulnerable" kernel json information
@@ -830,11 +870,84 @@ if [[ "${default_status}" == "affected" ]]; then
 					-s status="unaffected"	\
 					-s versionType="custom"	\
 					) "
+				break
 			fi
-			break
 		fi
 	done
 fi
+
+dbg "first pass:"
+dbg "	     vuln_array_json=${vuln_array_json}"
+dbg "	dyad_vuln_array_json=${vuln_array_json}"
+if [[ "${vuln_array_json}" == "${dyad_vuln_array_json}" ]]; then
+	dbg "first pass SUCCEED"
+else
+	dbg "first pass FAILED"
+fi
+
+#
+# Create the normal json entries, based on what is vulnerable and what is fixed
+for entry in "${dyad_entries[@]}"; do
+	x=(${entry//:/ })
+	vuln=${x[0]}
+	vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+	fix=${x[2]}
+	fix_git=$(git_short_id "${x[3]}")	# shorten the git id
+
+	if [[ "${fix}" == "0" ]]; then
+		# FIXME: We are not generating the json pairs for this properly just yet.
+		# Our attempts at this seem to break something, so save this for later..
+		continue
+	fi
+
+	# create the json array for the version numbers
+	if [[ "${default_status}" == "unaffected" ]]; then
+		# this is easy, our pairs are the versions that are
+		# affected, no tricky matching needs to happen here
+		dyad_vuln_array_json+="versions[]=$(jo --	\
+			-s version="${vuln}"	\
+			-s lessThan="${fix}"	\
+			-s status="affected"	\
+			-s versionType="custom"	\
+			) "
+	else
+		# much more tricky, we now need to say what ranges are
+		# both affected, AND unaffected.  We handled the
+		# "affected" range above, so now our pairs show where
+		# things are "unaffected".
+		#
+		# By default, everything is affected from the "root" to
+		# the commit in mainline, so we have described that
+		# already above the loop, so this is just going to be
+		# the affected list...
+		#
+		# Note, the "mainline" fix shows where things "stop",
+		# so that gets a "short" record.
+		version_is_mainline "${fix}"
+		is_mainline=$?
+		if [[ "${is_mainline}" == "1" ]]; then
+			dyad_vuln_array_json+="versions[]=$(jo --		\
+				-s version="${fix}"				\
+				-s lessThanOrEqual="*"				\
+				-s status="unaffected"				\
+				-s versionType="original_commit_for_fix"	\
+				) "
+		else
+			# This is a stable range, so make an unaffected
+			# range with a wildcard
+			number_array=${fix}
+			REL_ARRAY=(${fix//./ })
+			MAJOR=${REL_ARRAY[0]}
+			MINOR=${REL_ARRAY[1]}
+			dyad_vuln_array_json+="versions[]=$(jo --		\
+				-s version="${fix}"				\
+				-s lessThanOrEqual="${MAJOR}.${MINOR}.*"	\
+				-s status="unaffected"				\
+				-s versionType="custom"				\
+				) "
+		fi
+	fi
+done
 
 
 for entry in "${fixed_pairs[@]}"; do
@@ -943,6 +1056,18 @@ for entry in "${fixed_pairs[@]}"; do
 	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
 
 done
+
+dbg "second pass:"
+dbg "	     vuln_array_json=${vuln_array_json}"
+dbg "	dyad_vuln_array_json=${vuln_array_json}"
+if [[ "${vuln_array_json}" == "${dyad_vuln_array_json}" ]]; then
+	dbg "second pass SUCCEED"
+else
+	dbg "second pass FAILED"
+fi
+
+
+
 dbg "vuln_array_json=${vuln_array_json}"
 dbg "git_array_json=${git_array_json}"
 dbg "vuln_array_mbox="
