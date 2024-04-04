@@ -722,10 +722,82 @@ for entry in "${fixed_pairs[@]}"; do
 done
 dbg "default_status=${default_status}"
 
-# Generate the "vulnerable" kernel json and mbox information
-vuln_array_json=""
+#
+# Generate the some readable (i.e. text) information, showing where
+# vulnerabilities showed up, and where they were fixed, and also if they are
+# not fixed at all.  Do this by creating a list of messages that we will later
+# dump into the mail message itself.
 vuln_array_mbox=()
 url_array=()
+for entry in "${dyad_entries[@]}"; do
+	x=(${entry//:/ })
+	vuln=${x[0]}
+	vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+	fix=${x[2]}
+	fix_git=${x[3]}
+	dbg "	mbox:	vuln=${vuln}	vuln_git=${vuln_git}	fix=${fix}	fix_git=${fix_git}"
+
+	if [[ "${fix}" == "0" ]]; then
+		# Issue is not fixed, so say that:
+		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git}")
+		continue
+	fi
+
+	fix_git=$(git_short_id "${x[3]}")	# shorten the git id
+	# if the vulnerability showed up in the same releasae it was
+	# fixed in, then skip it for the mail message
+	if [[ "${vuln}" != "${fix}" ]]; then
+		if [[ "${vuln}" == "0" ]] ; then
+			# We do not know when it showed up, so just say it is fixed
+			vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
+		else
+			# Report when it was introduced and when it was fixed.
+			vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
+		fi
+	fi
+	long_id=$(git_full_id "${fix_git}")
+	url_array+=("https://git.kernel.org/stable/c/${long_id}")
+done
+
+# For now, if we do not have ANYTHING to report in the mbox message (i.e. all
+# fixes were done in the same kernel branch as the issue was vulnerable in)
+# then just bail out because we can't create the json file very easily at all.
+if [[ "${#vuln_array_mbox[@]}" == "0" ]]; then
+	echo "Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to ${GIT_SHA_SHORT}"
+	exit 1
+fi
+
+#
+# Iterate over the whole list of kernel pairs to try to determine what the "default status" is.
+# If there is any "mainline kernel" that is touched by this issue, then the
+# default status is "affected", otherwise it is "unaffected".
+dyad_default_status="unaffected"
+for entry in "${dyad_entries[@]}"; do
+	x=(${entry//:/ })
+	vuln=${x[0]}
+	fix=${x[2]}
+	fix_git=${x[3]}
+
+	# if vuln == 0 then the kernel has always been vulnerable
+	if [[ "${vuln}" == "0" ]]; then
+		dyad_default_status="affected"
+		continue
+	fi
+
+	# if the vuln kernel is mainline, we were vulnerable
+	version_is_mainline "${vuln}"
+	vuln_mainline=$?
+	if [[ "${vuln_mainline}" == "1" ]] ; then
+		dyad_default_status="affected"
+	fi
+done
+dbg "dyad_default_status=${dyad_default_status}"
+if [[ "${default_status}" != "${dyad_default_status}" ]]; then
+	dbg "dyad default status != default status, what went wrong???"
+fi
+
+# Generate the "vulnerable" kernel json information
+vuln_array_json=""
 url_string_json=""
 git_array_json=""
 if [[ "${default_status}" == "affected" ]]; then
@@ -764,44 +836,6 @@ if [[ "${default_status}" == "affected" ]]; then
 	done
 fi
 
-# Create the mail message strings.  Simpler than the json strings, so do it in one pass
-for entry in "${dyad_entries[@]}"; do
-	x=(${entry//:/ })
-	vuln=${x[0]}
-	vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
-	fix=${x[2]}
-	fix_git=${x[3]}
-	dbg "	mbox:	vuln=${vuln}	vuln_git=${vuln_git}	fix=${fix}	fix_git=${fix_git}"
-
-	if [[ "${fix}" == "0" ]]; then
-		# Issue is not fixed, so say that:
-		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git}")
-		continue
-	fi
-
-	fix_git=$(git_short_id "${x[3]}")	# shorten the git id
-	# if the vulnerability showed up in the same releasae it was
-	# fixed in, then skip it for the mail message
-	if [[ "${vuln}" != "${fix}" ]]; then
-		if [[ "${vuln}" == "0" ]] ; then
-			# We do not know when it showed up, so just say it is fixed
-			vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
-		else
-			# Report when it was introduced and when it was fixed.
-			vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
-		fi
-	fi
-	long_id=$(git_full_id "${fix_git}")
-	url_array+=("https://git.kernel.org/stable/c/${long_id}")
-done
-
-# For now, if we do not have ANYTHING to report in the mbox message (i.e. all
-# fixes were done in the same kernel branch as the issue was vulnerable in)
-# then just bail out because we can't create the json file very easily at all.
-if [[ "${#vuln_array_mbox[@]}" == "0" ]]; then
-	echo "Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to ${GIT_SHA_SHORT}"
-	exit 1
-fi
 
 for entry in "${fixed_pairs[@]}"; do
 	x=(${entry//:/ })
@@ -911,8 +945,9 @@ for entry in "${fixed_pairs[@]}"; do
 done
 dbg "vuln_array_json=${vuln_array_json}"
 dbg "git_array_json=${git_array_json}"
+dbg "vuln_array_mbox="
 for entry in "${vuln_array_mbox[@]}"; do
-	dbg "vuln_array_mbox=${entry}"
+	dbg "	${entry}"
 done
 for entry in "${url_string_json[@]}"; do
 	dbg "url_string_json=${entry}"
