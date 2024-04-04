@@ -795,6 +795,13 @@ for entry in "${dyad_entries[@]}"; do
 	url_array+=("https://git.kernel.org/stable/c/${long_id}")
 done
 
+# For now, if we do not have ANYTHING to report in the mbox message (i.e. all
+# fixes were done in the same kernel branch as the issue was vulnerable in)
+# then just bail out because we can't create the json file very easily at all.
+if [[ "${#vuln_array_mbox[@]}" == "0" ]]; then
+	echo "Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to ${GIT_SHA_SHORT}"
+	exit 1
+fi
 
 for entry in "${fixed_pairs[@]}"; do
 	x=(${entry//:/ })
