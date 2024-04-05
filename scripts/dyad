@@ -78,6 +78,8 @@ help()
 #	Does so with an initial "#" so it can be easily filtered out
 # arguments:
 # 	"message to print"
+# assumes:
+#	DEBUG is defined to something
 #############################
 dbg()
 {
@@ -287,6 +289,8 @@ create_fixed_pair()
 #	"stable kernel version"
 # returns:
 #	"git id of commit in the stable branch" or "" if not found
+# assumes:
+#	KERNEL_TREE points to a valid Linux stable git tree
 #############################
 find_stable_git_id()
 {
@@ -335,6 +339,8 @@ find_stable_git_id()
 #	"kernel version"
 # returns:
 #	"git id where the commit is in the kernel version"
+# assumes:
+#	KERNEL_TREE points to a valid Linux stable git tree
 #############################
 find_git_id()
 {
@@ -358,6 +364,8 @@ find_git_id()
 #	"git id"
 # returns
 #	"full git id" if found, "" if not found
+# assumes:
+#	KERNEL_TREE points to a valid Linux stable git tree
 #############################
 git_full_id()
 {
@@ -374,6 +382,8 @@ git_full_id()
 #	"git id"
 # returns
 #	"short git id" if found, "" if not found
+# assumes:
+#	KERNEL_TREE points to a valid Linux stable git tree
 #############################
 git_short_id()
 {
