@@ -39,7 +39,7 @@ set -o nounset
 # set where the tool was run from,
 # the name of our script,
 # and the git version of it
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
 SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
 

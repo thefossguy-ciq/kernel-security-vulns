@@ -7,7 +7,7 @@
 #
 
 # get where the tool was run from,
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 total_reserved=0
 total_assigned=0
