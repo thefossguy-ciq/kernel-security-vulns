@@ -71,6 +71,17 @@ cd "${DIR}"/../ || exit 1
 update_cve()
 {
 	local id=$1
+	local message=""
+	local tmp_json
+	local tmp_mbox
+	local sha
+	local cve
+	local root
+	local vuln_file
+	local vulnerable_sha
+	local result
+	local updated_file
+	local diff
 
 	tmp_json=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.json" || exit 1)
 	tmp_mbox=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.mbox" || exit 1)
@@ -78,7 +89,7 @@ update_cve()
 	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${id}" | cut -f 1 -d '.')
 	#echo "id=${id} sha=${sha} cve=${cve}"
-	echo -n "Updating ${txtcyn}${cve}${txtrst}..."
+	message+="Updating ${txtcyn}${cve}${txtrst}..."
 
 	# Look to see if we have a "og_vuln" that is provided to us in a
 	# published CVE.  This is used for when we can't determine it on our
@@ -97,7 +108,7 @@ update_cve()
 	if [[ "${result}" != 0 ]]; then
 		# bippy failed, so report it and continue on
 		echo "${txtred}Error:${txtrst} bippy failed to create ${txtcyn}${cve}${txtrst} for commit ${txtgrn}${sha}${txtrst}"
-		continue
+		return
 	fi
 
 	# see if the json and/or mbox files actually changed, EXCEPT for the bippy-VERSIONINFO string
@@ -122,18 +133,30 @@ update_cve()
 		#echo "diff for mbox was empty"
 	fi
 	if [[ "${updated_file}" == "" ]] ; then
-		echo "	${txtgrn}Nothing changed${txtrst}"
+		message+="	${txtgrn}Nothing changed${txtrst}"
 	else
-		echo "	Updated ${txtblu}${updated_file}${txtrst}"
+		message+="	Updated ${txtblu}${updated_file}${txtrst}"
 	fi
+	echo "${message}"
 }
 
 if [[ "${CVE}" == "" ]]; then
 	# Nothing specified on the command line, so just update everything
+	threads=$(nproc)
+	echo "Updating all CVE ids with ${txtcyn}${threads}${txtrst} processes at once..."
 	for id in cve/published/*/*.sha1 ; do
-		#echo "id=${id}"
-		update_cve ${id}
+		while :
+		do
+			if [[ $(jobs -p | wc -l) -lt ${threads} ]]; then
+				#echo "id=${id}"
+				update_cve "${id}" &
+				break
+			else
+				sleep 1
+			fi
+		done
 	done
+	wait
 else
 	CVE_ROOT="${DIR}/../cve/"
 	found=$(find "${CVE_ROOT}" -type f | grep "${CVE}" | grep "sha1")
