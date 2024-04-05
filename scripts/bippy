@@ -16,16 +16,15 @@
 # Requires:
 #  A kernel git tree with the SHA to be used in it
 #  jo - the json output tool, found at: https://github.com/jpmens/jo
-#  id_found_in - tool to find what kernel a specific SHA is in
+#  dyad - tool to find matching pairs of vulnerable:fixed kernel ids for a specific fix
 
 # set to 1 to get some debugging logging messages (or use -v/--verbose option)
 DEBUG=0
 
 KERNEL_TREE=${CVEKERNELTREE}
 COMMIT_TREE=${CVECOMMITTREE}
-FOUND_IN=${COMMIT_TREE}/id_found_in
 
-if [ ! -d ${KERNEL_TREE} ] || [ ! -d ${COMMIT_TREE} ]; then
+if [[ ! -d "${KERNEL_TREE}" ]] || [[ ! -d "${COMMIT_TREE}" ]]; then
 	echo "CVEKERNELTREE needs setting to the stable repo directory"
 	echo "CVECOMMITTREE needs setting to the Stable commit tree"
 	echo -e "\nEither manually export them or add them to your .bashrc/.zshrc et al."
@@ -45,10 +44,6 @@ SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" 
 
 # location of dyad helper script
 dyad="${DIR}/dyad"
-
-# global variables
-vuln_kernels=()
-fixed_pairs=()
 
 help() {
 	echo "Usage: $0 [OPTIONS]"
@@ -127,43 +122,8 @@ if [[ "${CVE_USER}" == "" ]] ; then
 	help
 fi
 
-# The directory where CVEs are published
-CVE_ROOT="${DIR}/../cve/"
-YEAR=$(echo "${CVE_NUMBER}" | cut -f 2 -d '-')
-PUBLISHED_DIR="${CVE_ROOT}published/${YEAR}/"
-
 # Functions for us to use, main flow starts below at ======= point
 
-
-# Given a short SHA value in $1 (we hope), turn it into an "expanded" sha and
-# then look up where that commit came from.
-# Might be multiple kernels, so parse accordingly
-find_fix() {
-	FIX=$1
-
-	id=""
-	if [[ ${FIX} =~ [[:xdigit:]]{12} ]] ; then
-		id=${BASH_REMATCH[0]}
-	else
-		# Let's try it again in a cruder way
-		id=$(echo "${FIX}" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
-	fi
-
-	if [ "${id}" == "" ] ; then
-		# can't find a valid sha or something resembing it, so just return
-		return
-	fi
-
-	long_id=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${id}")
-	if [ "${long_id}" == "" ] ; then
-		# git id is not a valid one, so just return
-		return
-	fi
-
-	release=$("${FOUND_IN}" "${long_id}")
-	echo "${release} "
-	return
-}
 
 # determine if a kernel version is a "-rc" release or not.
 # Will return 1 if -rc, 0 if not
@@ -190,32 +150,6 @@ function version_is_queue
 		return 0
 	fi
 }
-
-# Determine if the "major.minor" versions of 2 kernels are matching
-# will return 1 if true, 0 if not
-function version_match
-{
-	local VERSION_1=$1
-	local VERSION_2=$2
-
-	local REL_ARRAY_1=(${VERSION_1//./ })
-	local REL_ARRAY_2=(${VERSION_2//./ })
-	local MAJOR_1=${REL_ARRAY_1[0]}
-	local MAJOR_2=${REL_ARRAY_2[0]}
-
-	if [[ "${MAJOR_1}" == "${MAJOR_2}" ]] ; then
-		local MINOR_1=${REL_ARRAY_1[1]}
-		local MINOR_2=${REL_ARRAY_2[1]}
-		if [[ "${MINOR_1}" == "${MINOR_2}" ]] ; then
-			# dbg "version_match: ${1} ${2}: succeeded"
-			return 1
-		fi
-	fi
-
-	# dbg "version_match: ${1} ${2}: failed"
-	return 0
-}
-
 
 # Determine if a kernel version is a "mainline" one, or if it is a stable
 # kernel release.  Will return 1 if mainline, 0 if not
@@ -260,40 +194,6 @@ function version_is_mainline
 
 	# Must be a stable release
 	return 0
-}
-
-create_fix_pair()
-{
-	local v=$1
-	local f=$2
-	local v_git=$3
-	local f_git=$4
-	fixed_pairs+=("${v}:${f}:${v_git}:${f_git}")
-
-	dbg "pair=${v}:${f}:${v_git}:${f_git}"
-}
-
-find_stable_git_id()
-{
-	#>&2 echo "find_stable_git_id: \"${1}\" \"${2}\""
-	local og_git=${1}
-	local fixed_version=${2}
-
-	local fixed_array=(${fixed_version//./ })
-	local fixed_major=${fixed_array[0]}
-	local fixed_minor=${fixed_array[1]}
-
-	local stable_git=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --oneline --grep="${og_git}" "v${fixed_major}.${fixed_minor}..v${fixed_version}" | awk '{print $1}')
-	#>&2 echo "fine_stable_git_id: stable_git=${stable_git}"
-
-	echo "${stable_git}"
-}
-
-find_mainline_git_id()
-{
-	local fixed_version=${1}
-	local stable_git=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --oneline "v${fixed_version}" | awk '{print $1}')
-	echo "${stable_git}"
 }
 
 #############################
@@ -381,120 +281,15 @@ commit_text=$(cd "${KERNEL_TREE}" && git show --no-patch --pretty=format:"%B" "$
 
 #echo "commit_text=${commit_text}"
 
-# Fixes matching, this is the "meat" of the logic for what people are really
-# looking for as no one ever seemed to do it in the past, and is one of the
-# primary reasons we are tracking these ourselves now.
 #
-# The logic here is a bit complex, as we have a number of different situations
-# that a commit could have.  We track all of this in different variables:
-# og_vuln:
-#	"Original vulnerable kernel version"
-#	Version where in mainline the problem first showed up.  If this can not
-#	be determined, "0" is used here.
-# vuln_kernels:
-#	"Vulnerable kernels"
-#	An array of kernel versions that describes where the problem first
-#	occured.  This list is not always present and can not always be
-#	determined, so it might be empty.  If the vulnerable kernel(s) can be
-#	determined, this variable will be an array of a it will be a mix of
-#	stable releases and hopefully a release in Linus's tree (but NOT a -rc
-#	release, as we don't track them this way because we do not consider
-#	them to be valid versions to care about.)  Note, the list is sorted in
-#	"sort -V" order, and Linus's releases CAN be in the middle of the list,
-#	so beware of this when trying to match versions up (see below for
-#	matching logic.)
-# fixed_kernels:
-#	"Fixed kernels"
-#	An array of kernel versions where the fix showed up in.  As we always
-#	have at least one valid commit id (by virtue of this being required to
-#	run this script), this array will always have at least one version
-#	number in it.
-#	Note, this list will contain numbers that either describe a stable
-#	release (X.Y.Z from linux-stable) or a released version (X.Y from
-#	Linus's tree, we do not track -rc releases because they are development
-#	kernels.)
-#
-# Here's the different states, with example commit
-# ids so that they can be used for testing:
-#
-# - Commit is only in a stable kernel tree, with no Fixes: tag
-#   For this the og_vuln will be set to "0" and fixed_kernels will have just
-#   one stable kernel release version in the array.
-#   Example: 10d75984495f ("Revert "NFSD: Fix possible sleep during nfsd4_release_lockowner()"")
-#
-# - Commit is only in a stable kernel tree, with a Fixes: tag
-#   For this the og_vuln will be set to the released version and fixed_kernels
-#   will have just a one stable kernel release in the array.
-#   Example: 2a8664583d4d ("fs: sysfs_emit_at: Remove PAGE_SIZE alignment check")
-#
-# - Commit is only in a stable kernel tree, with multiple Fixes: tags
-#   For this the og_vuln will be set to the released version and fixed_kernels
-#   will have multiple stable kernel releases in the array.
-#   Example: rare, I can't find one...
-#
-# - Commit is in Linus's tree, no stable trees, with no Fixes: tag
-#   For this the og_vuln will be set to 0 and fixed_kernels will have just the
-#   single released version in the array.
-#   This is rare, the example here is not really a bugfix, but you can use it
-#   for testing:
-#   Example: 94959c0e796e ("i2c: make i2c_bus_type const")
-#
-# - Commit is in Linus and stable trees, with no Fixes: tag
-#   For this the og_vuln will be set to 0 and fixed_kernels will be an array of
-#   versions where the commit is present.
-#   Example: c481016bb4f8 ("ASoC: qcom: sc8280xp: limit speaker volumes")
-#
-# - Commit is in Linus and stable trees, with Fixes: tag
-#   For this the og_vuln will be set to the "oldest" released kernel (by using
-#   'sort -V' which should catch the correct version), and fixed_kernels will
-#   be an array of versions where the commit is present.
-#   Example: d9407ff11809 ("pds_core: Prevent health thread from running during reset/remove")
-#
-#
-# Matching versions
-# Ideally we want to match up when a vulnerability showed up, and when it was
-# fixed, for each supported kernel branch we have at the time (list of
-# supported kernel branches can be found on www.kernel.org)  This logic isn't
-# the most obvious, so here's our current solution in pseudo-code:
-#  For every fixed_entry in fixed_kernels do:
-#    if fixed_entry is a -rc kernel
-#      treat it as a mainline kernel
-#    if og_vuln == 0
-#      create fix_pair(og_vuln, fixed_entry)
-#      continue
-#    for every vuln_entry in vuln_kernels do:
-#      if fixed_entry == vuln_entry
-#        continue, this is something added in this tree, so no need for an entry here.
-#      if fixed_entry == X.Y-type release (i.e. Linus release) && vuln_entry == X.Y-type release
-#        create fix_pair(vuln_entry, fixed_entry)
-#        continue
-#      if fixed_entry X.Y == vuln_entry X.Y
-#        create fix_pair(vuln_entry, fixed_entry)
-#        continue
-#    create fix_pair(og_vuln, fixed_entry)
-#
-# This matching allows us to catch places where a fix was done in Linus's tree,
-# for a specific commit in Linus's tree, as well as catch when fixes are made
-# in stable branches for issues created in that same stable branch.
-# Here are some good commits to use for testing this all out:
-#	d6938c1c76c6 ("ipvs: avoid stat macros calls from preemptible context")
-#	c95f919567d6 ("nfc: llcp_core: Hold a ref to llcp_local->dev when holding a ref to llcp_local")
-#	38d75297745f ("watchdog: set cdev owner before adding")
-#
-
-# "default" to the original git commit in case we do not have a "Fixes:" tag
-# Logic below detects if we have actually found og_vuln so it is safe to test
-# for 0 or not.
-og_vuln="0"
-og_git="1da177e4c3f4"	# "Linux-2.6.12-rc2"
-
 # Use dyad to find our pairs of vulnerable:fixed entries
 v=""
 if [[ "${GIT_VULNERABLE}" != "" ]]; then
 	v="--vulnerable=${GIT_VULNERABLE}"
 fi
 
-# We want to call dyad with out quotes as we "know" these arguments are ok
+# We want to call dyad without quotes for the arguments as we "know" these
+# arguments are ok, we just set them above explicitly.
 # shellcheck disable=SC2086
 dyad_out=$("${dyad}" ${v} ${GIT_SHA_FULL} | grep -v "^#")
 dbg "dyad_out=${dyad_out}"
@@ -504,223 +299,6 @@ for dyad_entry in ${dyad_out}; do
 	dyad_entries+=("${dyad_entry}")
 done
 dbg "dyad_entries: ${#dyad_entries[@]}"
-
-# TODO: delete the logic down below, it's not going to be needed now that we have dyad
-
-# If the vunerable commit is specified on the command line, there's no need to
-# look anything up, just use it.
-if [[ "${GIT_VULNERABLE}" != "" ]]; then
-	# Override was asked for, so look up the git release that this commit
-	# was in as the "og_vuln" release number
-	og_git=${GIT_VULNERABLE}
-	og_vuln=$(cd "${KERNEL_TREE}" && git describe --contains "${og_git}" | cut -f 1 -d '-' | sed -e 's/v//g')
-	vuln_kernels=("${og_vuln}")
-else
-	# Look in the commit text to see if there is any "Fixes:" lines
-	# if so, look them up to see what kernels they were released in.  Need to do
-	# this with the "expanded" SHA value, the short one will give us too many
-	# false-positives when it shows up in other Fixes: tags
-	fixes_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
-	dbg "fixes_lines=${fixes_lines}"
-	if [[ "${fixes_lines}" != "" ]] ; then
-		# figure out what kernels this commit fixes, (i.e. which are
-		# vulnerable) and turn them into an array
-		v=()
-		for fix_line in ${fixes_lines}; do
-			x=$(find_fix "${fix_line}")
-			v+=${x}
-			og_git=${fix_line}	# fixme, what about multiples?
-		done
-		#dbg "v=${v[@]} size=${#v[@]}"
-		# now sort and uniq the list of versions
-		vuln_kernels=($(echo "${v[@]}" | sed 's/ /\n/g' | sort -V | uniq))
-
-		if [[ "${#vuln_kernels[@]}" == "0" ]] ; then
-			dbg "no vuln_kernels_found!"
-		else
-			dbg "${#vuln_kernels[@]} vuln_kernels found:"
-			for x in "${vuln_kernels[@]}"; do
-				dbg "	$x"
-			done
-
-			# Figure out the "original" oldest commit where this showed up,
-			# we need this as a default value in case we can't match up
-			# anything else to it, this must be a Linus release
-			for x in "${vuln_kernels[@]}"; do
-				version_is_mainline "${x}"
-				mainline=$?
-				if [[ "${mainline}" == "1" ]] ; then
-					og_vuln="${x}"
-					break
-				fi
-			done
-
-			# Ick, no fixes version was found to be a mainline release, so
-			# we must have a stable-tree-only regression, so pick the
-			# "first" version as it must be the one.
-			if [[ "${og_vuln}" == "0" ]] ; then
-				og_vuln=${vuln_kernels[0]}
-				# og_git will be already set to the fixes
-				# commit, based on the loop up above, so no need
-				# to set it again.
-			fi
-		fi
-	fi
-fi
-dbg "og_vuln=${og_vuln}"
-dbg "og_git=${og_git}"
-
-# Find the fixed kernels where this release was done
-fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
-dbg "fixed_kernels=${fixed_kernels}"
-
-
-# Do the crazy matching mess listed up above
-fe=""
-ve=""
-# the default state is unaffected, unless a mainline kernel is touched,
-# and then we will switch it below to affected.
-default_status="unaffected"
-for fixed_entry in ${fixed_kernels}; do
-	create=0
-
-	# figure out if this is a -rc kernel or not
-	version_is_mainline "${fixed_entry}"
-	fixed_entry_mainline=$?
-	version_is_rc "${fixed_entry}"
-	fixed_entry_rc=$?
-	version_is_queue "${fixed_entry}"
-	fixed_entry_queue=$?
-
-	# Print out some debugging to see if kernel version detection is working:
-	dbg_string="${fixed_entry} is "
-	if [[ "${fixed_entry_rc}" == "1" ]]; then
-		dbg_string+="-rc and "
-	fi
-	if [[ "${fixed_entry_mainline}" == "1" ]]; then
-		dbg_string+="mainline"
-	else
-		dbg_string+="not mainline"
-	fi
-	dbg "${dbg_string}"
-
-	# if a commit is in a newer "stable" release, but not in an older one
-	# and only in the queue there, we get "queue-X.Y as a fixed kernel,
-	# which we don't want to have here, so filter that out.
-	if [[ "${fixed_entry_queue}" == "1" ]] ; then
-		dbg "${fixed_entry} is in queue"
-		continue
-	fi
-
-	# We do care about fixes in -rc kernels, as that is "mainline" and the
-	# logic of "affected/unaffected" depends on having a mainline commit,
-	# so that is why the following check is commented out on purpose.
-	#	if [[ "${fixed_entry_rc}" == "1" ]] ; then
-	#		dbg "${fixed_entry} is -rc"
-	#		continue
-	#	fi
-
-	# If we do not know what the root release is, then just create the pair
-	if [[ "${og_vuln}" == "0" ]] ; then
-		if [[ "${fixed_entry_mainline}" == "1" ]]; then
-			create_fix_pair "${og_vuln}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
-			default_status="affected"
-		else
-			fe=$(find_stable_git_id "${GIT_SHA_FULL}" "${fixed_entry}")
-			create_fix_pair "${og_vuln}" "${fixed_entry}" "${og_git}" "${fe}"
-		fi
-		create=1
-		continue
-	fi
-
-	for vuln_entry in "${vuln_kernels[@]}"; do
-		if [[ "${fixed_entry}" == "${vuln_entry}" ]] ; then
-			# this entry was broken and fixed in the same version,
-			# so skip it
-			create=1	# fake that an entry was created.
-			break
-		fi
-
-		version_is_mainline "${vuln_entry}"
-		vuln_entry_mainline=$?
-		if [[ "${vuln_entry_mainline}" == "1" ]] ; then
-			if [[ "${fixed_entry_mainline}" == "1" ]]; then
-				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
-				default_status="affected"
-			else
-				fe=$(find_stable_git_id "${GIT_SHA_FULL}" "${fixed_entry}")
-				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${og_git}" "${fe}"
-			fi
-			create=1
-			break
-		fi
-
-		version_match "${vuln_entry}" "${fixed_entry}"
-		match=$?
-		if [[ "${match}" == "1" ]] ; then
-			if [[ "${fixed_entry_mainline}" == "1" ]]; then
-				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
-				default_status="affected"
-			else
-				ve=$(find_stable_git_id "${og_git}" "${vuln_entry}")
-				if [[ "${ve}" == "" ]] ; then
-					ve=${og_git}
-				fi
-				fe=$(find_stable_git_id "${GIT_SHA_FULL}" "${fixed_entry}")
-				if [[ "${fe}" == "" ]] ; then
-					fe=${GIT_SHA_SHORT}
-				fi
-				create_fix_pair "${vuln_entry}" "${fixed_entry}" "${ve}" "${fe}"
-			fi
-			create=1
-			break
-		fi
-	done
-
-	# If we haven't created anything yet, this must be it
-	if [[ ${create} == 0 ]] ; then
-		create_fix_pair "${og_vuln}" "${fixed_entry}" "${og_git}" "${GIT_SHA_SHORT}"
-		default_status="affected"
-	fi
-done
-
-# verify that all vulnerable branches have a fix, if not, we need to report that
-for vuln_entry in "${vuln_kernels[@]}"; do
-	found=0
-	for entry in "${fixed_pairs[@]}"; do
-		x=(${entry//:/ })
-		vuln=${x[0]}
-		if [[ "${vuln_entry}" == "${vuln}" ]]; then
-			found=1
-		fi
-	done
-	if [[ "${found}" == "0" ]]; then
-		dbg "	${vuln_entry} is not part of a fixed pair!"
-		fe=$(find_stable_git_id "${og_git}" "${vuln_entry}")
-		# Sometimes, with multiple "Fixes:" lines, one will be
-		# mainline, and so there is not a matching pair as the commit
-		# so we can drop that one safely.  Hopefully.  Revisit this if
-		# it ends up creating not enough entries, but for now, the ones
-		# I checked by hand were ok.  Look at commit 5578de4834fe
-		# ("netlabel: fix out-of-bounds memory accesses") for a good
-		# test case for this logic
-		if [[ "${fe}" != "" ]]; then
-			# 0 is a flag for "no fix" we look at later when creating the
-			# json and mbox files
-			create_fix_pair "${vuln_entry}" "0" "${fe}" "0"
-		fi
-	fi
-done
-
-dbg "We have found ${#fixed_pairs[@]} vulnerable:fixed kernel pairs"
-if [[ "${#fixed_pairs[@]}" == "0" ]] ; then
-	echo "No vulnerable and then fixed pairs of kernels were found for commit ${GIT_SHA_SHORT}"
-	exit 1
-fi
-for entry in "${fixed_pairs[@]}"; do
-	dbg "	${entry}"
-done
-dbg "default_status=${default_status}"
 
 #
 # Generate the some readable (i.e. text) information, showing where
@@ -771,14 +349,20 @@ fi
 # Iterate over the whole list of kernel pairs to try to determine what the "default status" is.
 # If there is any "mainline kernel" that is touched by this issue, then the
 # default status is "affected", otherwise it is "unaffected".
-dyad_default_status="unaffected"
+default_status="unaffected"
 for entry in "${dyad_entries[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
+	fix=${x[2]}
 
 	# if vuln == 0 then the kernel has always been vulnerable
 	if [[ "${vuln}" == "0" ]]; then
-		dyad_default_status="affected"
+		default_status="affected"
+		continue
+	fi
+
+	# if the fix is in the same release, skip this entry as it "doesn't count"
+	if [[ "${vuln}" == "${fix}" ]]; then
 		continue
 	fi
 
@@ -786,22 +370,19 @@ for entry in "${dyad_entries[@]}"; do
 	version_is_mainline "${vuln}"
 	vuln_mainline=$?
 	if [[ "${vuln_mainline}" == "1" ]] ; then
-		dyad_default_status="affected"
+		default_status="affected"
 	fi
 done
-dbg "dyad_default_status=${dyad_default_status}"
-if [[ "${default_status}" != "${dyad_default_status}" ]]; then
-	dbg "dyad default status != default status, what went wrong???"
-fi
+dbg "default_status=${default_status}"
 
-dyad_vuln_array_json=""
+vuln_array_json=""
 url_string_json=""
 git_array_json=""
 #
 # If this is an "affected" kernel, then we need to find the first mainline
 # kernel where things went wrong, so create an "affected" and "unaffected" json
 # entry for just this type of thing
-if [[ "${dyad_default_status}" == "affected" ]]; then
+if [[ "${default_status}" == "affected" ]]; then
 	for entry in "${dyad_entries[@]}"; do
 		x=(${entry//:/ })
 		vuln=${x[0]}
@@ -820,44 +401,6 @@ if [[ "${dyad_default_status}" == "affected" ]]; then
 			is_mainline=$?
 			if [[ "${is_mainline}" == "1" ]]; then
 				dbg "	adding ${vuln} as where everything was affected"
-				dyad_vuln_array_json+="versions[]=$(jo --	\
-					-s version="${vuln}"	\
-					-s status="affected"	\
-					) "
-				dyad_vuln_array_json+="versions[]=$(jo --	\
-					-s version="0"		\
-					-s lessThan="${vuln}"	\
-					-s status="unaffected"	\
-					-s versionType="custom"	\
-					) "
-				break
-			fi
-		fi
-	done
-fi
-
-# Generate the "vulnerable" kernel json information
-vuln_array_json=""
-if [[ "${default_status}" == "affected" ]]; then
-	# we need to now say what the "unaffected" range is, so loop
-	# through and find the "mainline" part to figure that out.
-	for entry in "${fixed_pairs[@]}"; do
-		x=(${entry//:/ })
-		vuln=${x[0]}
-		fix=${x[1]}
-		vuln_git=${x[2]}
-		fix_git=${x[3]}
-
-		if [[ "${vuln}" == "0" ]]; then
-			# We do not know when this first was a problem, so we
-			# default to 0 and handle it elsewhere in the logic as
-			# everything is "affected"
-			dbg "vuln=${vuln}"
-		else
-			version_is_mainline "${vuln}"
-			is_mainline=$?
-			if [[ "${is_mainline}" == "1" ]]; then
-				dbg "adding ${vuln} as where everything was affected"
 				vuln_array_json+="versions[]=$(jo --	\
 					-s version="${vuln}"	\
 					-s status="affected"	\
@@ -872,15 +415,6 @@ if [[ "${default_status}" == "affected" ]]; then
 			fi
 		fi
 	done
-fi
-
-dbg "first pass:"
-dbg "	     vuln_array_json=${vuln_array_json}"
-dbg "	dyad_vuln_array_json=${dyad_vuln_array_json}"
-if [[ "${vuln_array_json}" == "${dyad_vuln_array_json}" ]]; then
-	dbg "first pass SUCCEED"
-else
-	dbg "first pass FAILED"
 fi
 
 #
@@ -915,88 +449,10 @@ for entry in "${dyad_entries[@]}"; do
 	# Add the git sha of the fix to the "all fix commits" array
 	long_id=$(git_full_id "${fix_git}")
 	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
+
 	# If the commit was found and fixed in the same release, let's not
 	# create a version number range as that will just confuse everyone
 	if [[ "${vuln}" == "${fix}" ]]; then
-		continue
-	fi
-
-	# create the json array for the version numbers
-	if [[ "${default_status}" == "unaffected" ]]; then
-		# this is easy, our pairs are the versions that are
-		# affected, no tricky matching needs to happen here
-		dyad_vuln_array_json+="versions[]=$(jo --	\
-			-s version="${vuln}"	\
-			-s lessThan="${fix}"	\
-			-s status="affected"	\
-			-s versionType="custom"	\
-			) "
-	else
-		# much more tricky, we now need to say what ranges are
-		# both affected, AND unaffected.  We handled the
-		# "affected" range above, so now our pairs show where
-		# things are "unaffected".
-		#
-		# By default, everything is affected from the "root" to
-		# the commit in mainline, so we have described that
-		# already above the loop, so this is just going to be
-		# the affected list...
-		#
-		# Note, the "mainline" fix shows where things "stop",
-		# so that gets a "short" record.
-		version_is_mainline "${fix}"
-		is_mainline=$?
-		if [[ "${is_mainline}" == "1" ]]; then
-			dyad_vuln_array_json+="versions[]=$(jo --		\
-				-s version="${fix}"				\
-				-s lessThanOrEqual="*"				\
-				-s status="unaffected"				\
-				-s versionType="original_commit_for_fix"	\
-				) "
-		else
-			# This is a stable range, so make an unaffected
-			# range with a wildcard
-			number_array=${fix}
-			REL_ARRAY=(${fix//./ })
-			MAJOR=${REL_ARRAY[0]}
-			MINOR=${REL_ARRAY[1]}
-			dyad_vuln_array_json+="versions[]=$(jo --		\
-				-s version="${fix}"				\
-				-s lessThanOrEqual="${MAJOR}.${MINOR}.*"	\
-				-s status="unaffected"				\
-				-s versionType="custom"				\
-				) "
-		fi
-	fi
-done
-
-
-for entry in "${fixed_pairs[@]}"; do
-	x=(${entry//:/ })
-	vuln=${x[0]}
-	fix=${x[1]}
-	vuln_git=$(git_short_id "${x[2]}")	# unify the git id
-	fix_git=$(git_short_id "${x[3]}")	# unify the git id
-	dbg "	vuln=${vuln}	fix=${fix}	vuln_git=${vuln_git}	fix_git=${fix_git}"
-
-	if [[ "${fix}" == "0" ]]; then
-# FIXME: We are not generating the json pairs for this properly just yet.  The
-# mbox file update works, but let's not show the information there until we get
-# it working in both places.  When that is done, uncoment out the lines below
-# (and fix the json creation...)
-#		# there is no fix, so handle this pair a bit differently
-#		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git}")
-#
-#		vuln_array_json+="versions[]=$(jo --	\
-#			-s version="${vuln}"	\
-#			-s status="affected"	\
-#			-s versionType="custom"	\
-#			) "
-#		git_array_json+="versions[]=$(jo --	\
-#			-s version="${vuln_git}"	\
-#			-s status="affected"		\
-#			-s versionType="git"		\
-#			) "
 		continue
 	fi
 
@@ -1035,7 +491,6 @@ for entry in "${fixed_pairs[@]}"; do
 		else
 			# This is a stable range, so make an unaffected
 			# range with a wildcard
-			number_array=${fix}
 			REL_ARRAY=(${fix//./ })
 			MAJOR=${REL_ARRAY[0]}
 			MINOR=${REL_ARRAY[1]}
@@ -1046,55 +501,17 @@ for entry in "${fixed_pairs[@]}"; do
 				-s versionType="custom"				\
 				) "
 		fi
-		# FIXME, I think we need more logic here, but I can't
-		# remember why...
-
 	fi
-
-
-#	# create the json array for the git ids
-#	git_array_json+="versions[]=$(jo --	\
-#		-s version="${vuln_git}"	\
-#		-s lessThan="${fix_git}"	\
-#		-s status="affected"		\
-#		-s versionType="git"		\
-#		) "
-
-#	# If this issue has always been there, just say when it was
-#	# fixed, otherwise try to give a hint when it was introduced.
-#	# The json file just wants 0 for "always been there", so no need
-#	# to check it for the array.
-#	if [[ "${vuln}" == "0" ]] ; then
-#		vuln_array_mbox+=("Fixed in ${fix} with commit ${fix_git}")
-#	else
-#		vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
-#	fi
-
-	# Add the git sha of the fix to the url array so we can print
-	# them later
-	long_id=$(git_full_id "${fix_git}")
-#	url_array+=("https://git.kernel.org/stable/c/${long_id}")
-#	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
-
 done
 
-dbg "second pass:"
-dbg "	     vuln_array_json=${vuln_array_json}"
-dbg "	dyad_vuln_array_json=${dyad_vuln_array_json}"
-if [[ "${vuln_array_json}" == "${dyad_vuln_array_json}" ]]; then
-	dbg "second pass SUCCEED"
-else
-	dbg "second pass FAILED"
-fi
 
 dbg "git_array_json=${git_array_json}"
 dbg "url_string_json=${url_string_json}"
-
-#dbg "vuln_array_json=${vuln_array_json}"
-#dbg "vuln_array_mbox="
-#for entry in "${vuln_array_mbox[@]}"; do
-#	dbg "	${entry}"
-#done
+dbg "vuln_array_json=${vuln_array_json}"
+dbg "vuln_array_mbox="
+for entry in "${vuln_array_mbox[@]}"; do
+	dbg "	${entry}"
+done
 
 # Strip off all of the signed-off-by stuff out of the commit text.
 # We have a long list of "tags" to drop in the file, "tags", so compose
