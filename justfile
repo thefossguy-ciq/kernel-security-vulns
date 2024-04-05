@@ -10,8 +10,8 @@ _help:
 
 
 # Create a CVE for a specific Linux kernel git commit id
-@cve_create GIT_ID:
-	-scripts/cve_create {{GIT_ID}}
+@cve_create GIT_ID *CVE_ID:
+	-scripts/cve_create {{GIT_ID}} {{CVE_ID}}
 
 # Create a bunch of CVEs that are contained, one per line, in FILENAME
 @cve_create_batch FILENAME:
