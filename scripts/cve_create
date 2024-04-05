@@ -15,7 +15,7 @@
 # notification.
 #
 # Usage:
-#	cve_create [GIT_SHA]
+#	cve_create [GIT_SHA] [CVE_ID]
 #
 # Requires:
 #  A kernel git tree with the SHA to be used in it
@@ -47,7 +47,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT=${0##*/}
 
 help() {
-	echo "${SCRIPT} [GIT_SHA]"
+	echo "${SCRIPT} [GIT_SHA] [CVE_ID]"
+	echo "	[CVE_ID] is optional, if not set, next one found will be assigned"
 	exit 1
 }
 
@@ -55,6 +56,8 @@ GIT_SHA="${1:-}"
 if [[ "${GIT_SHA}" == "" ]] ; then
 	help
 fi
+
+ID="${2:-}"
 
 # See if the SHA given to us is a valid SHA in the git repo
 # and turning the sha into a "full" one so that we don't get this wrong.
@@ -95,13 +98,15 @@ if [[ $? -ne 0 ]]; then
 	exit 1
 fi
 
-# find a free id
-ID=$(ls | sort -V | head -n 1)
+# find a free id if one is not already asked for
+if [[ "${ID}" == "" ]]; then
+	ID=$(ls | sort -V | head -n 1)
 
-if [[ "${ID}" == "" ]] ; then
-	echo "No free id found for ${YEAR}"
-	echo "Should you allocate some more for that year?"
-	exit 1
+	if [[ "${ID}" == "" ]] ; then
+		echo "No free id found for ${YEAR}"
+		echo "Should you allocate some more for that year?"
+		exit 1
+	fi
 fi
 #echo "ID=${ID}"
 
