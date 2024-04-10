@@ -1,0 +1,60 @@
+27571c64f185 drm/vmwgfx: Unmap the surface before resetting it on a plane state
+517621b70600 drm/vmwgfx: Fix possible null pointer derefence with invalid contexts
+0d27056c24ef serial: max310x: fix NULL pointer dereference in I2C instantiation
+7626913652cc pci_iounmap(): Fix MMIO mapping leak
+eb2f93210028 media: nxp: imx8-isi: Check whether crossbar pad is non-NULL before access
+3d75b8aa5c29 KVM: Always flush async #PF workqueue when vCPU is being destroyed
+2d1f5006ff95 powercap: intel_rapl: Fix a NULL pointer dereference
+7d42e097607c crypto: qat - resolve race condition during AER recovery
+fde2497d2bc3 fat: fix uninitialized field in nostale filehandles
+6379b44cdcd6 ubifs: ubifs_symlink: Fix memleak of inode->i_link in error path
+90ad946fff70 clk: qcom: gcc-ipq5018: fix terminating of frequency table arrays
+cdbc6e2d8108 clk: qcom: gcc-ipq6018: fix terminating of frequency table arrays
+1040ef5ed95d clk: qcom: gcc-ipq8074: fix terminating of frequency table arrays
+bd2b6395671d clk: qcom: gcc-ipq9574: fix terminating of frequency table arrays
+6a3d70f7802a clk: qcom: camcc-sc8280xp: fix terminating of frequency table arrays
+a903cfd38d8d clk: qcom: mmcc-apq8084: fix terminating of frequency table arrays
+e2c02a85bf53 clk: qcom: mmcc-msm8974: fix terminating of frequency table arrays
+be95cc6d71df usb: xhci: Add error handling in xhci_map_urb_for_dma
+6661befe4100 usb: dwc3-am62: fix module unload/reload behavior
+41425f96d7aa dm-raid456, md/raid456: fix a deadlock for dm-raid456 while io concurrent with reshape
+e8a1e58345cf mac802154: fix llsec key resources release in mac802154_llsec_key_del
+82b1c07a0af6 mm: swap: fix race between free_swap_and_cache() and swapoff()
+664130c0b030 Bluetooth: btnxpuart: Fix btnxpuart_close
+17f46b803d4f nfs: fix UAF in direct writes
+675daf435e9f vfio/platform: Create persistent IRQ handlers
+50ed48c80fec s390/zcrypt: fix reference counting on zcrypt card objects
+f2f26b4a84a0 nilfs2: fix failure to detect DAT corruption in btree and direct mappings
+269cdf353b5b nilfs2: prevent kernel bug at submit_bh_wbc()
+a80a486d72e2 ksmbd: fix slab-out-of-bounds in smb_strndup_from_utf16()
+c3198822c6cb net: esp: fix bad handling of pages from page_pool
+c6cd2e8d2d9a ksmbd: fix potencial out-of-bounds when buffer offset is invalid
+55b6c7386738 wireguard: netlink: check for dangling peer via is_dead instead of empty list
+71cbd32e3db8 wireguard: netlink: access device through ctx instead of peer
+08ae9ef829b8 drm/amdgpu/pm: Fix NULL pointer dereference when get power limit
+334b56cea5d9 drm/amd/display: Add a dc_state NULL check in dc_state_release
+5b4cdd9c5676 Fix memory leak in posix_clock_open()
+0c66c6f4e21c ARM: 9359/1: flush: check if the folio is reserved for no-mapping addresses
+4e51653d5d87 kprobes/x86: Use copy_from_kernel_nofault() to read from unsafe address
+5a7e89d3315d crypto: iaa - Fix nr_cpus < nr_iaa case
+1ec17ef59168 btrfs: zoned: fix use-after-free in do_zone_finish()
+16e87fe23d4a nouveau/dmem: handle kcalloc() allocation failure
+6a4aee277740 net: phy: qcom: at803x: fix kernel panic with at8031_probe
+9cbd1dae8427 drm/dp: Fix divide-by-zero regression on DP MST unplug with nouveau
+4be9075fec0a drm/vmwgfx: Create debugfs ttm_resource_manager entry only if needed
+0e45882ca829 drm/i915/vma: Fix UAF on destroy against retire race
+32e39bab5993 drm/i915/bios: Tolerate devdata==NULL in intel_bios_encoder_supports_dp_dual_mode()
+4a3859ea5240 drm/i915/gt: Reset queue_priority_hint on parking
+7c9631969287 usb: misc: ljca: Fix double free in error handling path
+457f73082547 vfio/pds: Make sure migration file isn't accessed after reset
+8a565ec04d6c btrfs: fix extent map leak in unexpected scenario at unpin_extent_cache()
+051e0840ffa8 ALSA: sh: aica: reorder cleanup operations to avoid UAF bugs
+f23a4d6e0757 scsi: core: Fix unremoved procfs host directory regression
+80ba43e9f799 USB: core: Fix deadlock in usb_deauthorize_interface()
+f4d1960764d8 USB: core: Fix deadlock in port "disable" sysfs attribute
+b63f90487bdf usb: typec: tcpm: fix double-free issue in tcpm_port_unregister_pd()
+a27d4d0e7de3 scsi: qla2xxx: Fix command flush on cable pull
+e288285d4778 scsi: qla2xxx: Fix double free of the ha->vp_map pointer
+82f522ae0d97 scsi: qla2xxx: Fix double free of fcport
+22207fd5c801 drm/amdgpu: fix use-after-free bug
+f34e8bb7d6c6 drm/sched: fix null-ptr-deref in init entity
