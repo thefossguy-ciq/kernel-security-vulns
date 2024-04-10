@@ -1,0 +1,60 @@
+b979f2d50a09 soc: qcom: pmic_glink_altmode: fix drm bridge use-after-free
+3693bb4465e6 x86/xen: Add some null pointer checking to smp.c
+4d5e86a56615 RDMA/mlx5: Fix fortify source warning while accessing Eth segment
+32019c659ecf x86/mm: Disallow vsyscall page read for copy_from_kernel_nofault()
+e06cc89475ed btrfs: fix data races when accessing the reserved amount of block reserves
+c7bb26b847e5 btrfs: fix data race at btrfs_use_block_rsv() when accessing block reserve
+2535b848fa0f Bluetooth: rfcomm: Fix null-ptr-deref in rfcomm_check_security
+34b567868777 perf: RISCV: Fix panic on pmu overflow handler
+3948abaa4e2b do_sys_name_to_handle(): use kzalloc() to fix kernel-infoleak
+6cf350658736 md: fix kmemleak of rdev->serial
+31edf4bbe0ba nbd: null check for nla_nest_start
+03f12122b20b block: fix deadlock between bd_link_disk_holder and partition scan
+f98364e92662 aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts
+9636951e4468 wifi: b43: Stop/wake correct queue in DMA Tx path when QoS is disabled
+24355fcb0d4c wifi: ath9k: delay all of ath9k_wmi_event_tasklet() until init is complete
+b8cfb7c819dd wifi: wfx: fix memory leak when starting AP
+cb5942b77c05 wifi: wilc1000: prevent use-after-free on vif when cleaning up all interfaces
+e18afcb7b2a1 ACPI: processor_idle: Fix memory leak in acpi_processor_power_exit()
+f1d71576d2c9 firmware: arm_scmi: Fix double free in SMC transport cleanup path
+c957280ef6ab wifi: mt76: mt7921e: fix use-after-free in free_irq()
+a43e0fc5e913 pstore: inode: Only d_invalidate() is needed
+4fc82cd907ac iommu/vt-d: Don't issue ATS Invalidation request when device is disconnected
+de4e88ec58c4 Bluetooth: btrtl: fix out of bounds memory access
+81137162bfaa Bluetooth: hci_core: Fix possible buffer overflow
+a6e06258f4c3 Bluetooth: msft: Fix memory leak
+79f4127a502c Bluetooth: btusb: Fix memory leak
+f7b94bdc1ec1 Bluetooth: af_bluetooth: Fix deadlock
+947ec0d002dc Bluetooth: fix use-after-free in accessing skb after sending it
+281d464a34f5 bpf: Fix DEVMAP_HASH overflow check on 32-bit arches
+6787d916c2cf bpf: Fix hashtab overflow check on 32-bit arches
+7a4b21250bf7 bpf: Fix stackmap overflow check on 32-bit arches
+b0ec2abf9826 net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv()
+b446631f355e dpll: fix dpll_xa_ref_*_del() for multiple registrations
+0fbcf2366ba9 net: hns3: fix kernel crash when 1588 is received on HIP08 devices
+65e8fbde6452 dm: call the resume method on internal suspend
+ba535bce57e7 clk: meson: Add missing clocks to axg_clk_regmaps
+d0aa72604fbd quota: Fix potential NULL pointer dereference
+179b8c97ebf6 quota: Fix rcu annotations of inode dquot pointers
+a853450bf4c7 crypto: xilinx - call finalize with bh disabled
+aeedaee5ef54 drm/bridge: adv7511: fix crash on irq during probe
+0a0b79ea55de media: pvrusb2: fix uaf in pvr2_context_set_notify
+c958e86e9cc1 drm/mediatek: Fix a null pointer crash in mtk_drm_crtc_finish_page_flip
+3c4f53b2c341 scsi: hisi_sas: Fix a deadlock issue related to automatic dump
+c21a8870c986 RDMA/srpt: Do not register event handler until srpt device is fully setup
+c2034ef6192a f2fs: fix NULL pointer dereference in f2fs_submit_page_write()
+251a658bbfce NFSv4.2: fix nfs4_listxattr kernel BUG at mm/usercopy.c:102
+9f0c4a46be1f f2fs: fix to truncate meta inode pages forcely
+719fcafe07c1 nfs: fix panic when nfs4_ff_layout_prepare_ds() fails
+cfa9ba1ae0be comedi: comedi_8255: Correct error in subdevice initialization
+2ae0ab0143fc spi: lpspi: Avoid potential use-after-free in probe()
+2a750d6a5b36 rds: tcp: Fix use-after-free of net in reqsk_timer_handler().
+343041b59b78 net/sched: taprio: proper TCA_TAPRIO_TC_ENTRY_INDEX check
+04d9d1fc428a tcp: Fix refcnt handling in __inet_hash_connect().
+e127ce7699c1 vmxnet3: Fix missing reserved tailroom
+ddbec99f5857 hsr: Fix uninit-value access in hsr_get_node()
+6ebfad33161a packet: annotate data-races around ignore_outgoing
+bba045dc4d99 wireguard: receive: annotate data-race around receiving_counter.counter
+55e565c42dce dm-integrity: fix a memory leak when rechecking the data
+d27e2da94a42 net/bnx2x: Prevent access to a freed page in page_pool
+b0e256f3dd2b netfilter: nft_set_pipapo: release elements in clone only from destroy path
