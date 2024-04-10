@@ -1,0 +1,38 @@
+14651496a3de usb: musb: tusb6010: check return value after calling platform_get_resource()
+17b49bcbf835 scsi: core: Fix scsi_mode_sense() buffer length handling
+1854f53ccd88 scsi: lpfc: Fix link down processing to address NULL pointer dereference
+37d9e304acd9 i40e: Fix NULL ptr dereference on VSI filter sync
+3968ddcf05fb tty: tty_buffer: Fix the softlockup issue in flush_to_ldisc
+3e6db079751a tipc: check for null after calling kmemdup
+3f1dcaff642e arm64: dts: qcom: msm8998: Fix CPU/L2 idle state latency and residency
+3ff1f6b6ba6f scsi: ufs: core: Improve SCSI abort handling
+45da9c1767ac btrfs: fix memory ordering between normal and ordered work functions
+4924b1f7c467 perf bpf: Avoid memory leak from perf_env__insert_btf()
+4e3ace0051e7 scsi: scsi_debug: Fix out-of-bound read in resp_readcap16()
+4edd8cd4e86d scsi: core: sysfs: Fix hang when device state is set via sysfs
+51e6ed83bb4a scsi: pm80xx: Fix memory leak during rmmod
+563fbefed46a cfg80211: call cfg80211_stop_ap when switch from P2P_GO type
+6c53b45c71b4 spi: fix use-after-free of the add_lock mutex
+6cd7397d01c4 RDMA/core: Set send and receive CQ before forwarding to the driver
+76ded29d3fcd net/mlx5e: nullify cq->dbg pointer in mlx5_debug_cq_remove()
+79b20beccea3 scsi: lpfc: Fix use-after-free in lpfc_unreg_rpi() routine
+806401c20a0f net/mlx5e: CT, Fix multiple allocations and memleak of mod acts
+8244a3bc27b3 drm/prime: Fix use after free in mmap with drm_gem_ttm_mmap
+89f22f129696 iavf: free q_vectors before queues in iavf_disable_vf
+96cfe05051fd thermal: Fix NULL pointer dereferences in of_thermal_ functions
+99154581b05c scsi: lpfc: Fix list_add() corruption in lpfc_drain_txq()
+9b5a333272a4 net: dpaa2-eth: fix use-after-free in dpaa2_eth_remove
+9bec2b9c6134 clk: sunxi-ng: Unregister clocks/resets when unbinding
+9eff2b2e59fd usb: host: ohci-tmio: check return value after calling platform_get_resource()
+a0d21bb32794 ALSA: gus: fix null pointer dereference on pointer block
+b027789e5e50 sched/fair: Prevent dead task groups from regaining cfs_rq's
+b7a0a63f3fed usb: typec: tipd: Remove WARN_ON in tps6598x_block_read
+b97053df0f04 ALSA: usb-audio: fix null pointer dereference on pointer cs_desc
+ba50cd9451f6 net/mlx5: Update error handler for UCTX and UMEM
+c0019b7db1d7 NFSD: Fix exposure in nfsd4_decode_bitmap()
+cc30042df6fc hugetlb, userfaultfd: fix reservation restore on userfaultfd error
+cc4a9cc03faa net/mlx5e: kTLS, Fix crash in RX resync flow
+d4996c6eac4c scsi: advansys: Fix kernel pointer leak
+daf972118c51 x86/hyperv: Fix NULL deref in set_hv_tscchange_cb() if Hyper-V setup fails
+dc27f3c5d10c selinux: fix NULL-pointer dereference when hashtab allocation fails
+f347c26836c2 scsi: scsi_debug: Fix out-of-bound read in resp_report_tgtpgs()
