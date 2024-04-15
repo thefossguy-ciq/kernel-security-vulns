@@ -159,7 +159,7 @@ if [[ "${CVE}" == "" ]]; then
 	wait
 else
 	CVE_ROOT="${DIR}/../cve/"
-	found=$(find "${CVE_ROOT}" -type f | grep "${CVE}" | grep "sha1")
+	found=$(find "${CVE_ROOT}" -type f | grep -v testing | grep "${CVE}" | grep "sha1")
 	if [[ "${found}" == "" ]]; then
 		echo "${txtred}ERROR:${txtrst} ${txtcyn}${CVE}${txtrst} is not found to be updated."
 		exit 1
