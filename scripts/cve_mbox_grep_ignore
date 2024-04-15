@@ -1,0 +1,15 @@
+^@@
+bippy
+@kernel.org
+@linuxfoundation.org
+Message-Id
+^-Content-Length
+^-Lines
+^-X-Developer-Signature
+^-X-Developer-Key
+^- fpr=
+^- bh=
+=$
+^- [A-Za-z0-9]\{75\}$
+^- *\{75\}$
+^- *\{49\}$
