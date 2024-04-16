@@ -1,0 +1,187 @@
+df7ecce842b84 x86/efistub: Don't clear BSS twice in mixed mode
+a20ad45008a7c spi: spi-mt65xx: Fix NULL pointer access in interrupt handler
+7eaf837a4eb5f netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
+50e60de381c34 octeontx2-af: Use separate handlers for interrupts
+a88e0f936ba9a octeontx2: Detect the mbox up or down message via register
+d27e2da94a426 net/bnx2x: Prevent access to a freed page in page_pool
+55e565c42dce8 dm-integrity: fix a memory leak when rechecking the data
+32fa4366cc4da net: phy: fix phy_read_poll_timeout argument type in genphy_loopback
+bba045dc4d996 wireguard: receive: annotate data-race around receiving_counter.counter
+d5c0ed17fea60 virtio: packed: fix unmap leak for indirect desc table
+6ebfad33161af packet: annotate data-races around ignore_outgoing
+de105068fead5 nvme: fix reconnection fail due to reserved tag allocation
+e30cef001da25 net: txgbe: fix clk_name exceed MAX_DEV_ID limits
+ddbec99f58571 hsr: Fix uninit-value access in hsr_get_node()
+04d9d1fc428ac tcp: Fix refcnt handling in __inet_hash_connect().
+72ebb41b88f9d soc: fsl: dpio: fix kcalloc() argument order
+343041b59b781 net/sched: taprio: proper TCA_TAPRIO_TC_ENTRY_INDEX check
+2a750d6a5b365 rds: tcp: Fix use-after-free of net in reqsk_timer_handler().
+2ae0ab0143fcc spi: lpspi: Avoid potential use-after-free in probe()
+ca93bf607a44c thermal/drivers/mediatek/lvts_thermal: Fix a memory leak in an error handling path
+f31e0d0c2cad2 ASoC: tlv320adc3xxx: Don't strip remove function when driver is builtin
+2b4b90e053a29 x86/hyperv: Use per cpu initial stack for vtl context
+f53641a6e8490 comedi: comedi_test: Prevent timers rescheduling during deletion
+cfa9ba1ae0bef comedi: comedi_8255: Correct error in subdevice initialization
+dd839f31d7cd5 bcachefs: install fd later to avoid race with close
+719fcafe07c12 nfs: fix panic when nfs4_ff_layout_prepare_ds() fails
+9f0c4a46be1fe f2fs: fix to truncate meta inode pages forcely
+fd5860ab63415 NFS: Fix nfs_netfs_issue_read() xarray locking for writeback interrupt
+992cf65674778 Input: iqs7222 - add support for IQS7222D v1.1 and v1.2
+251a658bbfcea NFSv4.2: fix nfs4_listxattr kernel BUG at mm/usercopy.c:102
+7a8bccd8b29c3 RDMA/device: Fix a race between mad_client and cm_client init
+21ec68234826b f2fs: fix to avoid potential panic during recovery
+2f9420d3a94ae f2fs: compress: fix to cover f2fs_disable_compressed_file() w/ i_sem
+c2034ef6192a6 f2fs: fix NULL pointer dereference in f2fs_submit_page_write()
+b896e302f7967 f2fs: fix to remove unnecessary f2fs_bug_on() to avoid panic
+fd244524c2cf0 f2fs: compress: fix to cover normal cluster write with cp_rwsem
+8a430dd49e9cb f2fs: compress: fix to guarantee persisting compressed blocks by CP
+c21a8870c9861 RDMA/srpt: Do not register event handler until srpt device is fully setup
+3c4f53b2c341e scsi: hisi_sas: Fix a deadlock issue related to automatic dump
+c062166995c9e ALSA: hda/realtek: fix ALC285 issues on HP Envy x360 laptops
+f3dc1bdb6b0b0 cifs: Fix writeback data corruption
+c40497d823871 cifs: Don't use certain unnecessary folio_*() functions
+a9540e35624d1 smb: do not test the return value of folio_start_writeback()
+7938e9ce39d67 clk: zynq: Prevent null pointer dereference caused by kmalloc failure
+24338a6ae13cb sparc32: Fix section mismatch in leon_pci_grpci
+551ee0f210991 drm/msm/dpu: add division of drm_display_mode's hskew parameter
+7d474b43087aa clk: qcom: gcc-ipq5018: fix register offset for GCC_UBI0_AXI_ARES reset
+11b752ac5a07c clk: qcom: gcc-ipq5018: fix 'halt_reg' offset of 'gcc_pcie1_pipe_clk'
+f982adcc1b1c0 clk: qcom: gcc-ipq5018: fix 'enable_reg' offset of 'gcc_gmac0_sys_clk'
+ad86d7ee43b22 powerpc/hv-gpci: Fix the H_GET_PERF_COUNTER_INFO hcall return value checks
+cda9c0d556283 powerpc/pseries: Fix potential memleak in papr_get_attr()
+c958e86e9cc1b drm/mediatek: Fix a null pointer crash in mtk_drm_crtc_finish_page_flip
+73984daf07a1a drm/tests: helpers: Include missing drm_drv header
+d0b07f712bf61 media: ttpci: fix two memleaks in budget_av_attach
+b9b683844b01d media: go7007: fix a memleak in go7007_load_encoder
+7a4cf27d1f053 media: dvb-frontends: avoid stack overflow warnings with clang
+0a0b79ea55de8 media: pvrusb2: fix uaf in pvr2_context_set_notify
+c1db0073212ef HID: amd_sfh: Avoid disabling the interrupt
+ef5de1613d7d9 perf pmu: Fix a potential memory leak in perf_pmu__lookup()
+e63df1ec9a16d crypto: jitter - fix CRYPTO_JITTERENTROPY help text
+32e5a120a5105 drm/tegra: put drm_gem_object ref on error in tegra_fb_create
+aeedaee5ef546 drm/bridge: adv7511: fix crash on irq during probe
+baf67aefbe7d7 PCI: Mark 3ware-9650SE Root Port Extended Tags as broken
+49e27d3c9cd67 drm/msm/dpu: finalise global state object
+a106ed98af684 drm/msm/dpu: use devres-managed allocation for HW blocks
+1e897dcc4c673 drm/msm/dpu: use devres-managed allocation for MDP TOP
+f6aed043ee5d7 drm/amd/display: Add 'replay' NULL check in 'edp_set_replay_allow_active()'
+30baa4a96b23a media: pvrusb2: fix pvr2_stream_callback casts
+95ac1210fb275 media: pvrusb2: remove redundant NULL check
+0b70530ee7408 media: go7007: add check of return value of go7007_read_addr()
+4797a3dd46f22 media: imx: csc/scaler: fix v4l2_ctrl_handler memory leak
+3a11887f7f11a media: cedrus: h265: Fix configuring bitstream size
+aebfdfe39b932 NTB: fix possible name leak in ntb_register_device()
+aa1267e673fe5 drm: ci: use clk_ignore_unused for apq8016
+98f681b0f84cf ASoC: SOF: Add some bounds checking to firmware data
+2a3cfb9a24a28 drm/amd/display: fix NULL checks for adev->dm.dc in amdgpu_dm_fini()
+c4891d979c766 drm/radeon/ni: Fix wrong firmware size logging in ni_init_microcode()
+06267d22f9ee6 drm/msm/dpu: Only enable DSC_MODE_MULTIPLEX if dsc_merge is enabled
+2f4a67a3894e1 drm/msm/dpu: fix the programming of INTF_CFG2_DATA_HCTL_EN
+3b63880de42bd dt-bindings: msm: qcom, mdss: Include ommited fam-b compatible
+a853450bf4c75 crypto: xilinx - call finalize with bh disabled
+d0aa72604fbd8 quota: Fix potential NULL pointer dereference
+8c64f4cdf4e6c media: edia: dvbdev: fix a use-after-free
+8f94b49a5b5d3 media: v4l2-mem2mem: fix a memleak in v4l2_m2m_register_entity
+8cf9c5051076e media: v4l2-tpg: fix some memleaks in tpg_alloc
+ba535bce57e71 clk: meson: Add missing clocks to axg_clk_regmaps
+9ccfe80d022df drm/amd/display: Fix potential NULL pointer dereferences in 'dcn10_set_output_transfer_func()'
+4b09715f1504f drm/amd/display: Fix a potential buffer overflow in 'dp_dsc_clock_en_read()'
+2814646f76f85 HID: lenovo: Add middleclick_workaround sysfs knob for cptkbd
+222be59e5eed1 ASoC: SOF: amd: Fix memory leak in amd_sof_acp_probe()
+04ae3eb470e52 drm/lima: fix a memleak in lima_heap_alloc
+89709105a6091 drm/vmwgfx: fix a memleak in vmw_gmrid_man_get_node
+47a145c03484d drm/rockchip: inno_hdmi: Fix video timing
+643ae131b8598 drm/tegra: hdmi: Fix some error handling paths in tegra_hdmi_probe()
+afe6fcb977588 drm/tegra: dsi: Add missing check for of_find_device_by_node
+65e8fbde64520 dm: call the resume method on internal suspend
+84e95149bd341 nfp: flower: handle acti_netdevs allocation failure
+28330ceb953e3 OPP: debugfs: Fix warning around icc_get_name()
+0f28be64d132a erofs: fix lockdep false positives on initializing erofs_pseudo_mnt
+2c88c16dc20e8 erofs: fix handling kern_mount() failure
+0fbcf2366ba98 net: hns3: fix kernel crash when 1588 is received on HIP08 devices
+4469c0c5b14a0 net: phy: fix phy_get_internal_delay accessing an empty array
+b0ec2abf98267 net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv()
+7a4b21250bf79 bpf: Fix stackmap overflow check on 32-bit arches
+6787d916c2cf9 bpf: Fix hashtab overflow check on 32-bit arches
+281d464a34f54 bpf: Fix DEVMAP_HASH overflow check on 32-bit arches
+947ec0d002dce Bluetooth: fix use-after-free in accessing skb after sending it
+f7b94bdc1ec10 Bluetooth: af_bluetooth: Fix deadlock
+79f4127a502c5 Bluetooth: btusb: Fix memory leak
+a6e06258f4c31 Bluetooth: msft: Fix memory leak
+81137162bfaa7 Bluetooth: hci_core: Fix possible buffer overflow
+de4e88ec58c42 Bluetooth: btrtl: fix out of bounds memory access
+4fc82cd907ac0 iommu/vt-d: Don't issue ATS Invalidation request when device is disconnected
+b4152222e04cb wifi: brcm80211: handle pmk_op allocation failure
+a51ab63b297ce ACPI: CPPC: enable AMD CPPC V2 support for family 17h processors
+3cfcfc102a5e5 SUNRPC: fix some memleaks in gssx_dec_option_array
+e67b652d8e859 SUNRPC: fix a memleak in gss_import_v2_context
+aaa8736370db1 x86, relocs: Ignore relocations in .notes section
+021a67d096154 ACPI: resource: Add MAIBENBEN X577 to irq1_edge_low_force_override
+0d776cfd5e5b5 gpiolib: Pass consumer device through to core in devm_fwnode_gpiod_get_index()
+0ff08803eca41 arm64: dts: imx8mp-evk: Fix hdmi@3d node
+a5a5f4413d91f wifi: mt76: mt7925e: fix use-after-free in free_irq()
+c957280ef6ab6 wifi: mt76: mt7921e: fix use-after-free in free_irq()
+8536ef0aeae11 wifi: mt76: mt7925: add support to set ifs time by mcu command
+f1d71576d2c9e firmware: arm_scmi: Fix double free in SMC transport cleanup path
+0feda94c868d3 iommu/amd: Mark interrupt as managed
+e18afcb7b2a12 ACPI: processor_idle: Fix memory leak in acpi_processor_power_exit()
+cb5942b77c05d wifi: wilc1000: prevent use-after-free on vif when cleaning up all interfaces
+178c54666f9c4 bpf: Mark bpf_spin_{lock,unlock}() helpers with notrace correctly
+d5bd4041cd70f wifi: iwlwifi: mvm: don't set replay counters to 0xff
+903fad4394666 tools/resolve_btfids: Fix cross-compilation to non-host endianness
+d04d5882cd678 printk: Disable passing console lock owner completely during panic()
+b1c4c67a5e90d printk: ringbuffer: Skip non-finalized records in panic
+584528d621459 printk: ringbuffer: Cleanup reader terminology
+36652d0f3bf34 printk: Add this_cpu_in_panic()
+95d739ed962c9 arm64: dts: qcom: sm6115: declare VLS CLAMP register for USB3 PHY
+acb94d67f5a23 arm64: dts: qcom: qcm2290: declare VLS CLAMP register for USB3 PHY
+b8cfb7c819dd3 wifi: wfx: fix memory leak when starting AP
+92a871ab9fa59 libbpf: Use OPTS_SET() macro in bpf_xdp_query()
+cfdb4f7ffdb85 arm64: dts: ti: k3-am69-sk: remove assigned-clock-parents for unused VP
+5f0e4aede01cb wifi: libertas: fix some memleaks in lbs_allocate_cmd_buffer()
+296f3e926716d wifi: iwlwifi: acpi: fix WPFC reading
+24355fcb0d4cb wifi: ath9k: delay all of ath9k_wmi_event_tasklet() until init is complete
+5136ea6b109de arm64: dts: imx8qm: Correct edma3 power-domains and interrupt numbers
+2ef61296d2844 selftests/bpf: Disable IPv6 for lwt_redirect test
+fd5821a1a83c9 arm64: dts: qcom: sa8540p: Drop gfx.lvl as power-domain for gpucc
+883957bee580b pmdomain: qcom: rpmhpd: Drop SA8540P gfx.lvl
+5155e48128826 soc: qcom: socinfo: rename PM2250 to PM4125
+f661017e6d326 cpufreq: brcmstb-avs-cpufreq: add check for cpufreq_cpu_get's return value
+328efda22af81 wifi: wilc1000: do not realloc workqueue everytime an interface is added
+1213acb478a71 wifi: rtl8xxxu: add cancel_work_sync() for c2hcmd_work
+9636951e4468f wifi: b43: Stop/wake correct queue in DMA Tx path when QoS is disabled
+ad25ee36f0017 wifi: ath10k: fix NULL pointer dereference in ath10k_wmi_tlv_op_pull_mgmt_tx_compl_ev()
+14274d0bd31b4 timekeeping: Fix cross-timestamp interpolation for non-x86
+54e35eb8611cc x86/resctrl: Read supported bandwidth sources from CPUID
+0976783bb123f x86/resctrl: Remove hard-coded memory bandwidth limit
+f98364e926626 aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts
+8ede3db5061bb io_uring/net: fix overflow check in io_recvmsg_mshot_prep()
+c55978024d123 io_uring/net: move receive multishot out of the generic msghdr path
+52307ac4f2b50 io_uring/net: unify how recvmsg and sendmsg copy in the msghdr
+03f12122b20b6 block: fix deadlock between bd_link_disk_holder and partition scan
+6cf3506587366 md: fix kmemleak of rdev->serial
+c3116e62ddeff s390/dasd: fix double module refcount decrement
+15930da42f898 workqueue: Don't call cpumask_test_cpu() with -1 CPU in wq_update_node_max_active()
+5797b1c18919c workqueue: Implement system-wide nr_active enforcement for unbound workqueues
+3948abaa4e2be do_sys_name_to_handle(): use kzalloc() to fix kernel-infoleak
+963465a33141d Input: gpio_keys_polled - suppress deferred probe error for gpio
+b3a51137607ce ASoC: amd: yc: Add HP Pavilion Aero Laptop 13-be2xxx(8BD6) into DMI quirk table
+6214e24cae9b1 ALSA: hda/realtek: Add quirks for Lenovo Thinkbook 16P laptops
+f8b0127aca8c6 ASoC: Intel: bytcr_rt5640: Add an extra entry for the Chuwi Vi8 tablet
+34b567868777e perf: RISCV: Fix panic on pmu overflow handler
+2535b848fa0f4 Bluetooth: rfcomm: Fix null-ptr-deref in rfcomm_check_security
+ed00a6945dc32 ASoC: amd: yc: Fix non-functional mic on Lenovo 21J2
+50ee641643dd0 ASoC: amd: yc: Add Lenovo ThinkBook 21J0 into DMI quirk table
+45532b21dc2a6 net: smsc95xx: add support for SYS TEC USB-SPEmodule1
+c7bb26b847e5b btrfs: fix data race at btrfs_use_block_rsv() when accessing block reserve
+e06cc89475edd btrfs: fix data races when accessing the reserved amount of block reserves
+32019c659ecfe x86/mm: Disallow vsyscall page read for copy_from_kernel_nofault()
+4d5e86a56615c RDMA/mlx5: Fix fortify source warning while accessing Eth segment
+c40aad7c81e5f ASoC: SOF: ipc4-pcm: Workaround for crashed firmware on system suspend
+1741a8269e1c5 HID: multitouch: Add required quirk for Synaptics 0xcddc device
+3693bb4465e6e x86/xen: Add some null pointer checking to smp.c
+f7fe85b229bc3 ASoC: amd: yc: Fix non-functional mic on Lenovo 82UU
+8f44e3808200c spi: intel-pci: Add support for Lunar Lake-M SPI serial flash
+551539a8606e2 ASoC: rt5645: Make LattePanda board DMI match more precise
+b979f2d50a099 soc: qcom: pmic_glink_altmode: fix drm bridge use-after-free
+aec7d25b497ce platform/x86: p2sb: On Goldmont only cache P2SB and SPI devfn BAR
