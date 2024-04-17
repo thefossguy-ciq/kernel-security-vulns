@@ -104,4 +104,17 @@ f1acb109505d powerpc/kasan: Limit KASAN thread size increase to 32KB
 ed8b94f6e0ac powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
 962ac2dce56b drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
 6ef5d5b92f71 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()
-30369084ac6e2 tools/rtla: Fix clang warning about mount_point var size
+30369084ac6e tools/rtla: Fix clang warning about mount_point var size
+27c5a095e251 netfilter: ipset: Missing gc cancellations fixed
+97f7cf1cd80e netfilter: ipset: fix performance regression in swap operation
+8746c6c9dfa3 drm/buddy: Fix alloc_range() error handling code
+042b5f83841f drm/nouveau: fix several DMA buffer leaks
+c41336f4d690 pmdomain: mediatek: fix race conditions with genpd
+faf51b201bc4 drm/amd/display: Fix dcn35 8k30 Underflow/Corruption Issue
+39079fe8e660 drm/amd/display: fix incorrect mpc_combine array size
+733025626866 drm/amdgpu: Reset IH OVERFLOW_CLEAR bit
+916361685319 Revert "drm/amd: flush any delayed gfxoff on suspend entry"
+977fe773dcc7 scsi: Revert "scsi: fcoe: Fix potential deadlock on &fip->ctlr_lock"
+41044d536068 PCI: Fix active state requirement in PME polling
+3caf2b2ad733 usb: ulpi: Fix debugfs directory leak
+0958b33ef5a0 tracing/trigger: Fix to return error if failed to alloc snapshot
