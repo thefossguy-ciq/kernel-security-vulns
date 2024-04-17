@@ -13,10 +13,8 @@ a7d6027790ace arp: Prevent overflow in arp_req_get().
 def689fc26b9a devlink: fix possible use-after-free and memory leaks in devlink_init()
 5559cea2d5aa3 ipv6: sr: fix possible use-after-free and null-ptr-deref
 6ea38e2aeb723 afs: Increase buffer size in afs_update_volume_status()
-6f7d0f5fd8e44 platform/x86: think-lmi: Fix password opcode ordering for workstations
 0281b919e175b bpf: Fix racing between bpf_timer_cancel_and_free and bpf_timer_cancel
 a5c57fd2e9bd1 powerpc/pseries/iommu: DLPAR add doesn't completely initialize pci_controller
-97dde84026339 net: stmmac: Fix incorrect dereference in interrupt handlers
 166c2c8a6a4dc net/sched: act_mirred: don't override retval if we already lost the skb
 52f671db18823 net/sched: act_mirred: use the backlog for mirred ingress
 66b60b0c8c4a1 dccp/tcp: Unhash sk from ehash for tb2 alloc failure after check_estalblished().
@@ -31,7 +29,6 @@ bd97cea7b18a0 RDMA/irdma: Fix KASAN issue with tasklet
 a538dabf772c1 Revert "drm/amd/display: increased min_dcfclk_mhz and min_fclk_mhz"
 97cba232549b9 drm/amd/display: Fix buffer overflow in 'get_host_router_total_dp_tunnel_bw()'
 45be0882c5f91 smb3: add missing null server pointer check
-51af8f255bdac ahci: Extend ASM1061 43-bit DMA address quirk to other ASM106x parts
 967d3c27127e7 mptcp: fix data races on remote_id
 1c9be13846c0b usb: roles: fix NULL pointer issue when put module's reference
 76c51146820c5 usb: gadget: ncm: Avoid dropping datagrams of properly parsed NTBs
@@ -45,20 +42,17 @@ c0ec2a712daf1 crypto: virtio/akcipher - Fix stack overflow on memcpy
 136cfaca22567 gtp: fix use-after-free and null-ptr-deref in gtp_genl_dump_pdp()
 9e46c70e829bd md: Don't suspend the array for interrupted reshape
 e21a2f17566cb cachefiles: fix memory leak in cachefiles_add_cache()
-dbcbfd662a725 platform/x86: touchscreen_dmi: Allow partial (prefix) matches for ACPI names
 13ddaf26be324 mm/swap: fix race when skipping swapcache
 de959094eb219 scsi: target: pscsi: Fix bio_put() for error case
 eef5c7b28dbec cxl/pci: Skip to handle RAS errors if CXL.mem device is detached
 50c70240097ce dm-crypt: don't modify the data when using authenticated encryption
 1eb1e984379e2 lib/Kconfig.debug: TEST_IOV_ITER depends on MMU
 b820de741ae48 fs/aio: Restrict kiocb_set_cancel_fn() to I/O submitted via libaio
-bd915ae73a2d7 drm/meson: Don't remove bridges which are created by other drivers
 e42b9d8b9ea26 btrfs: defrag: avoid unnecessary defrag caused by incorrect extent size
 752cd08da320a LoongArch: Update cpu_sibling_map when disabling nonboot CPUs
 1001db6c42e40 LoongArch: Disable IRQ before init_fn() for nonboot CPUs
 baf8361e54550 x86/bugs: Add asm helpers for executing VERW
 e6f57c6881916 IB/hfi1: Fix sdma.h tx->num_descs off-by-one error
-5f3bce13266e6 drm/amd/display: Request usb4 bw for mst streams
 cca5efe77a6a2 LoongArch: vDSO: Disable UBSAN instrumentation
 4551b30525cf3 LoongArch: Change acpi_core_pic[NR_CPUS] to acpi_core_pic[MAX_CORE_PIC]
 b513d30d59bb3 scsi: ufs: core: Fix shift issue in ufshcd_clear_cmd()
@@ -66,34 +60,23 @@ de1034b38a346 efi: runtime: Fix potential overflow of soft-reserved region size
 731ab1f982880 fs/ntfs3: Fix oob in ntfs_listxattr
 652cfeb43d6b9 fs/ntfs3: Fixed overflow check in mi_enum_attr()
 aaab47f204aaf fs/ntfs3: Add NULL ptr dereference checking at the end of attr_allocate_frame()
-4255447ad34c5 Input: i8042 - add Fujitsu Lifebook U728 to i8042 quirk table
 710c69dbaccda nvmet-fc: avoid deadlock on delete association path
 70fbfc47a392b nvme-fc: do not wait in vain when unloading module
-eaa1b01fe709d ALSA: usb-audio: Ignore clock selector errors for single connection
 daf3f0f99cde9 ASoC: wm_adsp: Don't overwrite fwf_name with the default
 2ff33c759a424 drm/amd/display: increased min_dcfclk_mhz and min_fclk_mhz
-80441f76ee670 Input: xpad - add Lenovo Legion Go controllers
 6500ad28fd5d6 spi: sh-msiof: avoid integer overflow in constants
-346f59d1e8ed0 ALSA: usb-audio: Check presence of valid altsetting control
-f3be347ea42db usb: ucsi_acpi: Quirk to ack a connector change ack cmd
 47c5dd66c1840 nvmet-tcp: fix nvme tcp ida memory leak
 b6eda11c44dc8 HID: nvidia-shield: Add missing null pointer checks to LED initialization
 6e2276203ac9f dmaengine: ti: edma: Add some null pointer checks to the edma_probe
-180a8f12c21f4 Input: goodix - accept ACPI resources with gpio_count == 3 && gpio_int_idx == 0
 832698373a259 ext4: avoid allocating blocks from corrupted group in ext4_mb_find_by_goal()
 4530b3660d396 ext4: avoid allocating blocks from corrupted group in ext4_mb_try_best_found()
 993bf0f4c393b ext4: avoid dividing by 0 in mb_update_avg_fragment_size() when block bitmap corrupt
-1abdf288b0ef5 platform/x86: touchscreen_dmi: Add info for the TECLAST X16 Plus tablet
-20730e9b27787 ahci: add 43-bit DMA address quirk for ASMedia ASM1061 controllers
 e169bd4fb2b36 aoe: avoid potential deadlock at set_capacity
-0077a504e1a44 ahci: asm1166: correct count of reported ports
 8deb05c84b63b smb: Work around Clang __bdos() type confusion
 13f3956eb5681 block: Fix WARNING in _copy_from_iter
 de8b6e1c231a9 spi: hisi-sfc-v3xx: Return IRQ_NONE if no interrupts were detected
-8afe3c7fcaf72 spi: intel-pci: Add support for Arrow Lake SPI serial flash
 bcbc84af1183c wifi: mac80211: fix race condition on enabling fast-xmit
 6386f6c995b3a dmaengine: fsl-qdma: increase size of 'irq_name'
 83ab68168a3d9 scsi: target: core: Add TMF to tmr_list handling
 12c16919652b5 tools: selftests: riscv: Fix compile warnings in mm tests
 fb4cece17b458 scsi: smartpqi: Fix logical volume rescan race condition
-c6d5aa44eaf6d scsi: smartpqi: Add new controller PCI IDs

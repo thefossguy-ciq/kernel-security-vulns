@@ -3,74 +3,34 @@ bd504bcfec41a dm: limit the number of targets and parameter size area
 27c5a095e2518 netfilter: ipset: Missing gc cancellations fixed
 97f7cf1cd80ee netfilter: ipset: fix performance regression in swap operation
 2394ac4145ea9 tracing: Inform kmemleak of saved_cmdlines allocation
-bdbddb109c753 tracing: Fix HAVE_DYNAMIC_FTRACE_WITH_REGS ifdef
 efe7cf828039a can: j1939: Fix UAF in j1939_sk_match_filter during setsockopt(SO_J1939_FILTER)
 6cdedc18ba7b9 can: j1939: prevent deadlock by changing j1939_socks_lock to rwlock
 fa765c4b4aed2 xen/events: close evtchn after mapping cleanup
 79d72c68c5878 fs,hugetlb: fix NULL pointer dereference in hugetlbs_fill_super
 cda4672da1c26 ceph: prevent use-after-free in encode_cap_msg()
 9cae43da98674 hv_netvsc: Register VF in netvsc_probe if NET_DEVICE_REGISTER missed
-46f5ab762d048 fs: relax mount_setattr() permission checks
 30369084ac6e2 tools/rtla: Fix clang warning about mount_point var size
-610010737f744 ASoC: amd: yc: Add DMI quirk for Lenovo Ideapad Pro 5 16ARP8
 fe752331d4b36 KVM: s390: vsie: fix race during shadow creation
 4860abb91f3d7 smb: Fix regression in writes when non-standard maximum write size negotiated
-4508ec1735709 smb: client: set correct id, uid and cruid for multiuser automounts
-8b02da04ad978 irqchip/gic-v3-its: Restore quirk probing for ACPI-based systems
 24c890dd712f6 crypto: algif_hash - Remove bogus SGL free on zero-length error path
 ccb88e9549e7c crypto: ccp - Fix null pointer dereference in __sev_platform_shutdown_locked
 38296afe3c6ee nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
 67b8bcbaed477 nilfs2: fix data corruption in dsync block recovery for small block sizes
-4639c5021029d ALSA: hda/conexant: Add quirk for SWS JS201D
-32f03f4002c5d ALSA: hda/realtek: fix mute/micmute LED For HP mt645
 a37ee9e117ef7 io_uring/net: fix multishot accept overflow handling
-a8b9cf62ade1b ftrace: Fix DIRECT_CALLS to use SAVE_REGS by default
-66bbea9ed6446 ring-buffer: Clean ring_buffer_poll_wait() error return
 e0526ec5360a4 hv_netvsc: Fix race condition between netvsc_probe and netvsc_remove
-deb110292180c drm/amd/display: Preserve original aspect ratio in create stream
 e6a7df96facdc drm/amd/display: Fix MST Null Ptr for RV
 8746c6c9dfa31 drm/buddy: Fix alloc_range() error handling code
 042b5f83841fb drm/nouveau: fix several DMA buffer leaks
-108a020c64434 ksmbd: free aux buffer if ksmbd_iov_pin_rsp_read fails
-ca185770db914 eventfs: Keep all directory links at 1
-12d823b31fadf eventfs: Remove fsnotify*() functions from lookup()
-264424dfdd5cb eventfs: Restructure eventfs_inode structure to be more condensed
-5a49f996046ba eventfs: Warn if an eventfs_inode is freed without is_freed being set
-43aa6f97c2d03 eventfs: Get rid of dentry pointers without refcounts
-8dce06e98c70a eventfs: Clean up dentry ops and add revalidate function
-408600be78cdb eventfs: Remove unused d_parent pointer field
-49304c2b93e4f tracefs: dentry lookup crapectomy
-99c001cb617df tracefs: Avoid using the ei->dentry pointer unnecessarily
-4fa4b010b83fb eventfs: Initialize the tracefs inode properly
-d81786f53aec1 tracefs: Zero out the tracefs_inode when allocating it
-834bf76add3e6 eventfs: Save directory inodes in the eventfs_inode structure
 1057066009c43 eventfs: Use kcalloc() instead of kzalloc()
-852e46e239ee6 eventfs: Do not create dentries nor inodes in iterate_shared
-53c41052ba312 eventfs: Have the inodes all for files and directories all be the same
-1de94b52d5e8d eventfs: Shortcut eventfs_iterate() by skipping entries already read
-704f960dbee2f eventfs: Read ei->entries before ei->children in eventfs_iterate()
-1e4624eb5a0ec eventfs: Do ctx->pos update for all iterations in eventfs_iterate()
-e109deadb7331 eventfs: Have eventfs_iterate() stop immediately if ei->is_freed is set
-493ec81a8fb8e eventfs: Stop using dcache_readdir() for getdents()
-b0f7e2d739b4a eventfs: Remove "lookup" parameter from create_dir/file_dentry()
-6a9d552483d50 media: rc: bpf attach/detach requires write permission
 c41336f4d6905 pmdomain: mediatek: fix race conditions with genpd
 95a0d596bbd05 iio: core: fix memleak in iio_device_register_sysfs
-9b6326354cf9a tracing/synthetic: Fix trace_string() return value
-44dc5c41b5b12 tracing: Fix wasted memory in saved_cmdlines logic
 1389358bb008e tracing/timerlat: Move hrtimer_init to timerlat_fd open()
-1513664f34028 ALSA: hda/realtek: fix mute/micmute LEDs for HP ZBook Power
-fcfc9f711d1e2 ALSA: hda/realtek - Add speaker pin verbtable for Dell dual speaker platform
-c7de2d9bb68a5 ALSA: hda/realtek: Enable headset mic on Vaio VJFE-ADL
 8b1d72395635a parisc: Fix random data corruption from exception handler
 37e8c97e53901 net: hsr: remove WARN_ONCE() in send_hsr_supervision_frame()
 bfb007aebe6bf nfc: nci: free rx_data_reassembly skb on NCI device cleanup
-2468e8922d2f6 ALSA: hda/realtek: Apply headset jack quirk for non-bass alc287 thinkpads
-99b817c173cd2 lsm: fix the logic in security_inode_getsecctx()
 faf51b201bc42 drm/amd/display: Fix dcn35 8k30 Underflow/Corruption Issue
 39079fe8e6608 drm/amd/display: fix incorrect mpc_combine array size
 7330256268664 drm/amdgpu: Reset IH OVERFLOW_CLEAR bit
-9c64e749cebd9 drm/virtio: Set segment size for virtio_gpu device
 9163616853190 Revert "drm/amd: flush any delayed gfxoff on suspend entry"
 977fe773dcc70 scsi: Revert "scsi: fcoe: Fix potential deadlock on &fip->ctlr_lock"
 337cebbd850f9 mptcp: really cope with fastopen race
@@ -78,23 +38,16 @@ faf51b201bc42 drm/amd/display: Fix dcn35 8k30 Underflow/Corruption Issue
 b6c620dc43ccb mptcp: fix data re-injection from stale subflow
 0846dd77c8349 powerpc/iommu: Fix the missing iommu_group_put() during platform domain attach
 f1acb109505d9 powerpc/kasan: Limit KASAN thread size increase to 32KB
-83ef106fa732a i2c: qcom-geni: Correct I2C TRE sequence
 cffe487026be1 cifs: fix underflow in parse_server_interfaces()
 41044d5360685 PCI: Fix active state requirement in PME polling
 ed8b94f6e0acd powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
 dc9ceb90c4b42 media: ir_toy: fix a memleak in irtoy_tx
 61a348857e869 usb: dwc3: gadget: Fix NULL pointer dereference in dwc3_gadget_suspend
 12783c0b9e2c7 usb: core: Prevent null pointer dereference in update_port_device_state
-cc509b6a47e7c usb: chipidea: core: handle power lost in workqueue
-b2d2d7ea0dd09 usb: f_mass_storage: forbid async queue when shutdown happen
 3caf2b2ad7334 usb: ulpi: Fix debugfs directory leak
-c1d6708bf0d3d HID: wacom: Do not register input devices until after hid_hw_start
-f0d78972f27dc ALSA: hda/realtek: Enable Mute LED on HP Laptop 14-fq0xxx
-c6dce23ec993f ASoC: amd: yc: Add DMI quirk for MSI Bravo 15 C7VF
 0a9bab391e336 dm-crypt, dm-verity: disable tasklets
 39126abc5e206 nouveau: offload fence uevents work to workqueue
 0958b33ef5a04 tracing/trigger: Fix to return error if failed to alloc snapshot
-73d9629e1c8c1 i40e: Do not allow untrusted VF to remove administratively set MAC
 962ac2dce56bb drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
 6ef5d5b92f711 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()
 32b55c5ff9103 net: tls: fix use-after-free with partial reads and async decrypt
@@ -105,8 +58,5 @@ c57ca512f3b68 net: tls: factor out tls_*crypt_async_wait()
 4e1d71cabb19e net/handshake: Fix handshake_req_destroy_test1
 aa1eec2f546f2 net/mlx5: DPLL, Fix possible use after free after delayed work timer triggers
 53c0441dd2c44 dpll: fix possible deadlock during netlink dump operation
-bb6f4dbe2639d selftests/landlock: Fix capability for net_test
 5571e41ec6e56 btrfs: don't drop extent_map for free space inode on write error
 e03ee2fe873eb btrfs: do not ASSERT() if the newly created subvolume already got read
-68fb3ca0e408e update workarounds for gcc "asm goto" issue
-4356e9f841f7f work around gcc bugs with 'asm goto' with outputs

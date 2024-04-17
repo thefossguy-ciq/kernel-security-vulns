@@ -4,10 +4,7 @@ c055fc00c07be net/rds: fix WARNING in rds_conn_connect_if_down
 ef27f655b438b igc: avoid returning frame twice in XDP_REDIRECT
 9224fc86f1776 ice: fix uninitialized dplls mutex usage
 06e456a05d669 net: ice: Fix potential NULL pointer dereference in ice_bridge_setlink()
-2652b99e43403 ice: virtchnl: stop pretending to support RSS over AQ or registers
 89d72d4125e94 net: sparx5: Fix use after free inside sparx5_del_mact_entry
 1ca1ba465e55b geneve: make sure to pull inner header in geneve_rx()
-51270d573a8d9 tracing/net_sched: Fix tracepoints that save qdisc_dev() as a string
 b7cf07586c40f net/mlx5e: Use a memory barrier to enforce PTP WQ xmit submission tracking occurs after populating the metadata_map
 1eecc7ab82c42 net: lan78xx: fix runtime PM count underflow on link stop
-8076fcde016c9 x86/rfds: Mitigate Register File Data Sampling (RFDS)
