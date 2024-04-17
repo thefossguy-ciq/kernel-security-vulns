@@ -104,3 +104,4 @@ f1acb109505d powerpc/kasan: Limit KASAN thread size increase to 32KB
 ed8b94f6e0ac powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
 962ac2dce56b drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
 6ef5d5b92f71 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()
+30369084ac6e2 tools/rtla: Fix clang warning about mount_point var size
