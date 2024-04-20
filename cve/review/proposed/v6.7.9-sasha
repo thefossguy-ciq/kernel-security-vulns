@@ -1,73 +1,49 @@
-fad87dbd48156 powerpc/rtas: use correct function name for resetting TCE tables
-09a3c1e461421 powerpc/pseries/iommu: IOMMU table is not initialized for kdump over SR-IOV
-d3ea125df37dc dmaengine: idxd: Ensure safe user copy of completion record
-bbcc1c83f343e dmaengine: dw-edma: eDMA: Add sync read before starting the DMA transfer in remote setup
-712a92a48158e dmaengine: dw-edma: HDMA: Add sync read before starting the DMA transfer in remote setup
-aa82ac51d6332 af_unix: Drop oob_skb ref before purging queue in GC.
-25236c91b5ab4 af_unix: Fix task hung while purging oob_skb in GC.
-5fa917a67a034 NFS: Fix data corruption caused by congestion.
-d6a9608af9a75 mptcp: fix possible deadlock in subflow diag
-10048689def7e mptcp: fix double-free on socket dismantle
-2774f256e7c02 mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
-720da1e593b85 mm/debug_vm_pgtable: fix BUG_ON with pud advanced test
-eb5555d422d0f pmdomain: arm: Fix NULL dereference on scmi_perf_domain removal
-cf7c2789822db iommufd: Fix protection fault in iommufd_test_syz_conv_iova
-aeb004c0cd695 iommufd: Fix iopt_access_list_id overwrite bug
-6b1ba3f9040be mmc: mmci: stm32: fix DMA API overlapping mappings warning
-87a39071e0b63 dmaengine: fsl-qdma: init irq after reg initialization
-1c0cf6d196901 crypto: arm64/neonbs - fix out-of-bounds access on short input
-9d739bccf261d dmaengine: fsl-qdma: fix SoC may hang on 16 byte unaligned read
-9845664b9ee47 btrfs: dev-replace: properly validate device names
-e2b54eaf28df0 btrfs: fix double free of anonymous device after snapshot creation failure
-f78c1375339a2 wifi: nl80211: reject iftype change with mesh ID change
-616d82c3cfa2a gtp: fix use-after-free and null-ptr-deref in gtp_newlink()
-2f03fc340cac9 tomoyo: fix UAF write bug in tomoyo_write_control()
-f6ecfdad359a0 drm/nouveau: keep DMA buffers required for suspend/resume
-a1a4a9ca77f14 btrfs: fix race between ordered extent completion and fiemap
-682dc133f83e0 drivers: perf: ctr_get_width function for legacy is not defined
-0f8ca019544a2 drm/amd/display: Prevent potential buffer overflow in map_hw_resources
 00d6a284fcf3f fbcon: always restore the old font data in fbcon_do_set_font()
-c14f09f010cc5 ASoC: cs35l56: Fix deadlock in ASP1 mixer register initialization
-2df70149e73e7 power: supply: bq27xxx-i2c: Do not free non existing IRQ
-13114dc554306 tls: fix use-after-free on failed backlog decryption
-41532b785e9d7 tls: separate no-async decryption request handling from async
-743ad091fb46e rtnetlink: fix error logic of IFLA_BRIDGE_FLAGS writing back
-62e7151ae3eb4 netfilter: bridge: confirm multicast packets before passing them up the stack
-7e74aa53a68bf Bluetooth: hci_event: Fix handling of HCI_EV_IO_CAPA_REQUEST
-2449007d3f73b Bluetooth: Avoid potential use-after-free in hci_error_reset
-8af411bbba1f4 stmmac: Clear variable when destroying workqueue
-10bfd453da64a ipv6: fix potential "struct net" leak in inet6_rtm_getaddr()
-fe9f801355f0b net: veth: clear GRO when clearing XDP even when down
-3773d65ae5154 net: mctp: take ownership of skb in mctp_local_output
-5ae1e9922bbdb net: ip_tunnel: prevent perpetual headroom growth
-9a0d18853c280 netlink: add nla be16/32 types to minlen array
-661779e1fcafe netlink: Fix kernel-infoleak-after-free in __skb_datagram_iter
-959043afe53ae spi: cadence-qspi: remove system-wide suspend helper calls from runtime PM hooks
-32ce3bb57b6b4 spi: cadence-qspi: fix pointer reference in runtime PM hooks
-32ce3bb57b6b4 spi: cadence-qspi: fix pointer reference in runtime PM hooks
-661779e1fcafe netlink: Fix kernel-infoleak-after-free in __skb_datagram_iter
-9a0d18853c280 netlink: add nla be16/32 types to minlen array
-5ae1e9922bbdb net: ip_tunnel: prevent perpetual headroom growth
-8af411bbba1f4 stmmac: Clear variable when destroying workqueue
-743ad091fb46e rtnetlink: fix error logic of IFLA_BRIDGE_FLAGS writing back
-13114dc554306 tls: fix use-after-free on failed backlog decryption
-fccfa646ef362 efi/capsule-loader: fix incorrect allocation size
-1382d8b551298 ASoC: qcom: Fix uninitialized pointer dmactl
-0f8ca019544a2 drm/amd/display: Prevent potential buffer overflow in map_hw_resources
-a1a4a9ca77f14 btrfs: fix race between ordered extent completion and fiemap
-2f03fc340cac9 tomoyo: fix UAF write bug in tomoyo_write_control()
-616d82c3cfa2a gtp: fix use-after-free and null-ptr-deref in gtp_newlink()
-3a75cb05d53f4 mm: cachestat: fix folio read-after-free in cache walk
-e2b54eaf28df0 btrfs: fix double free of anonymous device after snapshot creation failure
-9845664b9ee47 btrfs: dev-replace: properly validate device names
-1c0cf6d196901 crypto: arm64/neonbs - fix out-of-bounds access on short input
-87a39071e0b63 dmaengine: fsl-qdma: init irq after reg initialization
-aeb004c0cd695 iommufd: Fix iopt_access_list_id overwrite bug
-cf7c2789822db iommufd: Fix protection fault in iommufd_test_syz_conv_iova
-eb5555d422d0f pmdomain: arm: Fix NULL dereference on scmi_perf_domain removal
-2774f256e7c02 mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
-10048689def7e mptcp: fix double-free on socket dismantle
-25236c91b5ab4 af_unix: Fix task hung while purging oob_skb in GC.
-aa82ac51d6332 af_unix: Drop oob_skb ref before purging queue in GC.
-d3ea125df37dc dmaengine: idxd: Ensure safe user copy of completion record
 09a3c1e461421 powerpc/pseries/iommu: IOMMU table is not initialized for kdump over SR-IOV
+0f8ca019544a2 drm/amd/display: Prevent potential buffer overflow in map_hw_resources
+10048689def7e mptcp: fix double-free on socket dismantle
+10bfd453da64a ipv6: fix potential "struct net" leak in inet6_rtm_getaddr()
+13114dc554306 tls: fix use-after-free on failed backlog decryption
+1382d8b551298 ASoC: qcom: Fix uninitialized pointer dmactl
+1c0cf6d196901 crypto: arm64/neonbs - fix out-of-bounds access on short input
+2449007d3f73b Bluetooth: Avoid potential use-after-free in hci_error_reset
+25236c91b5ab4 af_unix: Fix task hung while purging oob_skb in GC.
+2774f256e7c02 mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
+2df70149e73e7 power: supply: bq27xxx-i2c: Do not free non existing IRQ
+2f03fc340cac9 tomoyo: fix UAF write bug in tomoyo_write_control()
+32ce3bb57b6b4 spi: cadence-qspi: fix pointer reference in runtime PM hooks
+3773d65ae5154 net: mctp: take ownership of skb in mctp_local_output
+3a75cb05d53f4 mm: cachestat: fix folio read-after-free in cache walk
+41532b785e9d7 tls: separate no-async decryption request handling from async
+5ae1e9922bbdb net: ip_tunnel: prevent perpetual headroom growth
+5fa917a67a034 NFS: Fix data corruption caused by congestion.
+616d82c3cfa2a gtp: fix use-after-free and null-ptr-deref in gtp_newlink()
+62e7151ae3eb4 netfilter: bridge: confirm multicast packets before passing them up the stack
+661779e1fcafe netlink: Fix kernel-infoleak-after-free in __skb_datagram_iter
+682dc133f83e0 drivers: perf: ctr_get_width function for legacy is not defined
+6b1ba3f9040be mmc: mmci: stm32: fix DMA API overlapping mappings warning
+712a92a48158e dmaengine: dw-edma: HDMA: Add sync read before starting the DMA transfer in remote setup
+720da1e593b85 mm/debug_vm_pgtable: fix BUG_ON with pud advanced test
+743ad091fb46e rtnetlink: fix error logic of IFLA_BRIDGE_FLAGS writing back
+7e74aa53a68bf Bluetooth: hci_event: Fix handling of HCI_EV_IO_CAPA_REQUEST
+87a39071e0b63 dmaengine: fsl-qdma: init irq after reg initialization
+8af411bbba1f4 stmmac: Clear variable when destroying workqueue
+959043afe53ae spi: cadence-qspi: remove system-wide suspend helper calls from runtime PM hooks
+9845664b9ee47 btrfs: dev-replace: properly validate device names
+9a0d18853c280 netlink: add nla be16/32 types to minlen array
+9d739bccf261d dmaengine: fsl-qdma: fix SoC may hang on 16 byte unaligned read
+a1a4a9ca77f14 btrfs: fix race between ordered extent completion and fiemap
+aa82ac51d6332 af_unix: Drop oob_skb ref before purging queue in GC.
+aeb004c0cd695 iommufd: Fix iopt_access_list_id overwrite bug
+bbcc1c83f343e dmaengine: dw-edma: eDMA: Add sync read before starting the DMA transfer in remote setup
+c14f09f010cc5 ASoC: cs35l56: Fix deadlock in ASP1 mixer register initialization
+cf7c2789822db iommufd: Fix protection fault in iommufd_test_syz_conv_iova
+d3ea125df37dc dmaengine: idxd: Ensure safe user copy of completion record
+d6a9608af9a75 mptcp: fix possible deadlock in subflow diag
+e2b54eaf28df0 btrfs: fix double free of anonymous device after snapshot creation failure
+eb5555d422d0f pmdomain: arm: Fix NULL dereference on scmi_perf_domain removal
+f6ecfdad359a0 drm/nouveau: keep DMA buffers required for suspend/resume
+f78c1375339a2 wifi: nl80211: reject iftype change with mesh ID change
+fad87dbd48156 powerpc/rtas: use correct function name for resetting TCE tables
+fccfa646ef362 efi/capsule-loader: fix incorrect allocation size
+fe9f801355f0b net: veth: clear GRO when clearing XDP even when down

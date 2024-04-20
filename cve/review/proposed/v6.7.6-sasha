@@ -1,62 +1,62 @@
-bd504bcfec41a dm: limit the number of targets and parameter size area
-5bc09b397cbf1 nilfs2: fix potential bug in end_buffer_async_write
-27c5a095e2518 netfilter: ipset: Missing gc cancellations fixed
-97f7cf1cd80ee netfilter: ipset: fix performance regression in swap operation
-2394ac4145ea9 tracing: Inform kmemleak of saved_cmdlines allocation
-efe7cf828039a can: j1939: Fix UAF in j1939_sk_match_filter during setsockopt(SO_J1939_FILTER)
-6cdedc18ba7b9 can: j1939: prevent deadlock by changing j1939_socks_lock to rwlock
-fa765c4b4aed2 xen/events: close evtchn after mapping cleanup
-79d72c68c5878 fs,hugetlb: fix NULL pointer dereference in hugetlbs_fill_super
-cda4672da1c26 ceph: prevent use-after-free in encode_cap_msg()
-9cae43da98674 hv_netvsc: Register VF in netvsc_probe if NET_DEVICE_REGISTER missed
-30369084ac6e2 tools/rtla: Fix clang warning about mount_point var size
-fe752331d4b36 KVM: s390: vsie: fix race during shadow creation
-4860abb91f3d7 smb: Fix regression in writes when non-standard maximum write size negotiated
-24c890dd712f6 crypto: algif_hash - Remove bogus SGL free on zero-length error path
-ccb88e9549e7c crypto: ccp - Fix null pointer dereference in __sev_platform_shutdown_locked
-38296afe3c6ee nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
-67b8bcbaed477 nilfs2: fix data corruption in dsync block recovery for small block sizes
-a37ee9e117ef7 io_uring/net: fix multishot accept overflow handling
-e0526ec5360a4 hv_netvsc: Fix race condition between netvsc_probe and netvsc_remove
-e6a7df96facdc drm/amd/display: Fix MST Null Ptr for RV
-8746c6c9dfa31 drm/buddy: Fix alloc_range() error handling code
-042b5f83841fb drm/nouveau: fix several DMA buffer leaks
-1057066009c43 eventfs: Use kcalloc() instead of kzalloc()
-c41336f4d6905 pmdomain: mediatek: fix race conditions with genpd
-95a0d596bbd05 iio: core: fix memleak in iio_device_register_sysfs
-1389358bb008e tracing/timerlat: Move hrtimer_init to timerlat_fd open()
-8b1d72395635a parisc: Fix random data corruption from exception handler
-37e8c97e53901 net: hsr: remove WARN_ONCE() in send_hsr_supervision_frame()
-bfb007aebe6bf nfc: nci: free rx_data_reassembly skb on NCI device cleanup
-faf51b201bc42 drm/amd/display: Fix dcn35 8k30 Underflow/Corruption Issue
-39079fe8e6608 drm/amd/display: fix incorrect mpc_combine array size
-7330256268664 drm/amdgpu: Reset IH OVERFLOW_CLEAR bit
-9163616853190 Revert "drm/amd: flush any delayed gfxoff on suspend entry"
-977fe773dcc70 scsi: Revert "scsi: fcoe: Fix potential deadlock on &fip->ctlr_lock"
-337cebbd850f9 mptcp: really cope with fastopen race
 013e3179dbd2b mptcp: fix rcv space initialization
-b6c620dc43ccb mptcp: fix data re-injection from stale subflow
+042b5f83841fb drm/nouveau: fix several DMA buffer leaks
 0846dd77c8349 powerpc/iommu: Fix the missing iommu_group_put() during platform domain attach
-f1acb109505d9 powerpc/kasan: Limit KASAN thread size increase to 32KB
-cffe487026be1 cifs: fix underflow in parse_server_interfaces()
-41044d5360685 PCI: Fix active state requirement in PME polling
-ed8b94f6e0acd powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
-dc9ceb90c4b42 media: ir_toy: fix a memleak in irtoy_tx
-61a348857e869 usb: dwc3: gadget: Fix NULL pointer dereference in dwc3_gadget_suspend
-12783c0b9e2c7 usb: core: Prevent null pointer dereference in update_port_device_state
-3caf2b2ad7334 usb: ulpi: Fix debugfs directory leak
-0a9bab391e336 dm-crypt, dm-verity: disable tasklets
-39126abc5e206 nouveau: offload fence uevents work to workqueue
 0958b33ef5a04 tracing/trigger: Fix to return error if failed to alloc snapshot
-962ac2dce56bb drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
-6ef5d5b92f711 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()
-32b55c5ff9103 net: tls: fix use-after-free with partial reads and async decrypt
-e01e3934a1b2d tls: fix race between tx work scheduling and socket close
-aec7961916f3f tls: fix race between async notify and socket close
-c57ca512f3b68 net: tls: factor out tls_*crypt_async_wait()
+0a9bab391e336 dm-crypt, dm-verity: disable tasklets
+1057066009c43 eventfs: Use kcalloc() instead of kzalloc()
+12783c0b9e2c7 usb: core: Prevent null pointer dereference in update_port_device_state
+1389358bb008e tracing/timerlat: Move hrtimer_init to timerlat_fd open()
 15faa1f67ab40 lan966x: Fix crash when adding interface under a lag
+2394ac4145ea9 tracing: Inform kmemleak of saved_cmdlines allocation
+24c890dd712f6 crypto: algif_hash - Remove bogus SGL free on zero-length error path
+27c5a095e2518 netfilter: ipset: Missing gc cancellations fixed
+30369084ac6e2 tools/rtla: Fix clang warning about mount_point var size
+32b55c5ff9103 net: tls: fix use-after-free with partial reads and async decrypt
+337cebbd850f9 mptcp: really cope with fastopen race
+37e8c97e53901 net: hsr: remove WARN_ONCE() in send_hsr_supervision_frame()
+38296afe3c6ee nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
+39079fe8e6608 drm/amd/display: fix incorrect mpc_combine array size
+39126abc5e206 nouveau: offload fence uevents work to workqueue
+3caf2b2ad7334 usb: ulpi: Fix debugfs directory leak
+41044d5360685 PCI: Fix active state requirement in PME polling
+4860abb91f3d7 smb: Fix regression in writes when non-standard maximum write size negotiated
 4e1d71cabb19e net/handshake: Fix handshake_req_destroy_test1
-aa1eec2f546f2 net/mlx5: DPLL, Fix possible use after free after delayed work timer triggers
 53c0441dd2c44 dpll: fix possible deadlock during netlink dump operation
 5571e41ec6e56 btrfs: don't drop extent_map for free space inode on write error
+5bc09b397cbf1 nilfs2: fix potential bug in end_buffer_async_write
+61a348857e869 usb: dwc3: gadget: Fix NULL pointer dereference in dwc3_gadget_suspend
+67b8bcbaed477 nilfs2: fix data corruption in dsync block recovery for small block sizes
+6cdedc18ba7b9 can: j1939: prevent deadlock by changing j1939_socks_lock to rwlock
+6ef5d5b92f711 ASoC: rt5645: Fix deadlock in rt5645_jack_detect_work()
+7330256268664 drm/amdgpu: Reset IH OVERFLOW_CLEAR bit
+79d72c68c5878 fs,hugetlb: fix NULL pointer dereference in hugetlbs_fill_super
+8746c6c9dfa31 drm/buddy: Fix alloc_range() error handling code
+8b1d72395635a parisc: Fix random data corruption from exception handler
+9163616853190 Revert "drm/amd: flush any delayed gfxoff on suspend entry"
+95a0d596bbd05 iio: core: fix memleak in iio_device_register_sysfs
+962ac2dce56bb drm/i915/dsc: Fix the macro that calculates DSCC_/DSCA_ PPS reg address
+977fe773dcc70 scsi: Revert "scsi: fcoe: Fix potential deadlock on &fip->ctlr_lock"
+97f7cf1cd80ee netfilter: ipset: fix performance regression in swap operation
+9cae43da98674 hv_netvsc: Register VF in netvsc_probe if NET_DEVICE_REGISTER missed
+a37ee9e117ef7 io_uring/net: fix multishot accept overflow handling
+aa1eec2f546f2 net/mlx5: DPLL, Fix possible use after free after delayed work timer triggers
+aec7961916f3f tls: fix race between async notify and socket close
+b6c620dc43ccb mptcp: fix data re-injection from stale subflow
+bd504bcfec41a dm: limit the number of targets and parameter size area
+bfb007aebe6bf nfc: nci: free rx_data_reassembly skb on NCI device cleanup
+c41336f4d6905 pmdomain: mediatek: fix race conditions with genpd
+c57ca512f3b68 net: tls: factor out tls_*crypt_async_wait()
+ccb88e9549e7c crypto: ccp - Fix null pointer dereference in __sev_platform_shutdown_locked
+cda4672da1c26 ceph: prevent use-after-free in encode_cap_msg()
+cffe487026be1 cifs: fix underflow in parse_server_interfaces()
+dc9ceb90c4b42 media: ir_toy: fix a memleak in irtoy_tx
+e01e3934a1b2d tls: fix race between tx work scheduling and socket close
 e03ee2fe873eb btrfs: do not ASSERT() if the newly created subvolume already got read
+e0526ec5360a4 hv_netvsc: Fix race condition between netvsc_probe and netvsc_remove
+e6a7df96facdc drm/amd/display: Fix MST Null Ptr for RV
+ed8b94f6e0acd powerpc/pseries/iommu: Fix iommu initialisation during DLPAR add
+efe7cf828039a can: j1939: Fix UAF in j1939_sk_match_filter during setsockopt(SO_J1939_FILTER)
+f1acb109505d9 powerpc/kasan: Limit KASAN thread size increase to 32KB
+fa765c4b4aed2 xen/events: close evtchn after mapping cleanup
+faf51b201bc42 drm/amd/display: Fix dcn35 8k30 Underflow/Corruption Issue
+fe752331d4b36 KVM: s390: vsie: fix race during shadow creation
