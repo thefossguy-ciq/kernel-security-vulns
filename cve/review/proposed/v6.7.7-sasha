@@ -80,3 +80,39 @@ bcbc84af1183c wifi: mac80211: fix race condition on enabling fast-xmit
 83ab68168a3d9 scsi: target: core: Add TMF to tmr_list handling
 12c16919652b5 tools: selftests: riscv: Fix compile warnings in mm tests
 fb4cece17b458 scsi: smartpqi: Fix logical volume rescan race condition
+bcbc84af1183c wifi: mac80211: fix race condition on enabling fast-xmit
+04e5eac8f3ab2 fbdev: savage: Error out if pixclock equals zero
+e421946be7d9b fbdev: sis: Error out if pixclock equals zero
+fe506a7458932 nvmet-fc: take ref count on tgtport before delete assoc
+aaab47f204aaf fs/ntfs3: Add NULL ptr dereference checking at the end of attr_allocate_frame()
+731ab1f982880 fs/ntfs3: Fix oob in ntfs_listxattr
+b513d30d59bb3 scsi: ufs: core: Fix shift issue in ufshcd_clear_cmd()
+0484e05d048b6 drm/amd/display: fixed integer types and null check locations
+e6f57c6881916 IB/hfi1: Fix sdma.h tx->num_descs off-by-one error
+de959094eb219 scsi: target: pscsi: Fix bio_put() for error case
+13ddaf26be324 mm/swap: fix race when skipping swapcache
+55a48ad2db647 md: Don't ignore read-only array in md_check_recovery()
+855678ed85345 md: Fix missing release of 'active_io' for flush
+136cfaca22567 gtp: fix use-after-free and null-ptr-deref in gtp_genl_dump_pdp()
+c0ec2a712daf1 crypto: virtio/akcipher - Fix stack overflow on memcpy
+359e54a93ab43 l2tp: pass correct message length to ip6_append_data
+fdf87a0dc26d0 ARM: ep93xx: Add terminator to gpiod_lookup_table
+cd45f99034b0c usb: cdns3: fixed memory use after free at cdns3_gadget_ep_disable()
+5fd9e45f1ebcd usb: cdns3: fix memory double free when handle zero packet
+1c9be13846c0b usb: roles: fix NULL pointer issue when put module's reference
+45be0882c5f91 smb3: add missing null server pointer check
+97cba232549b9 drm/amd/display: Fix buffer overflow in 'get_host_router_total_dp_tunnel_bw()'
+fdfa083549de5 RDMA/srpt: Support specifying the srpt_service_guid parameter
+65323796debe4 drm/nouveau/mmu/r535: uninitialized variable in r535_bar_new_()
+a5c57fd2e9bd1 powerpc/pseries/iommu: DLPAR add doesn't completely initialize pci_controller
+0281b919e175b bpf: Fix racing between bpf_timer_cancel_and_free and bpf_timer_cancel
+5559cea2d5aa3 ipv6: sr: fix possible use-after-free and null-ptr-deref
+a7d6027790ace arp: Prevent overflow in arp_req_get().
+56667da7399eb net: implement lockless setsockopt(SO_PEEK_OFF)
+4cd12c6065dfc bpf, sockmap: Fix NULL pointer dereference in sk_psock_verdict_data_ready()
+d56e460e19ea8 hwmon: (nct6775) Fix access to temperature configuration registers
+bccebf6470173 netfilter: nf_tables: set dormant flag on hook register failure
+9e0f0430389be netfilter: nft_flow_offload: reset dst in route object after setting up flow
+9990889be1428 net: mctp: put sock on tag allocation failure
+d2b48f340d9e4 drm/amd/display: Fix potential null pointer dereference in dc_dmub_srv
+9671761792156 drm/amd/display: fix null-pointer dereference on edid reading

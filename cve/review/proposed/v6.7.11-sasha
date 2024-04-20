@@ -128,3 +128,73 @@ e06cc89475edd btrfs: fix data races when accessing the reserved amount of block 
 c40aad7c81e5f ASoC: SOF: ipc4-pcm: Workaround for crashed firmware on system suspend
 3693bb4465e6e x86/xen: Add some null pointer checking to smp.c
 b979f2d50a099 soc: qcom: pmic_glink_altmode: fix drm bridge use-after-free
+b979f2d50a099 soc: qcom: pmic_glink_altmode: fix drm bridge use-after-free
+32019c659ecfe x86/mm: Disallow vsyscall page read for copy_from_kernel_nofault()
+b4ea9b6a18ebf net/iucv: fix the allocation size of iucv_path_table array
+78f65fbf421a6 wifi: iwlwifi: mvm: ensure offloading TID queue exists
+34b567868777e perf: RISCV: Fix panic on pmu overflow handler
+3948abaa4e2be do_sys_name_to_handle(): use kzalloc() to fix kernel-infoleak
+c3116e62ddeff s390/dasd: fix double module refcount decrement
+31edf4bbe0ba2 nbd: null check for nla_nest_start
+c891f1fd90e66 md: remove flag RemoveSynchronized
+8ede3db5061bb io_uring/net: fix overflow check in io_recvmsg_mshot_prep()
+ad25ee36f0017 wifi: ath10k: fix NULL pointer dereference in ath10k_wmi_tlv_op_pull_mgmt_tx_compl_ev()
+205c50306acf5 wifi: wilc1000: fix RCU usage in connect path
+1213acb478a71 wifi: rtl8xxxu: add cancel_work_sync() for c2hcmd_work
+f661017e6d326 cpufreq: brcmstb-avs-cpufreq: add check for cpufreq_cpu_get's return value
+24355fcb0d4cb wifi: ath9k: delay all of ath9k_wmi_event_tasklet() until init is complete
+b802e7b7e771d wifi: ath11k: initialize rx_mcs_80 and rx_mcs_160 before use
+5f0e4aede01cb wifi: libertas: fix some memleaks in lbs_allocate_cmd_buffer()
+92a871ab9fa59 libbpf: Use OPTS_SET() macro in bpf_xdp_query()
+019b58dcb6ed2 wifi: ath12k: fix incorrect logic of calculating vdev_stats_id
+cb5942b77c05d wifi: wilc1000: prevent use-after-free on vif when cleaning up all interfaces
+e18afcb7b2a12 ACPI: processor_idle: Fix memory leak in acpi_processor_power_exit()
+f1d71576d2c9e firmware: arm_scmi: Fix double free in SMC transport cleanup path
+c957280ef6ab6 wifi: mt76: mt7921e: fix use-after-free in free_irq()
+a5a5f4413d91f wifi: mt76: mt7925e: fix use-after-free in free_irq()
+3cfcfc102a5e5 SUNRPC: fix some memleaks in gssx_dec_option_array
+de4e88ec58c42 Bluetooth: btrtl: fix out of bounds memory access
+f7b94bdc1ec10 Bluetooth: af_bluetooth: Fix deadlock
+947ec0d002dce Bluetooth: fix use-after-free in accessing skb after sending it
+281d464a34f54 bpf: Fix DEVMAP_HASH overflow check on 32-bit arches
+7a4b21250bf79 bpf: Fix stackmap overflow check on 32-bit arches
+4469c0c5b14a0 net: phy: fix phy_get_internal_delay accessing an empty array
+b446631f355ec dpll: fix dpll_xa_ref_*_del() for multiple registrations
+0fbcf2366ba98 net: hns3: fix kernel crash when 1588 is received on HIP08 devices
+2c88c16dc20e8 erofs: fix handling kern_mount() failure
+afe6fcb977588 drm/tegra: dsi: Add missing check for of_find_device_by_node
+45c8034db4784 drm/tegra: rgb: Fix missing clk_put() in the error handling paths of tegra_dc_rgb_probe()
+2fee84030d12d drm/vkms: Avoid reading beyond LUT array
+d0ada20279db2 ASoC: amd: acp: Add missing error handling in sof-mach
+87399f1ff9220 media: tc358743: register v4l2 async device only after successful setup
+4b09715f1504f drm/amd/display: Fix a potential buffer overflow in 'dp_dsc_clock_en_read()'
+9ccfe80d022df drm/amd/display: Fix potential NULL pointer dereferences in 'dcn10_set_output_transfer_func()'
+ba535bce57e71 clk: meson: Add missing clocks to axg_clk_regmaps
+8c64f4cdf4e6c media: edia: dvbdev: fix a use-after-free
+cdb637d339572 drm/amdgpu: Fix potential out-of-bounds access in 'amdgpu_discovery_reg_base_init()'
+d0aa72604fbd8 quota: Fix potential NULL pointer dereference
+2a3cfb9a24a28 drm/amd/display: fix NULL checks for adev->dm.dc in amdgpu_dm_fini()
+f6aed043ee5d7 drm/amd/display: Add 'replay' NULL check in 'edp_set_replay_allow_active()'
+aeedaee5ef546 drm/bridge: adv7511: fix crash on irq during probe
+64c6a38136b74 clk: hisilicon: hi3559a: Fix an erroneous devm_kfree()
+3884f03edd348 mtd: maps: physmap-core: fix flash size larger than 32-bit
+0a0b79ea55de8 media: pvrusb2: fix uaf in pvr2_context_set_notify
+c958e86e9cc1b drm/mediatek: Fix a null pointer crash in mtk_drm_crtc_finish_page_flip
+6969d0a2ba1ad leds: aw2013: Unlock mutex before destroying it
+e97fe4901e0f5 clk: Fix clk_core_get NULL dereference
+f3dc1bdb6b0b0 cifs: Fix writeback data corruption
+a39d51ff1f52c ALSA: usb-audio: Stop parsing channels bits when all channels are found.
+c21a8870c9861 RDMA/srpt: Do not register event handler until srpt device is fully setup
+c2034ef6192a6 f2fs: fix NULL pointer dereference in f2fs_submit_page_write()
+40b2d55e04522 f2fs: fix to create selinux label during whiteout initialization
+251a658bbfcea NFSv4.2: fix nfs4_listxattr kernel BUG at mm/usercopy.c:102
+719fcafe07c12 nfs: fix panic when nfs4_ff_layout_prepare_ds() fails
+cfa9ba1ae0bef comedi: comedi_8255: Correct error in subdevice initialization
+2ae0ab0143fcc spi: lpspi: Avoid potential use-after-free in probe()
+2a750d6a5b365 rds: tcp: Fix use-after-free of net in reqsk_timer_handler().
+343041b59b781 net/sched: taprio: proper TCA_TAPRIO_TC_ENTRY_INDEX check
+67d1189d1095d io_uring: Fix release of pinned pages when __io_uaddr_map fails
+ddbec99f58571 hsr: Fix uninit-value access in hsr_get_node()
+d27e2da94a426 net/bnx2x: Prevent access to a freed page in page_pool
+6540ff6482c1a drm/amdgpu: fix mmhub client id out-of-bounds access
+a20ad45008a7c spi: spi-mt65xx: Fix NULL pointer access in interrupt handler

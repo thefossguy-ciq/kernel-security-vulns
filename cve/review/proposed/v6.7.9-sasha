@@ -44,3 +44,30 @@ fe9f801355f0b net: veth: clear GRO when clearing XDP even when down
 661779e1fcafe netlink: Fix kernel-infoleak-after-free in __skb_datagram_iter
 959043afe53ae spi: cadence-qspi: remove system-wide suspend helper calls from runtime PM hooks
 32ce3bb57b6b4 spi: cadence-qspi: fix pointer reference in runtime PM hooks
+32ce3bb57b6b4 spi: cadence-qspi: fix pointer reference in runtime PM hooks
+661779e1fcafe netlink: Fix kernel-infoleak-after-free in __skb_datagram_iter
+9a0d18853c280 netlink: add nla be16/32 types to minlen array
+5ae1e9922bbdb net: ip_tunnel: prevent perpetual headroom growth
+8af411bbba1f4 stmmac: Clear variable when destroying workqueue
+743ad091fb46e rtnetlink: fix error logic of IFLA_BRIDGE_FLAGS writing back
+13114dc554306 tls: fix use-after-free on failed backlog decryption
+fccfa646ef362 efi/capsule-loader: fix incorrect allocation size
+1382d8b551298 ASoC: qcom: Fix uninitialized pointer dmactl
+0f8ca019544a2 drm/amd/display: Prevent potential buffer overflow in map_hw_resources
+a1a4a9ca77f14 btrfs: fix race between ordered extent completion and fiemap
+2f03fc340cac9 tomoyo: fix UAF write bug in tomoyo_write_control()
+616d82c3cfa2a gtp: fix use-after-free and null-ptr-deref in gtp_newlink()
+3a75cb05d53f4 mm: cachestat: fix folio read-after-free in cache walk
+e2b54eaf28df0 btrfs: fix double free of anonymous device after snapshot creation failure
+9845664b9ee47 btrfs: dev-replace: properly validate device names
+1c0cf6d196901 crypto: arm64/neonbs - fix out-of-bounds access on short input
+87a39071e0b63 dmaengine: fsl-qdma: init irq after reg initialization
+aeb004c0cd695 iommufd: Fix iopt_access_list_id overwrite bug
+cf7c2789822db iommufd: Fix protection fault in iommufd_test_syz_conv_iova
+eb5555d422d0f pmdomain: arm: Fix NULL dereference on scmi_perf_domain removal
+2774f256e7c02 mm/vmscan: fix a bug calling wakeup_kswapd() with a wrong zone index
+10048689def7e mptcp: fix double-free on socket dismantle
+25236c91b5ab4 af_unix: Fix task hung while purging oob_skb in GC.
+aa82ac51d6332 af_unix: Drop oob_skb ref before purging queue in GC.
+d3ea125df37dc dmaengine: idxd: Ensure safe user copy of completion record
+09a3c1e461421 powerpc/pseries/iommu: IOMMU table is not initialized for kdump over SR-IOV

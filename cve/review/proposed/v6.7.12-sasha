@@ -1,0 +1,56 @@
+27571c64f1855 drm/vmwgfx: Unmap the surface before resetting it on a plane state
+517621b706009 drm/vmwgfx: Fix possible null pointer derefence with invalid contexts
+eb2f932100288 media: nxp: imx8-isi: Check whether crossbar pad is non-NULL before access
+2d1f5006ff957 powercap: intel_rapl: Fix a NULL pointer dereference
+7d42e097607c4 crypto: qat - resolve race condition during AER recovery
+fde2497d2bc3a fat: fix uninitialized field in nostale filehandles
+723012cab779e ubifs: Set page uptodate in the correct place
+cdbc6e2d8108b clk: qcom: gcc-ipq6018: fix terminating of frequency table arrays
+1040ef5ed95d6 clk: qcom: gcc-ipq8074: fix terminating of frequency table arrays
+bd2b6395671d8 clk: qcom: gcc-ipq9574: fix terminating of frequency table arrays
+a903cfd38d8de clk: qcom: mmcc-apq8084: fix terminating of frequency table arrays
+e2c02a85bf53a clk: qcom: mmcc-msm8974: fix terminating of frequency table arrays
+be95cc6d71dfd usb: xhci: Add error handling in xhci_map_urb_for_dma
+16c4770c75b12 dm-raid: really frozen sync_thread during suspend
+e8a1e58345cf4 mac802154: fix llsec key resources release in mac802154_llsec_key_del
+664130c0b0309 Bluetooth: btnxpuart: Fix btnxpuart_close
+415798bc07dd1 leds: trigger: netdev: Fix kernel panic on interface rename trig notify
+1a8ec63b2b6c9 io_uring: fix io_queue_proc modifying req->flags
+952c3fce297f1 debugfs: fix wait/cancellation handling during remove
+17f46b803d4f2 nfs: fix UAF in direct writes
+fbec4e7fed89b soc: fsl: qbman: Use raw spinlock for cgr_lock
+50ed48c80fecb s390/zcrypt: fix reference counting on zcrypt card objects
+f2f26b4a84a0e nilfs2: fix failure to detect DAT corruption in btree and direct mappings
+a80a486d72e20 ksmbd: fix slab-out-of-bounds in smb_strndup_from_utf16()
+c6cd2e8d2d9aa ksmbd: fix potencial out-of-bounds when buffer offset is invalid
+9c68ece8b2a5c LoongArch: Define the __io_aw() hook as mmiowb()
+55b6c73867387 wireguard: netlink: check for dangling peer via is_dead instead of empty list
+6c6064cbe58b4 drm/amdgpu: amdgpu_ttm_gart_bind set gtt bound flag
+08ae9ef829b80 drm/amdgpu/pm: Fix NULL pointer dereference when get power limit
+b7cc4ff787a57 nouveau: lock the client object tree.
+c0afb6b88fbbc crypto: rk3288 - Fix use after free in unprepare
+1834200384445 crypto: sun8i-ce - Fix use after free in unprepare
+d3d17e23d1a0d thunderbolt: Fix NULL pointer dereference in tb_port_update_credits()
+575801663c7dc firewire: ohci: prevent leak of left-over IRQ on unbind
+5ef1d8c1ddbf6 KVM: SVM: Flush pages under kvm->lock to fix UAF in svm_register_enc_region()
+014bcf41d946b USB: usb-storage: Prevent divide-by-0 error in isd200_ata_command
+165376f6b23e9 usb: typec: altmodes/displayport: create sysfs nodes as driver's default device attribute group
+961ebd120565c fs/aio: Check IOCB_AIO_RW before the struct aio_kiocb conversion
+0c66c6f4e21cb ARM: 9359/1: flush: check if the folio is reserved for no-mapping addresses
+04867a7a33324 swiotlb: Fix double-allocation of slots due to broken alignment handling
+4e51653d5d871 kprobes/x86: Use copy_from_kernel_nofault() to read from unsafe address
+0a69b6b3a0265 tmpfs: fix race on handling dquot rbtree
+4f2bdb3c5e318 wifi: mac80211: check/clear fast rx for non-4addr sta VLAN changes
+cf55a7acd1ed3 mmc: core: Avoid negative index with array access
+16e87fe23d4af nouveau/dmem: handle kcalloc() allocation failure
+4a3859ea52403 drm/i915/gt: Reset queue_priority_hint on parking
+2f10d4a51bbcd drm/amd/display: Fix bounds check for dcn35 DcfClocks
+339f83612f3a5 usb: cdc-wdm: close race between read and workqueue
+7c9631969287a usb: misc: ljca: Fix double free in error handling path
+457f730825475 vfio/pds: Make sure migration file isn't accessed after reset
+051e0840ffa8a ALSA: sh: aica: reorder cleanup operations to avoid UAF bugs
+a27d4d0e7de30 scsi: qla2xxx: Fix command flush on cable pull
+e288285d47784 scsi: qla2xxx: Fix double free of the ha->vp_map pointer
+82f522ae0d971 scsi: qla2xxx: Fix double free of fcport
+22207fd5c8017 drm/amdgpu: fix use-after-free bug
+f34e8bb7d6c66 drm/sched: fix null-ptr-deref in init entity
