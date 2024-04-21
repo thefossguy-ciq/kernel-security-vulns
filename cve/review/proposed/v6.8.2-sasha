@@ -1,0 +1,90 @@
+04d9d1fc428a tcp: Fix refcnt handling in __inet_hash_connect().
+0a0b79ea55de media: pvrusb2: fix uaf in pvr2_context_set_notify
+0fbcf2366ba9 net: hns3: fix kernel crash when 1588 is received on HIP08 devices
+17ef8efc00b3 ipv6: mcast: remove one synchronize_net() barrier in ipv6_mc_down()
+24355fcb0d4c wifi: ath9k: delay all of ath9k_wmi_event_tasklet() until init is complete
+251a658bbfce NFSv4.2: fix nfs4_listxattr kernel BUG at mm/usercopy.c:102
+281d464a34f5 bpf: Fix DEVMAP_HASH overflow check on 32-bit arches
+2a3cfb9a24a2 drm/amd/display: fix NULL checks for adev->dm.dc in amdgpu_dm_fini()
+2a750d6a5b36 rds: tcp: Fix use-after-free of net in reqsk_timer_handler().
+2ae0ab0143fc spi: lpspi: Avoid potential use-after-free in probe()
+328efda22af8 wifi: wilc1000: do not realloc workqueue everytime an interface is added
+343041b59b78 net/sched: taprio: proper TCA_TAPRIO_TC_ENTRY_INDEX check
+3948abaa4e2b do_sys_name_to_handle(): use kzalloc() to fix kernel-infoleak
+3c4f53b2c341 scsi: hisi_sas: Fix a deadlock issue related to automatic dump
+3cfcfc102a5e SUNRPC: fix some memleaks in gssx_dec_option_array
+4469c0c5b14a net: phy: fix phy_get_internal_delay accessing an empty array
+4797a3dd46f2 media: imx: csc/scaler: fix v4l2_ctrl_handler memory leak
+4a0e7f2decbf netfilter: nf_tables: do not compare internal table flags on updates
+4fc82cd907ac iommu/vt-d: Don't issue ATS Invalidation request when device is disconnected
+51c23bd691c0 xen/evtchn: avoid WARN() when unbinding an event channel
+55e565c42dce dm-integrity: fix a memory leak when rechecking the data
+64c6a38136b7 clk: hisilicon: hi3559a: Fix an erroneous devm_kfree()
+65e6a2773d65 media: usbtv: Remove useless locks in usbtv_video_free()
+65e8fbde6452 dm: call the resume method on internal suspend
+6787d916c2cf bpf: Fix hashtab overflow check on 32-bit arches
+6cf350658736 md: fix kmemleak of rdev->serial
+6ebfad33161a packet: annotate data-races around ignore_outgoing
+719fcafe07c1 nfs: fix panic when nfs4_ff_layout_prepare_ds() fails
+77a28aa47687 ovl: relax WARN_ON in ovl_verify_area()
+7938e9ce39d6 clk: zynq: Prevent null pointer dereference caused by kmalloc failure
+79f4127a502c Bluetooth: btusb: Fix memory leak
+7a4b21250bf7 bpf: Fix stackmap overflow check on 32-bit arches
+7a4cf27d1f05 media: dvb-frontends: avoid stack overflow warnings with clang
+7eaf837a4eb5 netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
+81e921fd3216 iommu/vt-d: Fix NULL domain on device release
+84e95149bd34 nfp: flower: handle acti_netdevs allocation failure
+8c64f4cdf4e6 media: edia: dvbdev: fix a use-after-free
+8cf9c5051076 media: v4l2-tpg: fix some memleaks in tpg_alloc
+8d0d2447394b nvme: host: fix double-free of struct nvme_id_ns in ns_update_nuse()
+8f94b49a5b5d media: v4l2-mem2mem: fix a memleak in v4l2_m2m_register_entity
+947ec0d002dc Bluetooth: fix use-after-free in accessing skb after sending it
+9636951e4468 wifi: b43: Stop/wake correct queue in DMA Tx path when QoS is disabled
+978b63f7464a btrfs: fix race when detecting delalloc ranges during fiemap
+a43e0fc5e913 pstore: inode: Only d_invalidate() is needed
+a6e06258f4c3 Bluetooth: msft: Fix memory leak
+a853450bf4c7 crypto: xilinx - call finalize with bh disabled
+ad25ee36f001 wifi: ath10k: fix NULL pointer dereference in ath10k_wmi_tlv_op_pull_mgmt_tx_compl_ev()
+aebfdfe39b93 NTB: fix possible name leak in ntb_register_device()
+b0e256f3dd2b netfilter: nft_set_pipapo: release elements in clone only from destroy path
+b0ec2abf9826 net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv()
+b1ba8bcb2d1f backlight: hx8357: Fix potential NULL pointer dereference
+b4152222e04c wifi: brcm80211: handle pmk_op allocation failure
+b446631f355e dpll: fix dpll_xa_ref_*_del() for multiple registrations
+b8cfb7c819dd wifi: wfx: fix memory leak when starting AP
+b9b683844b01 media: go7007: fix a memleak in go7007_load_encoder
+ba535bce57e7 clk: meson: Add missing clocks to axg_clk_regmaps
+bba045dc4d99 wireguard: receive: annotate data-race around receiving_counter.counter
+c2034ef6192a f2fs: fix NULL pointer dereference in f2fs_submit_page_write()
+c21a8870c986 RDMA/srpt: Do not register event handler until srpt device is fully setup
+c957280ef6ab wifi: mt76: mt7921e: fix use-after-free in free_irq()
+c958e86e9cc1 drm/mediatek: Fix a null pointer crash in mtk_drm_crtc_finish_page_flip
+ca93bf607a44 thermal/drivers/mediatek/lvts_thermal: Fix a memory leak in an error handling path
+cb5942b77c05 wifi: wilc1000: prevent use-after-free on vif when cleaning up all interfaces
+cda9c0d55628 powerpc/pseries: Fix potential memleak in papr_get_attr()
+d0aa72604fbd quota: Fix potential NULL pointer dereference
+d0b07f712bf6 media: ttpci: fix two memleaks in budget_av_attach
+d27e2da94a42 net/bnx2x: Prevent access to a freed page in page_pool
+d5c0ed17fea6 virtio: packed: fix unmap leak for indirect desc table
+ddbec99f5857 hsr: Fix uninit-value access in hsr_get_node()
+de4e88ec58c4 Bluetooth: btrtl: fix out of bounds memory access
+e127ce7699c1 vmxnet3: Fix missing reserved tailroom
+e18afcb7b2a1 ACPI: processor_idle: Fix memory leak in acpi_processor_power_exit()
+e67b652d8e85 SUNRPC: fix a memleak in gss_import_v2_context
+e97fe4901e0f clk: Fix clk_core_get NULL dereference
+eb70d5a6c932 f2fs: fix to avoid use-after-free issue in f2fs_filemap_fault
+f1d71576d2c9 firmware: arm_scmi: Fix double free in SMC transport cleanup path
+f661017e6d32 cpufreq: brcmstb-avs-cpufreq: add check for cpufreq_cpu_get's return value
+f6aed043ee5d drm/amd/display: Add 'replay' NULL check in 'edp_set_replay_allow_active()'
+f7b94bdc1ec1 Bluetooth: af_bluetooth: Fix deadlock
+f98364e92662 aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts
+8d0d2447394b1 nvme: host: fix double-free of struct nvme_id_ns in ns_update_nuse()
+ea1d166fae14e wifi: iwlwifi: dbg-tlv: ensure NUL termination
+e35f316bce9e5 wifi: iwlwifi: mvm: don't set the MFP flag for the GTK
+a43e0fc5e9134 pstore: inode: Only d_invalidate() is needed
+def054b01a867 iommu/vt-d: Use device rbtree in iopf reporting path
+2f6d721e14b69 f2fs: compress: fix reserve_cblocks counting error when out of space
+eb70d5a6c932d f2fs: fix to avoid use-after-free issue in f2fs_filemap_fault
+77a28aa476873 ovl: relax WARN_ON in ovl_verify_area()
+e127ce7699c1e vmxnet3: Fix missing reserved tailroom
+b0e256f3dd2ba netfilter: nft_set_pipapo: release elements in clone only from destroy path
