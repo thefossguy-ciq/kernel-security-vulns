@@ -1,0 +1,61 @@
+d24b03535e5e nfc: nci: Fix uninit-value in nci_dev_up and nci_ntf_packet
+151c9c724d05 tcp: properly terminate timers for kernel sockets
+ecc6a2101840 bpf: Protect against int overflow for stack access size
+18685451fc4e inet: inet_defrag: prevent sk release while still in use
+0c83842df40f netfilter: validate user input for expected length
+ff9105993240 bpf, sockmap: Prevent lock inversion deadlock in map delete elem
+d313eb8b7755 net/sched: act_skbmod: prevent kernel-infoleak
+7eb322360b02 net/sched: fix lockdep splat in qdisc_tree_reduce_backlog()
+17af420545a7 erspan: make sure erspan_base_hdr is present in skb->head
+1a80dbcb2dba bpf: support deferring bpf_link dealloc to after RCU grace period
+9fe6e9e7b589 nfsd: Fix error cleanup path in nfsd_rename()
+7d5a7dd5a358 net: wwan: t7xx: Split 64bit accesses to fix alignment issues
+994209ddf4f4 netfilter: nf_tables: reject new basechain after table flag update
+24cea9677025 netfilter: nf_tables: flush pending destroy work before exit_net release
+24225011d81b netfilter: nf_tables: Fix potential data-race in __nft_flowtable_type_get()
+1bc83a019bbe netfilter: nf_tables: discard table flag update with pending basechain deletion
+1cb7fdb1dfde ice: fix memory corruption bug with suspend and rebuild
+c0de6ab920aa net: mana: Fix Rx DMA datasize and skb_over_panic
+ed4cccef64c1 gro: fix ownership transfer
+d21d40605bca ipv6: Fix infinite recursion in fib6_dump_done().
+3d010c8031e3 udp: do not accept non-tunnel GSO skbs landing in a tunnel
+3ddf944b32f8 x86/mce: Make sure to grab mce_sysfs_mutex in set_bank()
+a677ebd8ca2f ksmbd: validate payload size in ipc response
+24a9799aa8ef smb: client: fix UAF in smb2_reconnect_server()
+062a7f0ff46e smb: client: guarantee refcounted children from parent session
+ca545b7f0823 smb: client: fix potential UAF in cifs_debug_files_proc_show()
+d3da25c5ac84 smb: client: fix potential UAF in cifs_stats_proc_write()
+0865ffefea19 smb: client: fix potential UAF in cifs_stats_proc_show()
+58acd1f49716 smb: client: fix potential UAF in cifs_dump_full_key()
+22863485a462 smb: client: fix potential UAF in smb2_is_valid_oplock_break()
+705c76fbf726 smb: client: fix potential UAF in smb2_is_valid_lease_break()
+69ccf040acdd smb: client: fix potential UAF in is_valid_oplock_break()
+63981561ffd2 smb: client: fix potential UAF in smb2_is_network_name_deleted()
+e0e50401cc39 smb: client: fix potential UAF in cifs_signal_cifsd_for_reconnect()
+561e4f9451d6 io_uring/kbuf: hold io_buffer_list reference over mmap
+caeb4b0a11b3 aio: Fix null ptr deref in aio_complete() wakeup
+62fc3357e079 net/rds: fix possible cp null dereference
+bbe806c294c9 wifi: iwlwifi: mvm: pick the version of SESSION_PROTECTION_NOTIF
+fcf4692fa39e mptcp: prevent BPF accessing lowat from a subflow socket.
+04c35ab3bdae x86/mm/pat: fix VM_PAT handling in COW mappings
+f7442a634ac0 mlxbf_gige: call request_irq() after NAPI initialized
+09ba28e1cd3c mlxbf_gige: stop interface during shutdown
+3a6a32b31a11 Revert "drm/amd/display: Send DTBCLK disable message on first commit"
+8917e7385346 of: dynamic: Synchronize of_changeset_destroy() with the devlink removals
+a1aa5390cc91 of: module: prevent NULL pointer dereference in vsnprintf()
+99485c4c026f x86/coco: Require seeding RNG with RDRAND on CoCo systems
+05258a0a69b3 SUNRPC: Fix a slow server-side memory leak with RPC-over-TCP
+06a093807eb7 wifi: iwlwifi: mvm: rfi: fix potential response leaks
+417e91e85609 tls: get psock ref after taking rxlock to avoid leak
+d14fa1fcf69d riscv: process: Fix kernel gp leakage
+2295bd846765 dma-buf: Fix NULL pointer dereference in sanitycheck()
+37801a36b4d6 selinux: avoid dereference of garbage after mount failure
+96c155943a70 net: phy: micrel: Fix potential null pointer dereference
+1f886a7bfb3f spi: mchp-pci1xxx: Fix a possible null pointer dereference in pci1xxx_spi_probe
+037965402a01 xen-netfront: Add missing skb_mark_for_recycle
+dd19e827d63a idpf: fix kernel panic on unknown packet types
+c27fa53b858b riscv: Fix vector state restore in rt_sigreturn()
+65291dcfcf89 mm/secretmem: fix GUP-fast succeeding on secretmem folios
+7ded842b356d s390/bpf: Fix bpf_plt pointer arithmetic
+9d98aa088386 x86/bpf: Fix IP after emitting call depth accounting
+fd819ad3ecf6 ax25: fix use-after-free bugs caused by ax25_ds_del_timer
