@@ -1,0 +1,9 @@
+8076fcde016c x86/rfds: Mitigate Register File Data Sampling (RFDS)
+1ca1ba465e55 geneve: make sure to pull inner header in geneve_rx()
+89d72d4125e9 net: sparx5: Fix use after free inside sparx5_del_mact_entry
+06e456a05d66 net: ice: Fix potential NULL pointer dereference in ice_bridge_setlink()
+9224fc86f177 ice: fix uninitialized dplls mutex usage
+ef27f655b438 igc: avoid returning frame twice in XDP_REDIRECT
+685f7d531264 net/ipv6: avoid possible UAF in ip6_route_mpath_notify()
+c055fc00c07b net/rds: fix WARNING in rds_conn_connect_if_down
+ba18deddd6d5 net: pds_core: Fix possible double free in error handling path
