@@ -199,7 +199,8 @@ refcount|\
 syzkaller|\
 syzbot|\
 uaf|\
-uninitial[a-z]*\
+uninitial[a-z]*|\
+vuln[a-z]*\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
