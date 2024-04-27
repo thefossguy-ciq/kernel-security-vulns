@@ -1,0 +1,87 @@
+b979f2d50a09 soc: qcom: pmic_glink_altmode: fix drm bridge use-after-free
+ffb635bb398f media: rkisp1: Fix IRQ handling due to shared interrupts
+3693bb4465e6 x86/xen: Add some null pointer checking to smp.c
+c40aad7c81e5 ASoC: SOF: ipc4-pcm: Workaround for crashed firmware on system suspend
+4d5e86a56615 RDMA/mlx5: Fix fortify source warning while accessing Eth segment
+32019c659ecf x86/mm: Disallow vsyscall page read for copy_from_kernel_nofault()
+78f65fbf421a wifi: iwlwifi: mvm: ensure offloading TID queue exists
+e06cc89475ed btrfs: fix data races when accessing the reserved amount of block reserves
+c7bb26b847e5 btrfs: fix data race at btrfs_use_block_rsv() when accessing block reserve
+2535b848fa0f Bluetooth: rfcomm: Fix null-ptr-deref in rfcomm_check_security
+34b567868777 perf: RISCV: Fix panic on pmu overflow handler
+3948abaa4e2b do_sys_name_to_handle(): use kzalloc() to fix kernel-infoleak
+15930da42f89 workqueue: Don't call cpumask_test_cpu() with -1 CPU in wq_update_node_max_active()
+c3116e62ddef s390/dasd: fix double module refcount decrement
+31edf4bbe0ba nbd: null check for nla_nest_start
+03f12122b20b block: fix deadlock between bd_link_disk_holder and partition scan
+f98364e92662 aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts
+8e5647a723c4 x86/mm: Ensure input to pfn_to_kaddr() is treated as a 64-bit type
+ad25ee36f001 wifi: ath10k: fix NULL pointer dereference in ath10k_wmi_tlv_op_pull_mgmt_tx_compl_ev()
+9636951e4468 wifi: b43: Stop/wake correct queue in DMA Tx path when QoS is disabled
+205c50306acf wifi: wilc1000: fix RCU usage in connect path
+1213acb478a7 wifi: rtl8xxxu: add cancel_work_sync() for c2hcmd_work
+f661017e6d32 cpufreq: brcmstb-avs-cpufreq: add check for cpufreq_cpu_get's return value
+24355fcb0d4c wifi: ath9k: delay all of ath9k_wmi_event_tasklet() until init is complete
+92a871ab9fa5 libbpf: Use OPTS_SET() macro in bpf_xdp_query()
+e35f316bce9e wifi: iwlwifi: mvm: don't set the MFP flag for the GTK
+cb5942b77c05 wifi: wilc1000: prevent use-after-free on vif when cleaning up all interfaces
+f1d71576d2c9 firmware: arm_scmi: Fix double free in SMC transport cleanup path
+c957280ef6ab wifi: mt76: mt7921e: fix use-after-free in free_irq()
+a5a5f4413d91 wifi: mt76: mt7925e: fix use-after-free in free_irq()
+b4152222e04c wifi: brcm80211: handle pmk_op allocation failure
+4fc82cd907ac iommu/vt-d: Don't issue ATS Invalidation request when device is disconnected
+de4e88ec58c4 Bluetooth: btrtl: fix out of bounds memory access
+81137162bfaa Bluetooth: hci_core: Fix possible buffer overflow
+f7b94bdc1ec1 Bluetooth: af_bluetooth: Fix deadlock
+947ec0d002dc Bluetooth: fix use-after-free in accessing skb after sending it
+281d464a34f5 bpf: Fix DEVMAP_HASH overflow check on 32-bit arches
+6787d916c2cf bpf: Fix hashtab overflow check on 32-bit arches
+7a4b21250bf7 bpf: Fix stackmap overflow check on 32-bit arches
+4469c0c5b14a net: phy: fix phy_get_internal_delay accessing an empty array
+0fbcf2366ba9 net: hns3: fix kernel crash when 1588 is received on HIP08 devices
+84e95149bd34 nfp: flower: handle acti_netdevs allocation failure
+65e8fbde6452 dm: call the resume method on internal suspend
+afe6fcb97758 drm/tegra: dsi: Add missing check for of_find_device_by_node
+2fee84030d12 drm/vkms: Avoid reading beyond LUT array
+4b09715f1504 drm/amd/display: Fix a potential buffer overflow in 'dp_dsc_clock_en_read()'
+9ccfe80d022d drm/amd/display: Fix potential NULL pointer dereferences in 'dcn10_set_output_transfer_func()'
+ba535bce57e7 clk: meson: Add missing clocks to axg_clk_regmaps
+8c64f4cdf4e6 media: edia: dvbdev: fix a use-after-free
+cdb637d33957 drm/amdgpu: Fix potential out-of-bounds access in 'amdgpu_discovery_reg_base_init()'
+d0aa72604fbd quota: Fix potential NULL pointer dereference
+a853450bf4c7 crypto: xilinx - call finalize with bh disabled
+2a3cfb9a24a2 drm/amd/display: fix NULL checks for adev->dm.dc in amdgpu_dm_fini()
+f6aed043ee5d drm/amd/display: Add 'replay' NULL check in 'edp_set_replay_allow_active()'
+aeedaee5ef54 drm/bridge: adv7511: fix crash on irq during probe
+64c6a38136b7 clk: hisilicon: hi3559a: Fix an erroneous devm_kfree()
+a32e88f2b202 clk: mediatek: mt7622-apmixedsys: Fix an error handling path in clk_mt8135_apmixed_probe()
+0a0b79ea55de media: pvrusb2: fix uaf in pvr2_context_set_notify
+c958e86e9cc1 drm/mediatek: Fix a null pointer crash in mtk_drm_crtc_finish_page_flip
+e97fe4901e0f clk: Fix clk_core_get NULL dereference
+7938e9ce39d6 clk: zynq: Prevent null pointer dereference caused by kmalloc failure
+f3dc1bdb6b0b cifs: Fix writeback data corruption
+3c4f53b2c341 scsi: hisi_sas: Fix a deadlock issue related to automatic dump
+c21a8870c986 RDMA/srpt: Do not register event handler until srpt device is fully setup
+8a430dd49e9c f2fs: compress: fix to guarantee persisting compressed blocks by CP
+fd244524c2cf f2fs: compress: fix to cover normal cluster write with cp_rwsem
+b896e302f796 f2fs: fix to remove unnecessary f2fs_bug_on() to avoid panic
+c2034ef6192a f2fs: fix NULL pointer dereference in f2fs_submit_page_write()
+21ec68234826 f2fs: fix to avoid potential panic during recovery
+251a658bbfce NFSv4.2: fix nfs4_listxattr kernel BUG at mm/usercopy.c:102
+fd5860ab6341 NFS: Fix nfs_netfs_issue_read() xarray locking for writeback interrupt
+9f0c4a46be1f f2fs: fix to truncate meta inode pages forcely
+719fcafe07c1 nfs: fix panic when nfs4_ff_layout_prepare_ds() fails
+cfa9ba1ae0be comedi: comedi_8255: Correct error in subdevice initialization
+2ae0ab0143fc spi: lpspi: Avoid potential use-after-free in probe()
+2a750d6a5b36 rds: tcp: Fix use-after-free of net in reqsk_timer_handler().
+343041b59b78 net/sched: taprio: proper TCA_TAPRIO_TC_ENTRY_INDEX check
+04d9d1fc428a tcp: Fix refcnt handling in __inet_hash_connect().
+e127ce7699c1 vmxnet3: Fix missing reserved tailroom
+ddbec99f5857 hsr: Fix uninit-value access in hsr_get_node()
+ea80e3ed09ab net: ethernet: mtk_eth_soc: fix PPE hanging issue
+6ebfad33161a packet: annotate data-races around ignore_outgoing
+bba045dc4d99 wireguard: receive: annotate data-race around receiving_counter.counter
+d27e2da94a42 net/bnx2x: Prevent access to a freed page in page_pool
+50e60de381c3 octeontx2-af: Use separate handlers for interrupts
+6540ff6482c1 drm/amdgpu: fix mmhub client id out-of-bounds access
+a20ad45008a7 spi: spi-mt65xx: Fix NULL pointer access in interrupt handler
