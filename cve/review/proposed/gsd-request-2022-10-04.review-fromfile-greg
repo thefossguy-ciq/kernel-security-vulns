@@ -1,0 +1,39 @@
+29a5b8a137ac ext4: fix bug in extents parsing when eh_entries == 0 and eh_depth > 0
+de24aceb07d4 i2c: mlxbf: prevent stack overflow in mlxbf_i2c_smbus_start_transaction()
+b6f25c3b94f2 drm/gma500: Fix WARN_ON(lock->magic != lock) error
+63e37a79f7bd drm/gma500: Fix BUG: sleeping function called from invalid context errors
+17d9c15c9b9e fsdax: Fix infinite loop in dax_iomap_rw()
+aa0c680c3aa9 block: Do not call blk_put_queue() if gendisk allocation fails
+db7ba07108a4 s390/dasd: fix Oops in dasd_alias_get_start_dev due to missing pavgroup
+c31f26c8f69f bnxt: prevent skb UAF after handing over to PTP worker
+df02452f3df0 cgroup: cgroup_get_from_id() must check the looked-up kn is a directory
+c2e1cfefcac3 net: sched: fix possible refcount leak in tc_new_tfilter()
+0e400d602f46 bonding: fix NULL deref in bond_rr_gen_slave_id
+62ce44c4fff9 netfilter: ebtables: fix memory leak when blob is malformed
+9a4d6dd554b8 netfilter: nf_tables: fix percpu memory leak at nf_tables_addchain()
+921ebde3c0d2 netfilter: nf_tables: fix nft_counters_enabled underflow at nf_tables_addchain()
+db46e3a88a09 net/sched: taprio: avoid disabling offload when it was never enabled
+5641c751fe2f net: enetc: deny offload of tc-based TSN features on VF interfaces
+589c6eded10c sfc/siena: fix null pointer dereference in efx_hard_start_xmit
+f232af429565 sfc: fix TX channel offset when using legacy interrupts
+0a242eb2913a sfc: fix null pointer dereference in efx_hard_start_xmit
+d71608a87736 mm/slab_common: fix possible double free of kmem_cache
+601be20fc6a1 scsi: qla2xxx: Fix memory leak in __qlt_24xx_handle_abts()
+81225b2ea161 ipvlan: Fix out-of-bound bugs caused by unset skb->mac_header
+a509702cac95 ice: Fix crash by keep old cfg when update TCs more than queues
+23c619190318 ice: Don't double unplug aux on peer initiated reset
+559c36c5a8d7 netfilter: nfnetlink_osf: fix possible bogus match in nf_osf_find()
+e9076ffbcaed firmware: arm_scmi: Harden accesses to the reset domains
+f9fdb0b86f08 dmaengine: ti: k3-udma-private: Fix refcount leak bug in of_xudma_dev_get()
+d4955c0ad77d arm64: topology: fix possible overflow in amu_fie_setup()
+e45cc288724f mm: slub: fix flush_cpu_slab()/__free_slab() invocations in task context.
+7e9c323c52b3 mm/slub: fix to return errno if kmalloc() fails
+69bef19d6b97 gpiolib: cdev: Set lineevent_state::irq after IRQ register successfully
+02743c4091cc gpio: mockup: Fix potential resource leakage when register a chip
+d119888b09bd drm/i915/gem: Really move i915_gem_context.link under ref protection
+b7df41a6f79d gpio: mockup: fix NULL pointer dereference when removing debugfs
+a362bb864b8d btrfs: fix hang during unmount when stopping a space reclaim worker
+2e9ceb6728f1 exfat: fix overflow for large capacity partition
+8fe4ce5836e9 scsi: core: Fix a use-after-free
+9c8b7a293f50 smb3: fix temporary data corruption in insert range
+fa30a81f255a smb3: fix temporary data corruption in collapse range
