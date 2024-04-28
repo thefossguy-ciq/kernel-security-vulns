@@ -190,10 +190,12 @@ denial|\
 dos|\
 [-\s_]fault|\
 [-\s_]hang[a-z]*|hung|\
+leak|\
 memory|\
 oob|\
 oops|\
 panic|\
+refcount|\
 syzkaller|\
 syzbot|\
 uaf|\
