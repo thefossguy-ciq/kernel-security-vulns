@@ -114,7 +114,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
                     sasha=1
                     ;;
                 *)
-                    echo "Unexpected user"
+                    echo "Unexpected user '${USER}' - exiting"
                     exit 1
             esac
             votes=$((votes + 1))
