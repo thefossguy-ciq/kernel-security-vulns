@@ -1,0 +1,60 @@
+051e0840ffa8a ALSA: sh: aica: reorder cleanup operations to avoid UAF bugs
+08ae9ef829b80 drm/amdgpu/pm: Fix NULL pointer dereference when get power limit
+0c66c6f4e21cb ARM: 9359/1: flush: check if the folio is reserved for no-mapping addresses
+0d27056c24efd serial: max310x: fix NULL pointer dereference in I2C instantiation
+0e45882ca829b drm/i915/vma: Fix UAF on destroy against retire race
+1040ef5ed95d6 clk: qcom: gcc-ipq8074: fix terminating of frequency table arrays
+16e87fe23d4af nouveau/dmem: handle kcalloc() allocation failure
+17f46b803d4f2 nfs: fix UAF in direct writes
+1ec17ef59168a btrfs: zoned: fix use-after-free in do_zone_finish()
+22207fd5c8017 drm/amdgpu: fix use-after-free bug
+269cdf353b5bd nilfs2: prevent kernel bug at submit_bh_wbc()
+27571c64f1855 drm/vmwgfx: Unmap the surface before resetting it on a plane state
+2d1f5006ff957 powercap: intel_rapl: Fix a NULL pointer dereference
+32e39bab59934 drm/i915/bios: Tolerate devdata==NULL in intel_bios_encoder_supports_dp_dual_mode()
+334b56cea5d9d drm/amd/display: Add a dc_state NULL check in dc_state_release
+3d75b8aa5c290 KVM: Always flush async #PF workqueue when vCPU is being destroyed
+41425f96d7aa5 dm-raid456, md/raid456: fix a deadlock for dm-raid456 while io concurrent with reshape
+457f730825475 vfio/pds: Make sure migration file isn't accessed after reset
+4a3859ea52403 drm/i915/gt: Reset queue_priority_hint on parking
+4be9075fec0a6 drm/vmwgfx: Create debugfs ttm_resource_manager entry only if needed
+4e51653d5d871 kprobes/x86: Use copy_from_kernel_nofault() to read from unsafe address
+50ed48c80fecb s390/zcrypt: fix reference counting on zcrypt card objects
+517621b706009 drm/vmwgfx: Fix possible null pointer derefence with invalid contexts
+55b6c73867387 wireguard: netlink: check for dangling peer via is_dead instead of empty list
+5a7e89d3315d1 crypto: iaa - Fix nr_cpus < nr_iaa case
+5b4cdd9c56765 Fix memory leak in posix_clock_open()
+6379b44cdcd67 ubifs: ubifs_symlink: Fix memleak of inode->i_link in error path
+664130c0b0309 Bluetooth: btnxpuart: Fix btnxpuart_close
+6661befe41009 usb: dwc3-am62: fix module unload/reload behavior
+675daf435e9f8 vfio/platform: Create persistent IRQ handlers
+6a3d70f7802a9 clk: qcom: camcc-sc8280xp: fix terminating of frequency table arrays
+6a4aee277740d net: phy: qcom: at803x: fix kernel panic with at8031_probe
+71cbd32e3db82 wireguard: netlink: access device through ctx instead of peer
+7626913652cc7 pci_iounmap(): Fix MMIO mapping leak
+7c9631969287a usb: misc: ljca: Fix double free in error handling path
+7d42e097607c4 crypto: qat - resolve race condition during AER recovery
+80ba43e9f799c USB: core: Fix deadlock in usb_deauthorize_interface()
+82b1c07a0af60 mm: swap: fix race between free_swap_and_cache() and swapoff()
+82f522ae0d971 scsi: qla2xxx: Fix double free of fcport
+8a565ec04d6c4 btrfs: fix extent map leak in unexpected scenario at unpin_extent_cache()
+90ad946fff70f clk: qcom: gcc-ipq5018: fix terminating of frequency table arrays
+9cbd1dae84273 drm/dp: Fix divide-by-zero regression on DP MST unplug with nouveau
+a27d4d0e7de30 scsi: qla2xxx: Fix command flush on cable pull
+a80a486d72e20 ksmbd: fix slab-out-of-bounds in smb_strndup_from_utf16()
+a903cfd38d8de clk: qcom: mmcc-apq8084: fix terminating of frequency table arrays
+b63f90487bdf9 usb: typec: tcpm: fix double-free issue in tcpm_port_unregister_pd()
+bd2b6395671d8 clk: qcom: gcc-ipq9574: fix terminating of frequency table arrays
+be95cc6d71dfd usb: xhci: Add error handling in xhci_map_urb_for_dma
+c3198822c6cb9 net: esp: fix bad handling of pages from page_pool
+c6cd2e8d2d9aa ksmbd: fix potencial out-of-bounds when buffer offset is invalid
+cdbc6e2d8108b clk: qcom: gcc-ipq6018: fix terminating of frequency table arrays
+e288285d47784 scsi: qla2xxx: Fix double free of the ha->vp_map pointer
+e2c02a85bf53a clk: qcom: mmcc-msm8974: fix terminating of frequency table arrays
+e8a1e58345cf4 mac802154: fix llsec key resources release in mac802154_llsec_key_del
+eb2f932100288 media: nxp: imx8-isi: Check whether crossbar pad is non-NULL before access
+f23a4d6e07570 scsi: core: Fix unremoved procfs host directory regression
+f2f26b4a84a0e nilfs2: fix failure to detect DAT corruption in btree and direct mappings
+f34e8bb7d6c66 drm/sched: fix null-ptr-deref in init entity
+f4d1960764d8a USB: core: Fix deadlock in port "disable" sysfs attribute
+fde2497d2bc3a fat: fix uninitialized field in nostale filehandles

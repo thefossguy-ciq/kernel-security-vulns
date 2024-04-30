@@ -1,0 +1,67 @@
+01f1a678b05ad netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get()
+048cc4a028e63 KVM: x86/mmu: x86: Don't overflow lpage_info when checking attributes
+0977f89722ece ksmbd: fix slab-out-of-bounds in smb2_allocate_rsp_buf
+0dcd876411644 drm/amdkfd: Fix memory leak in create_process failure
+0efb15c14c493 speakup: Avoid crash on very long word
+0f022d32c3eca net/sched: Fix mirred deadlock on device recursion
+17cf0c2794bdb ksmbd: validate request buffer size in smb2_allocate_rsp_buf()
+18921b2050125 drm/amdkfd: Fix memory leak in create_process failure
+1983184c22dd8 mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+19fa4f2a85d77 r8169: fix LED-related deadlock on module removal
+1be3226445362 serial/pmac_zilog: Remove flawed mitigation for rx irq flood
+2066c28c7fe1c fuse: fix leaked ENOSYS error on first statx call
+26212da39ee14 drm: nv04: Fix out of bounds access
+2673dfb591a35 KVM: x86/mmu: Write-protect L2 SPTEs in TDP MMU when clearing dirty status
+29b359cf6d95f netfilter: nft_set_pipapo: walk over current view on netlink dump
+2d8527f2f911f s390/cio: fix race condition during online processing
+2f7b1d8b5505e clk: mediatek: Do a runtime PM get on controllers during probe
+35e351780fa9d fork: defer linking file vma until vma is fully initialized
+3cfc9ec039af6 netfilter: nft_set_pipapo: do not free live element
+46dad3c1e5789 init/main.c: Fix potential static_command_line memory overflow
+49955b24002dc mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+49d0e656d19df netfilter: nf_tables: fix memleak in map from abort path
+4ca946b19caf6 netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
+50449ca66cc5a arm64: hibernate: Fix level3 translation fault in swsusp_save()
+54c4ec5f8c471 serial: mxs-auart: add spinlock around changing cts state
+5a7dfb8fcd3f2 bootconfig: use memblock_free_late to free xbc memory to buddy
+6334b8e4553cc usb: gadget: f_ncm: Fix UAF ncm object at re-bind after usb ep transport error
+652ead9b746a6 drm/xe: Fix bo leak in intel_fb_bo_framebuffer_init
+68879386180c0 btrfs: zoned: do not flag ZEROOUT on non-dirty extent buffer
+6db5dc7b351b9 netfilter: flowtable: incorrect pppoe tuple
+7250326cbb1f4 usb: gadget: f_ncm: Fix UAF ncm object at re-bind after usb ep transport error
+751de2012eafa netfilter: br_netfilter: skip conntrack input hook for promisc packets
+7d8ac0942c312 drm/xe: Fix bo leak in intel_fb_bo_framebuffer_init
+86a1471d7cde7 netfilter: nf_tables: fix memleak in map from abort path
+87b3593bed186 netfilter: flowtable: validate pppoe header
+89f9a1e876b5a bootconfig: use memblock_free_late to free xbc memory to buddy
+90823f8d9ecca nilfs2: fix OOB in nilfs_set_de_type
+9253c54e01b65 Squashfs: check the inode number is not the invalid value of zero
+936a02b5a9630 init/main.c: Fix potential static_command_line memory overflow
+992b54bd083c5 KVM: x86/mmu: x86: Don't overflow lpage_info when checking attributes
+9cf7ea2eeb745 serial: core: Clearing the circular buffer before NULLifying it
+9d1e795f754db clk: Get runtime PM before walking tree for clk_summary
+9e985cbf2942a KVM: x86/pmu: Disable support for adaptive PEBS
+a4234decd0fe4 s390/cio: fix race condition during online processing
+a4c99b57d43ba fs: sysfs: Fix reference leak in sysfs_break_active_protection()
+a90bca2228c06 fs: sysfs: Fix reference leak in sysfs_break_active_protection()
+aaef73821a3b0 binder: check offset alignment in binder_get_object()
+b552f63cd4373 thermal/debugfs: Add missing count increment to thermal_debug_tz_trip_up()
+c0205eaf3af9f userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
+c119f4ede3fa9 ksmbd: fix slab-out-of-bounds in smb2_allocate_rsp_buf
+c4128304c2169 usb: typec: tcpm: Correct the PDO counting in pd_set
+c4a7dc9523b59 nilfs2: fix OOB in nilfs_set_de_type
+c8d2f34ea96ea speakup: Avoid crash on very long word
+cf92bb778eda7 drm: nv04: Fix out of bounds access
+d1718530e3f64 comedi: vmk80xx: fix incomplete endpoint checking
+d78d867dcea69 netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
+de1bf25b6d771 interconnect: Don't access req_list while it's being manipulated
+df5f6e683e7f2 userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
+e581cf5d21628 clk: Get runtime PM before walking tree during disable_unused
+e6b90468da4da net/sched: Fix mirred deadlock on device recursion
+e79b47a8615d4 netfilter: nf_tables: restore set elements when delete set fails
+eed04fa96c487 usb: dwc2: host: Fix dereference issue in DDMA completion flow.
+f3da3192cdd3f usb: typec: tcpm: Correct the PDO counting in pd_set
+f8bbc07ac5355 tun: limit printing rate when illegal packet received by tun dev
+f969eb84ce482 netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get()
+fef965764cf56 net/mlx5e: Prevent deadlock while disabling aRFS
+fff1386cc889d nouveau: fix instmem race condition around ptr stores
