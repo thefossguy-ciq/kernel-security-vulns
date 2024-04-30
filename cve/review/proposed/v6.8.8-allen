@@ -1,0 +1,20 @@
+0977f89722ec 2024-04-11ksmbd: fix slab-out-of-bounds in smb2_allocate_rsp_buf
+90823f8d9ecc 2024-04-16nilfs2: fix OOB in nilfs_set_de_type
+5a7dfb8fcd3f 2024-04-14bootconfig: use memblock_free_late to free xbc memory to buddy
+7d8ac0942c31 2024-04-04drm/xe: Fix bo leak in intel_fb_bo_framebuffer_init
+0dcd87641164 2024-04-10drm/amdkfd: Fix memory leak in create_process failure
+2066c28c7fe1 2024-04-13fuse: fix leaked ENOSYS error on first statx call
+49955b24002d 2024-04-07mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+936a02b5a963 2024-04-12init/main.c: Fix potential static_command_line memory overflow
+048cc4a028e6 2024-03-14KVM: x86/mmu: x86: Don't overflow lpage_info when checking attributes
+a4c99b57d43b 2024-03-13fs: sysfs: Fix reference leak in sysfs_break_active_protection()
+0efb15c14c49 2024-03-23speakup: Avoid crash on very long word
+f3da3192cdd3 2024-04-04usb: typec: tcpm: Correct the PDO counting in pd_set
+7250326cbb1f 2024-03-27usb: gadget: f_ncm: Fix UAF ncm object at re-bind after usb ep transport error
+df5f6e683e7f 2024-04-04userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
+26212da39ee1 2024-04-11drm: nv04: Fix out of bounds access
+a4234decd0fe 2024-04-10s390/cio: fix race condition during online processing
+e6b90468da4d 2024-04-15net/sched: Fix mirred deadlock on device recursion
+49d0e656d19d 2024-04-17netfilter: nf_tables: fix memleak in map from abort path
+4ca946b19caf 2024-04-07netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
+01f1a678b05a 2024-04-07netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get()
