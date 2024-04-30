@@ -1,0 +1,45 @@
+19fa4f2a85d7 r8169: fix LED-related deadlock on module removal
+f969eb84ce48 netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get()
+d78d867dcea6 netfilter: nf_tables: Fix potential data-race in __nft_obj_type_get()
+751de2012eaf netfilter: br_netfilter: skip conntrack input hook for promisc packets
+29b359cf6d95 netfilter: nft_set_pipapo: walk over current view on netlink dump
+3cfc9ec039af netfilter: nft_set_pipapo: do not free live element
+87b3593bed18 netfilter: flowtable: validate pppoe header
+6db5dc7b351b netfilter: flowtable: incorrect pppoe tuple
+fef965764cf5 net/mlx5e: Prevent deadlock while disabling aRFS
+f8bbc07ac535 tun: limit printing rate when illegal packet received by tun dev
+e79b47a8615d netfilter: nf_tables: restore set elements when delete set fails
+86a1471d7cde netfilter: nf_tables: fix memleak in map from abort path
+0f022d32c3ec net/sched: Fix mirred deadlock on device recursion
+2d8527f2f911 s390/cio: fix race condition during online processing
+cf92bb778eda drm: nv04: Fix out of bounds access
+c0205eaf3af9 userfaultfd: change src_folio after ensuring it's unpinned in UFFDIO_MOVE
+b552f63cd437 thermal/debugfs: Add missing count increment to thermal_debug_tz_trip_up()
+de1bf25b6d77 interconnect: Don't access req_list while it's being manipulated
+e581cf5d2162 clk: Get runtime PM before walking tree during disable_unused
+9d1e795f754d clk: Get runtime PM before walking tree for clk_summary
+2f7b1d8b5505 clk: mediatek: Do a runtime PM get on controllers during probe
+aaef73821a3b binder: check offset alignment in binder_get_object()
+d1718530e3f6 comedi: vmk80xx: fix incomplete endpoint checking
+54c4ec5f8c47 serial: mxs-auart: add spinlock around changing cts state
+1be322644536 serial/pmac_zilog: Remove flawed mitigation for rx irq flood
+9cf7ea2eeb74 serial: core: Clearing the circular buffer before NULLifying it
+eed04fa96c48 usb: dwc2: host: Fix dereference issue in DDMA completion flow.
+6334b8e4553c usb: gadget: f_ncm: Fix UAF ncm object at re-bind after usb ep transport error
+c4128304c216 usb: typec: tcpm: Correct the PDO counting in pd_set
+c8d2f34ea96e speakup: Avoid crash on very long word
+a90bca2228c0 fs: sysfs: Fix reference leak in sysfs_break_active_protection()
+9e985cbf2942 KVM: x86/pmu: Disable support for adaptive PEBS
+992b54bd083c KVM: x86/mmu: x86: Don't overflow lpage_info when checking attributes
+2673dfb591a3 KVM: x86/mmu: Write-protect L2 SPTEs in TDP MMU when clearing dirty status
+50449ca66cc5 arm64: hibernate: Fix level3 translation fault in swsusp_save()
+46dad3c1e578 init/main.c: Fix potential static_command_line memory overflow
+1983184c22dd mm/memory-failure: fix deadlock when hugetlb_optimize_vmemmap is enabled
+18921b205012 drm/amdkfd: Fix memory leak in create_process failure
+652ead9b746a drm/xe: Fix bo leak in intel_fb_bo_framebuffer_init
+fff1386cc889 nouveau: fix instmem race condition around ptr stores
+89f9a1e876b5 bootconfig: use memblock_free_late to free xbc memory to buddy
+9253c54e01b6 Squashfs: check the inode number is not the invalid value of zero
+c4a7dc9523b5 nilfs2: fix OOB in nilfs_set_de_type
+c119f4ede3fa ksmbd: fix slab-out-of-bounds in smb2_allocate_rsp_buf
+17cf0c2794bd ksmbd: validate request buffer size in smb2_allocate_rsp_buf()
