@@ -274,7 +274,7 @@ WARN:\
         UPDATEFINALDIR=true
     fi
 
-    echo ${oneline} >> ${PROCESSEDFILE}
+    echo "${oneline}" >> ${PROCESSEDFILE}
 done
 
 if [ "${UPDATEFINALDIR}" == "true" ]; then
