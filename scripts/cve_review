@@ -102,7 +102,7 @@ if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
 fi
 
 print_blue "Fetching from ${STABLEREMOTE}"
-git fetch ${STABLEREMOTE}
+git fetch ${STABLEREMOTE} || print_blue "Unable to fetch - continuing anyway\n"
 
 TAG=${RANGE#*..}
 if [ -s "${FILE}" ]; then
