@@ -175,12 +175,12 @@ for h in ${SHAS[@]}; do
     MATCHES="\
 call[-\s_]*trace|\
 dead[-\s_]*lock|lock[-\s_]*up|[-\s_]lock|\
-dereference|null|deref|\
+nul[l]*[-\s_]*p[a-z]*[-\s_]*deref[a-z]*|nul[l]*[-\s_]*p[a-z]*|null|deref[a-z]*|\
 divid[-\s_a-z]*by[-\s_]*zero|divid[-\s_a-z]*by[-\s_]*0|\
 double[-\s_]*free|\
 kernel[-\s_]*bug|\
-over[-\s_]*run|over[-\s_]*flow|\
-out[-\s_]*of[-\s_]*bounds|bounds|bound|\
+buffer[-\s_]*overflow|over[-\s_]*run|over[-\s_]*flow|\
+out[-\s_]*of[-\s_]*bound[s]*|bound[s]*|\
 [-\s_]race|[-\s_]racing|\
 use[-\s_]*after[-\s_]*free|use[-\s_]*after|after[-\s_]*free|\
 circular|\
@@ -200,7 +200,9 @@ syzkaller|\
 syzbot|\
 uaf|\
 uninitial[a-z]*|\
-vuln[a-z]*\
+vuln[a-z]*|\
+BUG:|\
+WARN:\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
