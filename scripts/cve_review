@@ -253,7 +253,7 @@ WARN:\
     rm -f ${commitfile}
 
     if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
-        print_blue "Exiting"
+        print_blue "\nExiting"
         exit 0
     fi
 
