@@ -43,3 +43,4 @@ fff1386cc889 nouveau: fix instmem race condition around ptr stores
 c4a7dc9523b5 nilfs2: fix OOB in nilfs_set_de_type
 c119f4ede3fa ksmbd: fix slab-out-of-bounds in smb2_allocate_rsp_buf
 17cf0c2794bd ksmbd: validate request buffer size in smb2_allocate_rsp_buf()
+35e351780fa9 fork: defer linking file vma until vma is fully initialized
