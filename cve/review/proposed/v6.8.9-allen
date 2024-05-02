@@ -1,0 +1,20 @@
+b0fdabc908a7 2024-04-18mm: zswap: fix shrinker NULL crash with cgroup_disable=memory
+5b012f77abde 2024-04-18irqchip/gic-v3-its: Prevent double free on error
+71ecc814a4fd 2024-04-18drm/amdgpu: Fix leak when GPU memory allocation fails
+2e1059698076 2024-04-24LoongArch: Fix access error when read fault on a write-only VMA
+6d8b56ec0c8f 2024-04-22eeprom: at24: fix memory corruption race condition
+fddc19631c51 2024-04-17btrfs: fix information leak in btrfs_ioctl_logical_to_ino()
+bec4d4c6fa5c 2024-04-22Bluetooth: qca: fix NULL-deref on non-serdev setup
+b64092d2f108 2024-04-22Bluetooth: qca: fix NULL-deref on non-serdev suspend
+f5aa87a2c0a7 2024-04-24octeontx2-af: fix the double free in rvu_npc_freemem()
+d72dd6fcd788 2024-04-22mlxsw: spectrum_acl_tcam: Fix memory leak when canceling rehash work
+b3fd51f684a0 2024-04-22mlxsw: spectrum_acl_tcam: Fix memory leak during rehash
+a02687044e12 2024-04-22mlxsw: spectrum_acl_tcam: Fix possible use-after-free during rehash
+b183b915beef 2024-04-22mlxsw: spectrum_acl_tcam: Fix possible use-after-free during activity update
+edee0758747d 2024-04-22net: openvswitch: Fix Use-After-Free in ovs_ct_exit
+e20093c741d8 2024-04-17Bluetooth: btusb: mediatek: Fix double free of skb in coredump
+cd957d1716ec 2024-04-22net: gtp: Fix Use-After-Free in gtp_dellink
+ca4fb6c6764b 2024-04-22tcp: Fix Use-After-Free in tcp_ao_connect_init
+3e2979bf080c 2024-04-20icmp: prevent possible NULL dereferences from icmp_build_probe()
+2389ad199016 2024-04-18net: bcmasp: fix memory leak when bringing down interface
+0e9327c67410 2024-04-06block: fix module reference leakage from bdev_open_by_dev error path
