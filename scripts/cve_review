@@ -66,6 +66,9 @@ while [ $# -gt 0 ]; do
         --annotate|-a)
             ANNOTATE=true
             ;;
+        --skip-reviewed|-s)
+            SKIPREVIEWED=true
+            ;;
         *)
             if [ -s "${1}" ]; then
                 FILE=${1};
@@ -143,7 +146,6 @@ RESULTSDIR=${WORKDIR}/results
 PROCESSEDFILE=${PROCESSEDDIR}/${TAG}
 CVEMEFILE=${TAG}-${NAME}
 CVEME=${RESULTSDIR}/${CVEMEFILE}
-CLIPCOMMITTO=$(($(tput lines) - 10))
 UPDATEFINALDIR=""
 
 mkdir -p ${PROCESSEDDIR} ${RESULTSDIR}
@@ -152,10 +154,12 @@ print_blue "Reviewing ${NOSHAS} commits"
 count=0
 
 for h in ${SHAS[@]}; do
+    clipcommitto=$(($(tput lines) - 10))
     oneline=$(git --no-pager log ${h} -n1 --format="%h %s")
     subject=$(echo ${oneline} | cut -d' ' -f 2-)
     count=$((count + 1))
     percentage=$(echo "scale=4; (${count}/${NOSHAS})*100" | bc | awk '{printf "%.2f\n", $0}')
+    alreadyreviewed=""
 
     if grep -q -s -F "${oneline}" ${PROCESSEDFILE}; then
         print_blue "Skipping already processed commit: ${oneline}"
@@ -170,7 +174,7 @@ for h in ${SHAS[@]}; do
 
     print_blue "Processing ${TAG} fix: ${count} of ${NOSHAS} (%${percentage})"
 
-    print_blue "\nSummary:\n"
+    print_blue "\nSummary:"
 
     MATCHES="\
 call[-\s_]*trace|\
@@ -214,14 +218,43 @@ WARN:\
     if [ ! -s ${commitfile} ]; then
          cat ${commitmsgfile} > ${commitfile}
     fi
+    rm -f ${commitmsgfile}
+
+    if grep -rq "${subject}" ${PROCESSEDDIR}; then
+        filename=$(basename $(grep -lr "${subject}" ${PROCESSEDDIR}))
+        sha=$(grep -rh "${subject}" ${PROCESSEDDIR} | cut -d' ' -f1)
+
+        print_red "\nPotentially already reviewed in\n  "
+
+        echo -n "  ${filename}: "
+        echo "$(grep -h "${subject}" ${PROCESSEDDIR}/*)"
+
+        if [ "${SKIPREVIEWED}" == "true" ]; then
+            newpatchid=$(git show ${h} | git patch-id | cut -d' ' -f1)
+            oldpatchid=$(git show ${sha} | git patch-id | cut -d' ' -f1)
+
+            if [ "${newpatchid}" == "${oldpatchid}" ]; then
+                print_blue "\nConfirmed as already reviewed - SKIPPING\n"
+                sleep 1
+                rm -f ${commitfile}
+                echo "${oneline}" >> ${PROCESSEDFILE}
+                continue
+            else
+                print_blue "\nPatch ID doesn't match - please review for similarity manually"
+            fi
+        fi
+
+        clipcommitto=$((clipcommitto-4))
+    fi
+    echo
 
     git --no-pager log -p --format="" --color=always -n1 ${h} >> ${commitfile}
     commitlen=$(cat ${commitfile} | wc -l)
 
     if [ "${NAME}" == "greg" ]; then
         bat ${commitfile}
-    elif [ ${commitlen} -gt ${CLIPCOMMITTO} ]; then
-        head -n ${CLIPCOMMITTO} ${commitfile}
+    elif [ ${commitlen} -gt ${clipcommitto} ]; then
+        head -n ${clipcommitto} ${commitfile}
         print_blue "\nCommit has been clipped, press M to see the remainder"
     else
         cat ${commitfile}
@@ -238,7 +271,7 @@ WARN:\
 
     if [[ "${CHOICE}" == "m" || "${CHOICE}" == "M" ]]; then
         echo
-        tail -n $((commitlen - ${CLIPCOMMITTO})) ${commitfile}
+        tail -n $((commitlen - ${clipcommitto})) ${commitfile}
 
         if [ "${ANNOTATE}" != "true" ]; then
             print_blue "\nShould this commit be assigned a CVE <y/N/q>?"
@@ -248,8 +281,6 @@ WARN:\
         echo -n "> "
         read CHOICE
     fi
-
-    rm -f ${commitmsgfile}
     rm -f ${commitfile}
 
     if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
