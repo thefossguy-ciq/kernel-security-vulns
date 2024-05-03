@@ -1,0 +1,10 @@
+8d0d2447394b nvme: host: fix double-free of struct nvme_id_ns in ns_update_nuse()
+cf2df0080bd5 wifi: ath11k: fix a possible dead lock caused by ab->base_lock
+978b63f7464a btrfs: fix race when detecting delalloc ranges during fiemap
+def054b01a86 iommu/vt-d: Use device rbtree in iopf reporting path
+81e921fd3216 iommu/vt-d: Fix NULL domain on device release
+d0aa72604fbd quota: Fix potential NULL pointer dereference
+65e6a2773d65 media: usbtv: Remove useless locks in usbtv_video_free()
+b1ba8bcb2d1f backlight: hx8357: Fix potential NULL pointer dereference
+eb70d5a6c932 f2fs: fix to avoid use-after-free issue in f2fs_filemap_fault
+77a28aa47687 ovl: relax WARN_ON in ovl_verify_area()
