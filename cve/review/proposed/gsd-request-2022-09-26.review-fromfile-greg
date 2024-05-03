@@ -1,0 +1,29 @@
+1c11289b34ab peci: cpu: Fix use-after-free in adev_release()
+43626dade36f cgroup: Add missing cpus_read_lock() to cgroup_attach_task_all()
+2f945a792f67 of: fdt: fix off-by-one error in unflatten_dt_nodes()
+e9b1a4f867ae net/smc: Fix possible access to freed memory in link clear
+2f44013e3998 erofs: fix pcluster use-after-free on UP platforms
+85eaeb5058f0 IB/core: Fix a nested dead lock as part of ODP flow
+160f3549a907 nvme-tcp: fix UAF when detecting digest errors
+84a53580c5d2 ipv6: sr: fix out-of-bounds read when setting HMAC data.
+fb8396aeda58 i40e: Fix kernel crash during module removal
+326140063946 tcp: TX zerocopy should not sense pfmemalloc status
+7e753eb675f0 ice: Fix DMA mappings leak
+77972a36ecc4 netfilter: nf_tables: clean up hook list when offload flags check fails
+12f35199a2c0 RDMA/srp: Set scmnd->result only when scmnd is not NULL
+9efd23297cca sch_sfb: Don't assume the skb is still around after enqueueing to child
+1085f5080647 soc: brcmstb: pm-arm: Fix refcount leak and __iomem leak bugs
+ead54ced6321 RDMA/irdma: Fix drain SQ hang with no completion
+991df3dd5144 scsi: mpt3sas: Fix use-after-free warning
+f5723cfc0193 regmap: spi: Reserve space for register address/padding
+6a02a61e81c2 nvmet: fix a use-after-free
+cbfac7fa4916 drm/amd/display: fix memory leak when using debugfs_lookup()
+c2e406596571 sched/debug: fix dentry leak in update_sched_domain_debugfs
+873aefb376bb vfio/type1: Unpin zero pages
+e53f47f6c1a5 ALSA: usb-audio: Fix an out-of-bounds bug in __snd_usb_parse_audio_interface()
+d29f59051d3a ALSA: emu10k1: Fix out of bounds access in snd_emu10k1_pcm_channel_alloc()
+8423f0b6d513 ALSA: pcm: oss: Fix race at SNDCTL_DSP_SYNC
+7931e28098a4 thermal/int340x_thermal: handle data_vault when the value is ZERO_SIZE_PTR
+f461950fdc37 drm/radeon: add a force flush to delay work when radeon
+9cb636b5f6a8 efi: capsule-loader: Fix use-after-free in efi_capsule_write
+fa3fbe640378 wifi: mt76: mt7921e: fix crash in chip reset fail
