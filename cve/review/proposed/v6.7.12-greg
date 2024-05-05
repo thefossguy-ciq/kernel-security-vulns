@@ -52,3 +52,4 @@ a27d4d0e7de3 scsi: qla2xxx: Fix command flush on cable pull
 82f522ae0d97 scsi: qla2xxx: Fix double free of fcport
 22207fd5c801 drm/amdgpu: fix use-after-free bug
 f34e8bb7d6c6 drm/sched: fix null-ptr-deref in init entity
+daf8739c3322 drm/nouveau: fix stale locked mutex in nouveau_gem_ioctl_pushbuf
