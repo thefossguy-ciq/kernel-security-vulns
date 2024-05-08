@@ -1,0 +1,8 @@
+6a3d70f7802a clk: qcom: camcc-sc8280xp: fix terminating of frequency table arrays
+1c811d403afd x86/sev: Fix position dependent variable references in startup code
+5a7e89d3315d crypto: iaa - Fix nr_cpus < nr_iaa case
+1ec17ef59168 btrfs: zoned: fix use-after-free in do_zone_finish()
+6a4aee277740 net: phy: qcom: at803x: fix kernel panic with at8031_probe
+9cbd1dae8427 drm/dp: Fix divide-by-zero regression on DP MST unplug with nouveau
+0e45882ca829 drm/i915/vma: Fix UAF on destroy against retire race
+b63f90487bdf usb: typec: tcpm: fix double-free issue in tcpm_port_unregister_pd()
