@@ -57,7 +57,7 @@ for file in ${files}; do
 	#echo "id=${id} sha=${sha} cve=${cve}"
 
 	if cve -o Linux list | grep ${cve} | grep -q PUBLISHED; then
-		echo "${cve} is already published - are you sure you wish to update it (N/y)?"
+		echo -n "${cve} is already published - are you sure you wish to update it (N/y)? "
 		read choice
 		if [[ ${choice} != "y" && ${choice} != "Y" ]]; then
 			continue
