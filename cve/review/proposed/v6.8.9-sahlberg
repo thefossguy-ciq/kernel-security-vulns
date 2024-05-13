@@ -1,0 +1,483 @@
+a86f18903db9 selftests/harness: Fix interleaved scheduling leading to race conditions
+02f6b0e1ec7e gpiolib: cdev: Fix use after free in lineinfo_changed_notify
+35d92abfbad8 net: hns3: fix kernel crash when devlink reload during initialization
+4db783d68b9b ipv6: prevent NULL dereference in ip6_output()
+d101291b2681 ipv6: fib6_rules: avoid possible NULL dereference in fib6_rule_action()
+d15dcd0f1a47 nvmet: prevent sprintf() overflow in nvmet_subsys_nsid_exists()
+4e13d3a9c25b ipv6: Fix potential uninit-value access in __ip6_make_skb()
+d7ad05c86e21 timers/migration: Prevent out of bounds access on failure
+0ec5b3b7ccfc bcachefs: Fix shift-by-64 in bformat_needs_redo()
+f39055220f6f bcachefs: Add missing validation for superblock section clean
+9a0ec045110d bcachefs: fix overflow in fiemap
+591c946675d8 EDAC/synopsys: Fix ECC status and IRQ control race condition
+ac0476e8ca2e mm/vmalloc: fix return value of vb_alloc if size is 0
+adf0398cee86 Bluetooth: l2cap: fix null-ptr-deref in l2cap_chan_timeout
+10f9f426ac6e Bluetooth: msft: fix slab-use-after-free in msft_do_close()
+4d7b41c0e439 Bluetooth: L2CAP: Fix slab-use-after-free in l2cap_connect()
+483bc0818182 Bluetooth: Fix use-after-free bugs caused by sco_sock_timeout
+f2db7230f73a tcp: Use refcount_inc_not_zero() in tcp_twsk_unique().
+94062790aedb tcp: defer shutdown(SEND_SHUTDOWN) for TCP_SYN_RECV sockets
+75961ffb5cb3 swiotlb: initialise restricted pool list_head when SWIOTLB_DYNAMIC=y
+fc1092f51567 ipv4: Fix uninit-value access in __ip_make_skb()
+8a2e4d37afb8 s390/qeth: Fix kernel panic after setting hsuid
+d091e579b864 net: core: reject skb_copy(_expand) for fraglist GSO skbs
+4756fa529b2f spi: fix null pointer dereference within spi_sync
+f5b9053398e7 drm/amdkfd: Flush the process wq before creating a kfd_process
+9a35d205f466 drm/amd/display: Atom Integrated System Info v2_2 for DCN35
+da7c622cddd4 s390/cio: Ensure the copied buf is NUL terminated
+5d211c709059 cxl: Fix cxl_endpoint_get_perf_coordinate() support for RCH
+c4238686f909 ARM: 9381/1: kasan: clear stale stack poison
+38762a0763c1 firewire: nosy: ensure user_length is taken into account when fetching packet contents
+1dd1eff161bd softirq: Fix suspicious RCU usage in __do_softirq()
+257bf89d8412 sched/isolation: Fix boot crash when maxcpus < first housekeeping CPU
+5097cbcb38e6 sched/isolation: Prevent boot crash when the boot CPU is nohz_full
+7cd6750d9a56 selftests/bpf: Test PROBE_MEM of VSYSCALL_ADDR on x86-64
+b599d7d26d6a bpf, x86: Fix PROBE_MEM runtime load check
+4b911a9690d7 nsh: Restore skb->{protocol,data,mac_header} for outer header in nsh_gso_segment().
+f299ee709fb4 octeontx2-af: avoid off-by-one read from userspace
+8c34096c7fdf bna: ensure the copied buf is NUL terminated
+666854ea9cad ice: ensure the copied buf is NUL terminated
+18180a4550d0 NFSD: Fix nfsd4_encode_fattr4() crasher
+de87ba848d5e EDAC/versal: Check user-supplied data before injecting an error
+0f2b8098d72a btrfs: take the cleaner_mutex earlier in qgroup disable
+c04d1b9ecce5 igc: Fix LED-related deadlock on driver unbind
+697f33424771 LoongArch: Fix Kconfig item and left code related to CRASH_CORE
+948255282074 drm/amdgpu/mes: fix use-after-free issue
+0aea736ddb87 usb: gadget: f_fs: Fix a race condition when processing setup packets.
+24729b307eef usb: gadget: f_fs: Fix race between aio_cancel() and AIO request complete
+49a940dbdc31 powerpc/pseries/iommu: LPAR panics during boot up with a frozen PE
+5bcf0dcbf906 xdp: use flags field to disambiguate broadcast redirect
+d05dcfdf5e16  fs/9p: mitigate inode collisions
+e858beeddfa3 bcachefs: If we run merges at a lower watermark, they must be nonblocking
+85ab365f7cdf bcachefs: Fix deadlock in journal write path
+fcdbc1d7a4b6 bcachefs: Check for journal entries overruning end of sb clean section
+2e36c9fbc476 net: ravb: Fix RX byte accounting for jumbo packets
+d111855ab7ff s390/mm: Fix NULL pointer dereference
+79055f50a65f bcachefs: make sure to release last journal pin in replay
+740174580171 mm,page_owner: fix printing of stack records
+a0cedbcc8852 pinctrl: devicetree: fix refcount leak in pinctrl_dt_to_map()
+f4626c12e4b5 ubsan: Add awareness of signed integer overflow traps
+7e91ed763dc0 clk: sunxi-ng: h6: Reparent CPUX during PLL CPUX rate change
+7fcb91d94e89 configs/hardening: Disable CONFIG_UBSAN_SIGNED_WRAP
+015a12a4a670 arm64/hugetlb: Fix page table walk in huge_pte_alloc()
+3f10048973c8 bcachefs: Disable merges from interior update path
+9054ef2ea944 bcachefs: Run merges at BCH_WATERMARK_btree
+82cf18f23e1a bcachefs: Fix deadlock in journal replay
+58caa786f1c0 bcachefs: Fix UAFs of btree_insert_entry array
+c064b536a8f9 x86/cpu/amd: Make the NODEID_MSR union actually work
+2b3e79fea66e bcachefs: Don't use bch2_btree_node_lock_write_nofail() in btree split path
+9cb46b31f3d0 drm/xe/xe_migrate: Cast to output precision before multiplying operands
+fe87922cee61 net/mlx5: fix possible stack overflows
+ec4535b2a1d7 smb: client: fix NULL ptr deref in cifs_mark_open_handles_for_deleted_file()
+a9025cd1c673 x86/topology: Don't update cpu_possible_map in topo_set_cpuids()
+ecedd99a9369 drm/amd/display: Skip on writeback when it's not applicable
+7a87441c9651 nfc: llcp: fix nfc_llcp_setsockopt() unsafe copies
+138b787804f4 mISDN: fix MISDN_TIME_STAMP handling
+7774c8f32e99 KVM: SVM: Wrap __svm_sev_es_vcpu_run() with #ifdef CONFIG_KVM_AMD_SEV
+e71c84816925 platform/x86: lg-laptop: fix %s null argument warning
+d4884fd48a44 ASoC: cs35l56: Fix unintended bus access while resetting amp
+6648e613226e bpf, skmsg: Fix NULL pointer dereference in sk_psock_skb_ingress_enqueue
+6088234ce83a bcachefs: JOURNAL_SPACE_LOW
+05801b652615 bcachefs: Disable errors=panic for BCH_IOCTL_FSCK_OFFLINE
+beaa51b36012 blk-iocost: avoid out of bounds shift
+fc2c22693c60 mm: vmalloc: fix lockdep warning
+d3bbc4dfcc8d drm/msm: fix the `CRASHDUMP_READ` target of `a6xx_get_shader_block()`
+838ae9f45c4e nouveau/gsp: Avoid addressing beyond end of rpc->entries
+9fb3036fe3d9 bcachefs: Move btree_updates to debugfs
+8e088a20dbe3 SUNRPC: add a missing rpc_stat for TCP TLS
+dda7e89e53d6 xhci: Fix root hub port null pointer dereference in xhci tracepoints
+e0f5a8e74be8 memblock tests: fix undefined reference to `panic'
+7d8ed162e6a9 memblock tests: fix undefined reference to `early_pfn_to_nid'
+de164a7f1924 nios2: Only use built-in devicetree blob if configured to do so
+701b38995e5b security: Place security_path_post_mknod() where the original IMA call was
+e6ec07dc6dd4 s390/mm: fix NULL pointer dereference
+bff892acf79c spi: spi-fsl-lpspi: remove redundant spi_controller_put call
+c3eeb1ffc6a8 x86/resctrl: Fix uninitialized memory read when last CPU of domain goes offline
+6677196fb193 clk: qcom: gdsc: treat optional supplies as optional
+e8068f2d756d swiotlb: fix swiotlb_bounce() to do partial sync's correctly
+22d24a544b0d block: fix overflow in blk_ioctl_discard()
+c42cd606e4f0 bcachefs: fix nocow lock deadlock
+e2a316b3cc45 bcachefs: BCH_WATERMARK_interior_updates
+ba947ecd39ea bcachefs: Fix btree node reserve
+060ff30a8596 bcachefs: bch2_run_explicit_recovery_pass_persistent()
+dcc1c04587aa bcachefs: Fix use after free in check_root_trans()
+6f5869ffd9f1 bcachefs: Fix use after free in bch2_check_fix_ptrs()
+5038a66dad01 pinctrl: core: delete incorrect free in pinctrl_enable()
+a8d89feba7e5 bpf: Check bloom filter map value size
+96b98a6552a9 bpf: fix warning for crash_kexec
+fe869c2e5348 drm/amd/display: fix a dereference of a NULL pointer
+30af24facf0a userfaultfd: fix deadlock warning when locking src and dst VMAs
+9c500835f279 mm: zswap: fix kernel BUG in sg_init_one
+0be3870f7cbb usb: typec: ucsi: Check capabilities before cable and identity discovery
+aa43c15a790c pinctrl: renesas: rzg2l: Execute atomically the interrupt configuration
+4b0e527c9970 RAS/AMD/FMPM: Avoid NULL ptr deref in get_saved_records()
+17f64517bf5c wifi: iwlwifi: mvm: guard against invalid STA ID on removal
+a8b5d4809b50 wifi: iwlwifi: mvm: Configure the link mapping for non-MLD FW
+b6540de9b5c8 x86/percpu: Disable named address spaces for KCSAN
+4053caf60bb3 mtd: rawnand: brcmnand: Fix data access violation for STB chip
+f2e812c1522d xfs: don't use current->journal_info
+11763a8598f8 fs/9p: fix uaf in in v9fs_stat2inode_dotl
+9843231c9726 x86/boot/64: Move 5-level paging global variable assignments back
+4d0d7e785275 x86/boot/64: Apply encryption mask to 5-level pagetable update
+122fdbd2a030 bpf: verifier: reject addr_space_cast insn without arena
+d8e45f2929b9 overflow: Change DEFINE_FLEX to take __counted_by member
+fc7f27cda843 x86/kexec: Do not update E820 kexec table for setup_data
+c6ba60af015a drm/amdgpu: Reset IH OVERFLOW_EN bit for IH 7.0
+28e4748e5e3d riscv: Use kcalloc() instead of kzalloc()
+a23c05fd76cf tools/rtla: Add -U/--user-load option to timerlat
+956c0d619107 tcp: Clear req->syncookie in reqsk_alloc().
+a788e53c05ae usb: usb-acpi: Fix oops due to freeing uninitialized pld pointer
+c502b5b87814 bcachefs; Fix deadlock in bch2_btree_update_start()
+77fcc34769c8 ubsan: Disable signed integer overflow sanitizer on GCC < 8
+7604256cecef tracing: Add __string_src() helper to help compilers not to get confused
+19f0423fd55c tracing: Support to dump instance traces by ftrace_dump_on_oops
+946593d15559 Revert "firewire: Kill unnecessary buf check in device_attribute.show"
+b967df629351 hyperv-tlfs: Rename some HV_REGISTER_* defines for consistency
+a0a466ea981b bcachefs: Split out btree_node_rewrite_worker
+62f35024b2b1 bcachefs: Change "accounting overran journal reservation" to a warning
+c239c83ed5c5 s390/entry: add CIF_SIE flag and remove sie64a() address check
+5c4233cc0920 powerpc/kdump: Split KEXEC_CORE and CRASH_DUMP dependency
+33f2cc0a2e90 powerpc/kexec: split CONFIG_KEXEC_FILE and CONFIG_CRASH_DUMP
+56a34d799bfa kexec/kdump: make struct crash_mem available without CONFIG_CRASH_DUMP
+78cb0945f714 powerpc: Handle error in mark_rodata_ro() and mark_initmem_nx()
+a90c5845db95 selftests/bpf: Add arena test case for 4Gbyte corner case
+5fb282ba4fef ksmbd: fix possible null-deref in smb_lazy_parent_lease_break_close
+3e48999816b1 bcachefs: Prefer struct_size over open coded arithmetic
+0b5961b0d8a4 bcachefs: jset_entry for loops declare loop iter
+9448e55d032d of: Add cleanup.h based auto release via __free(device_node) markings
+9d9539db8638 pidfs: remove config option
+c6c3187d66bc lib/firmware_table: Provide buffer length argument to cdat_table_parse()
+61609bf2b29d dt-bindings: riscv: Add Andes PMU extension description
+bc969d6cc96a perf: RISC-V: Introduce Andes PMU to support perf event sampling
+95113bb70515 riscv: dts: renesas: r9a07g043f: Update compatible string to use Andes INTC
+b88727d554f0 dt-bindings: riscv: Add Andes interrupt controller compatible string
+289b950b8e50 gpio: nomadik: remove BUG_ON() in nmk_gpio_populate_chip()
+8c9be42172e2 platform/x86/amd/pmf: Fix possible out-of-bound memory accesses
+d8a21070b6e1 nexthop: Fix out-of-bounds access during attribute validation
+2c7d399e551c smb: client: reuse file lease key in compound operations
+ded20192dff3 scsi: lpfc: Release hbalock before calling lpfc_worker_wake_up()
+4ddf01f2f150 scsi: lpfc: Move NPIV's transport unregistration to after resource clean up
+f8cdf65b51f0 bcachefs: Fix null-ptr-deref in bch2_fs_alloc()
+606559dc4fa3 io_uring: Fix sqpoll utilization check racing with dying sqpoll
+63817febd1f3 landlock: Use f_cred in security_file_open() hook
+4e2969a0d6a7 net: hns3: add checking for vf id of mailbox
+ae24a8f88b3f ionic: remove callback pointer from desc_info
+babfeb9cbe7e rtc: nct3018y: fix possible NULL dereference
+ab63a2387cb9 netdev: add per-queue statistics
+a54c1d1b859a sysfs:Addresses documentation in sysfs_merge_group and sysfs_unmerge_group.
+15d2540e0d62 tools: ynl: check for overflow of constructed messages
+8ffc0cd24c2a ext4: alloc test super block from sget
+fa9e3139e6c5 s390/tools: handle rela R_390_GOTPCDBL/R_390_GOTOFF64
+66626b15636b firmware: cirrus: cs_dsp: Initialize debugfs_root to invalid
+75bcffbb9e75 xfs: shrink failure needs to hold AGI buffer
+e838a5a110b6 leds: trigger: Stop exporting trigger_list
+7eef64da0b0a leds: trigger: panic: Simplify led_trigger_set_panic
+c22341619852 mlxbf_gige: add support to display pause frame counters
+e63985ecd226 bpf, riscv64/cfi: Support kCFI + BPF on riscv64
+4f81c16f50ba bpf: Recognize that two registers are safe when their ranges match
+011832b97b31 bpf: Introduce may_goto instruction
+0f0639b4d6f6 Bluetooth: bnep: Fix out-of-bound access
+b6c9d5a93b4c mm/kasan: use pXd_leaf() in shadow_mapped()
+5aa598a72eaf mm: memory: fix shift-out-of-bounds in fault_around_bytes_set
+ccabbb6768fc pmdomain: renesas: rcar-gen4-sysc: Reduce atomic delays
+760eac73f9f6 fuse: Introduce a new notification type for resend pending requests
+cebaa386d5ee hwspinlock: omap: Use index to get hwspinlock pointer
+297dc37a1e65 selftest: gpio: remove obsolete gpio-mockup test
+e37db17dae61 mei: me: remove unnecessary NULL pointer checks
+64386d1588f5 mei: txe: remove unnecessary NULL pointer checks
+d6543805a8ad mei: gsc: remove unnecessary NULL pointer checks
+d3246b6ee42a crash_core: export vmemmap when CONFIG_SPARSEMEM_VMEMMAP is enabled
+8cc92a67932f kasan: fix a2 allocation and remove explicit cast in atomic tests
+7a36d680658b KVM: x86/xen: fix recursive deadlock in timer injection
+6addfcf27139 KVM: pfncache: simplify locking and make more self-contained
+41c58a36e2c0 dm vdo indexer: fix use after free
+36959d18c3cf f2fs: fix to do sanity check in update_sit_entry
+b2324e08b8b3 btrfs: raid56: extra debugging for raid6 syndrome generation
+f40a3ea94881 btrfs: delete pointless BUG_ON check on quota root in btrfs_qgroup_account_extent()
+e84bfffc4bbf btrfs: hoist fs_info out of loops in end_bbio_data_write and end_bbio_data_read
+e383e158ed1b btrfs: preallocate temporary extent buffer for inode logging when needed
+c2b24812f7bc perf: starfive: Add StarLink PMU support
+dd6c6d57ab61 pwm: imx-tpm: fix probe crash due to access registers without clock
+056a70924a02 gve: Add header split ethtool stats
+5e37d8254e7f gve: Add header split data path
+ca3d3aa14e76 powerpc: Remove cpu-as-y completely
+f01dbd73ccf1 powerpc/fsl: Modernise mt/mfpmr
+4e284e38ed58 powerpc/64s: Use .machine power4 around dcbt
+4eb20bf34ea2 powerpc/irq: Allow softirq to hardirq stack transition
+9cbacb834b4a powerpc: Don't ignore errors from set_memory_{n}p() in __kernel_map_pages()
+9f2a3933beea USB: document some API requirements on disconnection
+e36b70fb8c70 sh: Fix build with CONFIG_UBSAN=y
+773f6c5b72d9 svcrdma: Prevent a UAF in svc_rdma_send()
+84ebf02d75df NFSD: Remove BUG_ON in nfsd4_process_cb_update()
+961b4b5e86bf NFSD: Reset cb_seq_status after NFS4ERR_DELAY
+5ff318f645eb nfsd: use __fput_sync() to avoid delayed closing of files.
+8379054869a0 iommu/vt-d: Use kcalloc() instead of kzalloc()
+5d978e72df5f drm/amd/display: check dc_link before dereferencing
+896880ff3086 bpf: Replace bpf_lpm_trie_key 0-length array with flexible array
+c5e6d3d85efa overflow: Use POD in check_shl_overflow()
+d4be85d068b4 sparc: vdso: Disable UBSAN instrumentation
+3d965b33e40d fortify: Improve buffer overflow reporting
+fa4a3f86d498 fortify: Add KUnit tests for runtime overflows
+4ce615e798a7 fortify: Provide KUnit counters for failure testing
+475ddf1fce1e fortify: Split reporting and avoid passing string pointer
+99db710f768e refcount: Annotated intentional signed integer wrap-around
+e75494812551 coccinelle: semantic patch to check for potential struct_size calls
+08d45ee84bb2 overflow: Introduce wrapping_assign_add() and wrapping_assign_sub()
+d70de8054c58 overflow: Introduce wrapping_add(), wrapping_sub(), and wrapping_mul()
+3e19086fb5a9 overflow: Adjust check_*_overflow() kern-doc to reflect results
+768409cff6cc rust: upgrade to Rust 1.76.0
+7d009e048d7c f2fs: fix to handle segment allocation failure correctly
+f9e28904e644 f2fs: stop checkpoint when get a out-of-bounds segment
+df621530462c iio: adc: ti-ads1298: prevent divide by zero in ads1298_set_samp_freq()
+848e34ca2030 net: wwan: t7xx: Prefer struct_size over open coded arithmetic
+a364c014a2c1 kvm/x86: allocate the write-tracking metadata on-demand
+c4b04a802d8e bnxt_en: fix accessing vnic_info before allocating it
+fb687904aae2 drm/i915/dp: Suspend/resume DP tunnels
+ec1aae190c77 wifi: brcmfmac: fweh: Fix boot crash on Raspberry Pi 4
+da1983355cce thermal: core: Move initial num_trips assignment before memcpy()
+99b902ac1725 md: sync blockdev before stopping raid or setting readonly
+306904db10e1 ASoC: codecs: Simplify mclk initialization
+bae4d1f86e4d perf data convert: Fix segfault when converting to json when cpu_desc isn't set
+34b811a281ba drm/amd/display: Prevent potential buffer overflow in map_hw_resources
+fadbbfbf644e drm/msm: Import a7xx crashdump register lists from kgsl
+dd61b55d733e RAS/AMD/ATL: Fix bit overflow in denorm_addr_df4_np2()
+b5590270068c netlink: hold nlk->cb_mutex longer in __netlink_dump_start()
+e395036504c4 mtd: rawnand: Prefer struct_size over open coded arithmetic
+96d8dbb6f650 mm, slab, kasan: replace kasan_never_merge() with SLAB_NO_MERGE
+e651f2fae336 clocksource/drivers/arm_global_timer: Guard against division by zero
+fed6bf52c86d clk: imx: composite-8m: Less function calls in __imx8m_clk_hw_composite() after error detection
+9e263c5042d0 accel/habanalabs: use kcalloc() instead of kzalloc()
+1612160b9127 rcu-tasks: Eliminate deadlocks involving do_exit() and RCU tasks
+6b70399f9ef3 rcu-tasks: Maintain lists to eliminate RCU-tasks/do_exit() deadlocks
+46faf9d8e1d5 rcu-tasks: Initialize data to eliminate RCU-tasks/do_exit() deadlocks
+bfe93930ea1e rcu-tasks: Add data to eliminate RCU-tasks/do_exit() deadlocks
+fbed4baed046 ubi: fix slab-out-of-bounds in ubi_eba_get_ldesc+0xfb/0x130
+5affe497c346 block: blkdev_issue_secure_erase loop style
+c034ec84e879 KVM: arm64: Introduce new flag for non-cacheable IO memory
+daa559570d4b ARM: 9349/1: unwind: Add missing "Call trace:" line
+807d1fe36077 writeback: simplify the loops in write_cache_pages()
+5267fe5d092e mm/page_alloc: remove unused fpi_flags in free_pages_prepare()
+55e78c933d74 mm: zswap: increase reject_compress_poor but not reject_compress_fail if compression returns ENOSPC
+199da8714c8f arch, crash: move arch_crash_save_vmcoreinfo() out to file vmcore_info.c
+ea034d0b0744 loongarch, crash: wrap crash dumping code into crash related ifdefs
+5057dff3cf80 arm, crash: wrap crash dumping code into crash related ifdefs
+0978a63f9c8b riscv, crash: wrap crash dumping code into crash related ifdefs
+d739f190c035 mips, crash: wrap crash dumping code into crash related ifdefs
+e389263561d8 sh, crash: wrap crash dumping code into crash related ifdefs
+865e2acd3eb9 s390, crash: wrap crash dumping code into crash related ifdefs
+086d67ef33ec ppc, crash: enforce KEXEC and KEXEC_FILE to select CRASH_DUMP
+40254101d878 arm64, crash: wrap crash dumping code into crash related ifdefs
+a4eeb2176d89 x86, crash: wrap crash dumping code into crash related ifdefs
+75bc255a7444 crash: clean up kdump related config items
+02aff8480533 crash: split crash dumping code out from kexec_core.c
+2c44b67e2ef3 crash: remove dependency of FA_DUMP on CRASH_DUMP
+443cbaf9e2fd crash: split vmcoreinfo exporting code out from crash_core.c
+85fcde402db1 kexec: split crashkernel reservation code out from crash_core.c
+55c49fee57af mm/vmalloc: remove vmap_area_list
+a24e3b583ea2 crypto: rockchip - fix to check return value
+bf48d9b756b9 kbuild: change tool coverage variables to take the path relative to $(obj)
+abb720579490 irqchip/sifive-plic: Improve locking safety by using irqsave/irqrestore
+a15587277a24 irqchip/sifive-plic: Cleanup PLIC contexts upon irqdomain creation failure
+8ec99b033147 irqchip/sifive-plic: Convert PLIC driver into a platform driver
+cd69fedf58f8 sysfs: Fix crash on empty group attributes array
+a7a3d73686f5 drm/xe: Prefer struct_size over open coded arithmetic
+2e3fc6ca5214 panic: add option to dump blocked tasks in panic_print
+9c1b86f8ce04 kbuild: raise the minimum supported version of LLVM to 13.0.1
+b73aa539a778 panic: suppress gnu_printf warning
+952237b5a9b7 kasan: increase the number of bits to shift when recording extra timestamps
+f6932a275461 nvdimm/pmem: fix leak on dax_add_host() failure
+0cf18e839f64 mm/memory: handle !page case in zap_present_pte() separately
+b93c28ff72d4 selftests: add zswapin and no zswap tests
+82ace185017f x86/mm/cpa: Warn for set_memory_XXcrypted() VMM fails
+3e0008336ae3 bpf: Check cfi_stubs before registering a struct_ops type.
+701ab935859f vfio/nvgrace-gpu: Add vfio pci variant module for grace hopper
+77a6557d2a58 arm64: defconfig: Enable PSTORE_RAM
+12dc54f568d4 pstore/ram: Register to module device table
+be142b808030 kasan: rename test_kasan_module_init to kasan_test_module_init
+d83109148482 kasan: docs: update descriptions about test file and module
+df7a6d1f6405 mm/hugetlb: restore the reservation if needed
+4e76c8cc3378 kasan: add atomic tests
+6e8f58870897 arm64/mm: make set_ptes() robust when OAs cross 48-bit boundary
+a60cc288a1a2 test_xarray: add tests for advanced multi-index use
+e477559ca602 mm: zswap: warn when referencing a dead entry
+5878303c5353 mm/zswap: fix race between lru writeback and swapoff
+32ca5ebfde9a drm/i915: Fix possible null pointer dereference after drm_dbg_printer conversion
+1a562c0d4497 tools subcmd: Add a no exec function call option
+21db6199f201 drm/amd/display: fix null-pointer dereference on edid reading
+f634ee1737e7 drm/amd/display: Use kcalloc() instead of kzalloc()
+1d55183c2cd9 drm/amd/display: Fix potential null pointer dereference in dc_dmub_srv
+0cc46f1a52b4 ACPI: Drop the custom_method debugfs interface
+a24d9099777d drm/xe: Do not include current dir for generated/xe_wa_oob.h
+252c31a90e04 clk: hisilicon: Use devm_kcalloc() instead of devm_kzalloc()
+eefe68280c94 kasan: Add documentation for CONFIG_KASAN_EXTRA_INFO
+0eb2a18a8fad drm/xe: Implement VM snapshot support for BO's and userptr
+bf900c85f8a4 ASoC: codecs: rt5660: Simplify mclk initialization
+6413849b678b ASoC: codecs: rt5640: Simplify mclk initialization
+f76de61ad1eb ASoC: codecs: rt5616: Simplify mclk initialization
+67e9bf093372 ASoC: codecs: rt5514: Simplify mclk initialization
+71d322fd16a3 ASoC: codecs: nau8825: Simplify mclk initialization
+e2cb72d28740 ASoC: codecs: da7213: Simplify mclk initialization
+5f91a6221773 ALSA: hda: Downgrade BDL table overflow message
+04438a06c43d ALSA: hda: Set up BDL table at hw_params
+f92e1a829d64 test_maple_tree: testing the cyclic allocation
+557f8c582a9b ubsan: Reintroduce signed overflow sanitizer
+ff9199464886 dm vdo: fix sparse 'warning: Using plain integer as NULL pointer'
+5c45cd10c085 dm vdo index: fix various small nits
+4fa98386be2f dm vdo: add repair of damaged vdo volumes
+883069e30e0b dm vdo: add the slab summary
+46766d4888ff dm vdo: add memory allocation utilities
+9ea30fd166e9 s390/boot: add 'alloc' to info.bin .vmlinux.info section flags
+bcb5d6c76903 s390/pci: introduce lock to synchronize state of zpci_dev's
+5b7236c198a3 MIPS: Alchemy: Use kcalloc() instead of kzalloc()
+14786d949a3b filelock: fix deadlock detection in POSIX locking
+dea893a66cd5 firmware: arm_scmi: Rework clock domain info lookups
+fb700810d30b x86/resctrl: Separate arch and fs resctrl locks
+aaeb9335fb38 drm/mediatek: dsi: Use bitfield macros where useful
+d2570ee67a47 drm/msm/mdss: generate MDSS data for MDP5 platforms
+1d7bae8f8c85 kbuild: deb-pkg: build binary-arch in parallel
+e8991d1d6498 ALSA: core: fix buffer overflow in test_format_fill_silence()
+49c379d3a72a xfs: use kvfree for buf in xfs_ioc_getbmap
+d1909c022173 module: Don't ignore errors from set_memory_XX()
+eeff1d4f118b x86/resctrl: Move domain helper migration into resctrl_offline_cpu()
+978fcca954cb x86/resctrl: Allow overflow/limbo handlers to be scheduled on any-but CPU
+09909e098113 x86/resctrl: Queue mon_event_read() instead of sending an IPI
+a4846aaf3945 x86/resctrl: Add cpumask_any_housekeeping() for limbo/overflow
+b7fac08db5e3 i40e: Add helpers to find VSI and VEB by SEID and use them
+a74c077b9021 iommu: Use refcount for fault data access
+b07cd3b746cf iommu/mtk_iommu: Use devm_kcalloc() instead of devm_kzalloc()
+3a74f44de2c9 s390/checksum: provide and use cksm() inline assembly
+4ce69fcf17d0 s390/checksum: call instrument_read() instead of kasan_check_read()
+91510d5959ad gpio: cdev: fix a NULL-pointer dereference with DEBUG enabled
+0383808e4d99 arm64: kasan: Reduce minimum shadow alignment and enable 5 level paging
+ba5b0333a847 arm64: mm: omit redundant remap of kernel image
+567a70c181df arm64: mm: avoid fixmap for early swapper_pg_dir updates
+82ca151da7d5 arm64: mmu: Make __cpu_replace_ttbr1() out of line
+75a323e604fc evm: Make it independent from 'integrity' LSM
+06cca5110774 integrity: Move integrity_kernel_module_request() to IMA
+5c5682b9f87a x86/cpu: Detect real BSP on crash kernels
+a626ded4e308 x86/platform/intel-mid: Prepare for separate mpparse callbacks
+871760eb7af5 io_uring: kill stale comment for io_cqring_overflow_kill()
+efe0f34c2bd0 drm/amdgpu: Reduce VA_RESERVED_BOTTOM to 64KB
+bfeefe6ea5f1 drm/amd/display: should support dmub hw lock on Replay
+10cd2bf92b4c drm/amd/display: Fix possible NULL dereference on device remove/driver unload
+48acf8292280 i2c: Remove redundant comparison in npcm_i2c_reg_slave
+600716592a3a doc: Add EARLY flag to early-parsed kernel boot parameters
+23da2ad64dbe rcu/exp: Remove rcu_par_gp_wq
+0875f1ceba97 powerpc/smp: Remap boot CPU onto core 0 if >= nr_cpu_ids
+d9e473513930 pmdomain: imx8mp-blk-ctrl: Error out if domains are missing in DT
+52dbd67dff5d bpf: Abstract loop unrolling pragmas in BPF selftests
+ce311df91d73 Revert "drm/amd: flush any delayed gfxoff on suspend entry"
+94a69db2367e xfs: use __GFP_NOLOCKDEP instead of GFP_NOFS
+3a86cb16ab32 drm/i915: Prevent HW access during init from connector get_modes hooks
+e955a71f8359 irqchip/irq-bcm7038-l1: Prefer struct_size over open coded arithmetic
+004c7a6bf43e irqchip/bcm-6345-l1: Prefer struct_size)_ over open coded arithmetic
+6256fbfd651c net: stmmac: Simplify mtl IRQ status checking
+157261c58b28 drm/xe/pt: Allow for stricter type- and range checking
+9ab1a996dc7f drm/amd/display: Fix possible buffer overflow in 'find_dcfclk_for_voltage()'
+c37c3bcc0530 drm/amd/display: Fix && vs || typos
+2ea9b94c502f Merge patch series "can: m_can: Optimizations for m_can/tcan part 2"
+dbd86e47fd00 Merge patch series "can: esd: add support for esd GmbH PCIe/402 CAN interface"
+a898cb621ac5 quota: Detect loops in quota tree
+d5e83f97eb56 coresight: Remove the 'enable' field.
+d83cee3d2bb1 gpio: protect the pointer to gpio_chip in gpio_device with SRCU
+a1083ee717e9 perf/arm-cmn: Improve debugfs pretty-printing for large configs
+4c98b89175a2 io_uring: remove 'loops' argument from trace_io_uring_task_work_run()
+c6c6c69df659 s390/dasd: Remove PRINTK_HEADER and KMSG_COMPONENT definitions
+eb538b557425 drm/xe/vm: Avoid reserving zero fences
+d1256c1546a0 wifi: mac80211: add and use a link iteration macro
+45bf79bc56c4 selftests: bonding: reduce garp_test/arp_validate test time
+15dba12c5659 drm/amd/display: Implement bounds check for stream encoder creation in DCN301
+779dbc2e78d7 printk: Avoid non-panic CPUs writing to ringbuffer
+3fad1565720f drm/amdgpu: Only create mes event log debugfs when mes is enabled
+886571d217d7 drm/amd/display: Fix 'panel_cntl' could be null in 'dcn21_set_backlight_level()'
+ef8d8df3cb06 drm: xlnx: zynqmp_dpsub: Filter interrupts against mask
+102fb77c2deb media: drivers/media/dvb-core: copy user arrays safely
+8087199cd595 drm/xe/vm: don't ignore error when in_kthread
+21e16fa5dc6c Documentation: Fix counter name of mlx5 vnic reporter
+c8f1140cb82d udf: Avoid invalid LVID used on mount
+5c018e378f91 spi: spi-rockchip: Fix out of bounds array access
+e8b7d11c7e4b mtd: ssfdc: One function call less in ssfdcr_add_mtd() after error detection
+b6be3714005c filelock: convert __locks_insert_block, conflict and deadlock checks to use file_lock_core
+15126b916e39 media: pci: cx23885: check cx23885_vdev_init() return
+4cb1ef64609f workqueue: Implement BH workqueues to eventually replace tasklets
+ae1d892d518a bus: mhi: ep: Use kcalloc() instead of kzalloc()
+06a807e6e5ff power: supply: axp20x_usb_power: fix race condition with usb bc
+774ef5dfc955 drm/xe: circumvent bogus stringop-overflow warning
+2d3a7384b9c8 wifi: ath12k: disable QMI PHY capability learn in split-phy QCN9274
+664a1c96b297 wifi: ath12k: fix firmware assert during insmod in memory segment mode
+287033810990 wifi: ath12k: add support for peer meta data version
+9f06911998ca wifi: ath12k: fetch correct pdev id from WMI_SERVICE_READY_EXT_EVENTID
+c67ef897fe08 select: Avoid wrap-around instrumentation in do_sys_poll()
+bd8c239c0502 iov_iter: Avoid wrap-around instrumentation in copy_compat_iovec_from_user()
+dd1a502cabca crypto: hisilicon/sec2 - fix some cleanup issues
+844ecc4aa78e net: ipa: begin simplifying TX queue stop
+943b043aeecc selftests/bpf: Fix bench runner SIGSEGV
+2a00f0855530 KVM: arm64: PMU: fix kernel-doc warnings
+e5a65d4f723a KVM: x86/pmu: Add macros to iterate over all PMCs given a bitmap
+81b3f0efbbce soc/tegra: fuse: Fix crash in tegra_fuse_readl()
+8263b3382d8c libbpf: Remove unnecessary null check in kernel_supports()
+b03301870d9b media: atomisp: Replace atomisp_drvfs attr with using driver.dev_groups attr
+0c93bd495766 drm/amdkfd: reserve the BO before validating it
+e3854253a5f6 drm/amd/display: Fix buffer overflow in 'get_host_router_total_dp_tunnel_bw()'
+1c2806f6be23 drm/amd/display: Add NULL check for kzalloc in 'amdgpu_dm_atomic_commit_tail()'
+5ca63ffdb94b net: stmmac: Report taprio offload status
+03ee752f00fd drm/imx: prefer snprintf over sprintf
+345a36c4f1ba drm/amdgpu: prefer snprintf over sprintf
+a7b57372e1c5 RAS/AMD/ATL: Fix array overflow in get_logical_coh_st_fabric_id_mi300()
+82e5d7d793e8 soc: mediatek: mtk-socinfo: Clean up NVMEM cell read
+c5f8cd6c62ce workqueue: Avoid premature init of wq->node_nr_active[].max
+9187ebb954ab clk: qcom: gdsc: Enable supply reglator in GPU GX handler
+be2f16a994f0 mlxsw: spectrum: Refactor LAG create and destroy code
+d1eb913c8df4 ALSA: pcm: Fix snd_pcm_format_name function
+bc978cc18d46 scsi: aacraid: aachba: Replace snprintf() with the safer scnprintf() variant
+2ba36e18566b drm/amd/display: fix DP audio settings
+8ef979584ea8 crypto: ccp: Add panic notifier for SEV/SNP firmware shutdown on kdump
+661b1c6169e2 x86/sev: Adjust the directmap to avoid inadvertent RMP faults
+e8bbd303d7de x86/fault: Dump RMP table information when RMP page faults occur
+27825593c972 soc: qcom: smem: remove hwspinlock from item get routine
+9e957a155005 serial: qcom-geni: Don't cancel/abort if we can't get the port lock
+f6f62a9a931f pinctrl: pinctrl-zynqmp: Use devm_kcalloc() instead of devm_kzalloc()
+5593e9abf1cf batman-adv: Improve exception handling in batadv_throw_uevent()
+ffc15626c861 batman-adv: Return directly after a failed batadv_dat_select_candidates() in batadv_dat_forward_data()
+dfdfe4be183b wifi: iwlwifi: remove retry loops in start
+4da3bc65d218 crypto: qat - use kcalloc_node() instead of kzalloc_node()
+1dc0c1389d6a crypto: sun8i-ce - Use kcalloc() instead of kzalloc()
+565def1542ab crypto: arm64/aes-ccm - Cache round keys and unroll AES loops
+e01966e643c9 crypto: virtio - Less function calls in __virtio_crypto_akcipher_do_req() after error detection
+9d5f28c1366f wifi: ath11k: fix connection failure due to unexpected peer delete
+dbd73acb22d8 wifi: ath11k: enable 36 bit mask for stream DMA
+c6878e47431c drm/xe: Fix crash in trace_dma_fence_init()
+63b21caba17e xfrm: introduce forwarding of ICMP Error messages
+2b9bc9efa815 Merge patch series "scsi: hisi_sas: Minor fixes and cleanups"
+5014396af9bb riscv: blacklist assembly symbols for kprobe
+58dc02750fcc staging: rtl8723bs: Use kcalloc() instead of kzalloc()
+796cae1a79b1 scsi: core: Safe warning about bad dev info string
+bbc094b30526 bpf: Use r constraint instead of p constraint in selftests
+d5b892fd607a bpf: make infinite loop detection in is_state_visited() exact
+7c05e7f3e74e bpf: Support inlining bpf_kptr_xchg() helper
+49527ca26434 Documentation/kernel-parameters: Add spec_rstack_overflow to mitigations=off
+f44e64990beb sock_diag: remove sock_diag_mutex
+bc77bde2d3f0 drm/bridge: sii902x: Fix audio codec unregistration
+dffdfb8f5de1 drm/bridge: sii902x: Fix probing race issue
+acf868ff60b1 wifi: iwlegacy: Use kcalloc() instead of kzalloc()
+9ac3ebaef3cc Documentation: power: Use kcalloc() instead of kzalloc()
+9bfb1a538a25 drm/amdgpu: Fix null pointer dereference
+a499b68cce3c drm/amd/display: Promote DAL to 3.2.269
+b8f2234846d7 drm/amd/display: Add NULL-checks in dml2 assigned pipe search
+8b3d838139bc fs: improve dump_mapping() robustness
+f020c3029932 wifi: ath10k: Fix enum ath10k_fw_crash_dump_type kernel-doc
+7ed97155b258 drm/amdgpu: fix UBSAN array-index-out-of-bounds for ras_block_string[]
+79f8eacbdf9d drm/xe: Use a NULL pointer instead of 0.
+05ae67d95bad drm/i915: Drop -Wstringop-overflow
+849e133c973c drm/amdgpu: Fix the null pointer when load rlc firmware
+52e3fa3e3ea3 drm/xe: Fix bounds checking in __xe_bo_placement_for_flags()
+1113e52ffee7 drm/xe: Fix potential deadlock in __fini_dbm
+a109d1999229 drm/xe: Fix build bug for GCC 11
+a8004af338f6 drm/xe: Fix modifying exec_queue priority in xe_migrate_init
+0e00a8814eec drm/i915/guc: Avoid circular locking issue on busyness flush
+2f2cc53b5fe7 drm/i915/guc: Close deregister-context race against CT-loss
+289d4180bda9 drm/i915: Init DRM connector polled field early
+3bb45618061c drm/sched: One function call less in drm_sched_init() after error detection
+c27f010aa188 drm/i915: Disable DSB in Xe KMD
+20277d8c1ff5 drm/xe: Fix UBSAN splat in add_preempt_fences()
+e29aad08b1da x86/percpu: Disable named address spaces for KASAN
