@@ -51,3 +51,17 @@ bc03c02cc1991 drm/amdgpu: Fix the null pointer when load rlc firmware
 5913320eb0b3e platform/x86: p2sb: Allow p2sb_bar() calls during PCI device probe
 3876638b2c7eb net/mlx5e: Fix operation precedence bug in port timestamping napi_poll context
 020e71c7ffc25 iio: adc: ad7091r: Allow users to configure device events
+269009893146c xsk: recycle buffer in case Rx queue was full
+3c6d5189246f5 net/mlx5e: fix a double-free in arfs_create_groups
+482b718a84f08 powerpc/ps3_defconfig: Disable PPC64_BIG_ENDIAN_ELF_ABI_V2
+6fc0a265e1b93 ksmbd: fix potential circular locking issue in smb2_set_ea()
+830ead5fb0c58 dpll: fix pin dump crash for rebound module
+9f538b415db86 net: mvpp2: clear BM pool before initialization
+aef855df7e1bb net/mlx5e: fix a potential double-free in fs_any_create_groups
+b01a74b3ca6fd wifi: mac80211: fix potential sta-link leak
+b18f3b60b35a8 btrfs: zoned: fix lock ordering in btrfs_zone_activate()
+d07f951903fa9 crypto: s390/aes - Fix buffer overread in CTR mode
+d5362c37e1f8a rpmsg: virtio: Free driver_override when rpmsg_remove()
+e7b2b108cdeab drm/amd/display: Fix hang/underflow when transitioning to ODM4:1
+e95aada4cb93d pipe: wakeup wr_wait after setting max_usage
+efb91fea652a4 drm/amd/display: Fix a debugfs null pointer error
