@@ -78,3 +78,6 @@ d27e2da94a42 net/bnx2x: Prevent access to a freed page in page_pool
 b0e256f3dd2b netfilter: nft_set_pipapo: release elements in clone only from destroy path
 4a0e7f2decbf netfilter: nf_tables: do not compare internal table flags on updates
 7eaf837a4eb5 netfilter: nf_tables: Fix a memory leak in nf_tables_updchain
+2f6d721e14b6 f2fs: compress: fix reserve_cblocks counting error when out of space
+ea1d166fae14 wifi: iwlwifi: dbg-tlv: ensure NUL termination
+def054b01a86 iommu/vt-d: Use device rbtree in iopf reporting path
