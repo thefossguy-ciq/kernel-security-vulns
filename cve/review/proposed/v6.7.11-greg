@@ -35,7 +35,6 @@ b446631f355e dpll: fix dpll_xa_ref_*_del() for multiple registrations
 65e8fbde6452 dm: call the resume method on internal suspend
 ba535bce57e7 clk: meson: Add missing clocks to axg_clk_regmaps
 d0aa72604fbd quota: Fix potential NULL pointer dereference
-179b8c97ebf6 quota: Fix rcu annotations of inode dquot pointers
 a853450bf4c7 crypto: xilinx - call finalize with bh disabled
 aeedaee5ef54 drm/bridge: adv7511: fix crash on irq during probe
 0a0b79ea55de media: pvrusb2: fix uaf in pvr2_context_set_notify
@@ -58,3 +57,9 @@ bba045dc4d99 wireguard: receive: annotate data-race around receiving_counter.cou
 55e565c42dce dm-integrity: fix a memory leak when rechecking the data
 d27e2da94a42 net/bnx2x: Prevent access to a freed page in page_pool
 b0e256f3dd2b netfilter: nft_set_pipapo: release elements in clone only from destroy path
+ea80e3ed09ab net: ethernet: mtk_eth_soc: fix PPE hanging issue
+a32e88f2b202 clk: mediatek: mt7622-apmixedsys: Fix an error handling path in clk_mt8135_apmixed_probe()
+e35f316bce9e wifi: iwlwifi: mvm: don't set the MFP flag for the GTK
+8e5647a723c4 x86/mm: Ensure input to pfn_to_kaddr() is treated as a 64-bit type
+ffb635bb398f media: rkisp1: Fix IRQ handling due to shared interrupts
+df7ecce842b8 x86/efistub: Don't clear BSS twice in mixed mode
