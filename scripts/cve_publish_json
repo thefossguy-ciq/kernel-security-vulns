@@ -56,13 +56,13 @@ for file in ${files}; do
 	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
 	#echo "id=${id} sha=${sha} cve=${cve}"
 
-#	if cve -o Linux list | grep ${cve} | grep -q PUBLISHED; then
-#		echo -n "${cve} is already published - are you sure you wish to update it (N/y)? "
-#		read choice
-#		if [[ ${choice} != "y" && ${choice} != "Y" ]]; then
-#			continue
-#		fi
-#	fi
+	if cve -o Linux list | grep ${cve} | grep -q PUBLISHED; then
+		echo -n "${cve} is already published - are you sure you wish to update it (N/y)? "
+		read choice
+		if [[ ${choice} != "y" && ${choice} != "Y" ]]; then
+			continue
+		fi
+	fi
 
 	echo "Uploading ${cve} for commit ${sha}"
 	cve -o Linux publish "${cve}" -f "${root}.json"
