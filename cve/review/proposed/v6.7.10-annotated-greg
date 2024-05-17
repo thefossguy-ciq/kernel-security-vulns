@@ -1,0 +1,2 @@
+8076fcde016c x86/rfds: Mitigate Register File Data Sampling (RFDS)
+- [greg] CVE comes from Intel, not from Linux
