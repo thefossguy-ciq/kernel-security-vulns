@@ -53,3 +53,30 @@ a27d4d0e7de3 scsi: qla2xxx: Fix command flush on cable pull
 22207fd5c801 drm/amdgpu: fix use-after-free bug
 f34e8bb7d6c6 drm/sched: fix null-ptr-deref in init entity
 daf8739c3322 drm/nouveau: fix stale locked mutex in nouveau_gem_ioctl_pushbuf
+339f83612f3a usb: cdc-wdm: close race between read and workqueue
+cf55a7acd1ed mmc: core: Avoid negative index with array access
+04867a7a3332 swiotlb: Fix double-allocation of slots due to broken alignment handling
+961ebd120565 fs/aio: Check IOCB_AIO_RW before the struct aio_kiocb conversion
+575801663c7d firewire: ohci: prevent leak of left-over IRQ on unbind
+6c6064cbe58b drm/amdgpu: amdgpu_ttm_gart_bind set gtt bound flag
+9c68ece8b2a5 LoongArch: Define the __io_aw() hook as mmiowb()
+fbec4e7fed89 soc: fsl: qbman: Use raw spinlock for cgr_lock
+1a8ec63b2b6c io_uring: fix io_queue_proc modifying req->flags
+723012cab779 ubifs: Set page uptodate in the correct place
+8678b1060ae2 drm/amdgpu: fix deadlock while reading mqd from debugfs
+3a38a829c8bc net: ll_temac: platform_get_resource replaced by wrong function
+d5d39c707a4c mm: cachestat: fix two shmem bugs
+ef1e68236b91 btrfs: fix race in read_extent_buffer_pages()
+72d72e8fddbc drm/amd/display: Prevent crash when disable stream
+62b71cd73d41 efi: fix panic in kdump kernel
+10e4b5166df9 x86/fpu: Keep xfd_state in sync with MSR_IA32_XFD
+1c811d403afd x86/sev: Fix position dependent variable references in startup code
+cefcd4fe2e3a x86/efistub: Call mixed mode boot services on the firmware's stack
+910c57dfa4d1 KVM: x86: Mark target gfn of emulated atomic instruction as dirty
+6e7132ed3c07 dm snapshot: fix lockup in dm_exception_table_exit
+584c2a9184a3 soc: fsl: qbman: Always disable interrupts when taking cgr_lock
+a6b3bfe176e8 ext4: fix corruption during on-line resize
+cd32b27a66db md/dm-raid: don't call md_reap_sync_thread() directly
+9d5286d4e7f6 PCI/PM: Drain runtime-idle callbacks before driver removal
+9a9e8a7159ca drm/vmwgfx: Fix the lifetime of the bo cursor memory
+0f7352557a35 wifi: brcmfmac: Fix use-after-free bug in brcmf_cfg80211_detach
