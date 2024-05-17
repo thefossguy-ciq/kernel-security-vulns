@@ -77,3 +77,9 @@ def689fc26b9 devlink: fix possible use-after-free and memory leaks in devlink_in
 45be0882c5f9 smb3: add missing null server pointer check
 de959094eb21 scsi: target: pscsi: Fix bio_put() for error case
 aaab47f204aa fs/ntfs3: Add NULL ptr dereference checking at the end of attr_allocate_frame()
+652cfeb43d6b fs/ntfs3: Fixed overflow check in mi_enum_attr()
+1eb1e984379e lib/Kconfig.debug: TEST_IOV_ITER depends on MMU
+967d3c27127e mptcp: fix data races on remote_id
+9e0f0430389b netfilter: nft_flow_offload: reset dst in route object after setting up flow
+7d2a894d7f48 phonet/pep: fix racy skb_queue_empty() use
+76c51146820c usb: gadget: ncm: Avoid dropping datagrams of properly parsed NTBs
