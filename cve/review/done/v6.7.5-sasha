@@ -57,3 +57,5 @@ f46c8a75263f powerpc/mm: Fix null-pointer dereference in pgtable_cache_add
 35e2385dbe787 wifi: mac80211: improve CSA/ECSA connection refusal
 e7870cf13d20f rxrpc: Fix delayed ACKs to not set the reference serial number
 7f3d03c48b1e drm/msm/dpu: check for valid hw_pp in dpu_encoder_helper_phys_cleanup
+369acf97d6fd5 bcachefs: kvfree bch_fs::snapshots in bch2_fs_snapshots_exit
+3aa58cb51318e dmaengine: fsl-qdma: Fix a memory leak related to the queue command DMA
