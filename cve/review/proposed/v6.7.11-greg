@@ -63,3 +63,5 @@ e35f316bce9e wifi: iwlwifi: mvm: don't set the MFP flag for the GTK
 8e5647a723c4 x86/mm: Ensure input to pfn_to_kaddr() is treated as a 64-bit type
 ffb635bb398f media: rkisp1: Fix IRQ handling due to shared interrupts
 df7ecce842b8 x86/efistub: Don't clear BSS twice in mixed mode
+a39d51ff1f52 ALSA: usb-audio: Stop parsing channels bits when all channels are found.
+de105068fead nvme: fix reconnection fail due to reserved tag allocation
