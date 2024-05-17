@@ -46,3 +46,4 @@ abe4eaa8618bb um: time-travel: fix time corruption
 4f32504a2f85a drm/amdgpu: Fix variable 'mca_funcs' dereferenced before NULL check in 'amdgpu_mca_smu_get_mca_entry()'
 2ce156482a6fe drm/amd/display: Fix disable_otg_wa logic
 aed5ed595960c PM / devfreq: Synchronize devfreq_monitor_[start/stop]
+b3cb7a830a245 net: atlantic: eliminate double free in error handling logic
