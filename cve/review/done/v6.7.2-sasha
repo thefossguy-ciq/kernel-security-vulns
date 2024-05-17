@@ -100,3 +100,49 @@ a643212c9f28d crypto: qat - add NULL pointer check
 6627f03c21cb7 crypto: qat - fix error path in add_update_sla()
 1557e89d3af51 kunit: debugfs: Handle errors from alloc_string_stream()
 34dfd5bb2e550 kunit: debugfs: Fix unchecked dereference in debugfs_print_results()
+04f8f053252b8 ALSA: scarlett2: Add clamp() in scarlett2_mixer_ctl_put()
+0a233867a3907 powerpc/imc-pmu: Add a null pointer check in update_events_in_group()
+0a535eddbe0dc io_uring/rw: ensure io->bytes_done is always initialized
+1d38a9ee81570 bpf: Guard stack limits against 32bit overflow
+1dedc3a6699d8 wifi: rtlwifi: rtl8192c: using calculate_bit_shift()
+3084b58bfd0b9 net/ncsi: Fix netlink major/minor version numbers
+38360bf96d816 drm/tilcdc: Fix irq free on unload
+3df95e265924a wifi: mwifiex: fix uninitialized firmware_stat
+420370f3ae3d3 riscv: Check if the code to patch lies in the exit section
+487caa8d5ef9a crypto: qat - fix mutex ordering in adf_rl
+499839eca34ad drm/amdkfd: Confirm list is non-empty before utilizing list_first_entry in kfd_topology.c
+4dde83569832f of: Fix double free in of_parse_phandle_with_args_map
+50603a67daef1 ALSA: scarlett2: Add missing error checks to *_ctl_get()
+547713d502f7b efivarfs: Free s_fs_info on unmount
+55fdc1c24a1d6 f2fs: fix to wait on block writeback for post_read case
+56d2eeda87995 ACPI: LPIT: Avoid u32 multiplication overflow
+6c57d7b593c4a firmware: qcom: qseecom: fix memory leaks in error paths
+737720197be44 iio: adc: ad9467: add mutex to struct ad9467_state
+7bafa74d1ba35 crypto: sahara - fix processing hash requests with req->nbytes < sg->length
+86222a8fc16ec pstore: ram_core: fix possible overflow in persistent_ram_init_ecc()
+8649829a1dd25 powerpc/powernv: Add a null pointer check in opal_event_init()
+8722014311e61 rxrpc: Fix use of Don't Fragment flag
+87e02063d0770 crypto: safexcel - Add error handling for dma_map_sg() calls
+898d8b3e1414c wifi: ath12k: fix the error handler of rfkill config
+969bc926f04b4 wifi: rtlwifi: rtl8188ee: phy: using calculate_bit_shift()
+9874808878d9e netfilter: bridge: replace physindev with physinif in nf_bridge_info
+993f7b42fa066 ALSA: scarlett2: Add missing mutex lock around get meter levels
+9a260f2dd827b powerpc/powernv: Add a null pointer check to scom_debug_init_one()
+ac16667237a82 drm/amd/pm: fix a double-free in si_dpm_init
+b07bc2347672c dma-mapping: clear dev->dma_mem to NULL after freeing it
+b1db244ffd041 netfilter: nf_tables: check if catch-all set element is active in next generation
+bc8263083af60 wifi: rtlwifi: rtl8821ae: phy: fix an undefined bitwise shift behavior
+be1d9d9d38da9 mptcp: use OPTION_MPTCP_MPJ_SYNACK in subflow_finish_connect()
+c1b9f2c66eed3 vdpa: Fix an error handling path in eni_vdpa_probe()
+c312828c37a72 kernfs: convert kernfs_idr_lock to an irq safe raw spinlock
+ca459dfa7d4ed ALSA: scarlett2: Add missing error check to scarlett2_usb_set_config()
+ccd45faf49737 ACPI: video: check for error while searching for backlight device parent
+ce3e112e7ae85 drm/bridge: tpd12s015: Drop buggy __exit annotation for remove function
+dbf5d3d02987f drm/amd/display: Check writeback connectors in create_validate_stream_for_sink
+dc9dfc8dc629e net: tls, fix WARNIING in __sk_msg_free
+e123015c0ba85 powerpc/powernv: Add a null pointer check in opal_powercap_init()
+e38e252dbceee ASoC: Intel: sof_sdw_rt_sdca_jack_common: ctx->headset_codec_dev = NULL
+e3b3ec967a7d9 ASoC: mediatek: sof-common: Add NULL check for normal_link string
+ec4e9d630a64d calipso: fix memory leak in netlbl_calipso_add_pass()
+edc8fc01f6081 x86: Fix CPUIDLE_FLAG_IRQ_ENABLE leaking timer reprogram
+ee6e6f0a7f5b3 crypto: sahara - fix error handling in sahara_hw_descriptor_create()
