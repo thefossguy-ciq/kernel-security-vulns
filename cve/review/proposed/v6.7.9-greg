@@ -35,3 +35,14 @@ c14f09f010cc ASoC: cs35l56: Fix deadlock in ASP1 mixer register initialization
 fe9f801355f0 net: veth: clear GRO when clearing XDP even when down
 959043afe53a spi: cadence-qspi: remove system-wide suspend helper calls from runtime PM hooks
 32ce3bb57b6b spi: cadence-qspi: fix pointer reference in runtime PM hooks
+bbcc1c83f343 dmaengine: dw-edma: eDMA: Add sync read before starting the DMA transfer in remote setup
+712a92a48158 dmaengine: dw-edma: HDMA: Add sync read before starting the DMA transfer in remote setup
+f78c1375339a wifi: nl80211: reject iftype change with mesh ID change
+f6ecfdad359a drm/nouveau: keep DMA buffers required for suspend/resume
+2df70149e73e power: supply: bq27xxx-i2c: Do not free non existing IRQ
+fccfa646ef36 efi/capsule-loader: fix incorrect allocation size
+743ad091fb46 rtnetlink: fix error logic of IFLA_BRIDGE_FLAGS writing back
+62e7151ae3eb netfilter: bridge: confirm multicast packets before passing them up the stack
+7e74aa53a68b Bluetooth: hci_event: Fix handling of HCI_EV_IO_CAPA_REQUEST
+10bfd453da64 ipv6: fix potential "struct net" leak in inet6_rtm_getaddr()
+3773d65ae515 net: mctp: take ownership of skb in mctp_local_output
