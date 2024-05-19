@@ -43,3 +43,6 @@ bf6e4ee5c436 phy: ti: tusb1210: Resolve charger-det crash if charger psy is unre
 3d1c16e920c8 Bluetooth: hci_sync: Fix UAF in hci_acl_create_conn_sync
 f7cbce60a38a Bluetooth: hci_sync: Fix UAF on create_le_conn_complete
 7453847fb22c Bluetooth: hci_sync: Fix UAF on hci_abort_conn_sync
+25e9227c6afd drm/amdgpu: Fix leak when GPU memory allocation fails
+efb44ff64c95 LoongArch: Fix access error when read fault on a write-only VMA
+6e965eba43e9 octeontx2-af: fix the double free in rvu_npc_freemem()
