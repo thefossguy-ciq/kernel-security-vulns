@@ -24,7 +24,6 @@ d46ef750ed58 HID: amd_sfh: Fix potential NULL pointer dereference
 ac4dfccb9657 ASoC: SOF: Fix DSP oops stack dump output contents
 d2b59bd4b06d s390/qeth: fix deadlock during failing recovery
 3b0c40612471 tty: Fix out-of-bound vmalloc access in imageblit
-505d9dcb0f7d crypto: ccp - fix resource leaks in ccp_run_aes_gcm_cmd()
 dd4d747ef05a hwmon: (w83793) Fix NULL pointer dereference by removing unnecessary structure field
 0f36b88173f0 hwmon: (w83792d) Fix NULL pointer dereference by removing unnecessary structure field
 943c15ac1b84 hwmon: (w83791d) Fix NULL pointer dereference by removing unnecessary structure field
@@ -33,7 +32,6 @@ cdef11966088 cpufreq: schedutil: Destroy mutex before kobject_put() frees the me
 94513069eb54 mac80211: fix use-after-free in CCMP/GCMP RX
 f1815e0aa770 KVM: SVM: fix missing sev_decommission in sev_receive_start
 2f9b68f57c62 KVM: x86: Fix stack-out-of-bounds memory access from ioapic_write_indirect()
-bc0bdc5afaa7 RDMA/cma: Do not change route.addr.src_addr.ss_family
 305d568b72f1 RDMA/cma: Ensure rdma_addr_cancel() happens before issuing more requests
 ca465e1f1f9b RDMA/cma: Fix listener leak in rdma_cma_listen_on_all() failure
 e6fab7af6ba1 hwmon: (mlxreg-fan) Return non-zero value when fan current state is enforced from sysfs
@@ -60,7 +58,6 @@ a647a524a467 block: don't call rq_qos_ops->done_bio if the bio isn't tracked
 8253a34bfae3 usb: chipidea: ci_hdrc_imx: Also search for 'phys' phandle
 bb8958d5dc79 riscv: Flush current cpu icache before other cpus
 24d5f16e407b iwlwifi: mvm: Fix possible NULL dereference
-30e29a9a2bc6 bpf: Fix integer overflow in prealloc_elems_and_freelist()
 ca6e11c337da phy: mdio: fix memory leak
 b0e875bac0fa libbpf: Fix memory leak in strset
 560ee196fe9e net_sched: fix NULL deref in fifo_set_limit()
