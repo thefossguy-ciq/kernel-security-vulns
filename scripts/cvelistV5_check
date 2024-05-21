@@ -1,0 +1,83 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+# Copyright 2024 Google LLC
+#
+# Usage
+#   cvelistV5_check filename
+#
+# Takes a file containing an upstream SHA in the first column and searches in
+# the cvelistV5 git tree to try to determine if the git id already has a CVE
+# assigned to it.  Not the most through check, as MANY CVE entries in the past
+# never actually referenced the git commit that fixed the problem {cough Red
+# Hat cough} but it's a good test so that we don't create duplicate entries for
+# things already assigned a CVE in the past.
+#
+# This is primarily used when assigning "old" CVEs for commits that happened
+# before March 2024, when the kernel.org group took over being the Linux Kernel
+# CNA.
+
+# set -x                        # Uncomment to enable debugging
+# don't use unset variables
+set -o nounset
+
+# Colors are good!
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
+
+FILE=${1}
+if [ ! -s "${FILE}" ]; then
+	echo "The only argument should be the file to parse"
+	exit 1
+fi
+
+KERNEL_TREE=${CVEKERNELTREE}
+if [ ! -d ${KERNEL_TREE} ]; then
+	echo "CVEERNELTREE needs setting to the stable repo directory"
+	echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+	echo "See HOWTO in the root of this repo"
+	exit 1
+fi
+
+# set where the tool was run from and the name of our script
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+SCRIPT=${0##*/}
+
+CVELISTV5="${DIR}/../cve/cvelistV5/"
+
+SHAS=""
+
+while read line; do
+    # Skip annotations
+    if echo ${line} | grep -q "^\s*-"; then
+        continue
+    fi
+
+    SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
+done < ${FILE}
+
+pushd ${CVELISTV5}> /dev/null
+
+for s in ${SHAS[@]}; do
+	echo "${txtgrn}Checking id: ${txtcyn}${s}${txtrst}..."
+	result=$(git grep "${s}")
+	if [[ "${result}" != "" ]] ; then
+		echo "	${txtred}Warning${txtrst}: id ${txtcyn}${s}${txtrst} was found:"
+		echo "	${result}"
+	fi
+done
+
+popd > /dev/null # ${CVELISTV5}
+

@@ -22,6 +22,11 @@ _help:
 	scripts/cve_update {{GIT_ID}}
 
 
+# Check the cvelistV5 database for any existing CVE entries
+@cvelistV5_check FILENAME:
+	scripts/cvelistV5_check {{FILENAME}}
+
+
 # Publish all modified .json files with the CVE server
 @cve_publish_json:
 	scripts/cve_publish_json
