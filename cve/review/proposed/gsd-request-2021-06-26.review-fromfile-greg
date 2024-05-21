@@ -1,0 +1,73 @@
+4bf584a03eec usb: dwc3: core: fix kernel panic when do reboot
+e41a49fadbc8 mm/slub: actually fix freelist pointer vs redzoning
+cfc579f9d89a net: bridge: fix vlan tunnel dst refcnt when egressing
+58e2071742e3 net: bridge: fix vlan tunnel dst null pointer dereference
+6aa32217a9a4 net: ll_temac: Make sure to free skb when it is completely used
+c364df2489b8 net: ll_temac: Fix TX BD buffer overwrite
+bddc0c411a45 mac80211: Fix NULL ptr deref for injected rate info
+d5befb224edb mac80211: fix deadlock in AP/VLAN handling
+60b7ed54a41b powerpc/perf: Fix crash in perf_instruction_pointer() when ppmu is not set
+d8778e393afa x86/fpu: Invalidate FPU state after a failed XRSTOR from a user buffer
+484cea4f362e x86/fpu: Prevent state corruption in __fpu__restore_sig()
+8d651ee9c71b x86/ioremap: Map EFI-reserved memory as encrypted for SEV
+f18139966d07 PCI: aardvark: Fix kernel panic during PIO transfer
+78fcb2c91adf KVM: x86: Immediately reset the MMU context when the SMM flag is cleared
+91c02557174b can: mcba_usb: fix memory leak in mcba_usb
+2030043e616c can: j1939: fix Use-after-Free, hold skb ref while in use
+cb2381cbecb8 regulator: rt4801: Fix NULL pointer dereference if priv->enable_gpios is NULL
+aaac9a1bd370 phy: phy-mtk-tphy: Fix some resource leaks in mtk_phy_init()
+5e87ddbe3942 can: bcm: fix infoleak in struct bcm_msg_head
+9cca0c2d7014 net: ethernet: fix potential use-after-free in ec_bhf_remove
+c3b26fdf1b32 net: cdc_eem: fix tx fixup skb leak
+7edcc6823014 net: hamradio: fix memory leak in mkiss_close
+d8e2973029b8 net: ipv4: fix memory leak in ip_mc_add1_src
+56b786d86694 net: usb: fix possible use-after-free in smsc75xx_bind
+9183671af6db bpf: Fix leakage under speculation on mispredicted branches
+ad9d24c9429e net: qrtr: fix OOB Read in qrtr_endpoint_post
+e175aef90269 ethtool: strset: fix message length calculation
+499ada507336 mptcp: fix soft lookup in subflow_error_report()
+ba91c49dedbd sch_cake: Fix out of bounds when parsing TCP options and header
+07718be26568 mptcp: Fix out of bounds when parsing TCP options
+5fc177ab7594 netfilter: synproxy: Fix out of bounds when parsing TCP options
+a3e5fd9314df net/mlx5e: Fix page reclaim for dead peer hairpin
+fb1a3132ee1a net/mlx5e: Fix use-after-free of encap entry in neigh update handler
+a8b897c7bcd4 udp: fix race between close() and udp_abort()
+ad9f151e560b netfilter: nf_tables: initialize set before expression setup
+49bfcbfd989a net: rds: fix memory leak in rds_recvmsg
+d612c3f3fae2 net: ipv4: fix memory leak in netlbl_cipsov4_add_std
+e298aa358f0c mac80211: fix skb length check in ieee80211_scan_rx()
+9f460ae31c44 batman-adv: Avoid WARN_ON timing related checks
+c5699e2d863f drm/amd/display: Fix potential memory leak in DMUB hw_init
+1ab19c5de4c5 gfs2: Fix use-after-free in gfs2_glock_shrink_scan
+218bf772bddd kvm: LAPIC: Restore guard to prevent illegal APIC register access
+6be388f4a35d HID: usbhid: fix info leak in hid_submit_ctrl
+e8675d291ac0 mm/memory-failure: make sure wait for page writeback in memory_failure
+9fdd04918a45 net: ieee802154: fix null deref in parse dev addr
+66a834d09293 scsi: core: Fix error handling of scsi_host_alloc()
+476bdb04c501 NFS: Fix use-after-free in nfs4_init_client()
+09226e8303be NFS: Fix a potential NULL dereference in nfs_get_client()
+2ba0aa2feebd IB/mlx5: Fix initializing CQ fragments buffer
+f31500b0d437 KVM: x86: Ensure liveliness of nested VM-Enter fail tracepoint message
+dbec64b11c65 gpio: wcd934x: Fix shift-out-of-bounds error
+41daf6ba594d ASoC: core: Fix Null-point-dereference in fmt_single_name()
+2adcb4c5a52a RDMA: Verify port when creating flow rule
+a3e74fb9247c RDMA/ipoib: Fix warning caused by destroying non-initial netns
+032e288097a5 usb: fix various gadget panics on 10gbps cabling
+3a13ff7ef434 usb: typec: tcpm: cancel vdm and state machine hrtimer when unregister tcpm port
+d00889080ab6 usb: dwc3: ep0: fix NULL pointer exception
+90c4d05780d4 usb: fix various gadgets null ptr deref on 10gbps cabling.
+a9aecef198fa usb: cdnsp: Fix deadlock issue in cdnsp_thread_irq_handler
+03715ea2e3db usb: dwc3: gadget: Bail from dwc3_gadget_exit() if dwc->gadget is NULL
+4d2aa178d2ad usb: dwc3-meson-g12a: fix usb2 PHY glue init when phy0 is disabled
+3e08a9f9760f tracing: Correct the length check which causes memory corruption
+41fe8d088e96 bcache: avoid oversized read request in cache missing code path
+6c14133d2d3f ftrace: Do not blindly read the ip address in ftrace_bug()
+da27a83fd6cc kvm: avoid speculation-based attacks from out-of-range memslot accesses
+0b67808ade88 bus: mhi: pci_generic: Fix possible use-after-free in mhi_pci_remove()
+fbf649cd6d64 usb: misc: brcmstb-usb-pinmap: check return value after calling platform_get_resource()
+b436acd1cf7f drm: Fix use-after-free read in drm_getunique()
+83e197a8414c ALSA: seq: Fix race of snd_seq_timer_open()
+13817d466eb8 spi: bcm2835: Fix out-of-bounds access with more than 4 slaves
+8f03eeb6e0a0 net:sfc: fix non-freed irq in legacy irq mode
+9f6f852550d0 isdn: mISDN: netjet: Fix crash in nj_probe:
+8ab78863e9ef net/nfc/rawsock.c: fix a permission check bug

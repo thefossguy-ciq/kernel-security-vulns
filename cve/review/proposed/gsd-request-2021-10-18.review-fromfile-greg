@@ -1,0 +1,80 @@
+71826b068884 cifs: Fix soft lockup during fsstress
+92dc0b1f46e1 staging: greybus: uart: fix tty use after free
+5fdb55c1ac95 binder: make sure fd closes complete
+25a143321648 mcb: fix error handling in mcb_alloc_bus()
+ab39d3cef526 drm/amd/pm: Update intermediate power state for SI
+563f23b00253 nexthop: Fix division by zero while replacing a resilient group
+bb509a6ffed2 comedi: Fix memory leak in compat_insnlist()
+581b2027af00 afs: Fix page leak
+b537a3c21775 afs: Fix corruption in reads at fpos 2G-4G from an OpenAFS server
+afd92d82c9d7 virtio-net: fix pages leaking when building skb in big mode
+7237a494decf enetc: Fix illegal access when reading affinity_hint
+248f064af222 s390/qeth: fix NULL deref in qeth_clear_working_pool_list()
+977d293e23b4 mptcp: ensure tx skbs always have the MPTCP ext
+3106a0847525 nexthop: Fix memory leaks in nexthop notification chain listeners
+d82d5303c4c5 net: macb: fix use after free on rmmod
+280bef512933 irqchip/gic-v3-its: Fix potential VPE leak on error
+510e1a724ab1 dma-debug: prevent an error message from causing runtime problems
+5afedf670caf blktrace: Fix uaf in blk_trace access after removing by sysfs
+0e6491b55970 bpf: Add oversize check before call kvcalloc()
+8480ed9c2bbd xen/balloon: use a kernel thread instead a workqueue
+9817d763dbe1 nvme-rdma: destroy cm id before destroy qp to avoid use after free
+858560b27645 blk-cgroup: fix UAF by grabbing blkcg lock before destroying blkg pd
+d46ef750ed58 HID: amd_sfh: Fix potential NULL pointer dereference
+ac4dfccb9657 ASoC: SOF: Fix DSP oops stack dump output contents
+d2b59bd4b06d s390/qeth: fix deadlock during failing recovery
+3b0c40612471 tty: Fix out-of-bound vmalloc access in imageblit
+505d9dcb0f7d crypto: ccp - fix resource leaks in ccp_run_aes_gcm_cmd()
+dd4d747ef05a hwmon: (w83793) Fix NULL pointer dereference by removing unnecessary structure field
+0f36b88173f0 hwmon: (w83792d) Fix NULL pointer dereference by removing unnecessary structure field
+943c15ac1b84 hwmon: (w83791d) Fix NULL pointer dereference by removing unnecessary structure field
+e5c6b312ce3c cpufreq: schedutil: Use kobject release() method to free sugov_tunables
+cdef11966088 cpufreq: schedutil: Destroy mutex before kobject_put() frees the memory
+94513069eb54 mac80211: fix use-after-free in CCMP/GCMP RX
+f1815e0aa770 KVM: SVM: fix missing sev_decommission in sev_receive_start
+2f9b68f57c62 KVM: x86: Fix stack-out-of-bounds memory access from ioapic_write_indirect()
+bc0bdc5afaa7 RDMA/cma: Do not change route.addr.src_addr.ss_family
+305d568b72f1 RDMA/cma: Ensure rdma_addr_cancel() happens before issuing more requests
+ca465e1f1f9b RDMA/cma: Fix listener leak in rdma_cma_listen_on_all() failure
+e6fab7af6ba1 hwmon: (mlxreg-fan) Return non-zero value when fan current state is enforced from sysfs
+a499b03bf36b netfilter: nf_tables: unlink table before deleting it
+13cb6d826e0a mac80211: limit injected vht mcs/nss in ieee80211_parse_tx_radiotap
+313bbd1990b6 mac80211-hwsim: fix late beacon hrtimer handling
+f7e745f8e944 sctp: break out if skb_header_pointer returns NULL in sctp_rcv_ootb
+7d5cfafe8b40 RDMA/hfi1: Fix kernel pointer leak
+513e605d7a9c ixgbe: Fix NULL pointer dereference in ixgbe_xdp_setup
+5b09e88e1bf7 net: hns3: do not allow call hns3_nic_net_open repeatedly
+a89936cce87d ipack: ipoctal: fix stack information leak
+d5ef190693a7 net: sched: flower: protect fl_walk() with rcu
+bb8a4fcb2136 ipack: ipoctal: fix module reference leak
+1e4ce418b1cb HID: betop: fix slab-out-of-bounds Write in betop_probe
+f7744fa16b96 HID: usbhid: free raw_report buffers in usbhid_stop
+1fd95c05d8f7 ext4: add error checking to ext4_ext_replay_set_iblocks()
+eb7511bf9182 KVM: x86: Handle SRCU initialization failure during page track init
+e9edc188fc76 netfilter: conntrack: serialize hash resizes and cleanups
+856e6e8e0f93 usb: dwc2: check return value after calling platform_get_resource()
+197ae17722e9 drm/amdkfd: fix svm_migrate_fini warning
+8bab4c09f24e io_uring: allow conditional reschedule for intensive iterators
+88a04049c08c HID: amd_sfh: Fix potential NULL pointer dereference
+a647a524a467 block: don't call rq_qos_ops->done_bio if the bio isn't tracked
+8253a34bfae3 usb: chipidea: ci_hdrc_imx: Also search for 'phys' phandle
+bb8958d5dc79 riscv: Flush current cpu icache before other cpus
+24d5f16e407b iwlwifi: mvm: Fix possible NULL dereference
+30e29a9a2bc6 bpf: Fix integer overflow in prealloc_elems_and_freelist()
+ca6e11c337da phy: mdio: fix memory leak
+b0e875bac0fa libbpf: Fix memory leak in strset
+560ee196fe9e net_sched: fix NULL deref in fifo_set_limit()
+a56d447f196f net/sched: sch_taprio: properly cancel timer from taprio_destroy()
+b072ef1215ac drm/amdkfd: fix a potential ttm->sg memory leak
+248b061689a4 drm/amdgpu: handle the case of pci_channel_io_frozen only in amdgpu_pci_resume
+bcf34aa5082e drm/nouveau: avoid a use-after-free when BO init fails
+0b3d4945cc7e drm/nouveau/kms/nv50-: fix file release memory leak
+f5a8703a9c41 drm/nouveau/debugfs: fix file release memory leak
+2e5a20573a92 i40e: Fix freeing of uninitialized misc IRQ vector
+6558b646ce1c i2c: acpi: fix resource leak in reconfiguration device addition
+686cb8b9f6b4 bpf, s390: Fix potential memory leak about jit_data
+258aad75c621 scsi: iscsi: Fix iscsi_task use after free
+3e607dc4df18 powerpc/64s: fix program check interrupt emergency stack path
+f08fb25bc669 powerpc/64s: Fix unrecoverable MCE calling async handler from NMI
+3958b9c34c27 x86/entry: Clear X86_FEATURE_SMAP when CONFIG_X86_SMAP=n
+66805763a97f drm/amdgpu: fix gart.bo pin_count leak

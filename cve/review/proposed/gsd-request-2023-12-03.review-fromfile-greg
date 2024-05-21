@@ -1,0 +1,135 @@
+e0d4e8acb378 f2fs: avoid format-overflow warning
+bef4a48f4ef7 spi: Fix null dereference on suspend
+146a15b87335 arm64: Restrict CPU_BIG_ENDIAN to GNU as or LLVM IAS 15.x or newer
+5c86919455c1 smb: client: fix use-after-free in smb2_query_info_compound()
+d328c09ee9f1 smb: client: fix use-after-free bug in cifs_debug_data_proc_show()
+b1904ed480ce drm/amd/display: Avoid NULL dereference of timing generator
+a1766a4fd83b media: imon: fix access to invalid resource for the second interface
+eebff19acaa3 ksmbd: fix slab out of bounds write in smb_inherit_dacl()
+d27abbfd4888 pwm: Fix double shift bug
+e6322fd177c6 smb: client: fix potential deadlock when releasing mids
+cc9c54232f04 i2c: dev: copy userspace array safely
+4c6a08125f22 gfs2: ignore negated quota changes
+bdcb8aa434c6 gfs2: Fix slab-use-after-free in gfs2_qd_dealloc
+be97d0db5f44 riscv: VMAP_STACK overflow detection thread-safe
+fafb51a67fb8 virtio-blk: fix implicit overflow on virtio_max_dma_size
+b53e9758a31c i3c: master: mipi-i3c-hci: Fix a kernel panic for accessing DAT_data.
+099be1822d1f media: gspca: cpia1: shift-out-of-bounds in set_flicker
+7b439aaa62fe mfd: qcom-spmi-pmic: Fix revid implementation
+45a832f989e5 i3c: mipi-i3c-hci: Fix out of bounds access in hci_dma_irq_handler
+53f2cb491b50 tls: fix NULL deref on tls_sw_splice_eof() with empty record
+05ac1a198a63 wifi: wilc1000: use vmm_table as array in wilc struct
+6afc57ea315e wifi: ath12k: fix htt mlo-offset event locking
+f803982190f0 f2fs: split initial and dynamic conditions for extent_cache
+8d2ad999ca3c cxl/port: Fix delete_endpoint() vs parent unregistration race
+4b7b492615cf af_unix: fix use-after-free in unix_stream_read_actor()
+b71f4ade1b89 drm/amd/display: fix a NULL pointer dereference in amdgpu_dm_i2c_xfer()
+db46cd1e0426 s390/dasd: protect device queue against concurrent access
+e6d71b437abc net/smc: avoid data corruption caused by decline
+69bd216e0493 wifi: ath12k: fix dfs-radar and temperature event locking
+1dea3c0720a1 wifi: ath11k: fix gtk offload status event locking
+9fce92f050f4 mptcp: deal with large GSO size
+8a924db2d7b5 fs: Pass AT_GETATTR_NOSEC flag to getattr interface function
+ca8add922f9c net: mvneta: fix calls to page_pool_get_stats
+974bba5c118f usb: config: fix iteration issue in 'usb_get_bos_descriptor()'
+7e3f3ba97e6c net/mlx5e: Track xmit submission to PTP WQ after populating metadata map
+8ba2c459668c net: wangxun: fix kernel panic due to null pointer
+3cffa2ddc4d3 bonding: stop the device in bond_setup_by_slave()
+27900d7119c4 scsi: ufs: core: Fix racing issue between ufshcd_mcq_abort() and ISR
+b4936b544b08 mm/damon/sysfs: check error from damon_sysfs_update_target()
+ce56d21355cd ext4: fix racy may inline data check in dio write
+b0077e269f6c blk-mq: make sure active queue usage is held for bio_integrity_prep()
+471aa951bf12 i915/perf: Fix NULL deref bugs with drm_dbg() calls
+d81ffb87aaa7 tty: vcc: Add check for kstrdup() in vcc_probe()
+53c87e846e33 swiotlb: fix out-of-bounds TLB allocations with CONFIG_SWIOTLB_DYNAMIC
+aa49c90894d0 i2c: core: Run atomic i2c xfer when !preemptible
+0718588c7aaa cxl/region: Do not try to cleanup after cxl_region_setup_targets() fails
+9220c3ef6fef samples/bpf: syscall_tp_user: Fix array out-of-bound access
+fae633cfb729 thermal: intel: powerclamp: fix mismatch in get function for max_idle
+e07754e0a1ea vhost-vdpa: fix use after free in vhost_vdpa_probe()
+18f039428c7d ipvlan: add ipvlan_route_v6_outbound() helper
+c6e316ac0553 drivers: perf: Check find_first_bit() return value
+3b6c14833165 wifi: ath11k: fix dfs radar event locking
+22cad8bc1d36 jfs: fix array-index-out-of-bounds in dbFindLeaf
+3f77c7d605b2 wifi: ath11k: fix htt pktlog locking
+e7250ab7ca49 iommufd: Fix missing update of domains_itree after splitting iopt_area
+3a23b384e7e3 iio: adc: stm32-adc: harden against NULL pointer deref in stm32_adc_probe()
+bfca5fb4e97c SUNRPC: Fix RPC client cleaned up the freed pipefs dentries
+64933ab7b048 fs/jfs: Add validity check for db_maxag and db_agpref
+05d9ea1ceb62 jfs: fix array-index-out-of-bounds in diAlloc
+f93dc90c2e8e ALSA: hda: Fix possible null-ptr-deref when assigning a stream
+53aba458f238 net: hns3: fix out-of-bounds access may occur when coalesce info is read via debugfs
+6de426f9276c scsi: hisi_sas: Set debugfs_dir pointer to NULL after removing debugfs
+4df105f0ce9f scsi: libfc: Fix potential NULL pointer dereference in fc_lport_ptp_setup()
+525b861a0081 fs/jfs: Add check for negative db_l2nbperpage
+b39f2d10b86d scsi: ibmvfc: Remove BUG_ON in the case of an empty event pool
+406e8845356d drm/amd: check num of link levels when update pcie param
+8f4f68e788c3 crypto: pcrypt - Fix hungtask for PADATA_RESET
+80285ae1ec87 drm/amdgpu: Fix potential null pointer derefernce
+cd90511557fd drm/amdgpu/vkms: fix a possible null pointer dereference
+282c1d793076 drm/amdkfd: Fix shift out-of-bounds issue
+5104fdf50d32 drm/amdgpu: Fix a null pointer access when the smc_rreg pointer is NULL
+760efbca74a4 drm/amd: Fix UBSAN array-index-out-of-bounds for SMU7
+0f0e59075b5c drm/amd: Fix UBSAN array-index-out-of-bounds for Polaris and Tonga
+f37d63e219c3 drm_lease.c: copy user-array safely
+924e5814d1f8 drm/panel: fix a possible null pointer dereference
+06ab64a0d836 drm: vmwgfx_surface.c: copy user-array safely
+569c8d82f95e kernel: kexec: copy user-array safely
+ca0776571d31 kernel: watch_queue: copy user-array safely
+709c34826161 drm/amdkfd: Fix a race condition of vram buffer unref in svm code
+f22def5970c4 drm/panel/panel-tpo-tpg110: fix a possible null pointer dereference
+1bc44a505a22 wifi: ath12k: fix possible out-of-bound read in ath12k_htt_pull_ppdu_stats()
+66d9111f3517 bpf: Detect IP == ksym.end as part of BPF program
+b302dce3d9ed wifi: ath12k: fix possible out-of-bound write in ath12k_wmi_ext_hal_reg_caps()
+a85fb91e3d72 Bluetooth: Fix double free in hci_conn_cleanup
+38685e2a0476 cpu/hotplug: Don't offline the last non-isolated CPU
+e160ab85166e wifi: mac80211: don't return unset power in ieee80211_get_tx_power()
+624820f7c882 Bluetooth: btusb: Add date->evt_skb is NULL check
+86565682e905 atl1c: Work around the DMA RX overflow issue
+9492261ff246 lib/generic-radix-tree.c: Don't overflow in peek()
+54aee5f15b83 perf/core: Bail out early if the request AUX area is out of bound
+bccdd808902f locking/ww_mutex/test: Fix potential workqueue corruption
+327462725b0f nbd: fix uaf in nbd_open
+aba6ab57a910 fbdev: imsttfb: fix a resource leak in probe
+61e3d993c8bd drivers: perf: Do not broadcast to other cpus when starting a counter
+eb988e46da2e Input: synaptics-rmi4 - fix use after free in rmi_unregister_function()
+1fd6eb12642e media: vidtv: mux: Add check and kfree for kstrdup
+34c4effacfc3 virtio/vsock: Fix uninit-value in virtio_transport_recv_pkt()
+7b3ba18703a6 llc: verify mac len before reading mac header
+76a2c5df6ca8 media: vidtv: psi: Add check for kstrdup
+19b3f72a41a8 tipc: Change nla_policy for bearer-related names to NLA_NUL_STRING
+876f8ab52363 hsr: Prevent use after free in prp_create_tagged_frame()
+bd5b50b329e8 media: bttv: fix use after free error due to btv->timeout timer
+a4639380bbe6 f2fs: fix to drop meta_inode's page cache in f2fs_put_super()
+88d3917f82ed cxl/mem: Fix shutdown order
+88d4b23a629e media: hantro: Check whether reset op is defined before use
+2ef422f063b7 IB/mlx5: Fix init stage error handling to avoid double free of same QP and UAF
+b0327c84e91a f2fs: compress: fix to avoid use-after-free on dic
+e3c2d2d144c0 hid: cp2112: Fix duplicate workqueue initialization
+7ddc21e317b3 padata: Fix refcnt handling in padata_free_shell()
+ef307bc6ef04 usb: dwc2: fix possible NULL pointer dereference caused by driver concurrency
+44283993144a drm/bridge: lt8912b: Fix crash on bridge detach
+b0b0d811eac6 drm/mediatek: Fix coverity issue with unintentional integer overflow
+2befa515c1bb clk: mediatek: clk-mt7629: Add check for mtk_alloc_clk_data
+b805cafc604b perf: hisi: Fix use-after-free when register pmu fails
+50b560783f7f drivers/perf: hisi: use cpuhp_state_remove_instance_nocalls() for hisi_hns3_pmu uninit process
+d0375f6858c4 drm: bridge: it66121: Fix invalid connector dereference
+0c3601a2fbfb drm/amd/display: Fix null pointer dereference in error message
+2a5b3370a1d9 hwmon: (axi-fan-control) Fix possible NULL pointer dereference
+eba9ac7abab9 platform/x86: wmi: Fix opening of char device
+606f6366a35a clk: mediatek: clk-mt6797: Add check for mtk_alloc_clk_data
+91cfe0bbaa1c HID: uclogic: Fix user-memory-access bug in uclogic_params_ugee_v2_init_event_hooks()
+dd05484f99d1 drm/radeon: possible buffer overflow
+c99626092efc thermal: core: prevent potential string overflow
+a19d48f7c5d5 pstore/platform: Add check for kstrdup
+b82681042724 clk: mediatek: clk-mt6765: Add check for mtk_alloc_clk_data
+f1a1bc8775b2 soc: qcom: llcc: Handle a second device without data corruption
+3a75b205de43 tty: n_gsm: fix race condition in status line change on dead connections
+1f57f78fbacf clk: mediatek: clk-mt6779: Add check for mtk_alloc_clk_data
+5d092b66119d x86/tdx: Zero out the missing RSI in TDX_HYPERCALL macro
+0d6e24b422a2 clk: mediatek: clk-mt2701: Add check for mtk_alloc_clk_data
+0884393c63cc clk: mediatek: clk-mt7629-eth: Add check for mtk_alloc_clk_data
+4987daf86c15 usb: typec: tcpm: Fix NULL pointer dereference in tcpm_pd_svdm()
+6411959c10fe can: dev: can_put_echo_skb(): don't crash kernel if can_priv::echo_skb is accessed out of bounds
+bb32500fb9b7 tracing: Have trace_event_file have ref counters
+a2b28708b645 drm/radeon: fix a possible null pointer dereference

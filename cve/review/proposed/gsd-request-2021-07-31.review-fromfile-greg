@@ -1,0 +1,86 @@
+546362a9ef2e bus: mhi: core: Validate channel ID when processing command completions
+4afa0c22eed3 driver core: auxiliary bus: Fix memory leak when driver_register() fail
+8d4abca95ecc media: ngene: Fix out-of-bounds bug in ngene_command_config_free_buf()
+fc68f42aa737 ACPI: fix NULL pointer dereference
+b5fdf5c6e6be usb: max-3421: Prevent corruption of freed memory
+f62f3c20647e KVM: PPC: Book3S: Fix H_RTAS rets buffer overflow
+a47fa41381a0 scsi: target: Fix NULL dereference on XCOPY completion
+8fb4792f091e ipv6: fix another slab-out-of-bounds in fib6_nh_flush_exceptions
+362a9e652892 io_uring: fix memleak in io_init_wq_offload()
+727d6a8b7ef3 net/sched: act_skbmod: Skip non-Ethernet packets
+517a16b1a88b netrom: Decrease sock refcount when sock timers expire
+f5051bcece50 net: sched: fix memory leak in tcindex_partial_destroy_work
+bc4188a2f56e KVM: PPC: Fix kvm_arch_vcpu_ioctl vcpu_load leak
+a6ecfb39ba9d usb: hso: fix error handling code of hso_create_net_device
+991e634360f2 net: fix uninit-value in caif_seqpkt_sendmsg
+7e6b27a69167 bpf, sockmap: Fix potential memory leak on unlikely error case
+5acc7d3e8d34 xdp, net: Fix use-after-free in bpf_xdp_link_release
+5dd0a6b8582f bpf: Fix tail_call_reachable rejection for interpreter when jit failed
+105cd17a8660 bonding: fix null dereference in bond_ipsec_add_sa()
+7b292608db23 igb: Fix use-after-free error during reset
+56ea7ed103b4 igc: Fix use-after-free error during reset
+f263a81451c1 bpf: Track subprog poke descriptors correctly and fix use-after-free
+be5d1b61a2ad tcp: fix tcp_init_transfer() to not reset icsk_ca_initialized
+ffe000217c50 dma-buf/sync_file: Don't leak fences on merge failure
+deb7178eb940 net: fddi: fix UAF in fza_probe
+03313d1c3a2f cifs: prevent NULL deref in cifs_compose_mount_options()
+b27c45775570 scsi: libfc: Fix array index out of bound exception
+67a9c9431740 net: validate lwtstate->data before returning from skb_tunnel_info()
+0336f8ffece6 net: ti: fix UAF in tlan_remove_one
+ad297cd2db89 net: qcom/emac: fix UAF in emac_remove
+4ca041f919f1 netfilter: nf_tables: Fix dereference of null pointer flow
+8cae8cd89f05 seq_file: disallow extremely large seq buffer allocations
+fe2535a44904 cpufreq: CPPC: Fix potential memleak in cppc_cpufreq_cpu_init
+8e0d09b1232d memory: fsl_ifc: fix leak of private memory on probe failure
+3b132ab67fc7 memory: fsl_ifc: fix leak of IO mapping on probe failure
+ab1016d39cc0 nfsd: fix NULL dereference in nfs3svc_encode_getaclres
+7b08cf62b123 NFSD: Prevent a possible oops in the nfs_dirent() tracepoint
+419ac821766c powerpc/bpf: Fix detecting BPF atomic instructions
+d00d8da5869a virtio_console: Assure used length from device is limited
+83150f5d05f0 arch_topology: Avoid use-after-free for scale_freq_data
+b71ba22e7c6c virtio-blk: Fix memory leak among suspend/resume procedure
+1fcb6fcd74a2 nfs: fix acl memory leak of posix_acl_create()
+d0212f095ab5 watchdog: Fix possible use-after-free by calling del_timer_sync()
+6d1c0f3d28f9 sunrpc: Avoid a KASAN slab-out-of-bounds bug in xdr_set_page_base()
+3731d44bba8e NFSv4: Fix an Oops in pnfs_mark_request_commit() when doing O_DIRECT
+90b7c1411322 watchdog: sc520_wdt: Fix possible use-after-free in wdt_turnoff()
+c08a6b31e491 watchdog: Fix possible use-after-free in wdt_startup()
+dd99e9f98fbf NFSv4: Initialise connection to the server in nfs4_alloc_client()
+7c8f176d6a3f iommu/arm-smmu: Fix arm_smmu_device refcount leak in address translation
+2beb4a53fc3f x86/signal: Detect and prevent an alternate signal stack overflow
+1adf30f198c2 iommu/arm-smmu: Fix arm_smmu_device refcount leak when arm_smmu_rpm_get fails
+ec29d0ac29be scsi: iscsi: Fix conn use after free during resets
+b5438f48fdd8 scsi: megaraid_sas: Fix resource leak in case of probe failure
+fad92b11047a tty: serial: 8250: serial_cs: Fix a memory leak in error handling path
+880287910b18 usb: common: usb-conn-gpio: fix NULL pointer dereference of charger
+cae0cf651adc ALSA: usx2y: Don't call free_pages_exact() with NULL address
+3ce3e45cc333 misc: alcor_pci: fix null-ptr-deref when there is no PCI bridge
+7272b591c4cb misc/libmasm/module: Fix two use after free in ibmasm_init_one
+cad83c968c2e f2fs: fix to avoid racing on fsync_entry_slab by multi filesystem instances
+49ec114a6e62 smackfs: restrict bytes count in smk_set_cipso()
+1cb3db1cf383 btrfs: fix deadlock with concurrent chunk allocations involving system chunks
+93aa71ad7379 scsi: core: Fix bad pointer dereference when ehandler kthread is invalid
+0af778269a52 fbmem: Do not delete the mode that is still in use
+3b0462726e7e cgroup: verify that source is a string
+7b53cca764f9 media: v4l2-core: explicitly clear ioctl input data
+9d574f985fe3 jfs: fix GPF in diFree
+23fa2e46a555 KVM: mmio: Fix use-after-free Read in kvm_vm_ioctl_unregister_coalesced_mmio
+61bb4a1c417e ext4: fix possible UAF when remounting r/o a mmp-protected file system
+b6e58b5466b2 dm btree remove: assign new_root only when removal succeeds
+0a045eac8d04 media: zr364xx: fix memory leak in zr364xx_start_readpipe
+74f160ead74b RDMA/cma: Fix rdma_resolve_route() memory leak
+5fae8a946ac2 coresight: tmc-etf: Fix global-out-of-bounds in tmc_update_etf_buffer()
+d10a87a3535c wl1251: Fix possible buffer overflow in wl1251_cmd_scan
+d3b16034a24a seq_buf: Fix overflow in seq_buf_putmem_hex()
+06888d571b51 drm/amd/display: Avoid HDCP over-read and corruption
+1f9482aa8d41 mwifiex: bring down link before deleting interface
+cd5d5e602f50 powerpc/mm: Fix lockup on kernel exec fault
+f4e3634a3b64 ubifs: Fix races between xattr_{set|get} and listxattr operations
+ad993a95c508 virtio-net: Add validation for used length
+d0d62baa7f50 net: xilinx_emaclite: Do not print real IOMEM pointer
+fa236c2b2d44 udf: Fix NULL pointer dereference in udf_symlink function
+0b10ab80695d drm/sched: Avoid data corruptions
+34e7434ba4e9 atm: nicstar: Fix possible use-after-free in nicstar_cleanup()
+009fc857c5f6 mISDN: fix possible use-after-free in HFC_cleanup()
+1c72e6ab66b9 atm: iphase: fix possible use-after-free in ia_module_exit()
+afd09b617db3 ext4: fix memory leak in ext4_fill_super
