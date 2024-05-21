@@ -4,7 +4,6 @@
 2558b8039d05 net: use a bounce buffer for copying skb->mark
 2fa28f5c6fcb net: openvswitch: fix possible memory leak in ovs_meter_cmd_set()
 c68f345b7c42 net/usb: kalmia: Don't pass act_len in usb_bulk_msg error path
-ee059170b1f7 net/sched: tcindex: update imperfect hash filters respecting rcu
 eedeb787ebb5 freezer,umh: Fix call_usermode_helper_exec() vs SIGKILL
 99b9402a36f0 nilfs2: fix underflow in second superblock position calculations
 79eeab1d85e0 gpio: sim: fix a memory leak
