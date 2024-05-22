@@ -3,7 +3,6 @@ a23461c47482 comedi: vmk80xx: fix transfer-buffer overflows
 907767da8f3a comedi: ni_usb6501: fix NULL-deref in command paths
 536de747bc48 comedi: dt9812: fix DMA buffers on stack
 e96a1866b405 isofs: Fix out of bound access for corrupted isofs image
-35d2969ea3c7 media: firewire: firedtv-avc: fix a buffer overflow in avc_ca_pmt()
 c052cc1a069c staging: rtl8712: fix use-after-free in rtl8712_dl_fw
 f2b85040acec scsi: core: Put LLD module refcnt after SCSI device is released
 5508546631a0 RDMA/mlx5: Initialize the ODP xarray when creating an ODP MR
@@ -22,11 +21,9 @@ a4aeaa06d45e mm: khugepaged: skip huge page collapse for special files
 09b1d5dc6ce1 cfg80211: fix management registrations locking
 397430b50a36 usbnet: sanity check for maxpacket
 da353fac65fe net/tls: Fix flipped sign in tls_err_abort() calls
-ab609f25d198 net: mdiobus: Fix memory leak in __mdiobus_register
 7fb223d0ad80 scsi: qla2xxx: Fix a memory leak in an error path of qla2x00_process_els()
 f62314b1ced2 kunit: fix reference count leak in kfree_at_end
 3cfc183052c3 drm: mxsfb: Fix NULL pointer dereference crash on unload
-1f3e2e97c003 isdn: cpai: check ctr->cnr to avoid array index out of bound
 67823a544414 mm, slub: fix potential use-after-free in slab_debugfs_fops
 9037c57681d2 mm, slub: fix potential memoryleak in kmem_cache_open()
 6e3ee990c904 audit: fix possible null-pointer dereference in audit_filter_rules
