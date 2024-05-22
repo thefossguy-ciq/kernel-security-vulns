@@ -80,3 +80,13 @@ a0cedbcc8852 pinctrl: devicetree: fix refcount leak in pinctrl_dt_to_map()
 24457f1be29f nfs: Handle error of rpc_proc_register() in nfs_net_init().
 5038a66dad01 pinctrl: core: delete incorrect free in pinctrl_enable()
 801ea33ae82d wifi: nl80211: don't free NULL coalescing rule
+52a6947bf576 drm/nouveau/firmware: Fix SG_DEBUG error with nvkm_firmware_ctor()
+24729b307eef usb: gadget: f_fs: Fix race between aio_cancel() and AIO request complete
+3628e0383dd3 Reapply "drm/qxl: simplify qxl_fence_wait"
+9a35d205f466 drm/amd/display: Atom Integrated System Info v2_2 for DCN35
+4e13d3a9c25b ipv6: Fix potential uninit-value access in __ip6_make_skb()
+0cac183b98d8 drm/amdkfd: range check cp bad op exception interrupts
+ded20192dff3 scsi: lpfc: Release hbalock before calling lpfc_worker_wake_up()
+4ddf01f2f150 scsi: lpfc: Move NPIV's transport unregistration to after resource clean up
+8a2e4d37afb8 s390/qeth: Fix kernel panic after setting hsuid
+5bcf0dcbf906 xdp: use flags field to disambiguate broadcast redirect
