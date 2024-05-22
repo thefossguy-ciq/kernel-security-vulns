@@ -74,14 +74,12 @@ fb7a0d334894 mptcp: ensure snd_nxt is properly initialized on connect
 080cbb890286 tipc: fix UAF in error path
 00e7d3bea2ce dyndbg: fix old BUG_ON in >control parser
 52a6947bf576 drm/nouveau/firmware: Fix SG_DEBUG error with nvkm_firmware_ctor()
-6f572a805457 drm/nouveau/gsp: Use the sg allocator for level 2 of radix3
 65ade5653f5a iommu/arm-smmu: Use the correct type in nvidia_smmu_context_fault()
 a26ff37e624d net: fix out-of-bounds access in ops_init
 30153e446664 mm: use memalloc_nofs_save() in page_cache_ra_order()
 c88033efe9a3 mm/userfaultfd: reset ptes when close() for wr-protected ones
 c70dce4982ce fs/proc/task_mmu: fix loss of young/dirty bits during pagemap scan
 2e4edfa1e2bd Bluetooth: qca: add missing firmware sanity checks
-a112d3c72a22 Bluetooth: qca: fix NVM configuration parsing
 0adcf6be1445 Bluetooth: qca: fix info leak when fetching board id
 cda0d6a198e2 Bluetooth: qca: fix info leak when fetching fw build id
 40d442f969fb Bluetooth: qca: fix firmware check error path
@@ -89,6 +87,5 @@ cda0d6a198e2 Bluetooth: qca: fix info leak when fetching fw build id
 24729b307eef usb: gadget: f_fs: Fix race between aio_cancel() and AIO request complete
 9a35d205f466 drm/amd/display: Atom Integrated System Info v2_2 for DCN35
 4e13d3a9c25b ipv6: Fix potential uninit-value access in __ip6_make_skb()
-838ae9f45c4e nouveau/gsp: Avoid addressing beyond end of rpc->entries
 ded20192dff3 scsi: lpfc: Release hbalock before calling lpfc_worker_wake_up()
 4ddf01f2f150 scsi: lpfc: Move NPIV's transport unregistration to after resource clean up
