@@ -1,0 +1,42 @@
+4afb912f439c btrfs: fix abort logic in btrfs_replace_file_extents
+ff0e50d3564f xhci: Fix command ring pointer corruption while aborting a command
+d208b89401e0 dm: fix mempool NULL pointer race when completing IO
+c2115b2b1642 usb: musb: dsps: Fix the probe error path
+9da1b86865ab iio: adis16475: fix deadlock on frequency set
+94b960b9deff net/mlx5e: Fix memory leak in mlx5_core_destroy_cq() error path
+ef1100ef20f2 net: dsa: microchip: Added the condition for scheduling ksz_mib_read_work
+f03dca0c9e22 net: encx24j600: check error in devm_regmap_init_encx24j600
+332fdf951df8 mlxsw: thermal: Fix out-of-bounds memory accesses
+291c932fc369 NFC: digital: fix possible memory leak in digital_in_send_sdd_req()
+58e7dcc9ca29 NFC: digital: fix possible memory leak in digital_tg_listen_mdaa()
+97794170b696 drm/edid: In connector_bad_edid() cap num_of_ext by num_blocks read
+2133c4fc8e13 drm/msm: Fix null pointer dereference on pointer edp
+980d74e7d03c drm/msm/a4xx: fix error handling in a4xx_gpu_init()
+3eda90199537 drm/msm/a3xx: fix error handling in a3xx_gpu_init()
+612f71d7328c mptcp: fix possible stall on recvmsg()
+4d4a223a86af ice: fix locking for Tx timestamp tracking flush
+1d58a17ef545 KVM: arm64: Fix host stage-2 PGD refcount
+902c0b188752 netfilter: xt_IDLETIMER: fix panic that occurs when timer_type has garbage value
+68a3765c659f netfilter: nf_tables: skip netdev events generated on netns removal
+73e30a62b19b ice: Avoid crash from unnecessary IDA free
+787252a10d94 powerpc/smp: do not decrement idle task preempt count in CPU offline
+4225fea1cb28 ptp: Fix possible memory leak in ptp_clock_register()
+949fe9b35570 can: peak_pci: peak_pci_remove(): fix UAF
+9acf636215a6 can: isotp: isotp_sendmsg(): add result check for wait_event_interruptible()
+b15fa9224e6e ocfs2: mount fails with buffer overflow in strlen
+d9d52a3ebd28 can: j1939: j1939_netdev_start(): fix UAF for rx_kref of j1939_priv
+5314454ea3ff ocfs2: fix data corruption after conversion from inline format
+cb185d5f1ebf userfaultfd: fix a race between writeprotect and exit_mmap()
+6d2aec9e123b mm/mempolicy: do not allow illegal MPOL_F_NUMA_BALANCING | MPOL_LOCAL in mbind()
+79f9bc584314 mm/secretmem: fix NULL page->mapping dereference in page_is_secretmem()
+6e3ee990c904 audit: fix possible null-pointer dereference in audit_filter_rules
+9b4416c5095c KVM: PPC: Book3S HV: Fix stack handling in idle_kvm_start_guest()
+496c5fe25c37 powerpc/idle: Don't corrupt back chain when going idle
+9037c57681d2 mm, slub: fix potential memoryleak in kmem_cache_open()
+f62314b1ced2 kunit: fix reference count leak in kfree_at_end
+6510e80a0b81 isdn: mISDN: Fix sleeping function called from invalid context
+6098475d4cb4 spi: Fix deadlock when adding SPI controllers on SPI buses
+67823a544414 mm, slub: fix potential use-after-free in slab_debugfs_fops
+3cfc183052c3 drm: mxsfb: Fix NULL pointer dereference crash on unload
+ab609f25d198 net: mdiobus: Fix memory leak in __mdiobus_register
+7fb223d0ad80 scsi: qla2xxx: Fix a memory leak in an error path of qla2x00_process_els()
