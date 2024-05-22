@@ -1,0 +1,49 @@
+78cdfd62bd54 comedi: vmk80xx: fix bulk-buffer overflow
+a23461c47482 comedi: vmk80xx: fix transfer-buffer overflows
+907767da8f3a comedi: ni_usb6501: fix NULL-deref in command paths
+536de747bc48 comedi: dt9812: fix DMA buffers on stack
+e96a1866b405 isofs: Fix out of bound access for corrupted isofs image
+35d2969ea3c7 media: firewire: firedtv-avc: fix a buffer overflow in avc_ca_pmt()
+c052cc1a069c staging: rtl8712: fix use-after-free in rtl8712_dl_fw
+f2b85040acec scsi: core: Put LLD module refcnt after SCSI device is released
+5508546631a0 RDMA/mlx5: Initialize the ODP xarray when creating an ODP MR
+6f68cd634856 net: batman-adv: fix error handling
+55e6d8037805 regmap: Fix possible double-free in regcache_rbtree_exit()
+c2d4c543f74c octeontx2-af: Fix possible null pointer dereference.
+d39bf40e55e6 IB/qib: Protect from buffer overflow in struct qib_user_sdma_pkt fields
+27de809a3d83 riscv, bpf: Fix potential NULL dereference
+5afa7898ab7a drm/amdgpu: fix out of bounds write
+04f8ef5643bc cgroup: Fix memory leak caused by missing cgroup_bpf_offline
+3f4e54bd312d drm/amdgpu: Fix even more out of bound writes from debugfs
+0db55f9a1baf drm/ttm: fix memleak in ttm_transfered_destroy
+a4aeaa06d45e mm: khugepaged: skip huge page collapse for special files
+74c42e1baacf mm, thp: bail out early in collapse_file for writeback page
+6f1b228529ae ocfs2: fix race between searching chunks and release journal_head from buffer_head
+09b1d5dc6ce1 cfg80211: fix management registrations locking
+397430b50a36 usbnet: sanity check for maxpacket
+da353fac65fe net/tls: Fix flipped sign in tls_err_abort() calls
+ab609f25d198 net: mdiobus: Fix memory leak in __mdiobus_register
+7fb223d0ad80 scsi: qla2xxx: Fix a memory leak in an error path of qla2x00_process_els()
+f62314b1ced2 kunit: fix reference count leak in kfree_at_end
+3cfc183052c3 drm: mxsfb: Fix NULL pointer dereference crash on unload
+1f3e2e97c003 isdn: cpai: check ctr->cnr to avoid array index out of bound
+67823a544414 mm, slub: fix potential use-after-free in slab_debugfs_fops
+9037c57681d2 mm, slub: fix potential memoryleak in kmem_cache_open()
+6e3ee990c904 audit: fix possible null-pointer dereference in audit_filter_rules
+79f9bc584314 mm/secretmem: fix NULL page->mapping dereference in page_is_secretmem()
+6d2aec9e123b mm/mempolicy: do not allow illegal MPOL_F_NUMA_BALANCING | MPOL_LOCAL in mbind()
+b15fa9224e6e ocfs2: mount fails with buffer overflow in strlen
+d9d52a3ebd28 can: j1939: j1939_netdev_start(): fix UAF for rx_kref of j1939_priv
+949fe9b35570 can: peak_pci: peak_pci_remove(): fix UAF
+4225fea1cb28 ptp: Fix possible memory leak in ptp_clock_register()
+73e30a62b19b ice: Avoid crash from unnecessary IDA free
+902c0b188752 netfilter: xt_IDLETIMER: fix panic that occurs when timer_type has garbage value
+1d58a17ef545 KVM: arm64: Fix host stage-2 PGD refcount
+2133c4fc8e13 drm/msm: Fix null pointer dereference on pointer edp
+332fdf951df8 mlxsw: thermal: Fix out-of-bounds memory accesses
+291c932fc369 NFC: digital: fix possible memory leak in digital_in_send_sdd_req()
+58e7dcc9ca29 NFC: digital: fix possible memory leak in digital_tg_listen_mdaa()
+94b960b9deff net/mlx5e: Fix memory leak in mlx5_core_destroy_cq() error path
+5d388fa01fa6 nvmem: Fix shift-out-of-bound (UBSAN) with byte size cells
+b4459b11e840 dm rq: don't queue request to blk-mq during DM suspend
+d208b89401e0 dm: fix mempool NULL pointer race when completing IO
