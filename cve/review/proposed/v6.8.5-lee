@@ -1,0 +1,53 @@
+7ded842b356d s390/bpf: Fix bpf_plt pointer arithmetic
+2295bd846765 dma-buf: Fix NULL pointer dereference in sanitycheck()
+d24b03535e5e nfc: nci: Fix uninit-value in nci_dev_up and nci_ntf_packet
+bbe806c294c9 wifi: iwlwifi: mvm: pick the version of SESSION_PROTECTION_NOTIF
+1cb7fdb1dfde ice: fix memory corruption bug with suspend and rebuild
+7d5a7dd5a358 net: wwan: t7xx: Split 64bit accesses to fix alignment issues
+93305b77ffcb net: hns3: fix kernel crash when devlink reload during pf initialization
+f7442a634ac0 mlxbf_gige: call request_irq() after NAPI initialized
+1102f9f85bf6 modpost: do not make find_tosym() return NULL
+37801a36b4d6 selinux: avoid dereference of garbage after mount failure
+81166178cf0a x86/bpf: Fix IP after emitting call depth accounting
+62fc3357e079 net/rds: fix possible cp null dereference
+c0de6ab920aa net: mana: Fix Rx DMA datasize and skb_over_panic
+24cea9677025 netfilter: nf_tables: flush pending destroy work before exit_net release
+24225011d81b netfilter: nf_tables: Fix potential data-race in __nft_flowtable_type_get()
+0c83842df40f netfilter: validate user input for expected length
+ff9105993240 bpf, sockmap: Prevent lock inversion deadlock in map delete elem
+d313eb8b7755 net/sched: act_skbmod: prevent kernel-infoleak
+7eb322360b02 net/sched: fix lockdep splat in qdisc_tree_reduce_backlog()
+96c155943a70 net: phy: micrel: Fix potential null pointer dereference
+ed4cccef64c1 gro: fix ownership transfer
+dd19e827d63a idpf: fix kernel panic on unknown packet types
+17af420545a7 erspan: make sure erspan_base_hdr is present in skb->head
+fd819ad3ecf6 ax25: fix use-after-free bugs caused by ax25_ds_del_timer
+d21d40605bca ipv6: Fix infinite recursion in fib6_dump_done().
+09ba28e1cd3c mlxbf_gige: stop interface during shutdown
+3d010c8031e3 udp: do not accept non-tunnel GSO skbs landing in a tunnel
+f37c4eac99c2 i40e: fix vf may be used uninitialized in this function warning
+00bb549d7d63 regmap: maple: Fix cache corruption in regcache_maple_drop()
+be141849ec00 nouveau/uvmm: fix addr/range calcs for remap operations
+1f886a7bfb3f spi: mchp-pci1xxx: Fix a possible null pointer dereference in pci1xxx_spi_probe
+a677ebd8ca2f ksmbd: validate payload size in ipc response
+a1aa5390cc91 of: module: prevent NULL pointer dereference in vsnprintf()
+caeb4b0a11b3 aio: Fix null ptr deref in aio_complete() wakeup
+c27fa53b858b riscv: Fix vector state restore in rt_sigreturn()
+201e4aaf405d mm/secretmem: fix GUP-fast succeeding on secretmem folios
+24a9799aa8ef smb: client: fix UAF in smb2_reconnect_server()
+062a7f0ff46e smb: client: guarantee refcounted children from parent session
+ca545b7f0823 smb: client: fix potential UAF in cifs_debug_files_proc_show()
+d3da25c5ac84 smb: client: fix potential UAF in cifs_stats_proc_write()
+0865ffefea19 smb: client: fix potential UAF in cifs_stats_proc_show()
+58acd1f49716 smb: client: fix potential UAF in cifs_dump_full_key()
+22863485a462 smb: client: fix potential UAF in smb2_is_valid_oplock_break()
+705c76fbf726 smb: client: fix potential UAF in smb2_is_valid_lease_break()
+69ccf040acdd smb: client: fix potential UAF in is_valid_oplock_break()
+63981561ffd2 smb: client: fix potential UAF in smb2_is_network_name_deleted()
+e0e50401cc39 smb: client: fix potential UAF in cifs_signal_cifsd_for_reconnect()
+04c35ab3bdae x86/mm/pat: fix VM_PAT handling in COW mappings
+3a6a32b31a11 Revert "drm/amd/display: Send DTBCLK disable message on first commit"
+fcf4692fa39e mptcp: prevent BPF accessing lowat from a subflow socket.
+994209ddf4f4 netfilter: nf_tables: reject new basechain after table flag update
+ecc6a2101840 bpf: Protect against int overflow for stack access size
+9fe6e9e7b589 nfsd: Fix error cleanup path in nfsd_rename()
