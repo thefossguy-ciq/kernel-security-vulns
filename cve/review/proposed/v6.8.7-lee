@@ -1,0 +1,26 @@
+fcf3f7e2fc8a raid1: fix use-after-free for original bio in raid1_write_request()
+31729e8c21ec drm/amd/pm: fixes a random hang in S4 for SMU v13.0.4/11
+5e700b384ec1 platform/chrome: cros_ec_uart: properly fix race condition
+4406e4176f47 scsi: qla2xxx: Fix off by one in qla_edif_app_getstats()
+237f3cf13b20 xsk: validate user input for XDP_{UMEM|COMPLETION}_FILL_RING
+8b8ace080319 block: fix q->blkg_list corruption during disk rebind
+d8a6213d70ac geneve: fix header validation in geneve[6]_xmit_skb
+be0384bf599c net: ks8851: Handle softirqs at the end of IRQ thread to fix hang
+b46f4eaa4f0e af_unix: Clear stale u->oob_skb.
+7633c4da919a ipv6: fix race condition between ipv6_get_ifaddr and ipv6_del_addr
+81665adf25d2 pds_core: Fix pdsc_check_pci_health function to use work thread
+51eda36d33e4 Bluetooth: SCO: Fix not validating setsockopt user input
+a97de7bff13b Bluetooth: RFCOMM: Fix not validating setsockopt user input
+c6e77aa9dd82 net/mlx5: Register devlink first under devlink lock
+7c6782ad4911 net/mlx5: Properly link new fs rules into the tree
+bf02d9fe0063 net: ena: Fix incorrect descriptor free behavior
+89436f4f5412 iommu/vt-d: Fix WARN_ON in iommu probe path
+74e97958121a btrfs: qgroup: fix qgroup prealloc rsv leak in subvolume operations
+325f3fb551f8 kprobes: Fix possible use-after-free issue on kprobe registration
+27f58c04a8f4 scsi: sg: Avoid sg device teardown race
+d4e655c49f47 scsi: sg: Avoid race in error handling & drop bogus warn
+fd7726e75968 accel/ivpu: Fix deadlock in context_xa
+bc004f503822 drm/ast: Fix soft lockup
+3eadd887dbac drm/client: Fully protect modes[] with dev->mode_config.mutex
+b1f532a3b1e6 batman-adv: Avoid infinite loop trying to resize local TT
+e3ba51ab24fd arm64: tlb: Fix TLBI RANGE operand
