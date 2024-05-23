@@ -1,0 +1,27 @@
+7e11a2966f51 wifi: rtw89: fix null pointer access when abort scan
+19b070fefd0d VMCI: Fix memcpy() run-time warning in dg_dispatch_as_host()
+5d7f58ee0843 pmdomain: ti: Add a null pointer check to the omap_prm_domain_init
+697624ee8ad5 pmdomain: imx8mp-blk-ctrl: imx8mp_blk: Add fdcc clock to hdmimix domain
+219eee9c0d16 net: skbuff: add overflow debug check to pull/push helpers
+98bc7e26e14f pstore/zone: Add a null pointer check to the psz_kmsg_read
+b9fa16949d18 dma-direct: Leak pages on dma_set_decrypted() failure
+9ad797485692 wifi: cfg80211: check A-MSDU format more carefully
+00af2aa93b76 net/smc: reduce rtnl pressure in smc_pnet_create_pnetids_list()
+b79e04091010 Bluetooth: btintel: Fix null ptr deref in btintel_read_version
+5ee0d47dcf33 drm/vc4: don't check if plane->state->fb == state->fb
+601429cca96b drm/amdgpu: Skip do PCI error slot reset during RAS recovery
+f123dc86388c sysv: don't call sb_bread() with pointers_lock held
+6226a5aa7737 drm/amd/display: Disable idle reallow as part of command/gpint execution
+- [lee] HW hang
+9bf93dcfc453 Julia Lawall reported this null pointer dereference, this should fix it.
+- [lee] NULL pointer deref in kernel code
+5abffb66d12b drm: Check output polling initialized before disabling
+93f52fbeaf4b block: prevent division by zero in blk_rq_stat_sum()
+b3db266fb031 usb: typec: ucsi: Limit read size on v1.2
+c2d953276b8b fbmon: prevent division by zero in fb_videomode_from_videomode()
+f679fd6057fb drm/amdgpu: Init zone device and drm client after mode-1 reset on reload
+- [lee] Kernel Panic
+97c75ee5de06 media: mediatek: vcodec: Fix oops when HEVC init fails
+6467cda18c9f media: mediatek: vcodec: adding lock to protect decoder context list
+afaaf3a0f647 media: mediatek: vcodec: adding lock to protect encoder context list
+025f8ad20f2e net: mpls: error out if inner headers are not set
