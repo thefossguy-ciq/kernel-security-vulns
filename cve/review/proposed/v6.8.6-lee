@@ -25,3 +25,5 @@ f679fd6057fb drm/amdgpu: Init zone device and drm client after mode-1 reset on r
 6467cda18c9f media: mediatek: vcodec: adding lock to protect decoder context list
 afaaf3a0f647 media: mediatek: vcodec: adding lock to protect encoder context list
 025f8ad20f2e net: mpls: error out if inner headers are not set
+61c81872815f net: phy: phy_device: Prevent nullptr exceptions on ISR
+dda98810b552 rcu/nocb: Fix WARN_ON_ONCE() in the rcu_nocb_bypass_lock()
