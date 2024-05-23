@@ -220,14 +220,14 @@ WARN[A-Z]*:\
     fi
     rm -f ${commitmsgfile}
 
-    if grep -rq "${subject}" ${PROCESSEDDIR}; then
-        filename=$(basename $(grep -lr "${subject}" ${PROCESSEDDIR}))
-        sha=$(grep -rh "${subject}" ${PROCESSEDDIR} | cut -d' ' -f1)
+    if grep -rqF "${subject}" ${PROCESSEDDIR}; then
+        filename=$(basename $(grep -lrF "${subject}" ${PROCESSEDDIR}))
+        sha=$(grep -rhF "${subject}" ${PROCESSEDDIR} | cut -d' ' -f1)
 
         print_red "\nPotentially already reviewed in\n  "
 
         echo -n "  ${filename}: "
-        echo "$(grep -h "${subject}" ${PROCESSEDDIR}/*)"
+        echo "$(grep -hF "${subject}" ${PROCESSEDDIR}/*)"
 
         if [ "${SKIPREVIEWED}" == "true" ]; then
             newpatchid=$(git show ${h} | git patch-id | cut -d' ' -f1)
