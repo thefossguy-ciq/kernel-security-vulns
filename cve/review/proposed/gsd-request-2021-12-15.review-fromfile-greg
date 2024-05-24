@@ -1,0 +1,76 @@
+70c9774e180d iio: accel: kxcjk-1013: Fix possible memory leak in probe and remove
+cd0082235783 iio: mma8452: Fix trigger reference couting
+23ec111bf354 i40e: Fix NULL pointer dereference in i40e_dbg_dump_desc
+23ba28616d30 ASoC: codecs: wcd934x: handle channel mappping list correctly
+653926205741 scsi: pm80xx: Do not call scsi_remove_host() in pm8001_alloc()
+78a780602075 io_uring: ensure task_work gets run as part of cancelations
+50252e4b5e98 aio: fix use-after-free due to missing POLLFREE handling
+548ec0805c39 nfsd: fix use-after-free due to delegation race
+b10252c7ae9c nfsd: Fix nsfd startup race (again)
+da5e817d9d75 btrfs: free exchange changeset on failures
+8839c8c0f77a ALSA: pcm: oss: Limit the period size to 16MB
+84c254489299 btrfs: fix re-dirty process of tree-log nodes
+9d2479c96087 ALSA: pcm: oss: Fix negative period/buffer sizes
+61c2402665f1 net/sched: fq_pie: prevent dismantle issue
+e8b1d7698038 net: dsa: felix: Fix memory leak in felix_setup_mmio_filtering
+4dbb0dad8e63 devlink: fix netns refcount leak in devlink_nl_cmd_reload()
+ae68d93354e5 seg6: fix the iif in the IPv6 socket control block
+c56c96303e92 nfp: Fix memory leak in nfp_cpp_area_cache_add()
+dde91ccfa25f ethtool: do not perform operations on net devices being unregistered
+4cd8371a234d nfc: fix potential NULL pointer deref in nfc_genl_dump_ses_done
+31cb32a590d6 can: m_can: m_can_read_fifo: fix memory leak in error branch
+94cddf1e9227 can: pch_can: pch_can_rx_normal: fix use after free
+3ec6ca6b1a8e can: sja1000: fix use after free in ems_pcmcia_add_card()
+918aa1ef104d HID: bigbenff: prevent null pointer dereference
+60a8b5a1611b IB/hfi1: Fix leak of rcvhdrtail_dummy_kvaddr
+dd5e90b16cca serial: liteuart: fix minor-number leak on probe errors
+05f929b395de serial: liteuart: fix use-after-free and memleak on unbind
+0f55f89d98c8 serial: liteuart: Fix NULL pointer dereference in ->remove()
+00de977f9e0a serial: core: fix transmit-buffer reset and memleak
+37307f7020ab usb: cdnsp: Fix a NULL pointer dereference in cdnsp_endpoint_init()
+a571bc28326d iwlwifi: Fix memory leaks in error handling path
+ea0006d390a2 drm/msm: Fix wait_fence submitqueue leak
+3466d9e217b3 drm/msm: Fix mmap to include VM_IO and VM_DONTDUMP
+59ba1b2b4825 drm/msm/devfreq: Fix OPP refcnt leak
+d134c5ff71c7 drm/vc4: kms: Clear the HVS FIFO commit pointer once done
+049cfff8d53a drm/vc4: kms: Add missing drm_crtc_commit_put
+b4d25abf9720 drm/msm/a6xx: Allocate enough space for GMU registers
+789b6cc2a5f9 net/smc: fix wrong list_del in smc_lgr_cleanup_early
+e07a097b4986 octeontx2-af: Fix a memleak bug in rvu_mbox_init()
+beacff50edbd rxrpc: Fix rxrpc_local leak in rxrpc_lookup_peer()
+ca77fba82135 rxrpc: Fix rxrpc_peer leak in rxrpc_look_up_bundle()
+6e53d6d26920 mt76: mt7915: fix NULL pointer dereference in mt7915_get_phy_mode
+addad7643142 net/mlx4_en: Fix an use-after-free bug in mlx4_en_try_alloc_resources()
+e2dabc4f7e7b net: qlogic: qlcnic: Fix a NULL pointer dereference in qlcnic_83xx_add_rings()
+d9fc706108c1 perf report: Fix memory leaks around perf_tip()
+dacb5d8875cc tcp: fix page frag corruption on page fault
+0ca1f534a776 perf hist: Fix memory leak of a perf_hpp_fmt
+cdef485217d3 ipv6: fix memory leak in fib6_rule_suppress
+61217be886b5 net: tulip: de4x5: fix the problem that the array 'lp->phy[8]' may be out of bound
+a66998e0fbf2 ethernet: hisilicon: hns: hns_dsaf_misc: fix a possible array overflow in hns_dsaf_ge_srst_by_port()
+6c8ad7e8cf29 sata_fsl: fix UAF in sata_fsl_port_stop when rmmod sata_fsl
+27dfaedc0d32 drm/amd/amdgpu: fix potential memleak
+2cf49e00d40d drm/amd/amdkfd: Fix kernel panic when reset failed and been triggered again
+b922f622592a atlantic: Fix OOB read and write in hw_atl_utils_fw_rpc_wait
+2a19b28f7929 blk-mq: cancel blk-mq dispatch work in both blk_cleanup_queue and disk_release()
+dce1ca0525bf sched/scs: Reset task stack state in bringup_cpu()
+bb93ce4b150d vdpa_sim: avoid putting an uninitialized iova_domain
+01d9cc2dea3f net: vlan: fix underflow for the real_dev refcnt
+0276af2176c7 ethtool: ioctl: fix potential NULL deref in ethtool_set_coalesce()
+de6d25924c2a net/sched: sch_ets: don't peek at classes beyond 'nbands'
+b270bfe69736 net: stmmac: Disable Tx queues when reconfiguring the interface
+587acad41f1b net/smc: Fix NULL pointer dereferencing in smc_vlan_by_tcpsk()
+63b08b1f6834 mlxsw: spectrum: Protect driver from buggy firmware
+84e1d0bf1d71 i2c: virtio: disable timeout handling
+792b2086584f ice: fix vsi->txq_map sizing
+f65ee535df77 ice: avoid bpf_prog refcount underflow
+e8d032507cb7 net: marvell: prestera: fix double free issue on err path
+0ee4ba13e09c scsi: mpt3sas: Fix kernel panic during drive powercycle test
+c1e631177119 proc/vmcore: fix clearing user buffer by properly using clear_user()
+5bb60ea611db powerpc/32: Fix hardlockup on vmap stack overflow
+178ca6f85aa3 ksmbd: fix memleak in get_file_stream_info()
+617a89484deb io_uring: fail cancellation for EXITING tasks
+6af3f48bf615 io_uring: fix link traversal locking
+be4ea8f38355 staging: r8188eu: fix a memory leak in rtw_wx_read32()
+b535917c51ac staging: rtl8192e: Fix use after free in _rtl92e_pci_disconnect()
+1c743127cc54 net: nexthop: fix null pointer dereference when IPv6 is not enabled
