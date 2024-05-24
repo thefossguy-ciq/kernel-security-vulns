@@ -71,11 +71,13 @@ done < ${FILE}
 pushd ${CVELISTV5}> /dev/null
 
 for s in ${SHAS[@]}; do
-	echo "${txtgrn}Checking id: ${txtcyn}${s}${txtrst}..."
+	echo -n "${txtblu}Checking id: ${txtcyn}${s}${txtrst}... "
 	result=$(git grep "${s}")
 	if [[ "${result}" != "" ]] ; then
-		echo "	${txtred}Warning${txtrst}: id ${txtcyn}${s}${txtrst} was found:"
+		echo "${txtred}Warning${txtrst}: id ${txtcyn}${s}${txtrst} was found in cvelistV5:"
 		echo "	${result}"
+	else
+		echo "${txtgrn}all good.${txtrst}"
 	fi
 done
 
