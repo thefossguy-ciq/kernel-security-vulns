@@ -3,3 +3,5 @@ eb4b691b9115 fuse: fix leaked ENOSYS error on first statx call
 - [greg] error value is passed to userspace when it shouldn't have, not a vulnerability, just a bug
 68879386180c btrfs: zoned: do not flag ZEROOUT on non-dirty extent buffer
 - [greg] "on-disk data is safe"
+f3408580bac8 perf lock contention: Add a missing NULL check
+- [greg] perf is a userspace tool, NULL just stops the bpf program from validating/loading
