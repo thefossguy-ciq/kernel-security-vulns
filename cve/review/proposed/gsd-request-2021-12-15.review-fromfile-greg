@@ -51,7 +51,6 @@ a66998e0fbf2 ethernet: hisilicon: hns: hns_dsaf_misc: fix a possible array overf
 6c8ad7e8cf29 sata_fsl: fix UAF in sata_fsl_port_stop when rmmod sata_fsl
 27dfaedc0d32 drm/amd/amdgpu: fix potential memleak
 2cf49e00d40d drm/amd/amdkfd: Fix kernel panic when reset failed and been triggered again
-b922f622592a atlantic: Fix OOB read and write in hw_atl_utils_fw_rpc_wait
 2a19b28f7929 blk-mq: cancel blk-mq dispatch work in both blk_cleanup_queue and disk_release()
 dce1ca0525bf sched/scs: Reset task stack state in bringup_cpu()
 bb93ce4b150d vdpa_sim: avoid putting an uninitialized iova_domain
