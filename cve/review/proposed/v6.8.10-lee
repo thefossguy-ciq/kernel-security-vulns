@@ -1,0 +1,76 @@
+801ea33ae82d wifi: nl80211: don't free NULL coalescing rule
+5038a66dad01 pinctrl: core: delete incorrect free in pinctrl_enable()
+24457f1be29f nfs: Handle error of rpc_proc_register() in nfs_net_init().
+6648e613226e bpf, skmsg: Fix NULL pointer dereference in sk_psock_skb_ingress_enqueue
+5bcf0dcbf906 xdp: use flags field to disambiguate broadcast redirect
+1c5a1627f481 efi/unaccepted: touch soft lockup during memory accept
+666854ea9cad ice: ensure the copied buf is NUL terminated
+8c34096c7fdf bna: ensure the copied buf is NUL terminated
+c7f7c3727178 thermal/debugfs: Fix two locking issues with thermal zone debug
+4b911a9690d7 nsh: Restore skb->{protocol,data,mac_header} for outer header in nsh_gso_segment().
+d351eb0ab04c thermal/debugfs: Prevent use-after-free from occurring after cdev removal
+da7c622cddd4 s390/cio: Ensure the copied buf is NUL terminated
+4756fa529b2f spi: fix null pointer dereference within spi_sync
+d091e579b864 net: core: reject skb_copy(_expand) for fraglist GSO skbs
+8a2e4d37afb8 s390/qeth: Fix kernel panic after setting hsuid
+fc1092f51567 ipv4: Fix uninit-value access in __ip_make_skb()
+7e91ed763dc0 clk: sunxi-ng: h6: Reparent CPUX during PLL CPUX rate change
+49a940dbdc31 powerpc/pseries/iommu: LPAR panics during boot up with a frozen PE
+75961ffb5cb3 swiotlb: initialise restricted pool list_head when SWIOTLB_DYNAMIC=y
+ded20192dff3 scsi: lpfc: Release hbalock before calling lpfc_worker_wake_up()
+6630036b7c22 fs/9p: fix uninitialized values during inode evict
+17f64517bf5c wifi: iwlwifi: mvm: guard against invalid STA ID on removal
+429846b4b6ce scsi: mpi3mr: Avoid memcpy field-spanning write WARNING
+c214ed2a4dda scsi: bnx2fc: Remove spin_lock_bh while releasing resources after upload
+a8d89feba7e5 bpf: Check bloom filter map value size
+22d24a544b0d block: fix overflow in blk_ioctl_discard()
+838ae9f45c4e nouveau/gsp: Avoid addressing beyond end of rpc->entries
+beaa51b36012 blk-iocost: avoid out of bounds shift
+7a87441c9651 nfc: llcp: fix nfc_llcp_setsockopt() unsafe copies
+ecedd99a9369 drm/amd/display: Skip on writeback when it's not applicable
+bbf9ac34677b hv_netvsc: Don't free decrypted memory
+3d788b2fbe6a uio_hv_generic: Don't free decrypted memory
+30d18df6567b Drivers: hv: vmbus: Don't free ring buffers that couldn't be re-encrypted
+01bc4fda9ea0 blk-iocost: do not WARN if iocg was already offlined
+8e088a20dbe3 SUNRPC: add a missing rpc_stat for TCP TLS
+c4238686f909 ARM: 9381/1: kasan: clear stale stack poison
+94062790aedb tcp: defer shutdown(SEND_SHUTDOWN) for TCP_SYN_RECV sockets
+f2db7230f73a tcp: Use refcount_inc_not_zero() in tcp_twsk_unique().
+483bc0818182 Bluetooth: Fix use-after-free bugs caused by sco_sock_timeout
+10f9f426ac6e Bluetooth: msft: fix slab-use-after-free in msft_do_close()
+d2706004a1b8 Bluetooth: HCI: Fix potential null-ptr-deref
+adf0398cee86 Bluetooth: l2cap: fix null-ptr-deref in l2cap_chan_timeout
+e0863634bf9f net: ks8851: Queue RX packets in IRQ handler instead of disabling BHs
+2367bf254f3a ipv6: Fix potential uninit-value access in __ip6_make_skb()
+d101291b2681 ipv6: fib6_rules: avoid possible NULL dereference in fib6_rule_action()
+4db783d68b9b ipv6: prevent NULL dereference in ip6_output()
+35d92abfbad8 net: hns3: fix kernel crash when devlink reload during initialization
+02f6b0e1ec7e gpiolib: cdev: Fix use after free in lineinfo_changed_notify
+ee0166b637a5 gpiolib: cdev: fix uninitialised kfifo
+9a35d205f466 drm/amd/display: Atom Integrated System Info v2_2 for DCN35
+a4b46d450c49 USB: core: Fix access violation during port device removal
+24729b307eef usb: gadget: f_fs: Fix race between aio_cancel() and AIO request complete
+ae11f04b452b usb: typec: tcpm: Check for port partner validity before consuming it
+8f828aa48812 mm/slub: avoid zeroing outside-object freepointer for single free
+e03418abde87 btrfs: make sure that WRITTEN is set on all metadata blocks
+955a923d2809 maple_tree: fix mas_empty_area_rev() null pointer dereference
+cd7eb8f83fcf mm/slab: make __free(kfree) accept error pointers
+fb7a0d334894 mptcp: ensure snd_nxt is properly initialized on connect
+57a01eafdcf7 workqueue: Fix selection of wake_cpu in kick_pool()
+387f295cb215 e1000e: change usleep_range to udelay in PHY mdic access
+080cbb890286 tipc: fix UAF in error path
+deab66596dfa drm/vmwgfx: Fix invalid reads in fence signaled events
+65ade5653f5a iommu/arm-smmu: Use the correct type in nvidia_smmu_context_fault()
+a26ff37e624d net: fix out-of-bounds access in ops_init
+30153e446664 mm: use memalloc_nofs_save() in page_cache_ra_order()
+2e4edfa1e2bd Bluetooth: qca: add missing firmware sanity checks
+a112d3c72a22 Bluetooth: qca: fix NVM configuration parsing
+cda0d6a198e2 Bluetooth: qca: fix info leak when fetching fw build id
+9da27fb65a14 keys: Fix overwrite of key expiration on instantiation
+0adcf6be1445 Bluetooth: qca: fix info leak when fetching board id
+c88033efe9a3 mm/userfaultfd: reset ptes when close() for wr-protected ones
+52a6947bf576 drm/nouveau/firmware: Fix SG_DEBUG error with nvkm_firmware_ctor()
+650ae71c8074 usb: gadget: uvc: use correct buffer size when parsing configfs lists
+211f514ebf1e Drivers: hv: vmbus: Track decrypted status in vmbus_gpadl
+03f5a999adba Drivers: hv: vmbus: Leak pages if set_memory_encrypted() fails
+c2ace6300600 wifi: iwlwifi: read txq->read_ptr under lock
