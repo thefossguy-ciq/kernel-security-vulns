@@ -1,0 +1,5 @@
+e99b5bc054c8 usb: typec: ucsi: displayport: Fix potential deadlock
+189c768932d4 KEYS: trusted: Fix memory leak in tpm2_key_encode()
+dfece2b4e375 Bluetooth: L2CAP: Fix div-by-zero in l2cap_le_flowctl_init()
+826af9d2f695 Bluetooth: L2CAP: Fix slab-use-after-free in l2cap_connect()
+f187fcbbb8f8 drm/amd/display: Fix division by zero in setup_dsc_config
