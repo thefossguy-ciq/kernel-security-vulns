@@ -590,10 +590,6 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 	# shellcheck disable=SC2086
 	program_files=$(jo -a -- ${f})
 
-	# FIXME: add program_files down below to a and ag in the proper place,
-	# but for now, the json is not validating on the CVE server side, so
-	# don't add it until that is figured out...
-
 	# We want vuln_array_json to be expanded without quotes
 	# shellcheck disable=SC2086
 	a=$(jo --	\
@@ -601,6 +597,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 		vendor="Linux"				\
 		defaultStatus="${default_status}"	\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
+		programFiles="${program_files}"		\
 		${vuln_array_json}			\
 	)
 
@@ -611,6 +608,7 @@ if [[ "${JSON_FILE}" != "" ]] ; then
 		vendor="Linux"				\
 		defaultStatus="unaffected"		\
 		repo="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"	\
+		programFiles="${program_files}"		\
 		${git_array_json}			\
 	)
 
