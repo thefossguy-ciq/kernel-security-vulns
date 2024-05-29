@@ -194,7 +194,7 @@ denial|\
 dos|\
 [-\s_]fault|\
 [-\s_]hang[a-z]*|hung|\
-leak|\
+info[-\s_a-z].*leak|leak\
 memory|\
 oob|\
 oops|\
