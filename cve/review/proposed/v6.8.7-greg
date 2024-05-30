@@ -32,3 +32,6 @@ bc004f503822 drm/ast: Fix soft lockup
 1fc9af813b25 drm/panfrost: Fix the error path in panfrost_mmu_map_fault_addr()
 3eadd887dbac drm/client: Fully protect modes[] with dev->mode_config.mutex
 be0384bf599c net: ks8851: Handle softirqs at the end of IRQ thread to fix hang
+d4e655c49f47 scsi: sg: Avoid race in error handling & drop bogus warn
+4406e4176f47 scsi: qla2xxx: Fix off by one in qla_edif_app_getstats()
+31729e8c21ec drm/amd/pm: fixes a random hang in S4 for SMU v13.0.4/11
