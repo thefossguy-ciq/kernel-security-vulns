@@ -1,0 +1,2 @@
+1102f9f85bf6 modpost: do not make find_tosym() return NULL
+- [greg] modpost happens at build time, this is not kernel code crashing

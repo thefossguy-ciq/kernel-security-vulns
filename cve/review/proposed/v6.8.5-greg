@@ -59,3 +59,7 @@ c27fa53b858b riscv: Fix vector state restore in rt_sigreturn()
 7ded842b356d s390/bpf: Fix bpf_plt pointer arithmetic
 9d98aa088386 x86/bpf: Fix IP after emitting call depth accounting
 fd819ad3ecf6 ax25: fix use-after-free bugs caused by ax25_ds_del_timer
+be141849ec00 nouveau/uvmm: fix addr/range calcs for remap operations
+00bb549d7d63 regmap: maple: Fix cache corruption in regcache_maple_drop()
+f37c4eac99c2 i40e: fix vf may be used uninitialized in this function warning
+93305b77ffcb net: hns3: fix kernel crash when devlink reload during pf initialization
