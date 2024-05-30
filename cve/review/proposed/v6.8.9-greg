@@ -46,3 +46,5 @@ f7cbce60a38a Bluetooth: hci_sync: Fix UAF on create_le_conn_complete
 25e9227c6afd drm/amdgpu: Fix leak when GPU memory allocation fails
 efb44ff64c95 LoongArch: Fix access error when read fault on a write-only VMA
 6e965eba43e9 octeontx2-af: fix the double free in rvu_npc_freemem()
+f8def10f73a5 mmc: sdhci-msm: pervent access to suspended controller
+52ccdde16b65 mm/hugetlb: fix DEBUG_LOCKS_WARN_ON(1) when dissolve_free_hugetlb_folio()

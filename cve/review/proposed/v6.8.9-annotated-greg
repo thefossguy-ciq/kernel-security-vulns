@@ -1,0 +1,6 @@
+b53c6bd5d271 x86/cpu: Fix check for RDPKRU in __show_regs()
+- [greg] boot crash only, and has to be triggered by hand-modifying source code to cause the problem.
+25e9227c6afd drm/amdgpu: Fix leak when GPU memory allocation fails
+- [greg] memory leak fix for a range of memory allocation failures
+efb44ff64c95 LoongArch: Fix access error when read fault on a write-only VMA
+- [greg] write only memory could be read from in userspace, not a good thing at all.
