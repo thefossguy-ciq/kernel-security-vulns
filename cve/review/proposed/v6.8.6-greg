@@ -30,3 +30,6 @@ dda98810b552 rcu/nocb: Fix WARN_ON_ONCE() in the rcu_nocb_bypass_lock()
 9ad797485692 wifi: cfg80211: check A-MSDU format more carefully
 3c6ee34c6f9c btrfs: send: handle path ref underflow in header iterate_inode_ref()
 7411055db5ce btrfs: handle chunk tree lookup error in btrfs_relocate_sys_chunks()
+f679fd6057fb drm/amdgpu: Init zone device and drm client after mode-1 reset on reload
+9bf93dcfc453 Julia Lawall reported this null pointer dereference, this should fix it.
+6226a5aa7737 drm/amd/display: Disable idle reallow as part of command/gpint execution
