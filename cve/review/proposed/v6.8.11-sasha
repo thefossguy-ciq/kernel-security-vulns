@@ -1,0 +1,6 @@
+331f91d86f71d remoteproc: mediatek: Make sure IPI buffer fits in L2TCM
+7af2ae1b1531f erofs: reliably distinguish block based and fscache mode
+ffcaa2172cc1a KEYS: trusted: Fix memory leak in tpm2_key_encode()
+a5b862c6a2214 Bluetooth: L2CAP: Fix div-by-zero in l2cap_le_flowctl_init()
+4d7b41c0e4399 Bluetooth: L2CAP: Fix slab-use-after-free in l2cap_connect()
+130afc8a88618 drm/amd/display: Fix division by zero in setup_dsc_config
