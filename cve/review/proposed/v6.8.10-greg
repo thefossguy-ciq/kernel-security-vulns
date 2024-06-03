@@ -89,3 +89,6 @@ cda0d6a198e2 Bluetooth: qca: fix info leak when fetching fw build id
 4e13d3a9c25b ipv6: Fix potential uninit-value access in __ip6_make_skb()
 ded20192dff3 scsi: lpfc: Release hbalock before calling lpfc_worker_wake_up()
 4ddf01f2f150 scsi: lpfc: Move NPIV's transport unregistration to after resource clean up
+baa23a8d4360 tracefs: Reset permissions on remount if permissions are options
+cd25e15e57e6 fs/9p: only translate RWX permissions for plain 9P2000
+e0863634bf9f net: ks8851: Queue RX packets in IRQ handler instead of disabling BHs

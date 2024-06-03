@@ -1,0 +1,10 @@
+e11452eb071b dmaengine: idxd: add a new security check to deal with a hardware erratum
+- [greg] CVE was issued by Intel
+95feb3160eef VFIO: Add the SPR_DSA and SPR_IAX devices to the denylist
+- [greg] CVE was issued by Intel
+a112d3c72a22 Bluetooth: qca: fix NVM configuration parsing
+- [greg] developer and maintainer said no CVE
+838ae9f45c4e nouveau/gsp: Avoid addressing beyond end of rpc->entries
+- [greg] gcc warning fix only
+0d5e2a822326 net: bcmgenet: synchronize UMAC_CMD access
+- [greg] bugfix only
