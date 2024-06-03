@@ -1,0 +1,5 @@
+050bf3c793a07 KEYS: trusted: Do not use WARN when encode fails
+eba63df7eb1f9 Revert "media: v4l2-ctrls: show all owned controls in log_status"
+b791a67f68121 usb: typec: ucsi: displayport: Fix potential deadlock
+1d26ba0944d39 usb: dwc3: Wait unconditionally after issuing EndXfer command
+3d913719df14c wifi: iwlwifi: Use request_module_nowait
