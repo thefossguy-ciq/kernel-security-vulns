@@ -1,0 +1,4 @@
+e11452eb071b dmaengine: idxd: add a new security check to deal with a hardware erratum
+- [greg] has CVE id assigned from Intel already
+95feb3160eef VFIO: Add the SPR_DSA and SPR_IAX devices to the denylist
+- [greg] has cve id assigned from Intel already
