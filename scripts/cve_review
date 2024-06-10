@@ -235,7 +235,7 @@ WARN[A-Z]*:\
 
             if [ "${newpatchid}" == "${oldpatchid}" ]; then
                 print_blue "\nConfirmed as already reviewed - SKIPPING\n"
-                # sleep 1
+                sleep 1
                 rm -f ${commitfile}
                 echo "${oneline}" >> ${PROCESSEDFILE}
                 continue

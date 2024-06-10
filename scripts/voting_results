@@ -131,10 +131,9 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
         cve=1
     fi
 
-    # if [ ${cve} == 1 ]; then
-    #     CVE+=("${oneline}")
-    # elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
-    if [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
+    if [ ${cve} == 1 ]; then
+        CVE+=("${oneline}")
+    elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
         ALL+=("${oneline}")
     elif [ ${greg} == 1 -a ${lee} == 1 ]; then
         GREGLEE+=("${oneline}")
