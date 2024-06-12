@@ -228,7 +228,7 @@ WARN[A-Z]*:\
     rm -f ${commitmsgfile}
 
     if grep -rqF "${subject}" ${PROCESSEDDIR}; then
-        filename=$(basename $(grep -lrF "${subject}" ${PROCESSEDDIR}))
+        filename=$(basename $(grep -lrF "${subject}" ${PROCESSEDDIR} | head -n1))
         sha=$(grep -rhF "${subject}" ${PROCESSEDDIR} | cut -d' ' -f1)
 
         print_red "\nPotentially already reviewed in\n  "
