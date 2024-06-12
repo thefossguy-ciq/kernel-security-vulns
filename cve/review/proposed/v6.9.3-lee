@@ -1,0 +1,59 @@
+e60b613df8b6 ftrace: Fix possible use-after-free issue in ftrace_location()
+47388e807f85 tty: n_gsm: fix possible out-of-bounds in gsm0_receive()
+008ab3c53bc4 speakup: Fix sizeof() vs ARRAY_SIZE() bug
+c71e3a5cffd5 r8169: Fix possible ring buffer corruption on fragmented Tx packets.
+c2274b908db0 ring-buffer: Fix a race between readers and resize checks
+b31c7e780861 net: ti: icssg_prueth: Fix NULL pointer dereference in prueth_probe()
+f5d4e04634c9 nilfs2: fix use-after-free of timer for log writer thread
+eb85dace897c nilfs2: fix potential hang in nilfs_detach_log_writer()
+87988a534d8e ALSA: Fix deadlocks with kctl removals at disconnection
+85a6a1aff08e ecryptfs: Fix buffer size for tag 66 packet
+cc5645fddb0c rcu-tasks: Fix show_rcu_tasks_trace_gp_kthread buffer overflow
+3758f7d9917b rcu: Fix buffer overflow in print_cpu_stall_info()
+c6854e5a267c jffs2: prevent xattr node from overflowing the eraseblock
+9b284b915e2a crypto: qat - validate slices count returned by FW
+f0e729af2eb6 md: fix resync softlockup when bitmap size is less than array size
+316f790ebcf9 wifi: brcmfmac: pcie: handle randbuf allocation failure
+9bf48fa19a4b libbpf: Prevent null-pointer dereference when prog to load has no BTF
+cf7de25878a1 cppc_cpufreq: Fix possible null pointer dereference
+e1bdff48a1bb wifi: ath12k: fix out-of-bound access of qmi_invoke_handler()
+d998ddc86a27 thermal/drivers/tsens: Fix null pointer dereference
+d98779e68772 gfs2: Fix potential glock use-after-free on unmount
+77fce82678ea drivers/perf: hisi_pcie: Fix out-of-bound access when valid event group
+81bdd60a3d1d drivers/perf: hisi: hns3: Fix out-of-bound access when valid event group
+d301a71c76ee macintosh/via-macii: Fix "BUG: sleeping function called from invalid context"
+b6dd09b3dac8 wifi: carl9170: add a proper sanity check for endpoints
+e120b6388d7d wifi: ar5523: enable proper endpoint verification
+cb47c7be0e93 wifi: mt76: connac: check for null before dereferencing
+838c7b8f1f27 wifi: nl80211: Avoid address calculations via out of bounds array indexing
+f8aa1b98ce40 kunit: Fix kthread reference
+13d0cecb4626 scsi: bfa: Ensure the copied buf is NUL terminated
+d0184a375ee7 scsi: qedf: Ensure the copied buf is NUL terminated
+ac0a230f719b eth: sungem: remove .ndo_poll_controller to avoid deadlocks
+540bf24fba16 af_unix: Fix data races in unix_release_sock/unix_stream_sendmsg
+3d5918477f94 net/mlx5e: Fix netif state handling
+3c453e8cc672 net/mlx5: Fix peer devlink set for SF representor devlink port
+0f06228d4a2d net/mlx5: Reload only IB representors upon lag disable/enable
+485d65e13571 net/mlx5: Add a timeout to acquire the command queue semaphore
+db9b31aa9bc5 net/mlx5: Discard command completions in internal error
+c2e0c58b25a0 net: fec: remove .ndo_poll_controller to avoid deadlocks
+36ac9e7f2e57 net: stmmac: move the EST lock to struct stmmac_priv
+63ae548f1054 drm/amd/display: Fix potential index out of bounds in color transformation function
+ea60ab95723f ASoC: kirkwood: Fix potential NULL dereference
+935a92a1c400 drm: bridge: cdns-mhdp8546: Fix possible null pointer dereference
+3b621e9e9e14 media: atomisp: ssh_css: Fix a null-pointer dereference in load_video_binaries
+a1f95aede628 drm/arm/malidp: fix a possible null pointer dereference
+c534b63bede6 drm: vc4: Fix possible null pointer dereference
+b46494b6f9c1 RDMA/hns: Fix deadlock on SRQ async events.
+a942ec2745ca RDMA/hns: Fix UAF for cq async event
+349e85995228 RDMA/hns: Modify the print level of CQE error
+c2af060d1c18 lib/test_hmm.c: handle src_pfns and dst_pfns allocation failure
+3d6586008f7b drivers/virt/acrn: fix PFNMAP PTE checks in acrn_vm_ram_map()
+cf7385cb26ac of: module: add buffer overflow check in of_modalias()
+78cfd17142ef bnxt_re: avoid shift undefined behavior in bnxt_qplib_alloc_init_hwq
+8bd67ebb50c0 net: bridge: xmit: make sure we have at least eth header len bytes
+3a7c1661ae13 net: bridge: mst: fix vlan use-after-free
+e03e7f20ebf7 netrom: fix possible dead-lock in nr_rt_ioctl()
+01a2c5123e27 drm/mediatek: Init `ddp_comp` with devm_kcalloc()
+aea27a92a41d net: micrel: Fix receiving the timestamp in the frame for lan8841
+d69aef8084cc wifi: iwlwifi: mvm: fix check in iwl_mvm_sta_fw_id_mask
