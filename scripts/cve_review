@@ -60,7 +60,7 @@ while [ $# -gt 0 ]; do
         *+([0-9])\.\.*)
             RANGE=${1}
             ;;
-        *+([0-9])\.*+([0-9]))
+        *+([0-9])\.*+([0-9])\.\.)
             RANGE=${1}
             ;;
         --annotate|-a)
@@ -72,6 +72,12 @@ while [ $# -gt 0 ]; do
         *)
             if [ -s "${1}" ]; then
                 FILE=${1};
+                shift
+                continue
+            fi
+
+            if git cat-file -t ${1} > /dev/null 2>&1; then
+                SHAS+=(${1})
                 shift
                 continue
             fi
@@ -93,7 +99,7 @@ if [ "${RANGE}" == "" ]; then
     if [ "${ANNOTATE}" == "true" ]; then
         print_red "A version must be provided e.g. v6.7.2"
         exit 1
-    elif [ "${FILE}" == "" ]; then
+    elif [[ "${FILE}" == "" && "${SHAS[@]}" == "" ]]; then
         print_red "A range must be provided e.g. v6.7.2..v6.7.3"
         exit 1
     fi
@@ -124,12 +130,13 @@ if [ -s "${FILE}" ]; then
 
         SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
     done < ${FILE}
-
-else
+elif [ "${RANGE}" != "" ]; then
     H=$(git log --reverse --format=%h ${RANGE})
     for h in ${H}; do
         SHAS+=($h)
     done
+else
+    TAG=${SHAS[0]}
 fi
 
 NOSHAS=$(echo ${SHAS[@]} | wc -w)
@@ -180,7 +187,7 @@ for h in ${SHAS[@]}; do
 call[-\s_]*trace|\
 dead[-\s_]*lock|lock[-\s_]*up|[-\s_]lock|\
 nul[l]*[-\s_]*p[a-z]*[-\s_]*deref[a-z]*|nul[l]*[-\s_]*p[a-z]*|null|deref[a-z]*|\
-divi[-\s_a-z]*by[-\s_]*zero|divi[-\s_a-z]*by[-\s_]*0|\
+div[-\s_a-z]*by[-\s_]*zero|divi[-\s_a-z]*by[-\s_]*0|\
 double[-\s_]*free|\
 kernel[-\s_]*bug|\
 buffer[-\s_]*overflow|over[-\s_]*run|over[-\s_]*flow|\
@@ -221,7 +228,7 @@ WARN[A-Z]*:\
     rm -f ${commitmsgfile}
 
     if grep -rqF "${subject}" ${PROCESSEDDIR}; then
-        filename=$(basename $(grep -lrF "${subject}" ${PROCESSEDDIR}))
+        filename=$(basename $(grep -lrF "${subject}" ${PROCESSEDDIR} | head -n1))
         sha=$(grep -rhF "${subject}" ${PROCESSEDDIR} | cut -d' ' -f1)
 
         print_red "\nPotentially already reviewed in\n  "
