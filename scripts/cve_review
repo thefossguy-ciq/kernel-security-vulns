@@ -76,6 +76,12 @@ while [ $# -gt 0 ]; do
                 continue
             fi
 
+            if git cat-file -t ${1} > /dev/null 2>&1; then
+                SHAS+=(${1})
+                shift
+                continue
+            fi
+
             print_red "Unrecognised argument: ${1}"
             usage
             ;;
@@ -93,7 +99,7 @@ if [ "${RANGE}" == "" ]; then
     if [ "${ANNOTATE}" == "true" ]; then
         print_red "A version must be provided e.g. v6.7.2"
         exit 1
-    elif [ "${FILE}" == "" ]; then
+    elif [[ "${FILE}" == "" && "${SHAS[@]}" == "" ]]; then
         print_red "A range must be provided e.g. v6.7.2..v6.7.3"
         exit 1
     fi
@@ -124,12 +130,13 @@ if [ -s "${FILE}" ]; then
 
         SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
     done < ${FILE}
-
-else
+elif [ "${RANGE}" != "" ]; then
     H=$(git log --reverse --format=%h ${RANGE})
     for h in ${H}; do
         SHAS+=($h)
     done
+else
+    TAG=${SHAS[0]}
 fi
 
 NOSHAS=$(echo ${SHAS[@]} | wc -w)
