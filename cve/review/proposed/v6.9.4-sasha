@@ -1,0 +1,80 @@
+a6c11c0a5235f genirq/cpuhotplug, x86/vector: Prevent vector leak during CPU offline
+4b2543f7e1e6b efi: libstub: only free priv.runtime_map when allocated
+a638b0461b58a riscv: prevent pt_regs corruption for secondary idle threads
+b3dc6e8003b50 ipvlan: Dont Use skb->sk in ipvlan_process_v{4,6}_outbound
+92f1655aa2b22 net: fix __dst_negative_advice() race
+fb66df20a7201 net/sched: taprio: extend minimum interval restriction to entire cycle too
+21a673bddc8fd netfilter: tproxy: bail out if IP has been disabled on the device
+c8ea2c31f5ea4 drm/xe: Only use reserved BCS instances for usm migrate exec queue
+98e948fb60d41 bpf: Allow delete from sockmap/sockhash only if update is allowed
+e8021b94b0412 enic: Validate length of nl attributes in enic_set_vf_port
+b794918961516 dma-buf/sw-sync: don't enable IRQ from sync_print_obj()
+16d66a4fa81da net/mlx5: Use mlx5_ipsec_rx_status_destroy to correctly delete status rules
+e64746e74f717 dma-mapping: benchmark: handle NUMA_NO_NODE correctly
+1ff05e723f7ca dma-mapping: benchmark: fix node id validation
+c1193d9bbbd37 netfilter: ipset: Add list flush to cancel_gc
+dc21c6cc3d698 netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
+4a77c3dead973 SUNRPC: Fix loop termination condition in gss_free_in_token_pages()
+195aba96b854d tpm_tis_spi: Account for SPI header when allocating TPM SPI xfer buffer
+e569eb3497028 tracing/probes: fix error check in parse_btf_field()
+a2db328b08393 null_blk: fix null-ptr-dereference while configuring 'power' and 'submit_queues'
+5e7695e0219bf idpf: Interpret .set_channels() input differently
+26afda78cda3d net: relax socket state check at accept time.
+91e61dd7a0af6 tls: fix missing memory barrier in tls_init
+89875151fccdd virtio: delete vq in vp_find_vqs_msix() when request_irq() fails
+ffbf4fb9b5c12 arm64: asm-bug: Add .align 2 to the end of __BUG_ENTRY
+3ebc46ca8675d tcp: Fix shift-out-of-bounds in dctcp_update_alpha().
+efb9f4f19f8e3 ipv6: sr: fix memleak in seg6_hmac_init_algo
+9841991a446c8 af_unix: Update unix_sk(sk)->oob_skb under sk_receive_queue lock.
+4836da219781e rpcrdma: fix handling for RDMA_CM_EVENT_DEVICE_REMOVAL
+e4a87abf58853 nfc: nci: Fix uninit-value in nci_rx_work
+5447f9708d9e4 ipv6: sr: fix missing sk_buff release in seg6_input_core
+d344873c4cbde ALSA: hda: cs35l56: Fix lifetime of cs_dsp instance
+172811e3a557d ALSA: hda/cs_dsp_ctl: Use private_free for control cleanup
+b52e8cd3f8358 KVM: PPC: Book3S HV nestedv2: Fix an error handling path in gs_msg_ops_kvmhv_nestedv2_config_fill_info()
+1ae14f3520b1a ASoC: tas2781: Fix a warning reported by robot kernel test
+46d4efcccc688 drm/msm/a6xx: Avoid a nullptr dereference when speedbin setting fails
+47c82aac10a69 media: cec: core: avoid recursive cec_claim_log_addrs
+9fe2816816a3c media: cec: cec-adap: always cancel work in cec_transmit_msg_fh
+1c987cf22d6b6 cxl/region: Fix cxlr_pmem leaks
+6d4341638516b powerpc/pseries: Add failure related checks for h_get_mpp and h_get_ppp
+e397c564298c2 platform/x86: thinkpad_acpi: Take hotkey_mutex during hotkey_exit()
+acce6479e30f7 drm/amdgpu: Fix buffer size in gfx_v9_4_3_init_ cp_compute_microcode() and rlc_microcode()
+7b4e0b39182cf Input: cyapa - add missing input core locking to suspend/resume functions
+faa4364bef2ec media: stk1160: fix bounds checking in stk1160_copy_video()
+530f272053a5e drm/msm/dpu: Add callback function pointer check before its call
+1997cdc3e7275 fs/ntfs3: Use variable length array instead of fixed size
+e931f6b630ffb fs/ntfs3: Use 64 bit variable to avoid 32 bit overflow
+1cd6c96219c42 fs/ntfs3: Check 'folio' pointer for NULL
+a0fbbd36c156b um: Add winch to winch_handlers before registering winch IRQ
+ad79c9ecea5ba media: ti: j721e-csi2rx: Fix races while restarting DMA
+bf32bceedd045 Input: ims-pcu - fix printf string overflow
+747a69a119c46 mailbox: mtk-cmdq: Fix pm_runtime_get_sync() warning in mbox shutdown
+cae74ba8c295b s390/ftrace: Use unwinder instead of __builtin_return_address()
+09541603462c3 perf daemon: Fix file leak in daemon_session__control
+aae20f6e34cd0 serial: sh-sci: protect invalidating RXDMA on shutdown
+246014876d782 fuse: clear FR_SENT when re-adding requests into pending list
+42815f8ac54c5 fuse: set FR_PENDING atomically in fuse_resend()
+29ed2b5dd521c f2fs: compress: don't allow unaligned truncation on released compress inode
+0a4ed2d97cb6d f2fs: compress: fix to cover {reserve,release}_compress_blocks() w/ cp_rwsem lock
+fbf740aeb86a4 ppdev: Add an error check in register_device
+3df463865ba42 stm class: Fix a double free in stm_register_device()
+1b739388aa3f8 usb: gadget: u_audio: Fix race condition use of controls after free during gadget unbind.
+76e43fa6a4567 dmaengine: idxd: Avoid unnecessary destruction of file_ida
+5736015212771 watchdog: cpu5wdt.c: Fix use-after-free bug caused by cpu5wdt_trigger
+51fafb3cd7fcf iio: adc: PAC1934: fix accessing out of bounds array index
+e6f7d27df5d20 PCI: of_property: Return error for int_map allocation failure
+e101a05f79fd4 perf intel-pt: Fix unassigned instruction op (discovered by MemorySanitizer)
+b7c0e1ecee403 fpga: region: add owner module and take its refcount
+82b951e6fbd31 vfio/pci: fix potential memory leak in vfio_intx_enable()
+46bf8d7cd8530 coresight: etm4x: Safe access for TRCQCLTR
+e07230da0500e f2fs: fix to check pinfile flag in f2fs_move_file_range()
+278a6253a6736 f2fs: fix to relocate check condition in f2fs_fallocate()
+712a1fcb38dc7 serial: max3100: Update uart_driver_registered on driver removal
+77ab53371a206 serial: max3100: Lock port->lock when calling uart_handle_cts_change()
+8ee1b439b1540 soundwire: cadence: fix invalid PDI offset
+1da11f822042e fpga: bridge: add owner module and take its refcount
+4d4d2d4346857 fpga: manager: add owner module and take its refcount
+33e62cd7b4c28 f2fs: multidev: fix to recognize valid zero block address
+a1ba19a1ae7cd greybus: lights: check return of get_channel_from_mode
+88ce0106a1f60 perf record: Delete session after stopping sideband thread
