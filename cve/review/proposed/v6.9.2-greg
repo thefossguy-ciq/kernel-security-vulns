@@ -4,3 +4,4 @@ a5b862c6a221 Bluetooth: L2CAP: Fix div-by-zero in l2cap_le_flowctl_init()
 ffcaa2172cc1 KEYS: trusted: Fix memory leak in tpm2_key_encode()
 331f91d86f71 remoteproc: mediatek: Make sure IPI buffer fits in L2TCM
 050bf3c793a0 KEYS: trusted: Do not use WARN when encode fails
+1d26ba0944d3 usb: dwc3: Wait unconditionally after issuing EndXfer command

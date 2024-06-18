@@ -1,0 +1,2 @@
+b791a67f6812 usb: typec: ucsi: displayport: Fix potential deadlock
+- [greg] Only "potential" not determined to be a real issue at this time
