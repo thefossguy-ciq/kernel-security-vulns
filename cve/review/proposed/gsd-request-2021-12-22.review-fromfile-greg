@@ -14,14 +14,12 @@ f35838a69302 btrfs: fix memory leak in __add_inode_ref()
 0546b224cc77 net: stmmac: dwmac-rk: fix oob read in rk_gmac_setup
 8b8e6e782456 net: systemport: Add global locking for descriptor lifecycle
 e28587cc491e sit: do not call ipip6_dev_free() from sit_init_net()
-481221775d53 netdevsim: Zero-initialize memory for new map's value in function nsim_bpf_map_alloc
 b6d335a60dc6 igbvf: fix double free in `igbvf_probe`
 3d79e3756ca9 mptcp: fix deadlock in __mptcp_push_pending()
 404cd9a22150 mptcp: remove tcp ulp setsockopt support
 aeb7c75cb774 net: stmmac: fix tc flower deletion for VLAN priority Rx steering
 d6692b3b97bd mptcp: clear 'kern' flag from fallback sockets
 b0cdc5dbcf2b mptcp: never allow the PM to close a listener subflow
-5f9562ebe710 rds: memory leak in __rds_conn_create()
 c062f2a0b04d net/sched: sch_ets: don't remove idle classes from the round-robin list
 27cbf64a766e net: hns3: fix use-after-free bug in hclgevf_send_mbx_msg
 71ddeac8cd1d inet_diag: fix kernel-infoleak for UDP sockets
@@ -36,7 +34,6 @@ ff9f9c6e7484 vduse: fix memory corruption in vduse_dev_ioctl()
 f123cffdd8fe net: netlink: af_netlink: Prevent empty skb by adding a check on len.
 a82fe085f344 bpf: Fix kernel address leakage in atomic cmpxchg's r0 aux reg
 7d3baf0afa3a bpf: Fix kernel address leakage in atomic fetch
-3cf2b61eb067 bpf: Fix signed bounds propagation after mov32
 865ed67ab955 firmware: arm_scpi: Fix string overflow in SCPI genpd driver
 26d776fd0f79 drm/msm: Fix null ptr access msm_ioctl_gem_submit()
 768c0b19b506 mac80211: validate extended element ID is present
