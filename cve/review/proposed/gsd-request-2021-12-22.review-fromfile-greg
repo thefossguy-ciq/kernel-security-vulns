@@ -1,0 +1,47 @@
+0fd08a34e8e3 xen/blkfront: harden blkfront against event channel storms
+b27d47950e48 xen/netfront: harden netfront against event channel storms
+fe415186b43d xen/console: harden hvc_xen against event channel storms
+e0a2c28da11e scsi: scsi_debug: Sanity check block descriptor length in resp_mode_select()
+71a85387546e io-wq: check for wq exit after adding new worker task_work
+3344b58b53a7 scsi: scsi_debug: Don't call kcalloc() if size arg is zero
+1f5573cfe7a7 ovl: fix warning in ovl_create_real()
+36e07d7ede88 scsi: scsi_debug: Fix type in min_t to avoid stack OOB
+be81992f9086 xen/netback: don't queue unlimited number of packages
+ae8709b296d8 USB: core: Make do_proc_control() and do_proc_bulk() killable
+44870a9e7a3c media: mxl111sf: change mutex_init() location
+edaa26334c11 iocost: Fix divide-by-zero on donation from low hweight cgroup
+f35838a69302 btrfs: fix memory leak in __add_inode_ref()
+0546b224cc77 net: stmmac: dwmac-rk: fix oob read in rk_gmac_setup
+8b8e6e782456 net: systemport: Add global locking for descriptor lifecycle
+e28587cc491e sit: do not call ipip6_dev_free() from sit_init_net()
+481221775d53 netdevsim: Zero-initialize memory for new map's value in function nsim_bpf_map_alloc
+b6d335a60dc6 igbvf: fix double free in `igbvf_probe`
+3d79e3756ca9 mptcp: fix deadlock in __mptcp_push_pending()
+404cd9a22150 mptcp: remove tcp ulp setsockopt support
+aeb7c75cb774 net: stmmac: fix tc flower deletion for VLAN priority Rx steering
+d6692b3b97bd mptcp: clear 'kern' flag from fallback sockets
+b0cdc5dbcf2b mptcp: never allow the PM to close a listener subflow
+5f9562ebe710 rds: memory leak in __rds_conn_create()
+c062f2a0b04d net/sched: sch_ets: don't remove idle classes from the round-robin list
+27cbf64a766e net: hns3: fix use-after-free bug in hclgevf_send_mbx_msg
+71ddeac8cd1d inet_diag: fix kernel-infoleak for UDP sockets
+ab443c539167 sch_cake: do not call cake_destroy() from cake_init()
+6605fd2f394b btrfs: use latest_dev in btrfs_show_devname
+1b8d2789dad0 dm btree remove: fix use after free in rebalance_children()
+9d7482771fac tee: amdtee: fix an IS_ERR() vs NULL bug
+d5e568c3a4ec mac80211: track only QoS data frames for admission control
+f4b3ee3c8555 audit: improve robustness of the audit queue handling
+dc1db0060c02 vduse: check that offset is within bounds in get_config()
+ff9f9c6e7484 vduse: fix memory corruption in vduse_dev_ioctl()
+f123cffdd8fe net: netlink: af_netlink: Prevent empty skb by adding a check on len.
+a82fe085f344 bpf: Fix kernel address leakage in atomic cmpxchg's r0 aux reg
+7d3baf0afa3a bpf: Fix kernel address leakage in atomic fetch
+3cf2b61eb067 bpf: Fix signed bounds propagation after mov32
+865ed67ab955 firmware: arm_scpi: Fix string overflow in SCPI genpd driver
+26d776fd0f79 drm/msm: Fix null ptr access msm_ioctl_gem_submit()
+768c0b19b506 mac80211: validate extended element ID is present
+fd79a0cbf0b2 nfc: fix segfault in nfc_genl_dump_devices_done
+b503de239f62 i2c: virtio: fix completion handling
+1e11a39a82e9 RDMA/irdma: Fix a user-after-free in add_pble_prm
+f0ae4afe3d35 RDMA/mlx5: Fix releasing unallocated memory in dereg MR flow
+84b01721e804 RDMA: Fix use-after-free in rxe_queue_cleanup
