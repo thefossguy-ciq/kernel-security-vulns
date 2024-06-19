@@ -1,0 +1,89 @@
+eb85dace897c nilfs2: fix potential hang in nilfs_detach_log_writer()
+ab9177d83c04 wifi: mac80211: don't use rate mask for scanning
+1dd1eff161bd softirq: Fix suspicious RCU usage in __do_softirq()
+02b670c1f88e x86/mm: Remove broken vsyscall emulation code from the page fault code
+4efaa5acf0a1 epoll: be better about file lifetimes
+0c12028aec83 block: refine the EOF check in blkdev_iomap_begin
+1f2a74b41ea8 bpf: prevent r10 register from being marked as precise
+b6dd09b3dac8 wifi: carl9170: add a proper sanity check for endpoints
+e120b6388d7d wifi: ar5523: enable proper endpoint verification
+543576ec15b1 bpf: Add BPF_PROG_TYPE_CGROUP_SKB attach type enforcement in BPF_LINK_CREATE
+8bd67ebb50c0 net: bridge: xmit: make sure we have at least eth header len bytes
+3a7c1661ae13 net: bridge: mst: fix vlan use-after-free
+e03e7f20ebf7 netrom: fix possible dead-lock in nr_rt_ioctl()
+e60b613df8b6 ftrace: Fix possible use-after-free issue in ftrace_location()
+f5d4e04634c9 nilfs2: fix use-after-free of timer for log writer thread
+936184eadd82 nilfs2: fix unexpected freezing of nilfs_segctor_sync()
+948255282074 drm/amdgpu/mes: fix use-after-free issue
+d98779e68772 gfs2: Fix potential glock use-after-free on unmount
+bafa6b4d95d9 SUNRPC: Fix gss_free_in_token_pages()
+b31c7e780861 net: ti: icssg_prueth: Fix NULL pointer dereference in prueth_probe()
+39381fe7394e ALSA: core: Fix NULL module pointer assignment at card init
+9bf48fa19a4b libbpf: Prevent null-pointer dereference when prog to load has no BTF
+cf7de25878a1 cppc_cpufreq: Fix possible null pointer dereference
+d998ddc86a27 thermal/drivers/tsens: Fix null pointer dereference
+ea60ab95723f ASoC: kirkwood: Fix potential NULL dereference
+935a92a1c400 drm: bridge: cdns-mhdp8546: Fix possible null pointer dereference
+3b621e9e9e14 media: atomisp: ssh_css: Fix a null-pointer dereference in load_video_binaries
+a1f95aede628 drm/arm/malidp: fix a possible null pointer dereference
+c534b63bede6 drm: vc4: Fix possible null pointer dereference
+85a6a1aff08e ecryptfs: Fix buffer size for tag 66 packet
+c6854e5a267c jffs2: prevent xattr node from overflowing the eraseblock
+f0e729af2eb6 md: fix resync softlockup when bitmap size is less than array size
+1c78d39f4ede wifi: iwlwifi: mvm: Do not warn on invalid link on scan complete
+e1bdff48a1bb wifi: ath12k: fix out-of-bound access of qmi_invoke_handler()
+540bf24fba16 af_unix: Fix data races in unix_release_sock/unix_stream_sendmsg
+36ac9e7f2e57 net: stmmac: move the EST lock to struct stmmac_priv
+349e85995228 RDMA/hns: Modify the print level of CQE error
+47388e807f85 tty: n_gsm: fix possible out-of-bounds in gsm0_receive()
+70d7f1427afc tty: n_gsm: fix missing receive state reset after mode switch
+f8aa1b98ce40 kunit: Fix kthread reference
+b505e0319852 ax25: Fix reference count leak issues of ax25_dev
+36e56b1b002b ax25: Fix reference count leak issue of net_device
+008ab3c53bc4 speakup: Fix sizeof() vs ARRAY_SIZE() bug
+257bf89d8412 sched/isolation: Fix boot crash when maxcpus < first housekeeping CPU
+b599d7d26d6a bpf, x86: Fix PROBE_MEM runtime load check
+06201e00ee3e s390/mm: Re-enable the shared zeropage for !PV and !skeys KVM guests
+f9f67e5adc8d x86/numa: Fix SRAT lookup of CFMWS ranges with numa_fill_memblks()
+ad506586cb69 dpll: fix return value check for kmemdup
+aea27a92a41d net: micrel: Fix receiving the timestamp in the frame for lan8841
+01a2c5123e27 drm/mediatek: Init `ddp_comp` with devm_kcalloc()
+87988a534d8e ALSA: Fix deadlocks with kctl removals at disconnection
+0f06228d4a2d net/mlx5: Reload only IB representors upon lag disable/enable
+c2e0c58b25a0 net: fec: remove .ndo_poll_controller to avoid deadlocks
+b46494b6f9c1 RDMA/hns: Fix deadlock on SRQ async events.
+c2274b908db0 ring-buffer: Fix a race between readers and resize checks
+ac0a230f719b eth: sungem: remove .ndo_poll_controller to avoid deadlocks
+3c453e8cc672 net/mlx5: Fix peer devlink set for SF representor devlink port
+07b9d0144fff drm/imagination: avoid -Woverflow warning
+c71e3a5cffd5 r8169: Fix possible ring buffer corruption on fragmented Tx packets.
+302e9dca8428 fs/ntfs3: Break dir enumeration if directory contents error
+1e4350095e8a drm/mediatek: Add 0 size check to mtk_drm_gem_obj
+a942ec2745ca RDMA/hns: Fix UAF for cq async event
+f79edef79b6a RDMA/mana_ib: boundary check before installing cq callbacks
+9c0731832d3b RDMA/cma: Fix kmemleak in rdma_core observed during blktests nvme/rdma use siw
+151f74424366 selftests/bpf: Fix a fd leak in error paths in open_netns
+582c1aeee0a9 drivers/perf: hisi: hns3: Actually use devm_add_action_or_reset()
+474b9412f33b wifi: mt76: mt7996: fix potential memory leakage when reading chip temperature
+a189f0ee6685 Bluetooth: qca: Fix error code in qca_read_fw_build_info()
+db9b31aa9bc5 net/mlx5: Discard command completions in internal error
+316f790ebcf9 wifi: brcmfmac: pcie: handle randbuf allocation failure
+2b3460cbf454 crypto: bcm - Fix pointer arithmetic
+77fce82678ea drivers/perf: hisi_pcie: Fix out-of-bound access when valid event group
+81bdd60a3d1d drivers/perf: hisi: hns3: Fix out-of-bound access when valid event group
+78cfd17142ef bnxt_re: avoid shift undefined behavior in bnxt_qplib_alloc_init_hwq
+cf7385cb26ac of: module: add buffer overflow check in of_modalias()
+c2af060d1c18 lib/test_hmm.c: handle src_pfns and dst_pfns allocation failure
+2b23b6097303 RDMA/rxe: Fix seg fault in rxe_comp_queue_pkt
+485d65e13571 net/mlx5: Add a timeout to acquire the command queue semaphore
+3758f7d9917b rcu: Fix buffer overflow in print_cpu_stall_info()
+cc5645fddb0c rcu-tasks: Fix show_rcu_tasks_trace_gp_kthread buffer overflow
+0db63c0b86e9 bpf: Fix verifier assumptions about socket->sk
+d15dcd0f1a47 nvmet: prevent sprintf() overflow in nvmet_subsys_nsid_exists()
+5f39231888c6 ASoC: mediatek: Assign dummy when codec not specified for a DAI link
+63ae548f1054 drm/amd/display: Fix potential index out of bounds in color transformation function
+7c988176b6c1 net: openvswitch: fix overwriting ct original tuple for ICMPv6
+d0184a375ee7 scsi: qedf: Ensure the copied buf is NUL terminated
+13d0cecb4626 scsi: bfa: Ensure the copied buf is NUL terminated
+838c7b8f1f27 wifi: nl80211: Avoid address calculations via out of bounds array indexing
+791f4641142e tools/nolibc/stdlib: fix memory error in realloc()
