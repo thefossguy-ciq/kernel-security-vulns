@@ -40,7 +40,7 @@ set -o nounset
 # and the git version of it
 DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
-SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
+SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}' | head -n 1)
 
 # location of dyad helper script
 dyad="${DIR}/dyad"
@@ -58,7 +58,8 @@ help() {
 	echo "				specified filename"
 	echo " -m, --mbox=MBOX_FILENAME	Output a mbox file to submit to the CVE"
 	echo "				announce mailing list"
-	echo " -u, --user=EMAIL			Email of user creating the record"
+	echo " --diff=DIFF_FILENAME	File containing a diff for the changelog text to be applied."
+	echo " -u, --user=EMAIL		Email of user creating the record"
 	echo " -h, --help			This information"
 	echo " -v, --verbose			Show debugging information to stdout"
 	echo ""
@@ -76,9 +77,10 @@ dbg() {
 
 # Parse the command line
 short_opts="j:m:c:s:u:hv"
-long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,help,verbose"
+long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,diff:,help,verbose"
 JSON_FILE=""
 MBOX_FILE=""
+DIFF_FILE=""
 CVE_NUMBER=""
 GIT_SHA=""
 GIT_VULNERABLE=""
@@ -92,6 +94,7 @@ while :; do
 	case "${1}" in
 		-j | --json	) JSON_FILE="${2}";		shift 2 ;;
 		-m | --mbox	) MBOX_FILE="${2}";		shift 2 ;;
+		--diff		) DIFF_FILE="${2}";		shift 2 ;;
 		-c | --cve	) CVE_NUMBER="${2}";		shift 2 ;;
 		-s | --sha	) GIT_SHA="${2}";		shift 2 ;;
 		-u | --user	) EMAIL="${2}";			shift 2 ;;
@@ -108,6 +111,7 @@ dbg "CVE_NUMBER=${CVE_NUMBER}"
 dbg "GIT_SHA=${GIT_SHA}"
 dbg "JSON_FILE=${JSON_FILE}"
 dbg "MBOX_FILE=${MBOX_FILE}"
+dbg "DIFF_FILE=${DIFF_FILE}"
 dbg "GIT_VULNERABLE=${GIT_VULNERABLE}"
 
 if [[ "${CVE_NUMBER}" == "" || "${GIT_SHA}" == ""  || "${EMAIL}" == "" ]] ; then
@@ -537,6 +541,17 @@ rm "${sed_file}"
 # https://www.cve.org/ResourcesSupport/AllResources/CNARules#section_8-2_cve_record_prose_description_requirements
 commit_text=$(printf "In the Linux kernel, the following vulnerability has been resolved:\n\n%s" "${commit_text}")
 dbg "commit_text length is ${#commit_text}"
+
+# Sometimes people want/need to change the changelog text, so if there is a
+# diff for it, apply it now.
+if [[ "${DIFF_FILE}" != "" ]]; then
+	dbg "applying diff file ${DIFF_FILE}"
+	patch_file=$(mktemp "${TMPDIR}"/bippy.XXXX || exit 1)
+	echo "${commit_text}" > ${patch_file}
+	patch -p1 ${patch_file} ${DIFF_FILE}
+	commit_text=$(cat ${patch_file})
+	rm ${patch_file}
+fi
 
 # The json record description can only be 4096 bytes big (because bytes are
 # expensive) So trim it at 4079, and add "---truncated---" text which brings it

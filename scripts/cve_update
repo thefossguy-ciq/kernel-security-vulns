@@ -79,9 +79,12 @@ update_cve()
 	local root
 	local vuln_file
 	local vulnerable_sha
+	local vulnerable_option
+	local diff_file
 	local result
 	local updated_file
 	local diff
+	local diff_option
 
 	tmp_json=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.json" || exit 1)
 	tmp_mbox=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.mbox" || exit 1)
@@ -97,13 +100,21 @@ update_cve()
 	# CVE-*.vulnerable file
 	vuln_file="${root}.vulnerable"
 	#echo "vuln_file=${vuln_file}"
+	vulnerable_option=""
 	vulnerable_sha=""
 	if [[ -f "${vuln_file}" ]]; then
 		vulnerable_sha=$(cat "${vuln_file}")
+		vulnerable_option="--vulnerable=${vulnerable_sha}"
+	fi
+
+	diff_option=""
+	diff_file="${root}.diff"
+	if [[ -f "${diff_file}" ]]; then
+		diff_option="--diff=${diff_file}"
 	fi
 
 	# Create the new json and mbox files
-	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}"
+	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}" "${diff_option}"
 	result=$?
 	if [[ "${result}" != 0 ]]; then
 		# bippy failed, so report it and continue on
