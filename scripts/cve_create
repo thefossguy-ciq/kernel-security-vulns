@@ -86,15 +86,15 @@ found=$(${DIR}/cve_search ${GIT_SHA_FULL})
 found_result=$?
 if [[ "${found_result}" == "0" ]]; then
 	exist=$(echo "${found}" | awk '{print $1}')
-	echo "${txtred}ERROR: The git id ${txtcyn}${GIT_SHA_FULL}${txtrst} is already assigned to ${txtgrn}${exist}${txtrst}"
+	echo "${txtred}ERROR:${txtrst} The git id ${txtcyn}${GIT_SHA_FULL}${txtrst} is already assigned to ${txtgrn}${exist}${txtrst}"
 	exit 1
 fi
 
 # Go into the directory for the year asked for
 cd "${RESERVED_DIR}" 2> /dev/null
 if [[ $? -ne 0 ]]; then
-	echo "No free ids found in ${RESERVED_DIR}"
-	echo "Should you allocate some more for that year?"
+	echo -n "${txtred}ERROR:${txtrst} Directory ${txtcyn}${RESERVED_DIR}${txtrst} not found, "
+	echo "should you allocate some more for that year?"
 	exit 1
 fi
 
@@ -103,8 +103,8 @@ if [[ "${ID}" == "" ]]; then
 	ID=$(ls | sort -V | head -n 1)
 
 	if [[ "${ID}" == "" ]] ; then
-		echo "No free id found for ${YEAR}"
-		echo "Should you allocate some more for that year?"
+		echo -n "${txtred}ERROR:${txtrst} No free id found for ${txtcyn}${YEAR}${txtrst}, "
+		echo "should you allocate some more for that year?"
 		exit 1
 	fi
 fi
