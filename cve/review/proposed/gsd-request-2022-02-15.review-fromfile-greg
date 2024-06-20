@@ -1,5 +1,4 @@
 9aa422ad3266 tipc: improve size validations for received domain records
-bd2db32e7c3e moxart: fix potential use-after-free on remove path
 cdce59a15491 ext4: fix error handling in ext4_fc_record_modified_inode()
 1d9093457b24 perf/x86/intel/pt: Fix crash with stop filters in single-range mode
 b293dcc473d2 bpf: Use VM_MAP instead of VM_ALLOC for ringbuf
@@ -31,7 +30,6 @@ e804861bd4e6 btrfs: fix deadlock between quota disable and qgroup rescan worker
 186edf7e368c selinux: fix double free of cond_list on error paths
 4ee7e4a6c9b2 ovl: fix NULL pointer dereference in copy up warning
 c6f6f2444bdb rtnetlink: make sure to refresh master_dev/m_ops in __rtnl_newlink()
-04c2a47ffb13 net: sched: fix use-after-free in tc_new_tfilter()
 5aac9108a180 net: amd-xgbe: Fix skb data length underflow
 ad5185735f7d net/mlx5e: Avoid field-overflowing memcpy()
 3c5193a87b0f net/mlx5: Use del_timer_sync in fw reset flow of halting poll
@@ -39,7 +37,6 @@ ec41332e02bd net/mlx5e: Fix handling of wrong devices during bond netevent
 23584c1ed3e1 PCI: pciehp: Fix infinite loop in IRQ handler upon power fault
 3ee859e384d4 block: Fix wrong offset in bio_truncate()
 fd20d9738395 net: bridge: vlan: fix memory leak in __allowed_ingress
-29eb31542787 yam: fix a memory leak in yam_siocdevprivate()
 170b22234d54 drm/msm/dpu: invalid parameter check in dpu_setup_dspp_pcc
 79da533d3cc7 hwmon: (nct6775) Fix crash in clear_caseopen
 c0bf3d8a943b net/smc: Transitional solution for clcsock race issue
@@ -60,11 +57,9 @@ f7e570780efc KVM: x86: Forcibly leave nested virt when SMM state is toggled
 811f95ff9527 KVM: x86: Free kvm_cpuid_entry2 array on post-KVM_RUN KVM_SET_CPUID{,2}
 35fe7cfbab2e KVM: LAPIC: Also cancel preemption timer during SET_LAPIC
 25f1488bdbba drm/amd/display: Wrap dcn301_calculate_wm_and_dlg for FPU.
-a06247c6804f psi: Fix uaf issue when psi trigger is destroyed while being polled
 932a9b5870d3 ceph: properly put ceph_string reference after async create attempt
 e629e7b525a1 tracing/histogram: Fix a potential memory leak for kstrdup()
 f5390cd0b43c efi: runtime: avoid EFIv2 runtime services on Apple x86 machines
-7fc3b7c2981b udf: Fix NULL ptr deref when converting from inline format
 b992f01e6615 bpf: Guard against accessing NULL pt_regs in bpf_get_task_stack()
 899663be5e75 Bluetooth: refactor malicious adv data check
 a0f90c881570 drm/vmwgfx: Fix stale file descriptors on failed usercopy
