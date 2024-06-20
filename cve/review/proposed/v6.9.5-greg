@@ -1,0 +1,24 @@
+5bc9de065b8b drm/i915/hwmon: Get rid of devm
+20faaf30e555 f2fs: fix to do sanity check on i_xattr_nid in sanity_check_inode()
+c1115ddbda9c media: lgdt3306a: Add a check against null-pointer-def
+d7f01649f4ea crypto: starfive - Do not free stack buffer
+b84a8aba8062 genirq/irqdesc: Prevent use-after-free in irq_find_at_or_after()
+825fc4949795 media: mgb4: Fix double debugfs remove
+c898afdc1564 9p: add missing locking around taking dentry fid list
+5fc16fa5f13b io_uring: check for non-NULL file pointer in io_file_can_poll()
+25460d6f3902 net/9p: fix uninit-value in p9_client_rpc()
+8cf360b9d6a8 mm/memory-failure: fix handling of dissolved but not taken off from buddy pages
+f3a5367c679d btrfs: protect folio::private when attaching extent buffer folios
+9d274c19a71b btrfs: fix crash on racing fsync and size-extending write into prealloc
+a4ca369ca221 nilfs2: fix potential kernel bug due to lack of writeback flag waiting
+3f858bbf04db i2c: acpi: Unbind mux adapters before delete
+0c0b4a49d3e7 ext4: fix mb_cache_entry's e_refcnt leak in ext4_xattr_block_cache_find()
+7fcf26b315bb Revert "xsk: Support redirect to any socket bound to the same umem"
+5b3cde198878 Revert "perf record: Reduce memory for recording PERF_RECORD_LOST_SAMPLES event"
+6d8acd02c4c6 media: v4l: async: Fix notifier list entry init
+d9d3490c48df thermal/drivers/qcom/lmh: Check for SCM availability at probe
+a45835a0bb6e bonding: fix oops during rmmod
+9368cdf90f52 clk: bcm: dvp: Assign ->num before accessing ->hws
+6dc445c19050 clk: bcm: rpi: Assign ->num before accessing ->hws
+8daf9c702ee7 mm/hugetlb: do not call vma_add_reservation upon ENOMEM
+d4f9d5a99a3f s390/ap: Fix crash in AP internal function modify_bitmap()
