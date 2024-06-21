@@ -1,0 +1,49 @@
+21a673bddc8f netfilter: tproxy: bail out if IP has been disabled on the device
+dc21c6cc3d69 netfilter: nfnetlink_queue: acquire rcu_read_lock() in instance_destroy_rcu()
+e4a87abf5885 nfc: nci: Fix uninit-value in nci_rx_work
+98e948fb60d4 bpf: Allow delete from sockmap/sockhash only if update is allowed
+fb66df20a720 net/sched: taprio: extend minimum interval restriction to entire cycle too
+b79491896151 dma-buf/sw-sync: don't enable IRQ from sync_print_obj()
+573601521277 watchdog: cpu5wdt.c: Fix use-after-free bug caused by cpu5wdt_trigger
+4b2543f7e1e6 efi: libstub: only free priv.runtime_map when allocated
+1b739388aa3f usb: gadget: u_audio: Fix race condition use of controls after free during gadget unbind.
+a2cf936ebef2 usb: gadget: u_audio: Clear uac pointer when freed.
+3df463865ba4 stm class: Fix a double free in stm_register_device()
+172811e3a557 ALSA: hda/cs_dsp_ctl: Use private_free for control cleanup
+4a77c3dead97 SUNRPC: Fix loop termination condition in gss_free_in_token_pages()
+1ff05e723f7c dma-mapping: benchmark: fix node id validation
+a5b862c6a221 Bluetooth: L2CAP: Fix div-by-zero in l2cap_le_flowctl_init()
+195aba96b854 tpm_tis_spi: Account for SPI header when allocating TPM SPI xfer buffer
+8ee1b439b154 soundwire: cadence: fix invalid PDI offset
+faa4364bef2e media: stk1160: fix bounds checking in stk1160_copy_video()
+51fafb3cd7fc iio: adc: PAC1934: fix accessing out of bounds array index
+e64746e74f71 dma-mapping: benchmark: handle NUMA_NO_NODE correctly
+3ebc46ca8675 tcp: Fix shift-out-of-bounds in dctcp_update_alpha().
+7b4e0b39182c Input: cyapa - add missing input core locking to suspend/resume functions
+be3f3042391d drm: zynqmp_dpsub: Always register bridge
+33e62cd7b4c2 f2fs: multidev: fix to recognize valid zero block address
+77ab53371a20 serial: max3100: Lock port->lock when calling uart_handle_cts_change()
+89875151fccd virtio: delete vq in vp_find_vqs_msix() when request_irq() fails
+246014876d78 fuse: clear FR_SENT when re-adding requests into pending list
+26afda78cda3 net: relax socket state check at accept time.
+b3dc6e8003b5 ipvlan: Dont Use skb->sk in ipvlan_process_v{4,6}_outbound
+530f272053a5 drm/msm/dpu: Add callback function pointer check before its call
+46d4efcccc68 drm/msm/a6xx: Avoid a nullptr dereference when speedbin setting fails
+9841991a446c af_unix: Update unix_sk(sk)->oob_skb under sk_receive_queue lock.
+712a1fcb38dc serial: max3100: Update uart_driver_registered on driver removal
+16d66a4fa81d net/mlx5: Use mlx5_ipsec_rx_status_destroy to correctly delete status rules
+a2db328b0839 null_blk: fix null-ptr-dereference while configuring 'power' and 'submit_queues'
+82b951e6fbd3 vfio/pci: fix potential memory leak in vfio_intx_enable()
+a1ba19a1ae7c greybus: lights: check return of get_channel_from_mode
+1cd6c96219c4 fs/ntfs3: Check 'folio' pointer for NULL
+e931f6b630ff fs/ntfs3: Use 64 bit variable to avoid 32 bit overflow
+1997cdc3e727 fs/ntfs3: Use variable length array instead of fixed size
+a6c11c0a5235 genirq/cpuhotplug, x86/vector: Prevent vector leak during CPU offline
+91e61dd7a0af tls: fix missing memory barrier in tls_init
+1c987cf22d6b cxl/region: Fix cxlr_pmem leaks
+6da668063279 blk-cgroup: fix list corruption from resetting io stat
+d0aac2363549 blk-cgroup: fix list corruption from reorder of WRITE ->lqueued
+76e43fa6a456 dmaengine: idxd: Avoid unnecessary destruction of file_ida
+fbf740aeb86a ppdev: Add an error check in register_device
+55750148e559 i2c: synquacer: Fix an error handling path in synquacer_i2c_probe()
+e569eb349702 tracing/probes: fix error check in parse_btf_field()
