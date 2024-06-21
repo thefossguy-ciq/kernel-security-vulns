@@ -151,11 +151,15 @@ update_cve()
 	echo "${message}"
 }
 
-if [[ "${CVE}" == "" ]]; then
-	# Nothing specified on the command line, so just update everything
-	threads=$(nproc)
-	echo "Updating all CVE ids with ${txtcyn}${threads}${txtrst} processes at once..."
-	for id in cve/published/*/*.sha1 ; do
+update_year() {
+	local year=$1
+	local threads=$(nproc)
+
+	# get a count of ids for this year
+	count=$(ls cve/published/${year}/*.sha1 | wc -l)
+
+	echo "Updating ${txtcyn}${count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
+	for id in cve/published/${year}/*.sha1 ; do
 		while :
 		do
 			if [[ $(jobs -p | wc -l) -lt ${threads} ]]; then
@@ -168,14 +172,40 @@ if [[ "${CVE}" == "" ]]; then
 		done
 	done
 	wait
+}
+
+if [[ "${CVE}" == "" ]]; then
+	# Nothing specified on the command line, so just update everything by
+	# looping through all years
+	for y in cve/published/* ; do
+		year=$(echo "${y}" | cut -f 3 -d '/')
+		update_year ${year}
+	done
 else
-	CVE_ROOT="${DIR}/../cve/"
-	found=$(find "${CVE_ROOT}" -type f | grep -v testing | grep "${CVE}" | grep "sha1")
-	if [[ "${found}" == "" ]]; then
-		echo "${txtred}ERROR:${txtrst} ${txtcyn}${CVE}${txtrst} is not found to be updated."
-		exit 1
+	# Either the year, or a specific CVE id is specified here.
+	#
+	# Test for a specific cve id first
+	found=$(${DIR}/cve_search ${CVE})
+	found_result=$?
+	if [[ "${found_result}" == "0" ]]; then
+		CVE_ROOT="${DIR}/../cve/"
+		found=$(find "${CVE_ROOT}" -type f | grep -v testing | grep "${CVE}" | grep "sha1")
+		#echo "found='${found}"
+		if [[ "${found}" != "" ]]; then
+			# strip off the CVE root, as that's what update_cve is expecting:
+			update_cve "cve/${found/#$CVE_ROOT}"
+			exit 0
+		fi
 	fi
-	# strip off the CVE root, as that's what update_cve is expecting:
-	update_cve "cve/${found/#$CVE_ROOT}"
+
+	# Not a specific id, let's try to do this for a year
+	#
+	if [[ -d cve/published/${CVE} ]]; then
+		update_year ${CVE}
+		exit 0
+	fi
+
+	echo "${txtred}ERROR:${txtrst} ${txtcyn}${CVE}${txtrst} is not found or is not a year."
+	exit 1
 fi
 
