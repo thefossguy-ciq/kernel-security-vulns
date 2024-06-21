@@ -12,6 +12,18 @@
 # Usage:
 #	cve_search [GIT_ID]
 #
+# Requires:
+#  A kernel git tree with the SHA to be used in it
+
+KERNEL_TREE=${CVEKERNELTREE}
+
+if [ ! -d "${KERNEL_TREE}" ]; then
+       echo "CVEERNELTREE needs setting to the stable repo directory"
+       echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+       echo "See HOWTO in the root of this repo"
+       exit 1
+fi
+
 
 # Colors are good!
 if [[ -t 1 ]]; then
@@ -48,20 +60,33 @@ if [[ "${STRING}" == "" ]] ; then
 fi
 
 CVE_ROOT="${DIR}/../cve/"
-PUBLISHED_DIR="${CVE_ROOT}published/"
 
 # Treat the string as a SHA1 first:
-found=$(grep -r -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
-if [[ "${found}" != "" ]]; then
-	cve=$(basename "${found}" | cut -f 1 -d '.')
-	echo "${txtcyn}${cve} is assigned to git id ${txtgrn}${STRING}${txtrst}"
-	exit 0
+
+# See if the SHA given to us is a valid SHA in the git repo
+# and turning the sha into a "full" one so that we don't get this wrong.
+GIT_SHA_FULL=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${STRING}" 2> /dev/null)
+if [[ "${GIT_SHA_FULL}" != "" ]] ; then
+	# it's a sha, let's search for that!
+	found=$(grep -r -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
+	if [[ "${found}" != "" ]]; then
+		cve=$(basename "${found}" | cut -f 1 -d '.')
+		echo "${txtcyn}${cve}${txtrst} is assigned to git id ${txtgrn}${STRING}${txtrst}"
+		exit 0
+	fi
+	# sha not found, so error out
+	echo "git sha1 ${STRING} not found in any CVE record, sorry."
+	exit 1
 fi
 
 # Treat the string as a CVE id
-found=$(find "${CVE_ROOT}/" -type f | grep "${STRING}" | grep "sha1")
+# NOTE, not the best search, we can have false-positives here, like searching
+# just for "25162" or "2019-25162" or the like.  We should really parse this
+# out to verify it is in CVE-YYYY-ID format, but oh well, that's for
+# tomorrow...
+found=$(find "${CVE_ROOT}/" -type f | grep "${STRING}\$")
 if [[ "${found}" != "" ]]; then
-	sha=$(cat ${found})
+	sha=$(cat "${found}.sha1")
 	echo "${txtcyn}${STRING}${txtrst} is assigned to git id ${txtgrn}${sha}${txtrst}"
         exit 0
 fi
