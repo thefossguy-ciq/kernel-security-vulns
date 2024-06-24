@@ -1,0 +1,33 @@
+34bf6bae3286a x86/topology/amd: Evaluate SMT in CPUID leaf 0x8000001e only on family 0x17 and greater
+20faaf30e5552 f2fs: fix to do sanity check on i_xattr_nid in sanity_check_inode()
+c1115ddbda9c9 media: lgdt3306a: Add a check against null-pointer-def
+8b2faf1a4f3b6 drm/amdgpu: add error handle to avoid out-of-bounds
+3a861560ccb35 bcache: fix variable length array abuse in btree_iter
+d9d3490c48df5 thermal/drivers/qcom/lmh: Check for SCM availability at probe
+151f66bb618d1 md/raid5: fix deadlock that raid5d() wait for itself to clear MD_SB_CHANGE_PENDING
+825fc49497957 media: mgb4: Fix double debugfs remove
+8a9d420149c47 media: mc: Fix graph walk in media_pipeline_start
+6d8acd02c4c6a media: v4l: async: Fix notifier list entry init
+6ad959b6703e2 fbdev: savage: Handle err return when savagefb_check_var failed
+c898afdc15645 9p: add missing locking around taking dentry fid list
+9368cdf90f52a clk: bcm: dvp: Assign ->num before accessing ->hws
+6dc445c190509 clk: bcm: rpi: Assign ->num before accessing ->hws
+5fc16fa5f13b3 io_uring: check for non-NULL file pointer in io_file_can_poll()
+3f858bbf04dba i2c: acpi: Unbind mux adapters before delete
+25460d6f39024 net/9p: fix uninit-value in p9_client_rpc()
+8cf360b9d6a84 mm/memory-failure: fix handling of dissolved but not taken off from buddy pages
+8e0545c83d672 mm/vmalloc: fix vmalloc which may return null if called with __GFP_NOFAIL
+d4202e66a4b1f selftests/mm: compaction_test: fix bogus test success on Aarch64
+a45835a0bb6ef bonding: fix oops during rmmod
+e9730744bf3af kdb: Fix buffer overflow during tab-complete
+7fcf26b315bbb Revert "xsk: Support redirect to any socket bound to the same umem"
+0c0b4a49d3e7f ext4: fix mb_cache_entry's e_refcnt leak in ext4_xattr_block_cache_find()
+d4f9d5a99a3fd s390/ap: Fix crash in AP internal function modify_bitmap()
+b84a8aba80626 genirq/irqdesc: Prevent use-after-free in irq_find_at_or_after()
+ffa077b2f6ad1 ASoC: SOF: ipc4-topology: Fix input format query of process modules without base extension
+d4e9a968738bf eventfs: Fix a possible null pointer dereference in eventfs_find_events()
+f3a5367c679d3 btrfs: protect folio::private when attaching extent buffer folios
+9d274c19a71b3 btrfs: fix crash on racing fsync and size-extending write into prealloc
+a4ca369ca221b nilfs2: fix potential kernel bug due to lack of writeback flag waiting
+7373a51e7998b nilfs2: fix nilfs_empty_dir() misjudgment and long loop on I/O errors
+02c418774f76a smb: client: fix deadlock in smb2_find_smb_tcon()
