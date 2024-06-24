@@ -1,0 +1,49 @@
+88ce0106a1f60 perf record: Delete session after stopping sideband thread
+33e62cd7b4c28 f2fs: multidev: fix to recognize valid zero block address
+4d4d2d4346857 fpga: manager: add owner module and take its refcount
+1da11f822042e fpga: bridge: add owner module and take its refcount
+8ee1b439b1540 soundwire: cadence: fix invalid PDI offset
+77ab53371a206 serial: max3100: Lock port->lock when calling uart_handle_cts_change()
+712a1fcb38dc7 serial: max3100: Update uart_driver_registered on driver removal
+869bc52534065 PCI: dwc: ep: Fix DBI access failure for drivers requiring refclk from host
+b7c0e1ecee403 fpga: region: add owner module and take its refcount
+e6f7d27df5d20 PCI: of_property: Return error for int_map allocation failure
+51fafb3cd7fcf iio: adc: PAC1934: fix accessing out of bounds array index
+5736015212771 watchdog: cpu5wdt.c: Fix use-after-free bug caused by cpu5wdt_trigger
+15edb906211bf dmaengine: idxd: Avoid unnecessary destruction of file_ida
+1b739388aa3f8 usb: gadget: u_audio: Fix race condition use of controls after free during gadget unbind.
+3df463865ba42 stm class: Fix a double free in stm_register_device()
+25626e19ae6df perf symbols: Fix ownership of string in dso__load_vmlinux()
+0a4ed2d97cb6d f2fs: compress: fix to cover {reserve,release}_compress_blocks() w/ cp_rwsem lock
+29ed2b5dd521c f2fs: compress: don't allow unaligned truncation on released compress inode
+246014876d782 fuse: clear FR_SENT when re-adding requests into pending list
+ad79c9ecea5ba media: ti: j721e-csi2rx: Fix races while restarting DMA
+a0fbbd36c156b um: Add winch to winch_handlers before registering winch IRQ
+faa4364bef2ec media: stk1160: fix bounds checking in stk1160_copy_video()
+7b4e0b39182cf Input: cyapa - add missing input core locking to suspend/resume functions
+acce6479e30f7 drm/amdgpu: Fix buffer size in gfx_v9_4_3_init_ cp_compute_microcode() and rlc_microcode()
+42bcaacae924b media: cec: cec-api: add locking in cec_release()
+be3f3042391d0 drm: zynqmp_dpsub: Always register bridge
+46d4efcccc688 drm/msm/a6xx: Avoid a nullptr dereference when speedbin setting fails
+a5b862c6a2214 Bluetooth: L2CAP: Fix div-by-zero in l2cap_le_flowctl_init()
+6da6680632792 blk-cgroup: fix list corruption from resetting io stat
+d0aac2363549e blk-cgroup: fix list corruption from reorder of WRITE ->lqueued
+9841991a446c8 af_unix: Update unix_sk(sk)->oob_skb under sk_receive_queue lock.
+3ebc46ca8675d tcp: Fix shift-out-of-bounds in dctcp_update_alpha().
+89875151fccdd virtio: delete vq in vp_find_vqs_msix() when request_irq() fails
+91e61dd7a0af6 tls: fix missing memory barrier in tls_init
+26afda78cda3d net: relax socket state check at accept time.
+a2db328b08393 null_blk: fix null-ptr-dereference while configuring 'power' and 'submit_queues'
+93a43155127fe cifs: Fix missing set of remote_i_size
+195aba96b854d tpm_tis_spi: Account for SPI header when allocating TPM SPI xfer buffer
+4a77c3dead973 SUNRPC: Fix loop termination condition in gss_free_in_token_pages()
+1ff05e723f7ca dma-mapping: benchmark: fix node id validation
+e64746e74f717 dma-mapping: benchmark: handle NUMA_NO_NODE correctly
+16d66a4fa81da net/mlx5: Use mlx5_ipsec_rx_status_destroy to correctly delete status rules
+97e1db06c7bb9 af_unix: Annotate data-race around unix_sk(sk)->addr.
+51d1b25a72098 af_unix: Read sk->sk_hash under bindlock during bind().
+c8ea2c31f5ea4 drm/xe: Only use reserved BCS instances for usm migrate exec queue
+21a673bddc8fd netfilter: tproxy: bail out if IP has been disabled on the device
+92f1655aa2b22 net: fix __dst_negative_advice() race
+b3dc6e8003b50 ipvlan: Dont Use skb->sk in ipvlan_process_v{4,6}_outbound
+a638b0461b58a riscv: prevent pt_regs corruption for secondary idle threads
