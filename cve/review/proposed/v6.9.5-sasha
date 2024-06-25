@@ -1,0 +1,40 @@
+02c418774f76a smb: client: fix deadlock in smb2_find_smb_tcon()
+7373a51e7998b nilfs2: fix nilfs_empty_dir() misjudgment and long loop on I/O errors
+a4ca369ca221b nilfs2: fix potential kernel bug due to lack of writeback flag waiting
+fb33eb2ef0d88 btrfs: fix leak of qgroup extent records after transaction abort
+f3a5367c679d3 btrfs: protect folio::private when attaching extent buffer folios
+0bcfd9aa4dafa tracefs: Clear EVENT_INODE flag in tracefs_drop_inode()
+d4e9a968738bf eventfs: Fix a possible null pointer dereference in eventfs_find_events()
+ffa077b2f6ad1 ASoC: SOF: ipc4-topology: Fix input format query of process modules without base extension
+b84a8aba80626 genirq/irqdesc: Prevent use-after-free in irq_find_at_or_after()
+d4f9d5a99a3fd s390/ap: Fix crash in AP internal function modify_bitmap()
+0c0b4a49d3e7f ext4: fix mb_cache_entry's e_refcnt leak in ext4_xattr_block_cache_find()
+9a9f3a9842927 ext4: set type of ac_groups_linear_remaining to __u32 to avoid overflow
+7fcf26b315bbb Revert "xsk: Support redirect to any socket bound to the same umem"
+0110c4b110477 irqchip/riscv-intc: Prevent memory leak when riscv_intc_init_common() fails
+a45835a0bb6ef bonding: fix oops during rmmod
+8e0545c83d672 mm/vmalloc: fix vmalloc which may return null if called with __GFP_NOFAIL
+8daf9c702ee7f mm/hugetlb: do not call vma_add_reservation upon ENOMEM
+0ea00e249ca99 tpm_tis: Do *not* flush uninitialized work
+25460d6f39024 net/9p: fix uninit-value in p9_client_rpc()
+7ff6c798eca05 ACPI: APEI: EINJ: Fix einj_dev release leak
+5fc16fa5f13b3 io_uring: check for non-NULL file pointer in io_file_can_poll()
+3a5a8d343e1cf mm: fix race between __split_huge_pmd_locked() and GUP-fast
+d3b17c6d9dddc crypto: qat - Fix ADF_DEV_RESET_SYNC memory leak
+6dc445c190509 clk: bcm: rpi: Assign ->num before accessing ->hws
+9368cdf90f52a clk: bcm: dvp: Assign ->num before accessing ->hws
+b4bd556467477 KVM: SVM: WARN on vNMI + NMI window iff NMIs are outright masked
+c898afdc15645 9p: add missing locking around taking dentry fid list
+0c50b7fcf2773 firmware: qcom_scm: disable clocks if qcom_scm_bw_enable() fails
+6ad959b6703e2 fbdev: savage: Handle err return when savagefb_check_var failed
+55c421b364482 mmc: davinci: Don't strip remove function when driver is builtin
+6d8acd02c4c6a media: v4l: async: Fix notifier list entry init
+9537a8425a7a0 media: v4l: async: Properly re-initialise notifier entry in unregister
+825fc49497957 media: mgb4: Fix double debugfs remove
+151f66bb618d1 md/raid5: fix deadlock that raid5d() wait for itself to clear MD_SB_CHANGE_PENDING
+d9d3490c48df5 thermal/drivers/qcom/lmh: Check for SCM availability at probe
+d7f01649f4eaf crypto: starfive - Do not free stack buffer
+8b2faf1a4f3b6 drm/amdgpu: add error handle to avoid out-of-bounds
+c1115ddbda9c9 media: lgdt3306a: Add a check against null-pointer-def
+20faaf30e5552 f2fs: fix to do sanity check on i_xattr_nid in sanity_check_inode()
+5bc9de065b8bb drm/i915/hwmon: Get rid of devm
