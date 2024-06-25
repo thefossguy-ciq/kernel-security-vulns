@@ -1,0 +1,2 @@
+88ce0106a1f6 perf record: Delete session after stopping sideband thread
+- [greg] perf is a userspace program, not a real vulnerability
