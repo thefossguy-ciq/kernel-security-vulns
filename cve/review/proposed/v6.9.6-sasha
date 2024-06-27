@@ -1,0 +1,63 @@
+16637fea001ab usb-storage: alauda: Check whether the media is initialized
+be84f32bb2c98 ima: Fix use-after-free on a dentry's dname.name
+5c9c5d7f26acc greybus: Fix use-after-free bug in gb_interface_release due to race condition.
+0090d6e1b2105 btrfs: zoned: fix use-after-free due to race with dev replace
+43e2b37e2ab66 drm/i915/dpt: Make DPT object unshrinkable
+39bc27bd68806 drm/shmem-helper: Fix BUG_ON() on mmap(PROT_WRITE, MAP_PRIVATE)
+5a507b7d2be15 drm/mst: Fix NULL pointer dereference at drm_dp_add_payload_part2
+1bc31444209c8 dmaengine: axi-dmac: fix possible race in remove()
+8003f00d89531 vmci: prevent speculation leaks by sanitizing event in event_deliver()
+4b4647add7d3c sock_map: avoid race between sock_map_close and sk_psock_put
+4dc3a3893dae5 wifi: cfg80211: validate HE operation element parsing
+b97e8a2f7130a irqchip/gic-v3-its: Fix potential race condition in its_vlpi_prop_update()
+e306a894bd511 irqchip/sifive-plic: Chain to parent IRQ after handlers are ready
+8031b58c3a9b1 mptcp: ensure snd_una is properly initialized on connect
+38e3825631b1f drm/exynos/vidi: fix memory leak in .get_modes()
+c0a40097f0bc8 drivers: core: synchronize really_probe() and dev_uevent()
+a23c14b062d88 iio: temperature: mlx90635: Fix ERR_PTR dereference in mlx90635_probe()
+fcf2a9970ef58 leds: class: Revert: "If no default trigger is given, make hw_control trigger the default trigger"
+086c6cbcc563c misc: microchip: pci1xxxx: fix double free in the error handling of gp_aux_bus_probe()
+79f18a41dd056 ionic: fix use after netif_napi_del()
+d0321c812d89c block: fix request.queuelist usage in flush
+8c860ed825cb8 x86/uaccess: Fix missed zeroing of ia32 u64 get_user() range checking
+4e7aaa6b82d63 netfilter: ipset: Fix race between namespace cleanup and gc in the list:set type
+c4ab9da85b9df netfilter: nft_inner: validate mandatory meta and payload
+b96a225377b66 drm/nouveau: don't attempt to schedule hpd_work on headless cards
+b880018edd3a5 drm/komeda: check for error-valued pointer
+c44711b78608c liquidio: Adjust a NULL pointer handling path in lio_vf_rep_copy_packet
+968fde83841a8 net: hns3: add cond_resched() to hns3 ring buffer init process
+12cda920212a4 net: hns3: fix kernel crash problem in concurrent scenario
+ce3af2ee95170 HID: logitech-dj: Fix memory leak in logi_dj_recv_switch_to_dj_mode()
+91215f70ea854 io_uring/io-wq: avoid garbage value of 'match' in io_wq_enqueue()
+8a565304927fb io_uring/io-wq: Use set_bit() and test_bit() at worker->flags
+4aa2dcfbad538 HID: core: remove unnecessary WARN_ON() in implement()
+85e833cd7243b cachefiles: flush all requests after setting CACHEFILES_DEAD
+4b4391e77a6bf cachefiles: defer exposing anon_fd until after copy_to_user() succeeds
+da4a827416066 cachefiles: fix slab-use-after-free in cachefiles_ondemand_daemon_read()
+de3e26f9e5b76 cachefiles: fix slab-use-after-free in cachefiles_ondemand_get_fd()
+0fc75c5940fa6 cachefiles: remove requests from xarray during flushing requests
+49ba7b515c4c0 cxl/region: Fix memregion leaks in devm_cxl_add_region()
+6f4d93b78ade0 gve: Clear napi->skb before dev_kfree_skb_any()
+4254dfeda82f2 scsi: mpt3sas: Avoid test/set_bit() operating in non-allocated memory
+5ceac4402f5d9 xhci: Handle TD clearing for multiple streams case
+7c55b78818cfb jfs: xattr: fix buffer overflow for invalid xattr
+88da52ccd66e6 landlock: Fix d_parent walk
+e7e921918d905 usb: typec: tcpm: fix use-after-free case in tcpm_register_source_caps
+22f0081286256 USB: class: cdc-wdm: Fix CPU lockup caused by excessive log messages
+0dcc53abf58d5 net: ethtool: fix the error condition in ethtool_get_phy_stats_ethtool()
+b01e1c030770f ipv6: fix possible race in __fib6_drop_pcpu_from()
+b0c9a26435413 net: wwan: iosm: Fix tainted pointer delete is case of region creation fail
+f921a58ae2085 net/sched: taprio: always validate TCA_TAPRIO_ATTR_PRIOMAP
+229bedbf62b13 net/mlx5: Fix tainted pointer delete is case of flow rules creation fail
+c8b3f38d2dae0 net/mlx5: Always stop health timer during driver removal
+affc18fdc6941 net: sched: sch_multiq: fix possible OOB write in multiq_tune()
+491aee894a08b ionic: fix kernel panic in XDP_TX action
+d0d1df8ba18ab bpf: Set run context for rawtp test_run callback
+2884dc7d08d98 bpf: Fix a potential use-after-free in bpf_link_free()
+166fcf86cd34e ax25: Replace kfree() in ax25_dev_free() with ax25_dev_put()
+3c34fb0bd4a42 ax25: Fix refcount imbalance on inbound connections
+4bb95f4535489 wifi: iwlwifi: mvm: don't read past the mfuart notifcation
+60d62757df30b wifi: iwlwifi: mvm: check n_ssids before accessing the ssids
+642f89daa3456 wifi: cfg80211: Lock wiphy in cfg80211_get_station
+44c06bbde6443 wifi: mac80211: Fix deadlock in ieee80211_sta_ps_deliver_wakeup()
+b7d7f11a29183 wifi: mac80211: mesh: Fix leak of mesh_preq_queue objects
