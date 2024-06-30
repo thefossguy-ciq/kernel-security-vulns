@@ -1,0 +1,61 @@
+89e1ee118d6f0 hid: asus: asus_report_fixup: fix potential read out of bounds
+86735b57c905e net/sched: unregister lockdep keys in qdisc_create/qdisc_alloc error path
+9a95c5bfbf02a ima: Avoid blocking in RCU read-side critical section
+8bb592c2eca8f mm/page_table_check: fix crash on ZONE_DEVICE
+9094b4a1c76cf mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+6a50c9b512f77 mm: huge_memory: fix misused mapping_large_folio_support() for anon folios
+3afb76a66b555 mm: mmap: allow for the maximum number of bits for randomizing mmap_base by default
+f9ae848904289 net/tcp_ao: Don't leak ao_info on error-path
+462237d2d93fc dmaengine: xilinx: xdma: Fix data synchronisation in xdma_channel_isr()
+685d03c379537 ocfs2: fix NULL pointer dereference in ocfs2_abort_trigger()
+58f7e1e2c9e72 ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()
+f0d576f840153 drm/amdgpu: fix UBSAN warning in kv_dpm.c
+a498df5421fd7 drm/radeon: fix UBSAN warning in kv_dpm.c
+0d92e4a7ffd5c KVM: arm64: Disassociate vcpus from redistributor region on teardown
+49f683b41f289 KVM: Fix a data race on last_boosted_vcpu in kvm_vcpu_on_spin()
+6cd4a78d962be net: do not leave a dangling sk pointer, when socket creation fails
+13df4d44a3aaa ext4: fix slab-out-of-bounds in ext4_mb_find_good_group_avg_frag_lists()
+36ab7ada64caf RDMA/mlx5: Add check for srq max_sge attribute
+a83e1385b780d ACPICA: Revert "ACPICA: avoid Info: mapping multiple BARs. Your kernel is fine."
+ba27e9d220778 dmaengine: ti: k3-udma-glue: Fix of_k3_udma_glue_parse_chn_by_id()
+e3215deca4520 dmaengine: idxd: Fix possible Use-After-Free in irq_process_work_list
+f67ac0061c761 RDMA/rxe: Fix responder length checking for UD request packets
+9a3bc8d16e0aa seg6: fix parameter passing when calling NF_HOOK() in End.DX4 and End.DX6 behaviors
+8ecd06277a766 netfilter: ipset: Fix suspicious rcu_dereference_protected()
+81d23d2a24012 ptp: fix integer overflow in max_vclocks_store
+2ebe8f840c745 tipc: force a dst refcount before doing decryption
+d864319871b05 net/sched: act_api: fix possible infinite loop in tcf_idr_check_alloc()
+ff960f9d3edbe netns: Make get_net_ns() handle zero refcount net
+d46401052c2d5 xfrm6: check ip6_dst_idev() return value in xfrm6_get_saddr()
+b86762dbe19a6 ipv6: prevent possible NULL dereference in rt6_probe()
+2eab4543a2204 ipv6: prevent possible NULL deref in fib6_nh_init()
+0b9130247f3b6 netrom: Fix a memory leak in nr_heartbeat_expiry()
+2bbe3e5a2f4ef bpf: Avoid splat in pskb_pull_reason
+cebae292e0c32 btrfs: zoned: allocate dummy checksums for zoned NODATASUM writes
+ce5cdd3b05216 mips: bmips: BCM6358: make sure CBR is correctly set
+6386682cdc8b4 ALSA: hda: cs35l41: Possible null pointer dereference in cs35l41_hda_unbind()
+cea04f3d9aeeb cpufreq: amd-pstate: fix memory leak on CPU EPP exit
+4268254a39484 i2c: lpi2c: Avoid calling clk_get_rate during transfer
+6bd23e0c2bb6c tty: add the option to have a tty reject a new ldisc
+e533e4c62e999 serial: imx: Introduce timeout when waiting on transmitter empty
+29b83a64df3b4 MIPS: Octeon: Add PCIe link status check
+3bdb7f161697e f2fs: don't set RO when shutting down f2fs
+333e11bf47fa8 Avoid hw_desc array overrun in dw-axi-dmac
+ac5eecf481c29 f2fs: remove clear SB_INLINECRYPT flag in default_options
+b4b4fda34e535 ext4: fix uninitialized ratelimit_state->lock access in __ext4_fill_super()
+0a46ef234756d ext4: do not create EA inode under buffer lock
+53dbe08504442 media: mtk-vcodec: potential null pointer deference in SCP
+ff2e185cf73df powerpc/pseries: Enforce hcall result buffer validity and size
+3de0f2627ef84 platform/x86: x86-android-tablets: Unregister devices in reverse order
+a421cc7a6a001 drm/lima: mask irqs in timeout path before hard reset
+b37b98a3a0c11 net: ena: Add validation for completion descriptors consistency
+ecf0b2b8a37c8 wifi: mt76: mt7921s: fix potential hung tasks during chip recovery
+28027ec8e32ec scsi: qedi: Fix crash while reading debugfs attribute
+303c017821d88 wifi: ath12k: fix kernel crash during resume
+f1e197a665c21 drop_monitor: replace spin_lock by raw_spin_lock
+40dc8ab605894 batman-adv: bypass empty buckets in batadv_purge_orig_ref()
+789c17185fb0f ssb: Fix potential NULL pointer dereference in ssb_device_uevent()
+ccb326b5f9e62 block/ioctl: prefer different overflow check
+c4ce0ab27646f io_uring/sqpoll: work around a potential audit memory leak
+bba4250757b4a crypto: hisilicon/sec - Fix memory leak for sec resource release
+58329c4312031 padata: Disable BH when taking works lock on MT path
