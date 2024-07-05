@@ -1,0 +1,52 @@
+a81c98bfa40c1 netfs: Fix netfs_page_mkwrite() to check folio->mapping is valid
+285f2a0884143 cxl/region: Avoid null pointer dereference in region lookup
+84ec985944ef3 cxl/mem: Fix no cxl_nvd during pmem region auto-assembling
+692aa7a54b2b2 bcachefs: Fix sb_field_downgrade validation
+4b8e88e563b5f ftruncate: pass a signed offset
+ab9e0c529eb7c ata: libata-core: Fix double free on error
+d8fb63e46c884 can: mcp251xfd: fix infinite loop when xmit fails
+6d411c8ccc013 drm/nouveau/dispnv04: fix null pointer dereference in nv17_tv_get_hd_modes
+996c3412a0657 drm/i915/gt: Fix potential UAF by revoke of fence registers
+bcfa48ff785bd drm/amdgpu: avoid using null object of framebuffer
+d92a7580392ad drm/fbdev-dma: Only set smem_start is enable per module option
+66edf3fb331b6 drm/nouveau/dispnv04: fix null pointer dereference in nv17_tv_get_ld_modes
+4f2a129b33a20 drm/drm_file: Fix pid refcounting race
+9eee5330656bf PCI/MSI: Fix UAF in msi_capability_init
+d3e2904f71ea0 net: can: j1939: enhanced error handling for tightly received RTS messages in xtp_rx_rts_session_new
+b7cdf1dd5d2a2 net: can: j1939: Initialize unused data in j1939_send_one()
+9d141c1e61579 serial: 8250_omap: Implementation of Errata i2310
+7838de15bb700 usb: dwc3: core: remove lock of otg mode during gadget suspend/resume to avoid deadlock
+2eabb655a968b usb: atm: cxacru: fix endpoint checking in cxacru_bind()
+fdd478c3ae98c iio: chemical: bme680: Fix overflows in compensate() functions
+5d92c7c566dc7 ata: libata-core: Fix null pointer dereference on error
+c116deafd1a5c i2c: testunit: discard write requests while old command is running
+be346c1a6eeb4 ocfs2: fix DIO failure due to insufficient transaction credits
+093d9603b6009 x86: stop playing stack games in profile_pc()
+e0011bca603c1 nfsd: initialise nfsd_info.mutex early.
+7aa9b96e9a73e gpio: davinci: Validate the obtained number of IRQs
+a918e771e6fbe drm/xe: Check pat.ops before dumping PAT settings
+35264909e9d19 gfs2: Fix NULL pointer dereference in gfs2_log_flush
+89b32ccb12ae6 ALSA: emux: improve patch ioctl data validation
+73e5984e540a7 crypto: ecdh - explicitly zeroize private_key
+ca537a34775c1 RDMA/restrack: Fix potential invalid address access
+b15e65349553b drm/xe/xe_devcoredump: Check NULL before assignments
+e8742081db7d0 bpf: Mark bpf prog stack with kmsan_unposion_memory in interpreter mode
+af114efe8d24b drm/amd/display: Skip pipe if the pipe idx not set properly
+a6eff8f9c7e84 drm/xe: Add a NULL check in xe_ttm_stolen_mgr_init
+4f4fcafde343a drm/xe: Fix potential integer overflow in page size calculation
+ee7860cd8b576 drm/panel: ilitek-ili9881c: Fix warning with GPIO controllers that sleep
+e60adf513275c bpf: Take return from set_memory_rox() into account with bpf_jit_binary_lock_ro()
+7d2cc63eca0c9 bpf: Take return from set_memory_ro() into account with bpf_prog_lock_ro()
+1864b8224195d net: mana: Fix possible double free in error handling path
+7931d32955e09 netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers
+84b767f9e34fd ionic: use dev_consume_skb_any outside of napi
+282a4482e198e ASoC: mediatek: mt8195: Add platform entry for ETDM1_OUT_BE dai link
+7e9f79428372c xdp: Remove WARN() from __xdp_reg_mem_model()
+2b2efe1937ca9 bpf: Fix may_goto with negative offset.
+cfa1a2329a691 bpf: Fix overrunning reservations in ringbuf
+c28947de2bed4 mlxsw: spectrum_buffers: Fix memory corruptions on Spectrum-4 systems
+e3f02f32a0500 ionic: fix kernel panic due to multi-buffer handling
+90f3feb241721 ASoC: fsl-asoc-card: set priv->pdev before using it
+98d919dfee1cc ASoC: amd: acp: add a null check for chip_pdev structure
+b90d77e5fd784 bpf: Fix remap of arena.
+adec57ff8e66a pinctrl: fix deadlock in create_pinctrl() when handling -EPROBE_DEFER
