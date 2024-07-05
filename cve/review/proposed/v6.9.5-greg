@@ -25,3 +25,13 @@ d4f9d5a99a3f s390/ap: Fix crash in AP internal function modify_bitmap()
 02c418774f76 smb: client: fix deadlock in smb2_find_smb_tcon()
 d4e9a968738b eventfs: Fix a possible null pointer dereference in eventfs_find_events()
 8b2faf1a4f3b drm/amdgpu: add error handle to avoid out-of-bounds
+ffa077b2f6ad ASoC: SOF: ipc4-topology: Fix input format query of process modules without base extension
+8e0545c83d67 mm/vmalloc: fix vmalloc which may return null if called with __GFP_NOFAIL
+6ad959b6703e fbdev: savage: Handle err return when savagefb_check_var failed
+151f66bb618d md/raid5: fix deadlock that raid5d() wait for itself to clear MD_SB_CHANGE_PENDING
+e9730744bf3a kdb: Fix buffer overflow during tab-complete
+8a9d420149c4 media: mc: Fix graph walk in media_pipeline_start
+3a861560ccb3 bcache: fix variable length array abuse in btree_iter
+b4bd55646747 KVM: SVM: WARN on vNMI + NMI window iff NMIs are outright masked
+55c421b36448 mmc: davinci: Don't strip remove function when driver is builtin
+9537a8425a7a media: v4l: async: Properly re-initialise notifier entry in unregister
