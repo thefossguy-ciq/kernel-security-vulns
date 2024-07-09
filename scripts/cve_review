@@ -212,7 +212,7 @@ syzbot|\
 uaf|\
 uninitial[a-z]*|\
 vuln[a-z]*|\
-BUG:|\
+BUG|\
 WARN[A-Z]*:\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
