@@ -295,7 +295,7 @@ WARN[A-Z]*:\
         exit 0
     fi
 
-    if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" || "${ANNOTATE}" == "true" ]]; then
+    if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" || "${CHOICE}" == "]" || "${ANNOTATE}" == "true" ]]; then
         mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
 
         # If the commit does not contain a Mainline SHA, we'll assume it *is* a Mainline SHA
