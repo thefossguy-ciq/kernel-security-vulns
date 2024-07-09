@@ -1,0 +1,46 @@
+668c0406d8874 rcutorture: Fix invalid context warning when enable srcu barrier testing
+789c17185fb0f ssb: Fix potential NULL pointer dereference in ssb_device_uevent()
+40dc8ab605894 batman-adv: bypass empty buckets in batadv_purge_orig_ref()
+f1e197a665c21 drop_monitor: replace spin_lock by raw_spin_lock
+303c017821d88 wifi: ath12k: fix kernel crash during resume
+28027ec8e32ec scsi: qedi: Fix crash while reading debugfs attribute
+80164282b3620 kselftest: arm64: Add a null pointer check
+c2e6a872bde99 netpoll: Fix race condition in netpoll_owner_active
+a421cc7a6a001 drm/lima: mask irqs in timeout path before hard reset
+3de0f2627ef84 platform/x86: x86-android-tablets: Unregister devices in reverse order
+53dbe08504442 media: mtk-vcodec: potential null pointer deference in SCP
+333e11bf47fa8 Avoid hw_desc array overrun in dw-axi-dmac
+3bdb7f161697e f2fs: don't set RO when shutting down f2fs
+29b83a64df3b4 MIPS: Octeon: Add PCIe link status check
+e533e4c62e999 serial: imx: Introduce timeout when waiting on transmitter empty
+6bd23e0c2bb6c tty: add the option to have a tty reject a new ldisc
+4268254a39484 i2c: lpi2c: Avoid calling clk_get_rate during transfer
+6386682cdc8b4 ALSA: hda: cs35l41: Possible null pointer dereference in cs35l41_hda_unbind()
+ce5cdd3b05216 mips: bmips: BCM6358: make sure CBR is correctly set
+3572bd5689b08 tracing: Build event generation tests only as modules
+92424801261d1 bpf: Fix reg_set_min_max corruption of fake_reg
+cebae292e0c32 btrfs: zoned: allocate dummy checksums for zoned NODATASUM writes
+4467c09bc7a66 net: mvpp2: use slab_build_skb for oversized frames
+2eab4543a2204 ipv6: prevent possible NULL deref in fib6_nh_init()
+b86762dbe19a6 ipv6: prevent possible NULL dereference in rt6_probe()
+d46401052c2d5 xfrm6: check ip6_dst_idev() return value in xfrm6_get_saddr()
+ff960f9d3edbe netns: Make get_net_ns() handle zero refcount net
+2ebe8f840c745 tipc: force a dst refcount before doing decryption
+9a3bc8d16e0aa seg6: fix parameter passing when calling NF_HOOK() in End.DX4 and End.DX6 behaviors
+e3215deca4520 dmaengine: idxd: Fix possible Use-After-Free in irq_process_work_list
+a83e1385b780d ACPICA: Revert "ACPICA: avoid Info: mapping multiple BARs. Your kernel is fine."
+13df4d44a3aaa ext4: fix slab-out-of-bounds in ext4_mb_find_good_group_avg_frag_lists()
+6cd4a78d962be net: do not leave a dangling sk pointer, when socket creation fails
+49f683b41f289 KVM: Fix a data race on last_boosted_vcpu in kvm_vcpu_on_spin()
+58f7e1e2c9e72 ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()
+685d03c379537 ocfs2: fix NULL pointer dereference in ocfs2_abort_trigger()
+9094b4a1c76cf mm: shmem: fix getting incorrect lruvec when replacing a shmem folio
+8bb592c2eca8f mm/page_table_check: fix crash on ZONE_DEVICE
+9a95c5bfbf02a ima: Avoid blocking in RCU read-side critical section
+86735b57c905e net/sched: unregister lockdep keys in qdisc_create/qdisc_alloc error path
+89e1ee118d6f0 hid: asus: asus_report_fixup: fix potential read out of bounds
+6a50c9b512f77 mm: huge_memory: fix misused mapping_large_folio_support() for anon folios
+ac5eecf481c29 f2fs: remove clear SB_INLINECRYPT flag in default_options
+0a46ef234756d ext4: do not create EA inode under buffer lock
+ff2e185cf73df powerpc/pseries: Enforce hcall result buffer validity and size
+ecf0b2b8a37c8 wifi: mt76: mt7921s: fix potential hung tasks during chip recovery
