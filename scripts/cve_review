@@ -213,7 +213,7 @@ uaf|\
 uninitial[a-z]*|\
 vuln[a-z]*|\
 BUG|\
-WARN[A-Z]*:\
+WARN[A-Z]*\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
