@@ -1,0 +1,52 @@
+8a565304927fb io_uring/io-wq: Use set_bit() and test_bit() at worker->flags
+be84f32bb2c98 ima: Fix use-after-free on a dentry's dname.name
+5c9c5d7f26acc greybus: Fix use-after-free bug in gb_interface_release due to race condition.
+fe6f86f4b4085 mm/huge_memory: don't unpoison huge_zero_folio
+0090d6e1b2105 btrfs: zoned: fix use-after-free due to race with dev replace
+43e2b37e2ab66 drm/i915/dpt: Make DPT object unshrinkable
+39bc27bd68806 drm/shmem-helper: Fix BUG_ON() on mmap(PROT_WRITE, MAP_PRIVATE)
+fb1cf0878328f riscv: rewrite __kernel_map_pages() to fix sleeping in invalid context
+5a507b7d2be15 drm/mst: Fix NULL pointer dereference at drm_dp_add_payload_part2
+117b9c009b72a ocfs2: fix races between hole punching and AIO+DIO
+8003f00d89531 vmci: prevent speculation leaks by sanitizing event in event_deliver()
+4b4647add7d3c sock_map: avoid race between sock_map_close and sk_psock_put
+93c1800b3799f x86/kexec: Fix bug with call depth tracking
+799d4b392417e drm/exynos: hdmi: report safe 640x480 mode as a fallback when no EDID found
+e0eec24e2e199 memblock: make memblock_set_node() also warn about use of MAX_NUMNODES
+d66f2607d89f7 parisc: Try to fix random segmentation faults in package builds
+95d03d369ea64 drivers: core: synchronize really_probe() and dev_uevent()
+086c6cbcc563c misc: microchip: pci1xxxx: fix double free in the error handling of gp_aux_bus_probe()
+a9b9741854a9f bnxt_en: Adjust logging of firmware messages in case of released token in __hwrm_send()
+79f18a41dd056 ionic: fix use after netif_napi_del()
+546ceb1dfdac8 net: bridge: mst: fix suspicious rcu usage in br_mst_set_state
+36c92936e8686 net: bridge: mst: pass vlan group directly to br_mst_vlan_set_state
+d0321c812d89c block: fix request.queuelist usage in flush
+4e7aaa6b82d63 netfilter: ipset: Fix race between namespace cleanup and gc in the list:set type
+c4ab9da85b9df netfilter: nft_inner: validate mandatory meta and payload
+b96a225377b66 drm/nouveau: don't attempt to schedule hpd_work on headless cards
+b880018edd3a5 drm/komeda: check for error-valued pointer
+c44711b78608c liquidio: Adjust a NULL pointer handling path in lio_vf_rep_copy_packet
+12cda920212a4 net: hns3: fix kernel crash problem in concurrent scenario
+89e8a2366e3bc iommu: Return right value in iommu_sva_bind_device()
+4aa2dcfbad538 HID: core: remove unnecessary WARN_ON() in implement()
+da4a827416066 cachefiles: fix slab-use-after-free in cachefiles_ondemand_daemon_read()
+de3e26f9e5b76 cachefiles: fix slab-use-after-free in cachefiles_ondemand_get_fd()
+0fc75c5940fa6 cachefiles: remove requests from xarray during flushing requests
+4254dfeda82f2 scsi: mpt3sas: Avoid test/set_bit() operating in non-allocated memory
+61593dc413c36 xhci: Handle TD clearing for multiple streams case
+7c55b78818cfb jfs: xattr: fix buffer overflow for invalid xattr
+e7e921918d905 usb: typec: tcpm: fix use-after-free case in tcpm_register_source_caps
+22f0081286256 USB: class: cdc-wdm: Fix CPU lockup caused by excessive log messages
+54559642b9611 io_uring/rsrc: don't lock while !TASK_RUNNING
+0dcc53abf58d5 net: ethtool: fix the error condition in ethtool_get_phy_stats_ethtool()
+b01e1c030770f ipv6: fix possible race in __fib6_drop_pcpu_from()
+c8b3f38d2dae0 net/mlx5: Always stop health timer during driver removal
+affc18fdc6941 net: sched: sch_multiq: fix possible OOB write in multiq_tune()
+491aee894a08b ionic: fix kernel panic in XDP_TX action
+d0d1df8ba18ab bpf: Set run context for rawtp test_run callback
+ffbe335b8d471 vmxnet3: disable rx data ring on dma allocation failure
+2884dc7d08d98 bpf: Fix a potential use-after-free in bpf_link_free()
+3c34fb0bd4a42 ax25: Fix refcount imbalance on inbound connections
+60d62757df30b wifi: iwlwifi: mvm: check n_ssids before accessing the ssids
+642f89daa3456 wifi: cfg80211: Lock wiphy in cfg80211_get_station
+44c06bbde6443 wifi: mac80211: Fix deadlock in ieee80211_sta_ps_deliver_wakeup()
