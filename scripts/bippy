@@ -53,18 +53,21 @@ help() {
 	echo "Arguments:"
 	echo " -c, --cve=CVE_NUMBER		The full CVE number to assign"
 	echo " -s, --sha=GIT_SHA		The kernel git sha1 to assign the CVE to"
-	echo " --vulnerable=GIT_SHA		The kernel git sha1 that this issue became vulnerable at (optional)"
+	echo " --vulnerable=GIT_SHA		The kernel git sha1 that this issue became vulnerable at. (optional)"
 	echo " -j, --json=JSON_FILENAME	Output a JSON report to submit to CVE to the"
 	echo "				specified filename"
 	echo " -m, --mbox=MBOX_FILENAME	Output a mbox file to submit to the CVE"
 	echo "				announce mailing list"
-	echo " --diff=DIFF_FILENAME	File containing a diff for the changelog text to be applied."
-	echo " -u, --user=EMAIL		Email of user creating the record"
+	echo " --diff=DIFF_FILENAME		File containing a diff for the changelog text to be applied. (optional)"
+	echo " --reference=REFERENCE_FILENAME	File containing a list of url references to add to the json record. (optional)"
+	echo " -u, --user=EMAIL		Email of user creating the record."
+	echo " -n, --name=NAME		Name of the user creating the record."
 	echo " -h, --help			This information"
 	echo " -v, --verbose			Show debugging information to stdout"
 	echo ""
-	echo "Note, CVE_NUMBER, GIT_SHA, and EMAIL are required, as well as at least one of"
+	echo "Note, CVE_NUMBER and GIT_SHA are required, as well as at least one of"
 	echo "JSON_FILENAME and/or MBOX_FILENAME."
+	echo "If EMAIL or NAME is not specified, they will be taken from 'git config' user settings."
 	exit 1
 }
 
@@ -77,10 +80,11 @@ dbg() {
 
 # Parse the command line
 short_opts="j:m:c:s:u:hv"
-long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,diff:,help,verbose"
+long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,diff:,reference:,help,verbose"
 JSON_FILE=""
 MBOX_FILE=""
 DIFF_FILE=""
+REFERENCE_FILE=""
 CVE_NUMBER=""
 GIT_SHA=""
 GIT_VULNERABLE=""
@@ -95,6 +99,7 @@ while :; do
 		-j | --json	) JSON_FILE="${2}";		shift 2 ;;
 		-m | --mbox	) MBOX_FILE="${2}";		shift 2 ;;
 		--diff		) DIFF_FILE="${2}";		shift 2 ;;
+		--reference	) REFERENCE_FILE="${2}";	shift 2 ;;
 		-c | --cve	) CVE_NUMBER="${2}";		shift 2 ;;
 		-s | --sha	) GIT_SHA="${2}";		shift 2 ;;
 		-u | --user	) EMAIL="${2}";			shift 2 ;;
@@ -112,6 +117,7 @@ dbg "GIT_SHA=${GIT_SHA}"
 dbg "JSON_FILE=${JSON_FILE}"
 dbg "MBOX_FILE=${MBOX_FILE}"
 dbg "DIFF_FILE=${DIFF_FILE}"
+dbg "REFERENCE_FILE=${REFERENCE_FILE}"
 dbg "GIT_VULNERABLE=${GIT_VULNERABLE}"
 
 if [[ "${CVE_NUMBER}" == "" || "${GIT_SHA}" == ""  || "${EMAIL}" == "" ]] ; then
@@ -508,6 +514,21 @@ for entry in "${dyad_entries[@]}"; do
 	fi
 done
 
+# If there are url references to be added to the record, read them from the
+# referenced file and add them to the url and json strings to spit back out
+# later on.
+if [[ "${REFERENCE_FILE}" != "" ]]; then
+	dbg "reading references from ${REFERENCE_FILE}"
+	if [[ -f "${REFERENCE_FILE}" ]]; then
+		while read -r ref; do
+			url_array+=("${ref}")
+			url_string_json+="references[]=$(jo -- -s url="${ref}") "
+		done < "${REFERENCE_FILE}"
+	else
+		echo "error: reference file ${REFERENCE_FILE} is not found"
+		exit 1
+	fi
+fi
 
 dbg "git_array_json=${git_array_json}"
 dbg "url_string_json=${url_string_json}"

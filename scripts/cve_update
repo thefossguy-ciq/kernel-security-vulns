@@ -81,6 +81,8 @@ update_cve()
 	local vulnerable_sha
 	local vulnerable_option
 	local diff_file
+	local reference_file
+	local reference_option
 	local result
 	local updated_file
 	local diff
@@ -113,8 +115,14 @@ update_cve()
 		diff_option="--diff=${diff_file}"
 	fi
 
+	reference_option=""
+	reference_file="${root}.reference"
+	if [[ -f "${reference_file}" ]]; then
+		reference_option="--reference=${reference_file}"
+	fi
+
 	# Create the new json and mbox files
-	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}" "${diff_option}"
+	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}" "${diff_option}" "${reference_option}"
 	result=$?
 	if [[ "${result}" != 0 ]]; then
 		# bippy failed, so report it and continue on

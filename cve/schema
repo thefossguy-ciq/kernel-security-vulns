@@ -73,6 +73,12 @@ file is present, the cve_update script will use that as a diff against the
 kernel changelog text to replace the cve text wording with the modified text.
 This allows us to modify the CVE entry text for when it is wrong or confusing.
 
+If a:
+	published/YEAR/CVE-YEAR-ID.references
+file is present, the cve_update script will use that to add a URL reference to
+the json and mbox entry.  The file can contain multiple URL references, one per
+file.
+
 
 Rejected
 --------
