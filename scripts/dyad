@@ -619,12 +619,13 @@ else
 			fi
 			v+=("${full_id}")
 		done
-		v_file=$(mktemp "${TMPDIR}"/"${SCRIPT}".XXXX || exit 1)
 	fi
 	dbg "	number in v: ${#v[@]}"
 	if [[ "${#v[@]}" == "0" ]]; then
 		dbg "	nothing in v, skipping vuln lines check"
 	else
+		# We have some vulnerable kernels, let's figure out where they are
+		v_file=$(mktemp "${TMPDIR}"/"${SCRIPT}".XXXX || exit 1)
 		for id in "${v[@]}"; do
 			echo "${id}" >> "${v_file}"
 		done
