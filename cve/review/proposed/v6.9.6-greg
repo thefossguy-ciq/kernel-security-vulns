@@ -1,0 +1,69 @@
+c44711b78608 liquidio: Adjust a NULL pointer handling path in lio_vf_rep_copy_packet
+2884dc7d08d9 bpf: Fix a potential use-after-free in bpf_link_free()
+d0d1df8ba18a bpf: Set run context for rawtp test_run callback
+b01e1c030770 ipv6: fix possible race in __fib6_drop_pcpu_from()
+22f008128625 USB: class: cdc-wdm: Fix CPU lockup caused by excessive log messages
+7c55b78818cf jfs: xattr: fix buffer overflow for invalid xattr
+88da52ccd66e landlock: Fix d_parent walk
+4aa2dcfbad53 HID: core: remove unnecessary WARN_ON() in implement()
+36c92936e868 net: bridge: mst: pass vlan group directly to br_mst_vlan_set_state
+546ceb1dfdac net: bridge: mst: fix suspicious rcu usage in br_mst_set_state
+c0a40097f0bc drivers: core: synchronize really_probe() and dev_uevent()
+4b4647add7d3 sock_map: avoid race between sock_map_close and sk_psock_put
+b7d7f11a2918 wifi: mac80211: mesh: Fix leak of mesh_preq_queue objects
+491aee894a08 ionic: fix kernel panic in XDP_TX action
+4254dfeda82f scsi: mpt3sas: Avoid test/set_bit() operating in non-allocated memory
+de3e26f9e5b7 cachefiles: fix slab-use-after-free in cachefiles_ondemand_get_fd()
+da4a82741606 cachefiles: fix slab-use-after-free in cachefiles_ondemand_daemon_read()
+4bb95f453548 wifi: iwlwifi: mvm: don't read past the mfuart notifcation
+44c06bbde644 wifi: mac80211: Fix deadlock in ieee80211_sta_ps_deliver_wakeup()
+642f89daa345 wifi: cfg80211: Lock wiphy in cfg80211_get_station
+ffbe335b8d47 vmxnet3: disable rx data ring on dma allocation failure
+c8b3f38d2dae net/mlx5: Always stop health timer during driver removal
+54559642b961 io_uring/rsrc: don't lock while !TASK_RUNNING
+8a565304927f io_uring/io-wq: Use set_bit() and test_bit() at worker->flags
+fe6f86f4b408 mm/huge_memory: don't unpoison huge_zero_folio
+5c9c5d7f26ac greybus: Fix use-after-free bug in gb_interface_release due to race condition.
+79f18a41dd05 ionic: fix use after netif_napi_del()
+72d95924ee35 parisc: Try to fix random segmentation faults in package builds
+799d4b392417 drm/exynos: hdmi: report safe 640x480 mode as a fallback when no EDID found
+fb1cf0878328 riscv: rewrite __kernel_map_pages() to fix sleeping in invalid context
+74751ef5c191 perf/core: Fix missing wakeup when waiting for context reference
+8003f00d8953 vmci: prevent speculation leaks by sanitizing event in event_deliver()
+ed281c6ab6eb wifi: ath11k: fix WCN6750 firmware crash caused by 17 num_vdevs
+4dc3a3893dae wifi: cfg80211: validate HE operation element parsing
+788e4c75f831 wifi: iwlwifi: mvm: fix a crash on 7265
+b880018edd3a drm/komeda: check for error-valued pointer
+38e3825631b1 drm/exynos/vidi: fix memory leak in .get_modes()
+5a507b7d2be1 drm/mst: Fix NULL pointer dereference at drm_dp_add_payload_part2
+70cb9188ffc7 drm/i915/gt: Disarm breadcrumbs if engines are already idle
+39bc27bd6880 drm/shmem-helper: Fix BUG_ON() on mmap(PROT_WRITE, MAP_PRIVATE)
+2fe40483ec25 ipv6: ioam: block BH from ioam6_output()
+c0b98ac1cc10 ipv6: sr: block BH in seg6_output_core() and seg6_input_core()
+d37fe4255abe tcp: fix race in tcp_v6_syn_recv_sock()
+e7e921918d90 usb: typec: tcpm: fix use-after-free case in tcpm_register_source_caps
+16637fea001a usb-storage: alauda: Check whether the media is initialized
+a23c14b062d8 iio: temperature: mlx90635: Fix ERR_PTR dereference in mlx90635_probe()
+d029edefed39 net dsa: qca8k: fix usages of device_get_named_child_node()
+0090d6e1b210 btrfs: zoned: fix use-after-free due to race with dev replace
+6f4d93b78ade gve: Clear napi->skb before dev_kfree_skb_any()
+086c6cbcc563 misc: microchip: pci1xxxx: fix double free in the error handling of gp_aux_bus_probe()
+be84f32bb2c9 ima: Fix use-after-free on a dentry's dname.name
+4b4391e77a6b cachefiles: defer exposing anon_fd until after copy_to_user() succeeds
+e0eec24e2e19 memblock: make memblock_set_node() also warn about use of MAX_NUMNODES
+4988e35e95fc cachefiles: never get a new anonymous fd if ondemand_id is valid
+c4ab9da85b9d netfilter: nft_inner: validate mandatory meta and payload
+4e7aaa6b82d6 netfilter: ipset: Fix race between namespace cleanup and gc in the list:set type
+a9b9741854a9 bnxt_en: Adjust logging of firmware messages in case of released token in __hwrm_send()
+8031b58c3a9b mptcp: ensure snd_una is properly initialized on connect
+0fc75c5940fa cachefiles: remove requests from xarray during flushing requests
+0a790040838c cachefiles: add spin_lock for cachefiles_ondemand_info
+85e833cd7243 cachefiles: flush all requests after setting CACHEFILES_DEAD
+affc18fdc694 net: sched: sch_multiq: fix possible OOB write in multiq_tune()
+b0c9a2643541 net: wwan: iosm: Fix tainted pointer delete is case of region creation fail
+12cda920212a net: hns3: fix kernel crash problem in concurrent scenario
+77427e3d5c35 misc: microchip: pci1xxxx: Fix a memory leak in the error handling of gp_aux_bus_probe()
+3c34fb0bd4a4 ax25: Fix refcount imbalance on inbound connections
+49ba7b515c4c cxl/region: Fix memregion leaks in devm_cxl_add_region()
+ce3af2ee9517 HID: logitech-dj: Fix memory leak in logi_dj_recv_switch_to_dj_mode()
+229bedbf62b1 net/mlx5: Fix tainted pointer delete is case of flow rules creation fail
