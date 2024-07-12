@@ -607,10 +607,10 @@ else
 	vuln_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | sed -e 's/.*[F|f]ixes:/:/' | cut -f 2 -d ':' | sed -e 's/^[ \t]*//' | cut -f 1 -d ' ')
 	temp="${vuln_lines}"
 	dbg "vuln_lines=${temp}"
+	v=()
 	if [[ "${vuln_lines}" != "" ]] ; then
 		# get a list of vulnerable kernels, sort them by the order in
 		# which they are in the tree, oldest first.
-		v=()
 		for id in ${vuln_lines}; do
 			full_id=$(git_full_id "${id}")
 			if [[ "${full_id}" == "" ]]; then
@@ -620,7 +620,11 @@ else
 			v+=("${full_id}")
 		done
 		v_file=$(mktemp "${TMPDIR}"/"${SCRIPT}".XXXX || exit 1)
-		dbg "	v: ${#v[@]}"
+	fi
+	dbg "	number in v: ${#v[@]}"
+	if [[ "${#v[@]}" == "0" ]]; then
+		dbg "	nothing in v, skipping vuln lines check"
+	else
 		for id in "${v[@]}"; do
 			echo "${id}" >> "${v_file}"
 		done
