@@ -77,7 +77,7 @@ If a:
 	published/YEAR/CVE-YEAR-ID.references
 file is present, the cve_update script will use that to add a URL reference to
 the json and mbox entry.  The file can contain multiple URL references, one per
-file.
+line.
 
 
 Rejected
