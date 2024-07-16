@@ -17,7 +17,6 @@ f0cfe17bcc1d tracing/osnoise: Do not unregister events twice
 e2b993302f40 drm/amdgpu: bypass tiling flag check in virtual display case (v2)
 4224cfd7fb65 net-sysfs: add check for netdevice being present to speed_show
 fc7f750dc9d1 staging: gdm724x: fix use after free in gdm_lte_rx()
-efe4186e6a1b drivers: hamradio: 6pack: fix UAF bug caused by mod_timer()
 e40945ab7c7f drm/vc4: hdmi: Unregister codec device on unbind
 ddbd89deb7d3 swiotlb: fix info leak with DMA_FROM_DEVICE
 bc0e610a6eb0 net: arc_emac: Fix use after free in arc_mdio_probe()
@@ -25,11 +24,9 @@ bc0e610a6eb0 net: arc_emac: Fix use after free in arc_mdio_probe()
 2ac5b58e645c gianfar: ethtool: Fix refcount leak in gfar_get_ts_info
 f80cfe2f2658 NFC: port100: fix use-after-free in port100_send_complete
 063bd3555954 net/mlx5: Fix a race on command flush flow
-71171ac8eb34 ax25: Fix NULL pointer dereference in ax25_kill_by_device
 c9ffa3e2bc45 net: marvell: prestera: Add missing of_node_put() in prestera_switch_set_base_mac_addr
 b19ab4b38b06 ethernet: Fix error handling in xemaclite_of_probe
 eb057b44dbe3 vdpa: fix use-after-free on vp_vdpa_remove
-ebe48d368e97 esp: Fix possible buffer overflow in ESP transformation
 e2ae38cf3d91 vhost: fix hung thread due to erroneous iotlb entries
 c6a502c22999 mISDN: Fix memory leak in dsp_pipeline_build()
 ed0f849fc3a6 vdpa/mlx5: add validation for VIRTIO_NET_CTRL_MQ_VQ_PAIRS_SET command
