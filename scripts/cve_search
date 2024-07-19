@@ -84,7 +84,7 @@ fi
 # just for "25162" or "2019-25162" or the like.  We should really parse this
 # out to verify it is in CVE-YYYY-ID format, but oh well, that's for
 # tomorrow...
-found=$(find "${CVE_ROOT}/" -type f | grep "${STRING}\$")
+found=$(find "${CVE_ROOT}/" -type f | grep -v testing | grep "${STRING}\$")
 if [[ "${found}" != "" ]]; then
 	sha=$(cat "${found}.sha1")
 	echo "${txtcyn}${STRING}${txtrst} is assigned to git id ${txtgrn}${sha}${txtrst}"
