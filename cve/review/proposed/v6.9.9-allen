@@ -1,0 +1,89 @@
+068648aab72c9 nfc/nci: Add the inconsistency check between the input data length and count
+c758b77d4a0a0 nvmet: fix a possible leak when destroy a ctrl during qp establishment
+f63b94be6942b i2c: pnx: Fix potential deadlock warning from del_timer_sync() call in isr
+b3a58f3b90f56 s390/dasd: Fix invalid dereferencing of indirect CCW data pointer
+3cad1bc010416 filelock: Remove locks reliably when fcntl/close race is detected
+ea977d742507e clk: sunxi-ng: common: Don't call hw_to_ccu_common on hw without common
+80bec6825b19d drm/nouveau: fix null pointer dereference in nouveau_connector_get_modes
+30139c702048f Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
+88e72239ead98 Bluetooth: qca: Fix BT enable failure again for QCA6390 after warm reboot
+48f091fd50b2e btrfs: fix adding block group to a reclaim list and the unused list during reclaim
+385d838df280e mm: avoid overflows in dirty throttling logic
+bb76c6c274683 nilfs2: add missing check for inode numbers on directory entries
+e2fec219a36e0 nilfs2: fix inode number range checks
+8eef5c3cea65f Revert "igc: fix a log entry using uninitialized netdev"
+8ce34dccbe8fa mlxsw: core_linecards: Fix double memory deallocation in case of invalid INI file
+e271ff53807e8 bonding: Fix out-of-bounds read in bond_option_arp_ip_targets_set()
+9a0c28efeec63 net: rswitch: Avoid use-after-free in rswitch_poll()
+9f6958ba2e902 netfilter: nf_tables: unconditionally flush pending work before notifier
+efc347b9efee1 leds: mlxreg: Use devm_mutex_init() for mutex initialization
+c382e2e3eccb6 leds: an30259a: Use devm_mutex_init() for mutex initialization
+8be0913389718 crypto: hisilicon/debugfs - Fix debugfs uninit process issue
+a6683c690bbfd drm/lima: fix shared irq handling on driver remove
+0db880fc865ff powerpc: Avoid nmi_enter/nmi_exit in real mode interrupt.
+bb38626f3f97e wifi: rtw89: fw: scan offload prohibit all 6 GHz channel if no 6 GHz sband
+f9116f658a621 drm/xe: Add outer runtime_pm protection to xe_live_ktest@xe_dma_buf
+ca0b44e20a6f3 IB/core: Implement a limit on UMAD receive List
+0d8b637c9c5ee scsi: qedf: Make qedf_execute_tmf() non-preemptible
+23e4099bdc3c8 crypto: aead,cipher - zeroize key buffer after use
+eb005c801ec70 media: mediatek: vcodec: Only free buffer VA that is not NULL
+88a9a467c548d drm/amdgpu: Using uninitialized value *size when calling amdgpu_vce_cs_reloc
+506c245f3f1cd drm/amdgpu: fix double free err_addr pointer warnings
+8e65a1b7118ac drm/amd/display: Add NULL pointer check for kzalloc
+59d99deb330af drm/amd/display: Check index msg_id before read or write
+5396a70e8cf46 drm/amd/display: Check pipe offset before setting vblank
+1357b2165d9ad drm/amd/display: Skip finding free audio for unknown engine_id
+f1fd8a0a54e6d drm/amd/display: Fix overlapping copy within dml_core_mode_programming
+3ac31c9a707dd drm/amd/display: Do not return negative stream id for array
+01eb50e53c1ce drm/amd/display: ASSERT when failing to find index by plane/stream id
+1c73d0b29d04b media: dw2102: fix a potential buffer overflow
+66cb618bf0bb8 usb: xhci: prevent potential failure in handle_tx_event() for Transfer events without TRB
+7f819a2f4fbc5 wifi: mt76: replace skb_put with skb_put_zero
+a1191a77351e2 thermal/drivers/mediatek/lvts_thermal: Check NULL ptr on lvts_data
+4c7f3950a9fd5 net: dsa: mv88e6xxx: Correct check for empty list
+1aa1329a67cc2 media: dvb-frontends: tda10048: Fix integer overflow
+af9bcf910b1f8 gve: Account for stopped queues when reading NIC stats
+53e4efa470d5f orangefs: fix out-of-bounds fsid access
+009367099eb61 bpf: Avoid uninitialized value in BPF_CORE_READ_BITFIELD
+4ed886b187f47 f2fs: check validation of fault attrs in f2fs_build_fault_attr()
+3668651def2c1 scsi: mpi3mr: Sanitise num_phys
+af9a8730ddb6a jffs2: Fix potential illegal address access in jffs2_free_inode
+22e6824622e8a s390/pkey: Use kfree_sensitive() to fix Coccinelle warnings
+1d8c270de5eb7 s390/pkey: Wipe sensitive data on failure
+d65d76a44ffe7 s390/pkey: Wipe copies of clear-key structures on failure
+f2ebdadd85af4 s390/pkey: Wipe copies of protected- and secure-keys
+efb905aeb44b0 cdrom: rearrange last_media_change check to avoid unintentional overflow
+db5247d9bf5c6 vhost_task: Handle SIGKILL by flushing work and exiting
+c8fae27d141a3 virtio-pci: Check if is_avq is NULL
+d1cba2ea8121e wifi: cfg80211: restrict NL80211_ATTR_TXQ_QUANTUM values
+b20c2fb45470d net/mlx5: E-switch, Create ingress ACL when needed
+015d79c96d62c Bluetooth: Ignore too large handle values in BIG
+596b6f081336e Bluetooth: ISO: Check socket flag instead of hcon
+1cc18c2ab2e8c bluetooth/hci: disallow setting handle bigger than HCI_CONN_HANDLE_MAX
+66be40e622e17 tcp_metrics: validate source addr length
+7c36711a2cd80 net: txgbe: initialize num_q_vectors for MSI/INTx interrupts
+935124dd5883b net: txgbe: free isb resources at the right time
+724d8042cef84 btrfs: always do the basic checks for btrfs_qgroup_inherit structure
+e15a5d821e519 net: ntb_netdev: Move ntb_netdev_rx_handler() to call netif_rx() from __netif_rx()
+c562ba719df57 riscv: kexec: Avoid deadlock in kexec crash path
+9f6958ba2e902 netfilter: nf_tables: unconditionally flush pending work before notifier
+9a0c28efeec63 net: rswitch: Avoid use-after-free in rswitch_poll()
+e271ff53807e8 bonding: Fix out-of-bounds read in bond_option_arp_ip_targets_set()
+00d3b4f54582d ice: Fix improper extts handling
+996422e3230e4 ice: Don't process extts if PTP is disabled
+61cf1c739f081 inet_diag: Initialize pad field in struct inet_diag_req_v2
+8ce34dccbe8fa mlxsw: core_linecards: Fix double memory deallocation in case of invalid INI file
+8eef5c3cea65f Revert "igc: fix a log entry using uninitialized netdev"
+e2fec219a36e0 nilfs2: fix inode number range checks
+bb76c6c274683 nilfs2: add missing check for inode numbers on directory entries
+385d838df280e mm: avoid overflows in dirty throttling logic
+48f091fd50b2e btrfs: fix adding block group to a reclaim list and the unused list during reclaim
+88e72239ead98 Bluetooth: qca: Fix BT enable failure again for QCA6390 after warm reboot
+30139c702048f Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
+80bec6825b19d drm/nouveau: fix null pointer dereference in nouveau_connector_get_modes
+ea977d742507e clk: sunxi-ng: common: Don't call hw_to_ccu_common on hw without common
+3cad1bc010416 filelock: Remove locks reliably when fcntl/close race is detected
+b3a58f3b90f56 s390/dasd: Fix invalid dereferencing of indirect CCW data pointer
+f63b94be6942b i2c: pnx: Fix potential deadlock warning from del_timer_sync() call in isr
+c758b77d4a0a0 nvmet: fix a possible leak when destroy a ctrl during qp establishment
+068648aab72c9 nfc/nci: Add the inconsistency check between the input data length and count
