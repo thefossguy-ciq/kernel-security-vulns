@@ -44,7 +44,10 @@ _help:
 @list_ids:
 	cve -o Linux list
 
-
 # List a summary of the ids at this point in time
 summary:
 	scripts/summary
+
+# update cvelistV5 and commit the difference
+update_cvelistV5:
+	cd cve/cvelistV5 && git pull && cd .. && git commit cvelistV5 -m "update cvelistV5" -s
