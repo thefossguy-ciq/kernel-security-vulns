@@ -1,0 +1,46 @@
+b58652db66c91 sched/deadline: Fix task_struct reference leak
+bab2f5e8fd5d2 misc: fastrpc: Restrict untrusted app to attach to privileged PD
+ad0bd973a0330 misc: fastrpc: Fix memory leak in audio daemon attach operation
+948f991c62a40 wireguard: allowedips: avoid unaligned 64-bit memory accesses
+69c7b2fe4c9cc libceph: fix race between delayed_work() and ceph_monc_stop()
+16198eef11c19 mmc: davinci_mmc: Prevent transmitted data size from exceeding sgm's length
+1723f04caacb3 Fix userfaultfd_api to return EINVAL as expected
+acd09ac253b5d tty: serial: ma35d1: Add a NULL check for of_node
+b6e02c6b0377d platform/x86: toshiba_acpi: Fix array out-of-bounds access
+6bef98bafd829 nvmem: core: limit cell sysfs permissions to main attribute ones
+e2e33caa5dc2e ksmbd: discard write access to the directory open
+3390916aca7af mm/filemap: skip to create PMD-sized page cache if needed
+24be02a42181f filemap: replace pte_offset_map() with pte_offset_map_nolock()
+be9581ea8c058 mm: fix crashes from deferred split racing folio migration
+a34acf30b19bc mm: vmalloc: check if a hash-index is in cpu_possible_mask
+5a4d8944d6b1e cachestat: do not flush stats in recency check
+a9e1ddc09ca55 nilfs2: fix kernel bug on rename operation of broken directory
+b5efb63acf7bd s390/mm: Add NULL pointer check to crst_table_free() base_crst_free()
+a368ecde8a505 USB: core: Fix duplicate endpoint bug by clearing reserved bits in the descriptor
+6d3c721e686ea usb: gadget: configfs: Prevent OOB read/write in usb_string_copy()
+0913ec336a6c0 net: ks8851: Fix deadlock with the SPI chip variant
+9065693dcc13f ASoC: SOF: Intel: hda: fix null deref on system suspend entry
+2163aff6bebbb firmware: cs_dsp: Prevent buffer overrun when processing V2 alg headers
+6598afa9320b6 firmware: cs_dsp: Validate payload length before processing block
+959fe01e85b72 firmware: cs_dsp: Return error if block header overflows file
+3019b86bce16f firmware: cs_dsp: Fix overflow checking of wmfw header
+26488172b0292 net/sched: Fix UAF when resolving a clash
+5c0b485a8c611 udp: Set SOCK_RCU_FREE earlier in udp_lib_get_port().
+cff3bd012a951 netfilter: nf_tables: prefer nft_chain_validate
+631a4b3ddc783 netfilter: nfnetlink_queue: drop bogus WARN_ON
+f2aeb7306a898 ppp: reject claimed-as-LCP but actually malformed packets
+a6fcd19d7eac1 bpf: Defer work in bpf_timer_cancel_and_free
+d4523831f07a2 bpf: Fail bpf_timer_cancel when callback is being cancelled
+e1533b6319ab9 net: ethernet: lantiq_etop: fix double free in detach
+01fc5142ae6b0 i40e: Fix XDP program unloading while removing the driver
+c86a918b1bdba spi: don't unoptimize message in spi_async()
+f0c1802569370 skmsg: Skip zero length skb in sk_msg_recvmsg
+1cb6f0bae5044 bpf: Fix too early release of tcx_entry
+1b3ec4f7c03d4 filelock: fix potential use-after-free in posix_lock_inode
+cf5bb09e742a9 cachefiles: add missing lock protection when polling
+19f4f39909147 cachefiles: cyclic allocation of msg_id to avoid reuse
+12e009d60852f cachefiles: wait for ondemand_object_worker to finish when dropping object
+5a88a3f67e37e vfio/pci: Init the count variable in collecting hot-reset devices
+74736103fb412 scsi: ufs: core: Fix ufshcd_abort_one racing issue
+9307a998cb984 scsi: ufs: core: Fix ufshcd_clear_cmd racing issue
+82f0b6f041fad mm: prevent derefencing NULL ptr in pfn_section_valid()
