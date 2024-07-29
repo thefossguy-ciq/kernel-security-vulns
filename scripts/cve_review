@@ -312,7 +312,7 @@ WARN[A-Z]*\
             mainlinesha="${h}"
         fi
 
-        git --no-pager log --oneline -n1 ${mainlinesha} >> ${CVEME}
+        git --no-pager log ${mainlinesha} -n1 --format="%h %s" >> ${CVEME}
 
         if [ "${ANNOTATE}" == "true" ]; then
             echo "- [${NAME}] ${CHOICE}" >> ${CVEME}
