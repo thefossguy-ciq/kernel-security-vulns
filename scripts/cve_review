@@ -183,7 +183,7 @@ for h in ${SHAS[@]}; do
 
     MATCHES="\
 call[-\s_]*trace|\
-dead[-\s_]*lock|lock[-\s_]*up|[-\s_]lock|\
+dead[-\s_]*lock|lock[-\s_]*up|\
 nul[l]*[-\s_]*p[a-z]*[-\s_]*deref[a-z]*|nul[l]*[-\s_]*p[a-z]*|null|deref[a-z]*|\
 div[-\s_a-z]*by[-\s_]*zero|divi[-\s_a-z]*by[-\s_]*0|\
 double[-\s_]*free|\
@@ -211,6 +211,7 @@ uaf|\
 uninitial[a-z]*|\
 vuln[a-z]*|\
 BUG|\
+KSPP|\
 WARN[A-Z]*\
 "
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
