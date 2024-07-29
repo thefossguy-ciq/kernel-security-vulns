@@ -42,3 +42,9 @@ e60adf513275 bpf: Take return from set_memory_rox() into account with bpf_jit_bi
 e0011bca603c nfsd: initialise nfsd_info.mutex early.
 8c61291fd850 mm: fix incorrect vbq reference in purge_fragmented_block
 f6549f538fe0 ata,scsi: libata-core: Do not leak memory for ata_port struct members
+d33fe1714a44 net/dpaa2: Avoid explicit cpumask var allocation on stack
+be4e1304419c net/iucv: Avoid explicit cpumask var allocation on stack
+9d141c1e6157 serial: 8250_omap: Implementation of Errata i2310
+093d9603b600 x86: stop playing stack games in profile_pc()
+89b32ccb12ae ALSA: emux: improve patch ioctl data validation
+73e5984e540a crypto: ecdh - explicitly zeroize private_key
