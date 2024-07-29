@@ -1,0 +1,41 @@
+adec57ff8e66a pinctrl: fix deadlock in create_pinctrl() when handling -EPROBE_DEFER
+b90d77e5fd784 bpf: Fix remap of arena.
+98d919dfee1cc ASoC: amd: acp: add a null check for chip_pdev structure
+90f3feb241721 ASoC: fsl-asoc-card: set priv->pdev before using it
+e3f02f32a0500 ionic: fix kernel panic due to multi-buffer handling
+c28947de2bed4 mlxsw: spectrum_buffers: Fix memory corruptions on Spectrum-4 systems
+cfa1a2329a691 bpf: Fix overrunning reservations in ringbuf
+2b2efe1937ca9 bpf: Fix may_goto with negative offset.
+7e9f79428372c xdp: Remove WARN() from __xdp_reg_mem_model()
+282a4482e198e ASoC: mediatek: mt8195: Add platform entry for ETDM1_OUT_BE dai link
+84b767f9e34fd ionic: use dev_consume_skb_any outside of napi
+7931d32955e09 netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers
+1864b8224195d net: mana: Fix possible double free in error handling path
+7d2cc63eca0c9 bpf: Take return from set_memory_ro() into account with bpf_prog_lock_ro()
+e60adf513275c bpf: Take return from set_memory_rox() into account with bpf_jit_binary_lock_ro()
+e646402bf8214 drm/panel: ilitek-ili9881c: Fix warning with GPIO controllers that sleep
+a6eff8f9c7e84 drm/xe: Add a NULL check in xe_ttm_stolen_mgr_init
+e8742081db7d0 bpf: Mark bpf prog stack with kmsan_unposion_memory in interpreter mode
+b15e65349553b drm/xe/xe_devcoredump: Check NULL before assignments
+be4e1304419c9 net/iucv: Avoid explicit cpumask var allocation on stack
+d33fe1714a44f net/dpaa2: Avoid explicit cpumask var allocation on stack
+35264909e9d19 gfs2: Fix NULL pointer dereference in gfs2_log_flush
+a918e771e6fbe drm/xe: Check pat.ops before dumping PAT settings
+7aa9b96e9a73e gpio: davinci: Validate the obtained number of IRQs
+e0011bca603c1 nfsd: initialise nfsd_info.mutex early.
+be346c1a6eeb4 ocfs2: fix DIO failure due to insufficient transaction credits
+5d92c7c566dc7 ata: libata-core: Fix null pointer dereference on error
+2eabb655a968b usb: atm: cxacru: fix endpoint checking in cxacru_bind()
+7838de15bb700 usb: dwc3: core: remove lock of otg mode during gadget suspend/resume to avoid deadlock
+b7cdf1dd5d2a2 net: can: j1939: Initialize unused data in j1939_send_one()
+9eee5330656bf PCI/MSI: Fix UAF in msi_capability_init
+4f2a129b33a20 drm/drm_file: Fix pid refcounting race
+66edf3fb331b6 drm/nouveau/dispnv04: fix null pointer dereference in nv17_tv_get_ld_modes
+d92a7580392ad drm/fbdev-dma: Only set smem_start is enable per module option
+bcfa48ff785bd drm/amdgpu: avoid using null object of framebuffer
+996c3412a0657 drm/i915/gt: Fix potential UAF by revoke of fence registers
+6d411c8ccc013 drm/nouveau/dispnv04: fix null pointer dereference in nv17_tv_get_hd_modes
+ab9e0c529eb7c ata: libata-core: Fix double free on error
+84ec985944ef3 cxl/mem: Fix no cxl_nvd during pmem region auto-assembling
+285f2a0884143 cxl/region: Avoid null pointer dereference in region lookup
+a81c98bfa40c1 netfs: Fix netfs_page_mkwrite() to check folio->mapping is valid
