@@ -28,3 +28,9 @@ fa2690af573d mm: page_ref: remove folio_try_get_rcu()
 1a14150e1656 powerpc/pseries: Whitelist dtl slub object for copying to userspace
 aad11473f8f4 NFSv4: Fix memory leak in nfs4_set_security_label
 a1216e62d039 powerpc/eeh: avoid possible crash when edev->pdev changes
+f1a8f402f13f Bluetooth: L2CAP: Fix deadlock
+a7e4c6a3031c btrfs: qgroup: fix quota root leak after quota disable failure
+cd0c1b8e045a nvmet: always initialize cqe.result
+73254a297c2d io_uring: fix possible deadlock in io_register_iowq_max_workers()
+cf28ff8e4c02 ila: block BH in ila_output()
+7dc3bfcb4c9c nvme-fabrics: use reserved tag for reg read/write command
