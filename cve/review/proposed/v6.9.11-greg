@@ -1,0 +1,30 @@
+c462ecd659b5 null_blk: fix validation of block size
+6fb15dcbcf4f drm/radeon: check bo_va->bo is non-NULL before using it
+0941772342d5 wifi: cfg80211: wext: set ssids=NULL for passive scans
+02c665f048a4 wifi: mac80211: apply mcast rate only if interface is up
+177c6ae9725d wifi: mac80211: handle tasklet frames before stopping
+6ef09cdc5ba0 wifi: cfg80211: wext: add extra SIOCSIWSCAN data check
+0d151a103775 Bluetooth: hci_core: cancel all works upon hci_unregister_dev()
+89e856e124f9 bluetooth/l2cap: sync sock recv cb and release
+0570730c1630 hfsplus: fix uninit-value in copy_name
+321028bc45f0 wifi: mac80211: disable softirqs for queued frame handling
+e5d574ab37f5 nvme: avoid double free special payload
+97ab304ecd95 ASoC: topology: Fix references to freed memory
+522018a0de6b cachefiles: fix slab-use-after-free in fscache_withdraw_volume()
+5d8f80578907 cachefiles: fix slab-use-after-free in cachefiles_withdraw_cookie()
+c6c4dd540125 drm/amdgpu/pptable: Fix UBSAN array-index-out-of-bounds
+0ad4b4a2f635 drm/amd/display: Fix array-index-out-of-bounds in dml2/FCLKChangeSupport
+9b32b063be10 erofs: ensure m_llen is reset to 0 if metadata is invalid
+9fad9d560af5 scsi: sr: Fix unintentional arithmetic wraparound
+a26dc49df37e cachefiles: add consistency check for copen/cread
+4f8703fb3482 cachefiles: Set object to close if ondemand_id < 0 in copen
+a986fa57fd81 KVM: PPC: Book3S HV: Prevent UAF in kvm_spapr_tce_attach_iommu_group()
+339b84ab6b1d closures: Change BUG_ON() to WARN_ON()
+6434b33faaa0 s390/sclp: Fix sclp_init() cleanup on failure
+fa2690af573d mm: page_ref: remove folio_try_get_rcu()
+2663d0462eb3 wifi: mac80211: Avoid address calculations via out of bounds array indexing
+2c49908634a2 btrfs: scrub: handle RST lookup error correctly
+0983d288caf9 ibmvnic: Add tx check to prevent skb leak
+1a14150e1656 powerpc/pseries: Whitelist dtl slub object for copying to userspace
+aad11473f8f4 NFSv4: Fix memory leak in nfs4_set_security_label
+a1216e62d039 powerpc/eeh: avoid possible crash when edev->pdev changes
