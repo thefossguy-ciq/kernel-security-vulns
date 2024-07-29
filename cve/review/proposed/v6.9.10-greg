@@ -1,0 +1,46 @@
+82f0b6f041fa mm: prevent derefencing NULL ptr in pfn_section_valid()
+9307a998cb98 scsi: ufs: core: Fix ufshcd_clear_cmd racing issue
+74736103fb41 scsi: ufs: core: Fix ufshcd_abort_one racing issue
+5a88a3f67e37 vfio/pci: Init the count variable in collecting hot-reset devices
+1b3ec4f7c03d filelock: fix potential use-after-free in posix_lock_inode
+e1533b6319ab net: ethernet: lantiq_etop: fix double free in detach
+a6fcd19d7eac bpf: Defer work in bpf_timer_cancel_and_free
+5c0b485a8c61 udp: Set SOCK_RCU_FREE earlier in udp_lib_get_port().
+f2aeb7306a89 ppp: reject claimed-as-LCP but actually malformed packets
+a368ecde8a50 USB: core: Fix duplicate endpoint bug by clearing reserved bits in the descriptor
+a9e1ddc09ca5 nilfs2: fix kernel bug on rename operation of broken directory
+5a4d8944d6b1 cachestat: do not flush stats in recency check
+01fc5142ae6b i40e: Fix XDP program unloading while removing the driver
+3390916aca7a mm/filemap: skip to create PMD-sized page cache if needed
+099d90642a71 mm/filemap: make MAX_PAGECACHE_ORDER acceptable to xarray
+1723f04caacb Fix userfaultfd_api to return EINVAL as expected
+9fd154ba926b mm/shmem: disable PMD-sized page cache if needed
+ac8b270b61d4 x86/bhi: Avoid warning in #DB handler due to BHI mitigation
+b58652db66c9 sched/deadline: Fix task_struct reference leak
+0ece614a52bc cachefiles: propagate errors from vfs_getxattr() to avoid infinite loop
+12e009d60852 cachefiles: wait for ondemand_object_worker to finish when dropping object
+19f4f3990914 cachefiles: cyclic allocation of msg_id to avoid reuse
+1cb6f0bae504 bpf: Fix too early release of tcx_entry
+c7a5403ea043 usb: core: add missing of_node_put() in usb_of_has_devices_or_graph
+a34acf30b19b mm: vmalloc: check if a hash-index is in cpu_possible_mask
+e2e33caa5dc2 ksmbd: discard write access to the directory open
+6bef98bafd82 nvmem: core: limit cell sysfs permissions to main attribute ones
+3019b86bce16 firmware: cs_dsp: Fix overflow checking of wmfw header
+2163aff6bebb firmware: cs_dsp: Prevent buffer overrun when processing V2 alg headers
+9065693dcc13 ASoC: SOF: Intel: hda: fix null deref on system suspend entry
+631a4b3ddc78 netfilter: nfnetlink_queue: drop bogus WARN_ON
+63d20a94f24f mmc: sdhci: Fix max_seg_size for 64KiB PAGE_SIZE
+c15a688e4998 USB: serial: mos7840: fix crash on resume
+b6e02c6b0377 platform/x86: toshiba_acpi: Fix array out-of-bounds access
+f0c180256937 skmsg: Skip zero length skb in sk_msg_recvmsg
+0913ec336a6c net: ks8851: Fix deadlock with the SPI chip variant
+1af2156e58f3 serial: imx: ensure RTS signal is not left active after shutdown
+ad0bd973a033 misc: fastrpc: Fix memory leak in audio daemon attach operation
+a6f2f158f1ac misc: fastrpc: Fix ownership reassignment of remote heap
+bab2f5e8fd5d misc: fastrpc: Restrict untrusted app to attach to privileged PD
+16198eef11c1 mmc: davinci_mmc: Prevent transmitted data size from exceeding sgm's length
+2feab2492deb Revert "sched/fair: Make sure to try to detach at least one movable task"
+cff3bd012a95 netfilter: nf_tables: prefer nft_chain_validate
+26488172b029 net/sched: Fix UAF when resolving a clash
+626dfed5fa3b net, sunrpc: Remap EPERM in case of connection failure in xs_tcp_setup_socket
+680e126ec040 firmware: cs_dsp: Use strnlen() on name fields in V1 wmfw files
