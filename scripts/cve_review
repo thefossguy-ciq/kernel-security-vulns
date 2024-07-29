@@ -161,7 +161,7 @@ print_blue "Reviewing ${NOSHAS} commits"
 count=0
 
 for h in ${SHAS[@]}; do
-    clipcommitto=$(($(tput lines) - 10))
+    clipcommitto=$(($(tput lines) - 9))
     oneline=$(git --no-pager log ${h} -n1 --format="%h %s")
     subject=$(echo ${oneline} | cut -d' ' -f 2-)
     count=$((count + 1))
@@ -180,8 +180,6 @@ for h in ${SHAS[@]}; do
     clear
 
     print_blue "Processing ${TAG} fix: ${count} of ${NOSHAS} (%${percentage})"
-
-    print_blue "\nSummary:"
 
     MATCHES="\
 call[-\s_]*trace|\
@@ -251,9 +249,19 @@ WARN[A-Z]*\
             fi
         fi
 
-        clipcommitto=$((clipcommitto-4))
+        clipcommitto=$((clipcommitto - 5))
     fi
     echo
+
+    hits=$(grep -F "${subject}" ${FINALDIR}/* | wc -l)
+    if [ ${hits} -gt 0 ]; then
+        print_red "Positively voted for in:\n"
+        grep -Fl "${subject}" ${FINALDIR}/* | sed 's!'"${FINALDIR}/"'!  !'
+        clipcommitto=$((clipcommitto- ${hits} - 3))
+        echo
+    fi
+
+    print_blue "Summary:\n"
 
     git --no-pager log -p --format="" --color=always -n1 ${h} >> ${commitfile}
     commitlen=$(cat ${commitfile} | wc -l)
