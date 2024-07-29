@@ -1,0 +1,44 @@
+2b2efe1937ca bpf: Fix may_goto with negative offset.
+d1825752e307 btrfs: use NOFS context when getting inodes during logging and log replay
+e8742081db7d bpf: Mark bpf prog stack with kmsan_unposion_memory in interpreter mode
+2eabb655a968 usb: atm: cxacru: fix endpoint checking in cxacru_bind()
+b7cdf1dd5d2a net: can: j1939: Initialize unused data in j1939_send_one()
+d3e2904f71ea net: can: j1939: enhanced error handling for tightly received RTS messages in xtp_rx_rts_session_new
+692aa7a54b2b bcachefs: Fix sb_field_downgrade validation
+7e9f79428372 xdp: Remove WARN() from __xdp_reg_mem_model()
+d92a7580392a drm/fbdev-dma: Only set smem_start is enable per module option
+1864b8224195 net: mana: Fix possible double free in error handling path
+ab9e0c529eb7 ata: libata-core: Fix double free on error
+5d92c7c566dc ata: libata-core: Fix null pointer dereference on error
+c28947de2bed mlxsw: spectrum_buffers: Fix memory corruptions on Spectrum-4 systems
+84b767f9e34f ionic: use dev_consume_skb_any outside of napi
+ca537a34775c RDMA/restrack: Fix potential invalid address access
+35264909e9d1 gfs2: Fix NULL pointer dereference in gfs2_log_flush
+9eee5330656b PCI/MSI: Fix UAF in msi_capability_init
+996c3412a065 drm/i915/gt: Fix potential UAF by revoke of fence registers
+84ec985944ef cxl/mem: Fix no cxl_nvd during pmem region auto-assembling
+a81c98bfa40c netfs: Fix netfs_page_mkwrite() to check folio->mapping is valid
+285f2a088414 cxl/region: Avoid null pointer dereference in region lookup
+bab4923132fe tracing/net_sched: NULL pointer dereference in perf_trace_qdisc_reset()
+4f4fcafde343 drm/xe: Fix potential integer overflow in page size calculation
+a6eff8f9c7e8 drm/xe: Add a NULL check in xe_ttm_stolen_mgr_init
+af114efe8d24 drm/amd/display: Skip pipe if the pipe idx not set properly
+b15e65349553 drm/xe/xe_devcoredump: Check NULL before assignments
+4f2a129b33a2 drm/drm_file: Fix pid refcounting race
+66edf3fb331b drm/nouveau/dispnv04: fix null pointer dereference in nv17_tv_get_ld_modes
+bcfa48ff785b drm/amdgpu: avoid using null object of framebuffer
+6d411c8ccc01 drm/nouveau/dispnv04: fix null pointer dereference in nv17_tv_get_hd_modes
+d8fb63e46c88 can: mcp251xfd: fix infinite loop when xmit fails
+98d919dfee1c ASoC: amd: acp: add a null check for chip_pdev structure
+be346c1a6eeb ocfs2: fix DIO failure due to insufficient transaction credits
+7931d32955e0 netfilter: nf_tables: fully validate NFT_DATA_VALUE on store to data registers
+380d5f89a481 bpf: Add missed var_off setting in set_sext32_default_val()
+44b7f7151dfc bpf: Add missed var_off setting in coerce_subreg_to_size_sx()
+b90d77e5fd78 bpf: Fix remap of arena.
+5337ac4c9b80 bpf: Fix the corner case with may_goto and jump to the 1st insn.
+cfa1a2329a69 bpf: Fix overrunning reservations in ringbuf
+7d2cc63eca0c bpf: Take return from set_memory_ro() into account with bpf_prog_lock_ro()
+e60adf513275 bpf: Take return from set_memory_rox() into account with bpf_jit_binary_lock_ro()
+e0011bca603c nfsd: initialise nfsd_info.mutex early.
+8c61291fd850 mm: fix incorrect vbq reference in purge_fragmented_block
+f6549f538fe0 ata,scsi: libata-core: Do not leak memory for ata_port struct members
