@@ -1,0 +1,47 @@
+82f0b6f041fad mm: prevent derefencing NULL ptr in pfn_section_valid()
+9307a998cb984 scsi: ufs: core: Fix ufshcd_clear_cmd racing issue
+74736103fb412 scsi: ufs: core: Fix ufshcd_abort_one racing issue
+5a88a3f67e37e vfio/pci: Init the count variable in collecting hot-reset devices
+12e009d60852f cachefiles: wait for ondemand_object_worker to finish when dropping object
+19f4f39909147 cachefiles: cyclic allocation of msg_id to avoid reuse
+1b3ec4f7c03d4 filelock: fix potential use-after-free in posix_lock_inode
+1cb6f0bae5044 bpf: Fix too early release of tcx_entry
+f0c1802569370 skmsg: Skip zero length skb in sk_msg_recvmsg
+01fc5142ae6b0 i40e: Fix XDP program unloading while removing the driver
+e1533b6319ab9 net: ethernet: lantiq_etop: fix double free in detach
+d4523831f07a2 bpf: Fail bpf_timer_cancel when callback is being cancelled
+a6fcd19d7eac1 bpf: Defer work in bpf_timer_cancel_and_free
+f2aeb7306a898 ppp: reject claimed-as-LCP but actually malformed packets
+631a4b3ddc783 netfilter: nfnetlink_queue: drop bogus WARN_ON
+cff3bd012a951 netfilter: nf_tables: prefer nft_chain_validate
+5c0b485a8c611 udp: Set SOCK_RCU_FREE earlier in udp_lib_get_port().
+26488172b0292 net/sched: Fix UAF when resolving a clash
+f388cfd913a2b net, sunrpc: Remap EPERM in case of connection failure in xs_tcp_setup_socket
+3019b86bce16f firmware: cs_dsp: Fix overflow checking of wmfw header
+959fe01e85b72 firmware: cs_dsp: Return error if block header overflows file
+6598afa9320b6 firmware: cs_dsp: Validate payload length before processing block
+2163aff6bebbb firmware: cs_dsp: Prevent buffer overrun when processing V2 alg headers
+9065693dcc13f ASoC: SOF: Intel: hda: fix null deref on system suspend entry
+680e126ec0400 firmware: cs_dsp: Use strnlen() on name fields in V1 wmfw files
+2feab2492deb2 Revert "sched/fair: Make sure to try to detach at least one movable task"
+0913ec336a6c0 net: ks8851: Fix deadlock with the SPI chip variant
+c15a688e49987 USB: serial: mos7840: fix crash on resume
+6d3c721e686ea usb: gadget: configfs: Prevent OOB read/write in usb_string_copy()
+b5efb63acf7bd s390/mm: Add NULL pointer check to crst_table_free() base_crst_free()
+a9e1ddc09ca55 nilfs2: fix kernel bug on rename operation of broken directory
+a34acf30b19bc mm: vmalloc: check if a hash-index is in cpu_possible_mask
+be9581ea8c058 mm: fix crashes from deferred split racing folio migration
+24be02a42181f filemap: replace pte_offset_map() with pte_offset_map_nolock()
+3390916aca7af mm/filemap: skip to create PMD-sized page cache if needed
+099d90642a711 mm/filemap: make MAX_PAGECACHE_ORDER acceptable to xarray
+e2e33caa5dc2e ksmbd: discard write access to the directory open
+6bef98bafd829 nvmem: core: limit cell sysfs permissions to main attribute ones
+b6e02c6b0377d platform/x86: toshiba_acpi: Fix array out-of-bounds access
+1723f04caacb3 Fix userfaultfd_api to return EINVAL as expected
+63d20a94f24fc mmc: sdhci: Fix max_seg_size for 64KiB PAGE_SIZE
+16198eef11c19 mmc: davinci_mmc: Prevent transmitted data size from exceeding sgm's length
+69c7b2fe4c9cc libceph: fix race between delayed_work() and ceph_monc_stop()
+bab2f5e8fd5d2 misc: fastrpc: Restrict untrusted app to attach to privileged PD
+9fd154ba926b3 mm/shmem: disable PMD-sized page cache if needed
+7fe6e3132d994 ext4: avoid ptr null pointer dereference
+ac8b270b61d48 x86/bhi: Avoid warning in #DB handler due to BHI mitigation
