@@ -1,0 +1,49 @@
+9a0c28efeec6 net: rswitch: Avoid use-after-free in rswitch_poll()
+935124dd5883 net: txgbe: free isb resources at the right time
+1da839eab6db net/mlx5e: Add mqprio_rl cleanup and free in mlx5e_priv_cleanup()
+eb005c801ec7 media: mediatek: vcodec: Only free buffer VA that is not NULL
+506c245f3f1c drm/amdgpu: fix double free err_addr pointer warnings
+1357b2165d9a drm/amd/display: Skip finding free audio for unknown engine_id
+af9a8730ddb6 jffs2: Fix potential illegal address access in jffs2_free_inode
+efb905aeb44b cdrom: rearrange last_media_change check to avoid unintentional overflow
+db5247d9bf5c vhost_task: Handle SIGKILL by flushing work and exiting
+d1cba2ea8121 wifi: cfg80211: restrict NL80211_ATTR_TXQ_QUANTUM values
+015d79c96d62 Bluetooth: Ignore too large handle values in BIG
+1cc18c2ab2e8 bluetooth/hci: disallow setting handle bigger than HCI_CONN_HANDLE_MAX
+724d8042cef8 btrfs: always do the basic checks for btrfs_qgroup_inherit structure
+9f6958ba2e90 netfilter: nf_tables: unconditionally flush pending work before notifier
+e271ff53807e bonding: Fix out-of-bounds read in bond_option_arp_ip_targets_set()
+61cf1c739f08 inet_diag: Initialize pad field in struct inet_diag_req_v2
+e2fec219a36e nilfs2: fix inode number range checks
+bb76c6c27468 nilfs2: add missing check for inode numbers on directory entries
+068648aab72c nfc/nci: Add the inconsistency check between the input data length and count
+3ac31c9a707d drm/amd/display: Do not return negative stream id for array
+01eb50e53c1c drm/amd/display: ASSERT when failing to find index by plane/stream id
+f95bcb041f21 drm/amd/display: Fix uninitialized variables in DM
+ea686fef5489 drm/amdgpu: fix the warning about the expression (int)size - len
+8e65a1b7118a drm/amd/display: Add NULL pointer check for kzalloc
+59d99deb330a drm/amd/display: Check index msg_id before read or write
+5396a70e8cf4 drm/amd/display: Check pipe offset before setting vblank
+c8fae27d141a virtio-pci: Check if is_avq is NULL
+1479eaff1f16 bpf: mark bpf_dummy_struct_ops.test_1 parameter as nullable
+385d838df280 mm: avoid overflows in dirty throttling logic
+996422e3230e ice: Don't process extts if PTP is disabled
+efc347b9efee leds: mlxreg: Use devm_mutex_init() for mutex initialization
+c382e2e3eccb leds: an30259a: Use devm_mutex_init() for mutex initialization
+8eef5c3cea65 Revert "igc: fix a log entry using uninitialized netdev"
+30139c702048 Revert "mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again"
+a6683c690bbf drm/lima: fix shared irq handling on driver remove
+0db880fc865f powerpc: Avoid nmi_enter/nmi_exit in real mode interrupt.
+bb38626f3f97 wifi: rtw89: fw: scan offload prohibit all 6 GHz channel if no 6 GHz sband
+0d8b637c9c5e scsi: qedf: Make qedf_execute_tmf() non-preemptible
+7c36711a2cd8 net: txgbe: initialize num_q_vectors for MSI/INTx interrupts
+bd07a9817846 net: txgbe: remove separate irq request for MSI and INTx
+e15a5d821e51 net: ntb_netdev: Move ntb_netdev_rx_handler() to call netif_rx() from __netif_rx()
+93aef9eda1ce nilfs2: fix incorrect inode allocation from reserved inodes
+48f091fd50b2 btrfs: fix adding block group to a reclaim list and the unused list during reclaim
+80bec6825b19 drm/nouveau: fix null pointer dereference in nouveau_connector_get_modes
+ea977d742507 clk: sunxi-ng: common: Don't call hw_to_ccu_common on hw without common
+3cad1bc01041 filelock: Remove locks reliably when fcntl/close race is detected
+2ae4db5647d8 fs: don't misleadingly warn during thaw operations
+134061163ee5 bnx2x: Fix multiple UBSAN array-index-out-of-bounds
+b3a58f3b90f5 s390/dasd: Fix invalid dereferencing of indirect CCW data pointer
