@@ -200,6 +200,7 @@ dos|\
 [-\s_]fault|\
 [-\s_]hang[a-z]*|hung|\
 info[-\s_a-z].*leak|leak\
+malicious[ly]|\
 memory|\
 oob|\
 oops|\
