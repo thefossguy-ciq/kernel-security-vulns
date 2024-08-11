@@ -1,0 +1,26 @@
+c4d6a347ba7ba net: wan: fsl_qmc_hdlc: Convert carrier_lock spinlock to a mutex
+4ecc24a84d7e0 drm/v3d: Validate passed in drm syncobj handles in the performance extension
+023d22e8bb0cd drm/v3d: Validate passed in drm syncobj handles in the timestamp extension
+32df4abc44f24 drm/v3d: Fix potential memory leak in the performance extension
+0e50fcc20bd87 drm/v3d: Fix potential memory leak in the timestamp extension
+6ce9efd12ae81 drm/v3d: Prevent out of bounds access in performance query extensions
+e58337100721f drm/vmwgfx: Fix a deadlock in dma buf fence polling
+3dab73ab925a5 Revert "ALSA: firewire-lib: operate for period elapse event in process context"
+8aa37bde1a7b6 protect the fetch of ->fd[fd] in do_dup2() from mispredictions
+478574370bef7 btrfs: make cow_file_range_inline() honor locked_page on error
+df615907f1bf9 platform/chrome: cros_ec_proto: Lock device when updating MKBP version
+4734406c39238 s390/fpu: Re-add exception handling in load_fpu_state()
+0c710050c47d4 riscv/mm: Add handling for VM_FAULT_SIGSEGV in mm_fault_error()
+3f8e82a020a5c net/mlx5e: Add a check for the return value from mlx5_port_set_eth_ptys
+025f2b85a5e5a net/mlx5e: Fix CT entry update leaks of modify header context
+572f9caa9e729 net/mlx5: Fix missing lock on sync reset reload
+1b75da22ed1e6 net/mlx5: Always drain health in shutdown callback
+c22921df777de netfilter: iptables: Fix potential null-ptr-deref in ip6table_nat_table_init().
+5830aa863981d netfilter: iptables: Fix null-ptr-deref in iptable_nat_table_init().
+0aa3ca956c46d net: mvpp2: Don't re-use loop iterator
+f558120cd7096 net/iucv: fix use after free in iucv_sock_close()
+b5fbf924f125b drm/client: Fix error code in drm_client_buffer_vmap_local()
+2191a54f63225 sched: act_ct: take care of padding in struct zones_ht_key
+a9bf3efc33f1f drm/nouveau: prime: fix refcount underflow
+8cb1f4080dd91 f2fs: assign CURSEG_ALL_DATA_ATGC if blkaddr is valid
+0ea6560abb3ba ext4: check the extent status again before inserting delalloc block
