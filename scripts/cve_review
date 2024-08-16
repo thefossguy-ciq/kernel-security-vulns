@@ -147,6 +147,7 @@ fi
 
 SCRIPTDIR=$(dirname ${0})
 FINALDIR=${SCRIPTDIR}/../cve/review/proposed
+PUBLISHEDDIR=${SCRIPTDIR}/../cve/published
 WORKDIR=${SCRIPTDIR}/../tmp/cve-review
 PROCESSEDDIR=${WORKDIR}/processed
 RESULTSDIR=${WORKDIR}/results
@@ -215,6 +216,7 @@ BUG|\
 KSPP|\
 WARN[A-Z]*\
 "
+    mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
 
@@ -226,6 +228,15 @@ WARN[A-Z]*\
          cat ${commitmsgfile} > ${commitfile}
     fi
     rm -f ${commitmsgfile}
+
+    if [ "${mainlinesha}" != "" ]; then
+        pubpath=$(grep -rlF "${subject}" ${PUBLISHEDDIR}/*/*.json | xargs grep -q ${mainlinesha}) || true
+    fi
+
+    if [ "${pubpath}" != "" ]; then
+        pubfile=$(echo $(basename ${pubpath}) | sed 's/.json//')
+        print_blue "CVE already published as ${pubfile}"
+    fi
 
     if grep -rqF "${subject}" ${PROCESSEDDIR}; then
         filename=$(basename $(grep -lrF "${subject}" ${PROCESSEDDIR} | head -n1))
@@ -306,8 +317,6 @@ WARN[A-Z]*\
     fi
 
     if [[ "${CHOICE}" == "y" || "${CHOICE}" == "Y" || "${CHOICE}" == "]" || "${ANNOTATE}" == "true" ]]; then
-        mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
-
         # If the commit does not contain a Mainline SHA, we'll assume it *is* a Mainline SHA
         if [ "${mainlinesha}" == "" ]; then
             mainlinesha="${h}"
