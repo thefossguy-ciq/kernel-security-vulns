@@ -200,9 +200,9 @@ denial|\
 dos|\
 [-\s_]fault|\
 [-\s_]hang[a-z]*|hung|\
-info[-\s_a-z].*leak|leak\
-malicious[ly]|\
-memory|\
+info[-\s_a-z].*leak|leak|\
+malicious[a-z]*|\
+kernel[-\s_]*memory|memory|\
 oob|\
 oops|\
 panic|\
