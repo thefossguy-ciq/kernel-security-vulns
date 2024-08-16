@@ -1,0 +1,108 @@
+611d5cbc0b35 md: fix deadlock between mddev_suspend and flush bio
+899ee2c3829c block: initialize integrity buffer to zero before writing it to media
+1be59c97c83c cgroup/cpuset: Prevent UAF in proc_cpuset_show()
+99bf7c2eccff hwmon: (ltc2991) re-order conditions to fix off by one bug
+4a95449dd975 soc: xilinx: rename cpu_number1 to dummy_cpu_number
+24086640ab39 soc: qcom: icc-bwmon: Fix refcount imbalance seen during bwmon_remove
+107924c14e3d soc: qcom: pdr: protect locator_addr with the main mutex
+2fe0a605d083 wifi: mac80211: fix TTLM teardown work
+33322e3ef074 wifi: ath12k: change DMA direction while mapping reinjected packets
+073f9f249eec wifi: ath12k: fix invalid memory access while processing fragmented packets
+499f742fed42 lib: objagg: Fix general protection fault
+97d833ceb27d mlxsw: spectrum_acl_erp: Fix object nesting warning
+bcbd771cd5d6 wifi: cfg80211: handle 2x996 RU allocation in cfg80211_calculate_bitrate_he()
+54fcc6189dfb xfrm: Fix input error path memory access
+27ab33854873 udf: Fix bogus checksum computation in udf_rename()
+dda364c34591 wifi: rtw89: wow: fix GTK offload H2C skbuff issue
+9f1e16fb1fc9 riscv, bpf: Fix out-of-bounds issue when preparing trampoline image
+85099c7ce4f9 wifi: rtw89: Fix array index mistake in rtw89_sta_info_get_iter()
+b5d14b0c6716 wifi: virt_wifi: avoid reporting connection success with wrong SSID
+19d3c179a377 bpf, arm64: Fix trampoline for BPF_TRAMP_F_CALL_ORIG
+c9741a03dc8e bna: adjust 'name' buf size of bna_tcb and bna_ccb structures
+4a04b4f0de59 bpf: fix overflow check in adjust_jmp_off()
+f7866c358733 bpf: Fix null pointer dereference in resolve_prog_type() for BPF_PROG_TYPE_EXT
+4cddb0f15ea9 net: ethtool: pse-pd: Fix possible null-deref
+f8321fa75102 virtio_net: Fix napi_skb_cache_put warning
+59a931c5b732 xdp: fix invalid wait context of page_pool_destroy()
+1446226d32a4 drm/amdgpu: Remove GC HW IP 9.3.0 from noretry=1
+629913d6d795 media: pci: ivtv: Add check for DMA map result
+9b4667ea6785 media: v4l: async: Fix NULL pointer dereference in adding ancillary links
+3f29f6537f54 s390/uv: Don't call folio_wait_writeback() without a folio reference
+59d438f8e02c media: mediatek: vcodec: Handle invalid decoder vsi
+afe9555e79fc drm/amd/display: use pre-allocated temp structure for bounding box
+c0dc9adf9474 leds: trigger: Unregister sysfs attributes before calling deactivate()
+7bd09a2db0f6 drm/qxl: Add check for drm_cvt_mode
+7e776e21255b leds: rgb: leds-qcom-lpg: Add PPG check for setting/clearing PBS triggers
+81f819c537d2 ext4: fix infinite loop when replaying fast_commit
+c96140000915 drm/amd/display: Add null check before access structs
+fada32ed6dbc nfs: pass explicit offset/count to trace events
+5acc3f971a01 iio: Fix the sorting functionality in iio_gts_build_avail_time_table
+5a5095a8bd1b PCI: endpoint: pci-epf-test: Make use of cached 'epc_features' in pci_epf_test_core_init()
+a231707a91f3 PCI: keystone: Fix NULL pointer dereference in case of DT error in ks_pcie_setup_rc_app_regs()
+c93637e6a4c4 PCI: rcar: Demote WARN() to dev_warn_ratelimited() in rcar_pcie_wakeup()
+3722873d49a1 ASoc: PCM6240: Return directly after a failed devm_kzalloc() in pcmdevice_i2c_probe()
+f9f7f29f6445 ASoC: qcom: Adjust issues in case of DT error in asoc_qcom_lpass_cpu_platform_probe()
+5e0bf3e8aec2 scsi: lpfc: Fix a possible null pointer dereference
+3199a34bfaf7 dm-raid: Fix WARN_ON_ONCE check for sync_thread in raid_resume
+7816e58967d0 kvm: s390: Reject memory region operations for ucontrol VMs
+5080808c3339 ASoC: amd: Adjust error handling in case of absent codec device
+8e0f5a96c534 PCI: endpoint: Clean up error handling in vpci_scan_bus()
+e269d79c7d35 net: missing check virtio
+8bc7c617642d scsi: lpfc: Revise lpfc_prep_embed_io routine with proper endian macro usages
+dd52b5eeb0f7 crypto: mxs-dcp - Ensure payload is zero when using key slot
+cbd070a4ae62 ipvs: properly dereference pe in ip_vs_add_service
+120f1c857a73 net: flow_dissector: use DEBUG_NET_WARN_ON_ONCE
+8e64d2356cbc s390/dasd: fix error checks in dasd_copy_pair_store()
+a8bd68e4329f mailbox: mtk-cmdq: Move devm_mbox_controller_register() after devm_pm_runtime_enable()
+39705a6c29f8 landlock: Don't lose track of restrictions on cred_transfer
+d659b715e94a mm/huge_memory: avoid PMD-size page cache if needed
+8b671fe1a879 mm/mglru: fix div-by-zero in vmpressure_calc_level()
+89fc548767a2 exfat: fix potential deadlock on __exfat_get_dentry_set
+8e7860543a94 btrfs: fix extent map use-after-free when adding pages to compressed bio
+a0157b5aa34e media: venus: fix use after free in vdec_close
+98ca62ba9e2b sysctl: always initialize i_uid/i_gid
+26a2ed107929 hfs: fix to initialize fields of hfs_inode_info after hfs_alloc_inode()
+cb520c3f366c drm/gma500: fix null pointer dereference in cdv_intel_lvds_get_modes
+2df7aac81070 drm/gma500: fix null pointer dereference in psb_intel_lvds_get_modes
+4ab68e168ae1 drm/amd/display: Check for NULL pointer
+193cc89ea0ca cifs: fix potential null pointer use in destroy_workqueue in init_cifs error path
+a90d4471146d udf: Avoid using corrupted block bitmap buffer
+50ea741def58 ext4: check dot and dotdot of dx_root before making dir indexed
+f9ca51596bbf ext4: make sure the first directory block is not a hole
+57e9ce68ae98 media: imx-pxp: Fix ERR_PTR dereference in pxp_probe()
+4c29ab84cfec parisc: Fix warning at drivers/pci/msi/msi.h:121
+11a1f4bc4736 PCI/DPC: Fix use-after-free on concurrent DPC and hot-removal
+ab11dac93d2d dev/parport: fix the array out-of-bounds risk
+7dc5537c3f8b erofs: fix race in z_erofs_get_gbuf()
+2fef55d8f783 fs/ntfs3: Update log->page_{mask,bits} if log->page_size changed
+e62599902327 ASoC: fsl: fsl_qmc_audio: Check devm_kasprintf() returned value
+192b8fb8d1c8 f2fs: fix to don't dirty inode for readonly filesystem
+a8eb3de28e7a f2fs: fix return value of f2fs_convert_inline_inode()
+4811f7af6090 nilfs2: handle inconsistent state in nilfs_btnode_create_block()
+7e04da2dc701 block: fix deadlock between sd_remove & sd_release
+36639013b346 arm64: mm: Fix lockless walks with static and dynamic page-table folding
+dd6e9894b451 kobject_uevent: Fix OOB access within zap_modalias_env()
+6ebbe97a4881 ice: Add a per-VF limit on number of FDIR filters
+33b1c47d1fc0 irqchip/imx-irqsteer: Handle runtime power management correctly
+76f480d7c717 scsi: qla2xxx: During vport delete send async logout explicitly
+c03d740152f7 scsi: qla2xxx: Fix for possible memory corruption
+4475afa2646d scsi: qla2xxx: Complete command early within lock
+eb1d4ce26095 scsi: qla2xxx: validate nvme_local_port correctly
+aee2424246f9 RDMA/iwcm: Fix a use-after-free related to destroying CM IDs
+468e3295774d crypto: ccp - Fix null pointer dereference in __sev_snp_shutdown_locked
+2fa26ca8b786 remoteproc: imx_rproc: Skip over memory region when node value is NULL
+298b1e4182d6 f2fs: fix to truncate preallocated blocks in f2fs_file_open()
+f73f969b2eb3 jfs: Fix array-index-out-of-bounds in diFree
+c82bc1ab2a8a f2fs: fix null reference error when checking end of zone
+28e8b7406d3a dma: fix call order in dmam_free_coherent
+fa96c6baef1b tipc: Return non-zero value from tipc_udp_addr2str() on error
+6d745cd0e972 net: nexthop: Initialize all fields in dumped nexthops
+16f3a28cf5f8 net: mediatek: Fix potential NULL pointer dereference in dummy net_device handling
+fa5ef655615a bpf: Fix a segment issue when downgrading gso_size
+61ab751451f5 mISDN: Fix a use after free in hfcmulti_tx()
+fce09ea31450 apparmor: Fix null pointer deref when receiving skb during sock creation
+9cf71eb0faef spi: microchip-core: ensure TX and RX FIFOs are empty at start of a transfer
+92c78222168e ASoC: TAS2781: Fix tasdev_load_calibrated_data()
+630482ee0653 iommu: sprd: Avoid NULL deref in sprd_iommu_hw_en
+c31fad147038 nvme-pci: add missing condition check for existence of mapped data
+be90ae1ba14a i3c: mipi-i3c-hci: Fix number of DAT/DCT entries for HCI versions < 1.1
