@@ -1,0 +1,19 @@
+2191a54f6322 sched: act_ct: take care of padding in struct zones_ht_key
+6873cc441607 wifi: cfg80211: correct S1G beacon length calculation
+478574370bef btrfs: make cow_file_range_inline() honor locked_page on error
+3dab73ab925a Revert "ALSA: firewire-lib: operate for period elapse event in process context"
+b5fbf924f125 drm/client: Fix error code in drm_client_buffer_vmap_local()
+6ce9efd12ae8 drm/v3d: Prevent out of bounds access in performance query extensions
+0e50fcc20bd8 drm/v3d: Fix potential memory leak in the timestamp extension
+32df4abc44f2 drm/v3d: Fix potential memory leak in the performance extension
+023d22e8bb0c drm/v3d: Validate passed in drm syncobj handles in the timestamp extension
+4ecc24a84d7e drm/v3d: Validate passed in drm syncobj handles in the performance extension
+5b5115726601 drm/i915: Fix possible int overflow in skl_ddi_calculate_wrpll()
+f558120cd709 net/iucv: fix use after free in iucv_sock_close()
+8cb1f4080dd9 f2fs: assign CURSEG_ALL_DATA_ATGC if blkaddr is valid
+5830aa863981 netfilter: iptables: Fix null-ptr-deref in iptable_nat_table_init().
+572f9caa9e72 net/mlx5: Fix missing lock on sync reset reload
+0c710050c47d riscv/mm: Add handling for VM_FAULT_SIGSEGV in mm_fault_error()
+a47f3320bb4b wifi: ath12k: fix soft lockup on suspend
+c22921df777d netfilter: iptables: Fix potential null-ptr-deref in ip6table_nat_table_init().
+8aa37bde1a7b protect the fetch of ->fd[fd] in do_dup2() from mispredictions
