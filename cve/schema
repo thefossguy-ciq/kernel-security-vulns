@@ -74,7 +74,7 @@ kernel changelog text to replace the cve text wording with the modified text.
 This allows us to modify the CVE entry text for when it is wrong or confusing.
 
 If a:
-	published/YEAR/CVE-YEAR-ID.references
+	published/YEAR/CVE-YEAR-ID.reference
 file is present, the cve_update script will use that to add a URL reference to
 the json and mbox entry.  The file can contain multiple URL references, one per
 line.
