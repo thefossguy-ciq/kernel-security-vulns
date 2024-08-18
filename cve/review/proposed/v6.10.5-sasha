@@ -1,0 +1,67 @@
+e0391e92f9ab4 btrfs: fix double inode unlock for direct IO sync writes
+899d92fd26fe7 drm/amd/display: Add null check in resource_log_pipe_topology_update
+eb1ae34e48a09 drm/mgag200: Bind I2C lifetime to DRM device
+919f18f961c03 x86/mtrr: Check if fixed MTRRs exist before saving them
+14ab4792ee120 net/tcp: Disable TCP-AO static key after RCU grace period
+5161b48712dcd mm: list_lru: fix UAF for memory cgroup
+8e556432477e9 eventfs: Use SRCU for freeing eventfs_inodes
+6d45e1c948a8b padata: Fix possible divide-by-0 panic in padata_mt_helper()
+bcf86c01ca467 tracing: Fix overflow in get_free_elt()
+b1560408692cd tracing: Have format file honor EVENT_FILE_FL_FREED
+81af7f2342d16 power: supply: axp288_charger: Round constant_charge_voltage writes down
+7ae04ba36b381 parisc: fix a possible DMA corruption
+9972605a23833 memcg: protect concurrent access to mem_cgroup_idr
+7d3b793faaab1 serial: sc16is7xx: fix invalid FIFO access with special register set
+133f4c00b8b2b serial: sc16is7xx: fix TX fifo corruption
+6eabce6608d6f serial: core: check uartclk for zero to avoid divide by zero
+06c03c8edce33 ntp: Safeguard against time_constant overflow
+15fffc6a5624b driver core: Fix uevent_show() vs driver detach race
+87d571d6fb77e ntp: Clamp maxerror and esterror to operating range
+6881e75237a84 tick/broadcast: Move per CPU pointer access into the atomic section
+3911af778f208 scsi: ufs: core: Fix deadlock during RTC update
+afdcfd3d6fcde usb: vhci-hcd: Do not drop references before new references are gained
+15b7a03205b31 ALSA: line6: Fix racy access to midibuf
+113fd6372a5bb drm/client: fix null pointer dereference in drm_client_modeset_probe
+50e376f1fe3bf drm/amd/display: Skip Recompute DSC Params if no Stream on Link
+8bdd9ef7e9b1b drm/i915/gem: Fix Virtual Memory mapping boundaries calculation
+dc268085e4996 ASoC: cs-amp-lib: Fix NULL pointer crash if efi.get_variable is NULL
+adeec61a4723f arm64: errata: Expand speculative SSBS workaround (again)
+75b3c43eab594 arm64: errata: Expand speculative SSBS workaround
+89add40066f9e net: drop bad gso csum_start and offset in virtio_net_hdr
+83f4414b8f842 ext4: sanity check for NULL pointer after ext4_force_shutdown
+bf365071ea92b s390/sclp: Prevent release of buffer in I/O
+ecbf60782662f drm/amd/display: Fix null pointer deref in dcn20_resource.c
+68594cec291ff media: xc2028: avoid use-after-free in load_firmware_cb()
+5af7571247928 drm/amd/display: Fix NULL pointer dereference for DTN log in DCN401
+971b4eef86ccb media: i2c: ov5647: replacing of_node_put with __free(device_node)
+8092aa3ab8f7b drm/amd/display: Add null checker before passing variables
+fcf6a49d79923 drm/amd/display: Don't refer to dc_sink in is_dsc_need_re_compute
+38e6f715b02b5 drm/amd/display: Add NULL check for 'afb' before dereferencing in amdgpu_dm_plane_handle_cursor_update
+15c2990e0f010 drm/amd/display: Add null checks for 'stream' and 'plane' before dereferencing
+50151b7f1c79a drm/amd/pm: Fix the null pointer dereference for vega10_hwmgr
+030ffd4d43b43 drm/admgpu: fix dereferencing null pointer context
+d19fb10085a49 drm/amdgpu/pm: Fix the null pointer dereference in apply_state_adjust_rules
+4c11d30c95576 drm/amdgpu: Fix the null pointer dereference to ras_manager
+c02c1960c93ee drm/amdgpu/pm: Fix the null pointer dereference for smu7
+10839ee6a977e drm/amd/display: Add delay to improve LTTPR UHBR interop
+3cd1585e57908 drm/xe/preempt_fence: enlarge the fence critical section
+ec2b9a5e11e51 bpf: add missing check_func_arg_reg_off() to prevent out-of-bounds memory accesses
+021d53a3d87ee wifi: mac80211: fix NULL dereference at band check in starting tx ba session
+fba8334721e26 net/mlx5e: SHAMPO, Fix invalid WQ linked list unlink
+9c4fde42cce05 wifi: rtlwifi: handle return value of usb init TX/RX
+23daf1b4c91db wifi: nl80211: disallow setting special AP channel widths
+1c682593096a4 xen: privcmd: Switch from mutex to spinlock for irqfds
+6bad28cfc3098 ACPI: SBS: manage alarm sysfs attribute through psy core
+b9ecbfa455161 nvme: apple: fix device reference counting
+305a5170dc5cf md/raid5: avoid BUG_ON() while continue reshape after reassembling
+d795848ecce24 gpio: prevent potential speculation leaks in gpio_device_get_desc()
+290f1c033281c idpf: fix UAFs when destroying the queues
+da03f5d1b2c31 bnxt_en : Fix memory out-of-bounds in bnxt_fill_hw_rss_tbl()
+e3862093ee93f net: dsa: bcm_sf2: Fix a possible memory leak in bcm_sf2_mdio_register()
+25a7123579eca ice: Fix reset handler
+3e7917c0cdad8 net: linkwatch: use system_unbound_wq
+92c4ee25208d0 net: bridge: mcast: wait for previous gc cycles when removing port
+7ab107544b777 net: usb: qmi_wwan: fix memory leak for not ip packets
+9ab0faa7f9ffe sctp: Fix null-ptr-deref in reuseport_add_sock().
+d3911f1639e67 power: supply: rt5033: Bring back i2c_set_clientdata
+e075c3b13a0a1 platform/x86: intel-vbtn: Protect ACPI notify handler against recursion
