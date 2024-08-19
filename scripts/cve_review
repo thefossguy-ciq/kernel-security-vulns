@@ -230,12 +230,18 @@ WARN[A-Z]*\
     rm -f ${commitmsgfile}
 
     if [ "${mainlinesha}" != "" ]; then
-        pubpath=$(grep -rlF "${subject}" ${PUBLISHEDDIR}/*/*.json | xargs grep -q ${mainlinesha}) || true
+        pubpath=$(grep -rlF "${subject}" ${PUBLISHEDDIR} | grep json | xargs grep -l ${mainlinesha}) || true
     fi
 
     if [ "${pubpath}" != "" ]; then
         pubfile=$(echo $(basename ${pubpath}) | sed 's/.json//')
-        print_blue "CVE already published as ${pubfile}"
+        print_red "\nCVE already published as ${pubfile} -- skipping"
+
+        sleep 1
+        echo "${oneline}" >> ${PROCESSEDFILE}
+
+        echo "$(git --no-pager log ${mainlinesha} -n1 --format="%h %s") [auto: cve already created]" >> ${CVEME}
+        continue
     fi
 
     if grep -rqF "${subject}" ${PROCESSEDDIR}; then
