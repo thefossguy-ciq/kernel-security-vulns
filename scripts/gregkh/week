@@ -1,0 +1,93 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# week - calculate the week count of cves that were created
+#
+# Hack for running some simple scripts
+#
+
+# Colors are good!
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
+
+# set where the tool was run from,
+# the name of our script,
+# and the git version of it
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+SCRIPT=${0##*/}
+
+help() {
+	echo "${SCRIPT}"
+	echo "	Note, CVE_USER must be set to your CVE_USER email address"
+	exit 1
+}
+
+if [[ "${TMPDIR}" == "" ]]; then
+	echo "TMPDIR environment variable must be set, exiting ${SCRIPT}"
+	exit 1
+fi
+
+YEAR=$1
+
+# don't use unset variables
+set -o nounset
+
+cd "${DIR}"/../../ || exit 1
+
+cve_to_week() {
+	local c=$1
+
+	cve=${c%.sha1}
+	sha=$(git log --oneline ${cve} | tail -n 1 | cut -f 1 -d ' ')
+	date=$(git show --pretty=format:%ai -s "${sha}" | cut -f 1 -d ' ')
+	week=$(${DIR}/to_week.pl "${date}")
+	#echo "sha=${sha} date=${date} week=${week}"
+	echo "${week}"
+
+
+}
+
+cve_year() {
+	local year=$1
+	local threads=$(nproc)
+
+	# get a count of ids for this year
+	count=$(ls cve/published/${year}/*.sha1 | wc -l)
+
+	echo "Counting ${txtcyn}${count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
+	for cve in cve/published/${year}/*.sha1 ; do
+		while :
+		do
+			if [[ $(jobs -p | wc -l) -lt ${threads} ]]; then
+				#echo "cve=${cve}"
+				cve_to_week "${cve}" &
+				# cve_to_week "${cve}" &
+				break
+			else
+				sleep 1
+			fi
+		done
+	done
+	wait
+}
+
+if [[ "${YEAR}" == "" ]]; then
+	echo "Must provide a year"
+	exit 1
+fi
+
+cve_year ${YEAR}
+exit 0
