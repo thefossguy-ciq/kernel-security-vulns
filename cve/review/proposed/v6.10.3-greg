@@ -1,0 +1,13 @@
+3a5465418f5f perf: Fix event leak upon exec and file release
+2fd5ad3f310d perf: Fix event leak upon exit
+bd50a974097b devres: Fix memory leakage caused by driver API devm_free_percpu()
+2fdf34038369 RDMA/hns: Fix soft lockup under heavy CEQE load
+1e1fdcbdde3b vhost/vsock: always initialize seqpacket_allow
+468e3295774d crypto: ccp - Fix null pointer dereference in __sev_snp_shutdown_locked
+8e0f5a96c534 PCI: endpoint: Clean up error handling in vpci_scan_bus()
+c93637e6a4c4 PCI: rcar: Demote WARN() to dev_warn_ratelimited() in rcar_pcie_wakeup()
+629913d6d795 media: pci: ivtv: Add check for DMA map result
+54fcc6189dfb xfrm: Fix input error path memory access
+bcbd771cd5d6 wifi: cfg80211: handle 2x996 RU allocation in cfg80211_calculate_bitrate_he()
+97d833ceb27d mlxsw: spectrum_acl_erp: Fix object nesting warning
+33322e3ef074 wifi: ath12k: change DMA direction while mapping reinjected packets
