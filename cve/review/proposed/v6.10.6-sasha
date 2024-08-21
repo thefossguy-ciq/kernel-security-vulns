@@ -1,0 +1,9 @@
+fa4c500ce93f4 drm/amdgpu/display: Fix null pointer dereference in dc_stream_program_cursor_position
+7cc06e729460a platform/x86: ideapad-laptop: add a mutex to synchronize VPC commands
+d57431c6f511b fs/ntfs3: Do copy_to_user out of run_lock
+7063b80268e25 jfs: Fix shift-out-of-bounds in dbDiscardAG
+ce6dede912f06 jfs: fix null ptr deref in dtInsertEntry
+dd89a81d850fa fou: remove warn in gue_gro_receive on unsupported protocol
+d7409b05a64f2 f2fs: fix to cover read extent cache access with lock
+fc01008c92f40 f2fs: fix to do sanity check on F2FS_INLINE_DATA flag in inode during GC
+f50733b45d865 exec: Fix ToCToU between perm check and set-uid/gid usage
