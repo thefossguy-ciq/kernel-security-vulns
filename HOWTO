@@ -72,14 +72,17 @@ failure") as an example for all of this.
 In the main vulns.git repo, run 'just' to see the available options:
 $ just
 Available recipes:
-    cve_create GIT_ID # Create a CVE for a specific Linux kernel git commit id
-    cve_publish_json  # Publish all modified .json files with the CVE server
-    cve_publish_mbox  # Publish all modified .mbox messages with git-send-email
-    cve_reject CVE_ID # Reject a published/reserved CVE
-    cve_search GIT_ID # Search for a specific git id in the list of published CVE ids
-    cve_update        # Update all allocated CVE entries with the latest version information
-    list_ids          # Query the CVE server for the list of all ids assigned to us
-    summary           # List a summary of the ids at this point in time
+    cve_batch_create FILENAME # Create a bunch of CVEs that are contained, one per line, in FILENAME
+    cve_create GIT_ID *CVE_ID # Create a CVE for a specific Linux kernel git commit id
+    cve_publish_json          # Publish all modified .json files with the CVE server
+    cve_publish_mbox          # Publish all modified .mbox messages with git-send-email
+    cve_reject CVE_ID         # Reject a published/reserved CVE
+    cve_search GIT_ID         # Search for a specific git id in the list of published CVE ids
+    cve_update *GIT_ID        # Update all, or just one, CVE entries with the latest version information
+    cvelistV5_check FILENAME  # Check the cvelistV5 database for any existing CVE entries
+    list_ids                  # Query the CVE server for the list of all ids assigned to us
+    summary                   # List a summary of the ids at this point in time
+    update_cvelistV5          # update cvelistV5 and commit the difference
 
 
 You can run the cve_* scripts directly from scripts/ or you can use 'just' to
