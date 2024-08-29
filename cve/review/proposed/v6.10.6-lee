@@ -1,0 +1,8 @@
+f50733b45d86 exec: Fix ToCToU between perm check and set-uid/gid usage [auto: cve already created]
+fc01008c92f4 f2fs: fix to do sanity check on F2FS_INLINE_DATA flag in inode during GC [auto: cve already created]
+d7409b05a64f f2fs: fix to cover read extent cache access with lock [auto: cve already created]
+dd89a81d850f fou: remove warn in gue_gro_receive on unsupported protocol [auto: cve already created]
+ce6dede912f0 jfs: fix null ptr deref in dtInsertEntry [auto: cve already created]
+7063b80268e2 jfs: Fix shift-out-of-bounds in dbDiscardAG [auto: cve already created]
+3eb3cd5992f7 binfmt_flat: Fix corruption when not offsetting data start
+fa4c500ce93f drm/amdgpu/display: Fix null pointer dereference in dc_stream_program_cursor_position
