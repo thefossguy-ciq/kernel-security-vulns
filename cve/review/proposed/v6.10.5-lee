@@ -1,0 +1,61 @@
+e075c3b13a0a platform/x86: intel-vbtn: Protect ACPI notify handler against recursion [auto: cve already created]
+41e71dbb0e0a x86/mm: Fix pti_clone_pgtable() alignment assumption
+d3911f1639e6 power: supply: rt5033: Bring back i2c_set_clientdata [auto: cve already created]
+9ab0faa7f9ff sctp: Fix null-ptr-deref in reuseport_add_sock(). [auto: cve already created]
+7ab107544b77 net: usb: qmi_wwan: fix memory leak for not ip packets [auto: cve already created]
+92c4ee25208d net: bridge: mcast: wait for previous gc cycles when removing port [auto: cve already created]
+da03f5d1b2c3 bnxt_en : Fix memory out-of-bounds in bnxt_fill_hw_rss_tbl() [auto: cve already created]
+f01032a2ca09 idpf: fix memory leaks and crashes while performing a soft reset
+290f1c033281 idpf: fix UAFs when destroying the queues [auto: cve already created]
+d795848ecce2 gpio: prevent potential speculation leaks in gpio_device_get_desc() [auto: cve already created]
+305a5170dc5c md/raid5: avoid BUG_ON() while continue reshape after reassembling [auto: cve already created]
+b9ecbfa45516 nvme: apple: fix device reference counting [auto: cve already created]
+1c682593096a xen: privcmd: Switch from mutex to spinlock for irqfds
+23daf1b4c91d wifi: nl80211: disallow setting special AP channel widths [auto: cve already created]
+021d53a3d87e wifi: mac80211: fix NULL dereference at band check in starting tx ba session [auto: cve already created]
+ec2b9a5e11e5 bpf: add missing check_func_arg_reg_off() to prevent out-of-bounds memory accesses [auto: cve already created]
+97713b1a2ced btrfs: do not clear page dirty inside extent_write_locked_range()
+bb3868033a4c btrfs: do not BUG_ON() when freeing tree block after error
+0d0df1e750ba Bluetooth: btnxpuart: Shutdown timer and prevent rearming when driver unloading
+3cd1585e5790 drm/xe/preempt_fence: enlarge the fence critical section
+c02c1960c93e drm/amdgpu/pm: Fix the null pointer dereference for smu7 [auto: cve already created]
+4c11d30c9557 drm/amdgpu: Fix the null pointer dereference to ras_manager [auto: cve already created]
+d19fb10085a4 drm/amdgpu/pm: Fix the null pointer dereference in apply_state_adjust_rules [auto: cve already created]
+030ffd4d43b4 drm/admgpu: fix dereferencing null pointer context [auto: cve already created]
+50151b7f1c79 drm/amd/pm: Fix the null pointer dereference for vega10_hwmgr [auto: cve already created]
+15c2990e0f01 drm/amd/display: Add null checks for 'stream' and 'plane' before dereferencing [auto: cve already created]
+38e6f715b02b drm/amd/display: Add NULL check for 'afb' before dereferencing in amdgpu_dm_plane_handle_cursor_update [auto: cve already created]
+fcf6a49d7992 drm/amd/display: Don't refer to dc_sink in is_dsc_need_re_compute
+8092aa3ab8f7 drm/amd/display: Add null checker before passing variables [auto: cve already created]
+5af757124792 drm/amd/display: Fix NULL pointer dereference for DTN log in DCN401 [auto: cve already created]
+68594cec291f media: xc2028: avoid use-after-free in load_firmware_cb() [auto: cve already created]
+ecbf60782662 drm/amd/display: Fix null pointer deref in dcn20_resource.c [auto: cve already created]
+83f4414b8f84 ext4: sanity check for NULL pointer after ext4_force_shutdown [auto: cve already created]
+89add40066f9 net: drop bad gso csum_start and offset in virtio_net_hdr [auto: cve already created]
+dc268085e499 ASoC: cs-amp-lib: Fix NULL pointer crash if efi.get_variable is NULL [auto: cve already created]
+8bdd9ef7e9b1 drm/i915/gem: Fix Virtual Memory mapping boundaries calculation [auto: cve already created]
+50e376f1fe3b drm/amd/display: Skip Recompute DSC Params if no Stream on Link [auto: cve already created]
+829798c789f5 drm/amdgpu: Forward soft recovery errors to userspace
+113fd6372a5b drm/client: fix null pointer dereference in drm_client_modeset_probe [auto: cve already created]
+15b7a03205b3 ALSA: line6: Fix racy access to midibuf
+afdcfd3d6fcd usb: vhci-hcd: Do not drop references before new references are gained [auto: cve already created]
+973a57891608 usb: gadget: core: Check for unset descriptor
+3911af778f20 scsi: ufs: core: Fix deadlock during RTC update
+15fffc6a5624 driver core: Fix uevent_show() vs driver detach race
+0b6743bd60a5 tracefs: Use generic inode RCU for synchronizing freeing
+6eabce6608d6 serial: core: check uartclk for zero to avoid divide by zero [auto: cve already created]
+133f4c00b8b2 serial: sc16is7xx: fix TX fifo corruption
+7d3b793faaab serial: sc16is7xx: fix invalid FIFO access with special register set
+9972605a2383 memcg: protect concurrent access to mem_cgroup_idr [auto: cve already created]
+7ae04ba36b38 parisc: fix a possible DMA corruption
+b1560408692c tracing: Have format file honor EVENT_FILE_FL_FREED [auto: cve already created]
+bcf86c01ca46 tracing: Fix overflow in get_free_elt() [auto: cve already created]
+6d45e1c948a8 padata: Fix possible divide-by-0 panic in padata_mt_helper() [auto: cve already created]
+5161b48712dc mm: list_lru: fix UAF for memory cgroup [auto: cve already created]
+14ab4792ee12 net/tcp: Disable TCP-AO static key after RCU grace period [auto: cve already created]
+919f18f961c0 x86/mtrr: Check if fixed MTRRs exist before saving them
+e22f910a26cc sched/smt: Fix unbalance sched_smt_present dec/inc
+939b656bc8ab btrfs: fix corruption after buffer fault in during direct IO append write
+899d92fd26fe drm/amd/display: Add null check in resource_log_pipe_topology_update [auto: cve already created]
+e0391e92f9ab btrfs: fix double inode unlock for direct IO sync writes [auto: cve already created]
+f933ad6b19e3 Merge tag 'v6.11-rc1' into android-mainline [auto: cve already created]
