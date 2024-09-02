@@ -1,0 +1,86 @@
+99d3bf5f7377d Input: MT - limit max slots
+76e98a158b207 ksmbd: fix race condition between destroy_previous_session() and smb2 operations()
+5d30de4311d2d drm/xe: Do not dereference NULL job->fence in trace points
+48e50dcbcbaaf mptcp: pm: avoid possible UaF when selecting endp
+09355f7abb9fb mptcp: pm: fullmesh: select the right ID later
+1c1f721375989 mptcp: pm: only decrement add_addr_accepted for MPJ req
+322ea3778965d mptcp: pm: only mark 'subflow' endp as available
+9b340aeb26d50 nouveau/firmware: use dma non-coherent allocator
+959ab6350add9 cgroup/cpuset: fix panic caused by partcmd_update
+3e6245ebe7ef3 KVM: arm64: Make ICC_*SGI*_EL1 undef in the absence of a vGICv3
+2240a50e62942 KVM: arm64: vgic-debug: Don't put unmarked LPIs
+822c8020aebcf ata: pata_macio: Fix DMA table overflow
+950aeefb34923 iommufd/device: Fix hwpt at err_unresv in iommufd_device_do_replace()
+c99769bceab4e drm/amdgpu: Validate TA binary size
+ce61b605a0050 ksmbd: the buffer of smb2 query dir response has at least 1 byte
+538fd3921afac Bluetooth: MGMT: Add error handling to pair_device()
+a54a93d0e3599 nvme: move stopping keep-alive into nvme_uninit_ctrl()
+d7fd2941ae9a6 s390/boot: Avoid possible physmem_info segment corruption
+57df60e1f981f thermal/debugfs: Fix the NULL vs IS_ERR() confusion in debugfs_create_dir()
+9e7f30563677f drm/xe: Free job before xe_exec_queue_put
+a6f78359ac75f drm/xe: Fix missing workqueue destroy in xe_gt_pagefault
+e0ee967630c8e io_uring/kbuf: sanitize peek buffer setup
+c7117419784f6 drm/xe: reset mmio mappings with devm
+f4b2a0ae1a31f drm/xe: Fix opregion leak
+38f7e14519d39 workqueue: Fix UBSAN 'subtraction overflow' error in shift_and_mask()
+bfa1a6283be39 drm/msm/dpu: cleanup FB if dpu_format_populate_layout fails
+aedf02e46eb54 drm/msm/dpu: move dpu_encoder's connector assignment to atomic_enable()
+797a68c9de0f5 net: xilinx: axienet: Fix dangling multicast addresses
+6ea14ccb60c8a netfilter: flowtable: validate vlan header
+8baeef7616d51 bnxt_en: Fix double DMA unmapping for XDP_REDIRECT
+2d5ff7e339d04 ipv6: prevent possible UAF in ip6_xmit()
+da273b377ae0d ipv6: fix possible UAF in ip6_finish_output2()
+faa389b2fbaae ipv6: prevent UAF in ip6_send_skb()
+c07ff8592d57e netem: fix return value if duplicate enqueue fails
+528876d867a23 net: dsa: mv88e6xxx: Fix out-of-bound access
+8aba27c4a5020 igb: cope with large MAX_SKB_FRAGS
+f8cde9805981c bonding: fix xfrm real_dev null pointer dereference
+95c90e4ad89d4 bonding: fix null pointer deref in bond_ipsec_offload_ok
+a0b39e2dc7017 netfilter: nft_counter: Synchronize nft_counter_reset() against reader.
+807067bf014d4 kcm: Serialise kcm_sendmsg() for the same socket.
+565d121b69980 tcp: prevent concurrent execution of tcp_sk_exit_batch
+607e1df7bd47f net/mlx5: Fix IPsec RoCE MPV trace call
+e1b9e80236c54 net: mscc: ocelot: fix QoS class for injected packets with "ocelot-8021q"
+74c2ab6d653b4 smb/client: avoid possible NULL dereference in cifs_free_subrequest()
+497d370a644d9 drm/v3d: Fix out-of-bounds read in `v3d_csd_job_run()`
+aad4183232672 gpio: mlxbf3: Support shutdown() function
+fca5b78511e98 iommu: Restore lost return in iommu_report_device_fault()
+be5e816d00a50 net: hns3: fix a deadlock problem when config TC during resetting
+8445d9d3c0310 net: hns3: fix wrong use of semaphore up
+69139d2919dd4 vsock: fix recursive ->recvmsg calls
+bd662c4218f96 netfilter: nf_tables: Add locking for NFT_MSG_GETOBJ_RESET requests
+7d8dc1c7be8d3 netfilter: nf_queue: drop packets with cloned unconfirmed conntracks
+e9767137308da netfilter: flowtable: initialise extack before use
+d1a7b382a9d3f netfilter: nfnetlink: Initialise extack before use in ACKs
+df934abb185c7 mlxbf_gige: disable RX filters until RX path initialized
+db1b4bedb9b97 net: ethernet: mtk_wed: fix use-after-free panic in mtk_wed_setup_tc_block_cb()
+a9a18e8f770c9 atm: idt77252: prevent use after free in dequeue_rx()
+e6b5afd30b99b net/mlx5e: Take state lock during tx timeout reporter
+3a3be7ff9224f gtp: pull network headers in gtp_dev_xmit()
+6252690f7e1b1 btrfs: fix invalid mapping of extent xarray state
+bed2eb964c70b bpf: Fix a kernel verifier crash in stacksafe()
+fdad456cbcca7 bpf: Fix updating attached freplace prog in prog_array map
+046667c4d3196 memcg_write_event_control(): fix a user-triggerable oops
+0573a1e2ea7e3 drm/amdgpu: Actually check flags for all context ops.
+008e2512dc569 btrfs: tree-checker: add dev extent item checks
+e30729d4bd400 btrfs: zoned: properly take lock to read/update block group's zoned variables
+42fac187b5c74 btrfs: check delayed refs when we're checking if a ref exists
+31723c9542dba btrfs: tree-checker: reject BTRFS_FT_UNKNOWN dir type
+61ebe5a747da6 mm/vmalloc: fix page mapping if vm_area_alloc_pages() with high order fallback to order 0
+6dd1e4c045afa selinux: add the processing of the failure of avc_add_xperms_decision()
+f71aa06398aab fs/netfs/fscache_cookie: add missing "n_accesses" check
+2ad4e1ada8eeb wifi: brcmfmac: cfg80211: Handle SSID based pmksa deletion
+32316f676b4ee net: mana: Fix RX buf alloc_size alignment and atomic op panic
+c916ca35308d3 md/raid1: Fix data corruption for degraded array with slow disk
+5f75cfbd6bb02 mm/hugetlb: fix hugetlb vs. core-mm PT locking
+90574d2a67594 rtla/osnoise: Prevent NULL dereference in error handling
+9a2fa14720835 fix bitmap corruption on close_range() with CLOSE_RANGE_UNSHARE
+2a0629834cd82 vfs: Don't evict inode under the inode lru traversing context
+0e28bf61a5f9a KEYS: trusted: dcp: fix leak of blob encryption key
+5a44bb061d04b KVM: s390: fix validity interception issue when gisa is switched off
+7db4042336580 s390/dasd: fix error recovery leading to data corruption on ESE devices
+af8e119f52e9c xhci: Fix Panther point NULL pointer deref at full-speed re-enumeration
+dcdb52d948f3a usb: xhci: Check for xhci->interrupters being allocated in xhci_mem_clearup()
+2374bf7558de9 char: xillybus: Check USB endpoints when probing device
+ccbde4b128ef9 char: xillybus: Don't destroy workqueue from work item running on it
+3c0da3d163eb3 fuse: Initialize beyond-EOF page contents before setting uptodate
