@@ -1,0 +1,77 @@
+dc98d76a15bc tty: serial: fsl_lpuart: mark last busy before uart_add_one_port
+3c0da3d163eb fuse: Initialize beyond-EOF page contents before setting uptodate
+ccbde4b128ef char: xillybus: Don't destroy workqueue from work item running on it
+dcdb52d948f3 usb: xhci: Check for xhci->interrupters being allocated in xhci_mem_clearup()
+af8e119f52e9 xhci: Fix Panther point NULL pointer deref at full-speed re-enumeration
+5a44bb061d04 KVM: s390: fix validity interception issue when gisa is switched off
+0e28bf61a5f9 KEYS: trusted: dcp: fix leak of blob encryption key
+836bb3268db4 smb3: fix lock breakage for cached writes
+14d069d92951 i2c: tegra: Do not mark ACPI devices as irq safe
+2a0629834cd8 vfs: Don't evict inode under the inode lru traversing context
+9a2fa1472083 fix bitmap corruption on close_range() with CLOSE_RANGE_UNSHARE
+e46bc2e7eb90 mseal: fix is_madv_discard()
+90574d2a6759 rtla/osnoise: Prevent NULL dereference in error handling
+5f75cfbd6bb0 mm/hugetlb: fix hugetlb vs. core-mm PT locking
+32316f676b4e net: mana: Fix RX buf alloc_size alignment and atomic op panic
+f71aa06398aa fs/netfs/fscache_cookie: add missing "n_accesses" check
+379d9af3f3da selinux: fix potential counting error in avc_add_xperms_decision()
+6dd1e4c045af selinux: add the processing of the failure of avc_add_xperms_decision()
+61ebe5a747da mm/vmalloc: fix page mapping if vm_area_alloc_pages() with high order fallback to order 0
+42fac187b5c7 btrfs: check delayed refs when we're checking if a ref exists
+e30729d4bd40 btrfs: zoned: properly take lock to read/update block group's zoned variables
+0573a1e2ea7e drm/amdgpu: Actually check flags for all context ops.
+046667c4d319 memcg_write_event_control(): fix a user-triggerable oops
+fdad456cbcca bpf: Fix updating attached freplace prog in prog_array map
+bed2eb964c70 bpf: Fix a kernel verifier crash in stacksafe()
+6252690f7e1b btrfs: fix invalid mapping of extent xarray state
+3a3be7ff9224 gtp: pull network headers in gtp_dev_xmit()
+e6b5afd30b99 net/mlx5e: Take state lock during tx timeout reporter
+a9a18e8f770c atm: idt77252: prevent use after free in dequeue_rx()
+db1b4bedb9b9 net: ethernet: mtk_wed: fix use-after-free panic in mtk_wed_setup_tc_block_cb()
+d1a7b382a9d3 netfilter: nfnetlink: Initialise extack before use in ACKs
+e9767137308d netfilter: flowtable: initialise extack before use
+bd662c4218f9 netfilter: nf_tables: Add locking for NFT_MSG_GETOBJ_RESET requests
+69139d2919dd vsock: fix recursive ->recvmsg calls
+8445d9d3c031 net: hns3: fix wrong use of semaphore up
+be5e816d00a5 net: hns3: fix a deadlock problem when config TC during resetting
+fca5b78511e9 iommu: Restore lost return in iommu_report_device_fault()
+497d370a644d drm/v3d: Fix out-of-bounds read in `v3d_csd_job_run()`
+b313a8c83551 block: Fix lockdep warning in blk_mq_mark_tag_wait
+74c2ab6d653b smb/client: avoid possible NULL dereference in cifs_free_subrequest()
+607e1df7bd47 net/mlx5: Fix IPsec RoCE MPV trace call
+565d121b6998 tcp: prevent concurrent execution of tcp_sk_exit_batch
+807067bf014d kcm: Serialise kcm_sendmsg() for the same socket.
+95c90e4ad89d bonding: fix null pointer deref in bond_ipsec_offload_ok
+f8cde9805981 bonding: fix xfrm real_dev null pointer dereference
+50b2143356e8 ice: fix page reuse when PAGE_SIZE is over 8k
+d53d4dcce69b ice: fix truesize operations for PAGE_SIZE >= 8192
+8aba27c4a502 igb: cope with large MAX_SKB_FRAGS
+528876d867a2 net: dsa: mv88e6xxx: Fix out-of-bound access
+c07ff8592d57 netem: fix return value if duplicate enqueue fails
+faa389b2fbaa ipv6: prevent UAF in ip6_send_skb()
+da273b377ae0 ipv6: fix possible UAF in ip6_finish_output2()
+2d5ff7e339d0 ipv6: prevent possible UAF in ip6_xmit()
+8baeef7616d5 bnxt_en: Fix double DMA unmapping for XDP_REDIRECT
+6ea14ccb60c8 netfilter: flowtable: validate vlan header
+797a68c9de0f net: xilinx: axienet: Fix dangling multicast addresses
+aedf02e46eb5 drm/msm/dpu: move dpu_encoder's connector assignment to atomic_enable()
+bfa1a6283be3 drm/msm/dpu: cleanup FB if dpu_format_populate_layout fails
+38f7e14519d3 workqueue: Fix UBSAN 'subtraction overflow' error in shift_and_mask()
+f4b2a0ae1a31 drm/xe: Fix opregion leak
+a0b834c8957a drm/xe/mmio: move mmio_fini over to devm
+c7117419784f drm/xe: reset mmio mappings with devm
+a6f78359ac75 drm/xe: Fix missing workqueue destroy in xe_gt_pagefault
+9e7f30563677 drm/xe: Free job before xe_exec_queue_put
+57df60e1f981 thermal/debugfs: Fix the NULL vs IS_ERR() confusion in debugfs_create_dir()
+d7fd2941ae9a s390/boot: Avoid possible physmem_info segment corruption
+a54a93d0e359 nvme: move stopping keep-alive into nvme_uninit_ctrl()
+538fd3921afa Bluetooth: MGMT: Add error handling to pair_device()
+c99769bceab4 drm/amdgpu: Validate TA binary size
+822c8020aebc ata: pata_macio: Fix DMA table overflow
+3e6245ebe7ef KVM: arm64: Make ICC_*SGI*_EL1 undef in the absence of a vGICv3
+959ab6350add cgroup/cpuset: fix panic caused by partcmd_update
+e4be320eeca8 smb3: fix broken cached reads when posix locks
+9b340aeb26d5 nouveau/firmware: use dma non-coherent allocator
+48e50dcbcbaa mptcp: pm: avoid possible UaF when selecting endp
+5d30de4311d2 drm/xe: Do not dereference NULL job->fence in trace points
+99d3bf5f7377 Input: MT - limit max slots
