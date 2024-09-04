@@ -54,3 +54,9 @@ c3820641da87 regmap: kunit: Fix memory leaks in gen_regmap() and gen_raw_regmap(
 d795848ecce2 gpio: prevent potential speculation leaks in gpio_device_get_desc()
 b9ecbfa45516 nvme: apple: fix device reference counting
 9972605a2383 memcg: protect concurrent access to mem_cgroup_idr
+eb1ae34e48a0 drm/mgag200: Bind I2C lifetime to DRM device
+6881e75237a8 tick/broadcast: Move per CPU pointer access into the atomic section
+bf365071ea92 s390/sclp: Prevent release of buffer in I/O
+fba8334721e2 net/mlx5e: SHAMPO, Fix invalid WQ linked list unlink
+e3862093ee93 net: dsa: bcm_sf2: Fix a possible memory leak in bcm_sf2_mdio_register()
+97713b1a2ced btrfs: do not clear page dirty inside extent_write_locked_range()
