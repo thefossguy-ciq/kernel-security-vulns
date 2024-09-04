@@ -1,0 +1,46 @@
+99d3bf5f7377 Input: MT - limit max slots
+9e7f30563677 drm/xe: Free job before xe_exec_queue_put
+74c2ab6d653b smb/client: avoid possible NULL dereference in cifs_free_subrequest()
+db1b4bedb9b9 net: ethernet: mtk_wed: fix use-after-free panic in mtk_wed_setup_tc_block_cb()
+a9a18e8f770c atm: idt77252: prevent use after free in dequeue_rx()
+a1e627af32ed mmc: mmc_test: Fix NULL dereference on allocation failure
+0e28bf61a5f9 KEYS: trusted: dcp: fix leak of blob encryption key
+497d370a644d drm/v3d: Fix out-of-bounds read in `v3d_csd_job_run()`
+bfa1a6283be3 drm/msm/dpu: cleanup FB if dpu_format_populate_layout fails
+f4b2a0ae1a31 drm/xe: Fix opregion leak
+a6f78359ac75 drm/xe: Fix missing workqueue destroy in xe_gt_pagefault
+c99769bceab4 drm/amdgpu: Validate TA binary size
+14d069d92951 i2c: tegra: Do not mark ACPI devices as irq safe
+ccbde4b128ef char: xillybus: Don't destroy workqueue from work item running on it
+2374bf7558de char: xillybus: Check USB endpoints when probing device
+3a3be7ff9224 gtp: pull network headers in gtp_dev_xmit()
+69139d2919dd vsock: fix recursive ->recvmsg calls
+565d121b6998 tcp: prevent concurrent execution of tcp_sk_exit_batch
+807067bf014d kcm: Serialise kcm_sendmsg() for the same socket.
+faa389b2fbaa ipv6: prevent UAF in ip6_send_skb()
+6ea14ccb60c8 netfilter: flowtable: validate vlan header
+0863bffda113 Revert "serial: 8250_omap: Set the console genpd always on if no console suspend"
+322ea3778965 mptcp: pm: only mark 'subflow' endp as available
+1c1f72137598 mptcp: pm: only decrement add_addr_accepted for MPJ req
+48e50dcbcbaa mptcp: pm: avoid possible UaF when selecting endp
+fca5b78511e9 iommu: Restore lost return in iommu_report_device_fault()
+90574d2a6759 rtla/osnoise: Prevent NULL dereference in error handling
+af8e119f52e9 xhci: Fix Panther point NULL pointer deref at full-speed re-enumeration
+e2006140ad2e thunderbolt: Mark XDomain as unplugged when router is removed
+5a44bb061d04 KVM: s390: fix validity interception issue when gisa is switched off
+32316f676b4e net: mana: Fix RX buf alloc_size alignment and atomic op panic
+38f7e14519d3 workqueue: Fix UBSAN 'subtraction overflow' error in shift_and_mask()
+da273b377ae0 ipv6: fix possible UAF in ip6_finish_output2()
+2d5ff7e339d0 ipv6: prevent possible UAF in ip6_xmit()
+822c8020aebc ata: pata_macio: Fix DMA table overflow
+959ab6350add cgroup/cpuset: fix panic caused by partcmd_update
+2a0629834cd8 vfs: Don't evict inode under the inode lru traversing context
+64a7ce76fb90 libfs: fix infinite directory reads for offset dir
+be5e816d00a5 net: hns3: fix a deadlock problem when config TC during resetting
+528876d867a2 net: dsa: mv88e6xxx: Fix out-of-bound access
+538fd3921afa Bluetooth: MGMT: Add error handling to pair_device()
+95c90e4ad89d bonding: fix null pointer deref in bond_ipsec_offload_ok
+f8cde9805981 bonding: fix xfrm real_dev null pointer dereference
+f71aa06398aa fs/netfs/fscache_cookie: add missing "n_accesses" check
+8baeef7616d5 bnxt_en: Fix double DMA unmapping for XDP_REDIRECT
+3c0da3d163eb fuse: Initialize beyond-EOF page contents before setting uptodate
