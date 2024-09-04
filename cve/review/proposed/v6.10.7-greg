@@ -44,3 +44,4 @@ f8cde9805981 bonding: fix xfrm real_dev null pointer dereference
 f71aa06398aa fs/netfs/fscache_cookie: add missing "n_accesses" check
 8baeef7616d5 bnxt_en: Fix double DMA unmapping for XDP_REDIRECT
 3c0da3d163eb fuse: Initialize beyond-EOF page contents before setting uptodate
+dc98d76a15bc tty: serial: fsl_lpuart: mark last busy before uart_add_one_port
