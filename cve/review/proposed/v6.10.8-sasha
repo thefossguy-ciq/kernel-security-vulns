@@ -1,0 +1,34 @@
+40927f3d0972 nfsd: fix nfsd4_deleg_getattr_conflict in presence of third party lease
+919ddf8336f0 scsi: aacraid: Fix double-free on probe failure
+11bb2ffb6793 usb: typec: ucsi: Move unregister out of atomic section
+ddfcfeba8910 usb: dwc3: st: fix probed platform device ref count on probe error path
+14e497183df2 usb: dwc3: core: Prevent USB core invalid event buffer address access
+9960085a3a82 firmware: qcom: scm: Mark get_wq_ctx() as atomic call
+3568affcddd6 soc: qcom: pmic_glink: Fix race during initialization
+f9bb896eab22 soc: qcom: cmd-db: Map shared memory as WC, not WB
+febccb39255f nfc: pn533: Add poll mod list filling check
+3b9a33235c77 drm/amd/display: avoid using null object of framebuffer
+defd8b3c37b0 gtp: fix a potential NULL pointer dereference
+2aeeef906d5a bonding: change ipsec_lock from spin lock to mutex
+ec13009472f4 bonding: implement xdo_dev_state_free and call it after deletion
+a699781c79ec ethtool: check device is present when getting link settings
+5fd062891897 netfilter: nf_tables: restore IP sanity checks for netdev/egress
+35237475384a Bluetooth: btnxpuart: Fix random crash seen while removing driver
+979b581e4c69 pktgen: use cpus_read_lock() in pg_net_init()
+76a0e79bc84f selinux,smack: don't bypass permissions check in inode_setsecctx hook
+1116e0e372eb nfsd: fix potential UAF in nfsd4_cb_getattr_release
+cce6bfa6ca0e netfs: Fix trimming of streaming-write folios in netfs_inval_folio()
+a204501e1743 nfsd: prevent panic for nfsv4.0 closed files in nfs4_show_open
+f58bab6fd406 nfsd: ensure that nfsd4_fattr_args.context is zeroed out
+730b72480e29 drm/xe: prevent UAF around preempt fence
+b49420d6a1ae video/aperture: optionally match the device in sysfb_disable()
+50f119925091 drm/vmwgfx: Fix prime with external buffers
+aba07b9a0587 drm/vmwgfx: Prevent unmapping active read buffers
+9d824c7fce58 drm/v3d: Disable preemption while updating GPU stats
+c6a09e342f8e binfmt_elf_fdpic: fix AUXV size calculation when ELF_HWCAP2 is defined
+9366922adc6a mptcp: pm: fix ID 0 endp usage after multiple re-creations
+1c38a62f15e5 pinctrl: single: fix potential NULL dereference in pcs_get_function()
+c724b2ab6a46 smb/client: avoid dereferencing rdata=NULL in smb2_new_read_req()
+10d9d8c3512f btrfs: fix a use-after-free when hitting errors inside btrfs_submit_chunk()
+0005e01e1e87 erofs: fix out-of-bound access when z_erofs_gbuf_growsize() partially fails
+11752c013f56 drm/amdgpu/mes: fix mes ring buffer overflow
