@@ -1,0 +1,32 @@
+11752c013f56 drm/amdgpu/mes: fix mes ring buffer overflow
+0005e01e1e87 erofs: fix out-of-bound access when z_erofs_gbuf_growsize() partially fails
+10d9d8c3512f btrfs: fix a use-after-free when hitting errors inside btrfs_submit_chunk()
+c724b2ab6a46 smb/client: avoid dereferencing rdata=NULL in smb2_new_read_req()
+1c38a62f15e5 pinctrl: single: fix potential NULL dereference in pcs_get_function()
+c6a09e342f8e binfmt_elf_fdpic: fix AUXV size calculation when ELF_HWCAP2 is defined
+e9fd436bb8fb drm/vmwgfx: Disable coherent dumb buffers without 3d
+b49420d6a1ae video/aperture: optionally match the device in sysfb_disable()
+730b72480e29 drm/xe: prevent UAF around preempt fence
+f58bab6fd406 nfsd: ensure that nfsd4_fattr_args.context is zeroed out
+a204501e1743 nfsd: prevent panic for nfsv4.0 closed files in nfs4_show_open
+da05ba23d4c8 nfsd: hold reference to delegation when updating it for cb_getattr
+1116e0e372eb nfsd: fix potential UAF in nfsd4_cb_getattr_release
+76a0e79bc84f selinux,smack: don't bypass permissions check in inode_setsecctx hook
+996dc53ac289 iommufd: Do not allow creating areas without READ or WRITE
+979b581e4c69 pktgen: use cpus_read_lock() in pg_net_init()
+35237475384a Bluetooth: btnxpuart: Fix random crash seen while removing driver
+a699781c79ec ethtool: check device is present when getting link settings
+2aeeef906d5a bonding: change ipsec_lock from spin lock to mutex
+defd8b3c37b0 gtp: fix a potential NULL pointer dereference
+bac76cf89816 tcp: fix forever orphan socket caused by tcp_abort
+3b9a33235c77 drm/amd/display: avoid using null object of framebuffer
+febccb39255f nfc: pn533: Add poll mod list filling check
+f9bb896eab22 soc: qcom: cmd-db: Map shared memory as WC, not WB
+3568affcddd6 soc: qcom: pmic_glink: Fix race during initialization
+9960085a3a82 firmware: qcom: scm: Mark get_wq_ctx() as atomic call
+16f2a21d9d7e usb: dwc3: xilinx: add missing depopulate in probe error path
+2aa765a43817 usb: dwc3: omap: add missing depopulate in probe error path
+14e497183df2 usb: dwc3: core: Prevent USB core invalid event buffer address access
+ddfcfeba8910 usb: dwc3: st: fix probed platform device ref count on probe error path
+cd4897bfd14f usb: dwc3: st: add missing depopulate in probe error path
+919ddf8336f0 scsi: aacraid: Fix double-free on probe failure
