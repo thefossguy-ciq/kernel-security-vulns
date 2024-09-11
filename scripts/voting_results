@@ -23,12 +23,20 @@ STABLEREMOTE=stable     # Whatever you called your Stable remote
 
 print_red()
 {
-    echo -e "\e[01;31m$@\e[0m"
+    if [[ -t 1 ]]; then
+        echo -e "\e[01;31m$@\e[0m"
+    else
+	echo -e "$@"
+    fi
 }
 
 print_blue()
 {
-    echo -e "\e[01;34m$@\e[0m"
+    if [[ -t 1 ]]; then
+        echo -e "\e[01;34m$@\e[0m"
+    else
+	echo -e "$@"
+    fi
 }
 
 function print_annotations()
