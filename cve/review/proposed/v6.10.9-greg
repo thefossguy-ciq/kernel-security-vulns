@@ -1,0 +1,37 @@
+54e4ada1a420 dmaengine: altera-msgdma: properly free descriptor in msgdma_free_descriptor
+3dd384108d53 apparmor: fix possible NULL pointer dereference
+c4ec8dedca96 driver: iio: add missing checks on iio_info's callback access
+cf8b16857db7 drm/amd/display: Stop amdgpu_dm initialize when link nums greater than max_links
+99516f76db48 usb: typec: ucsi: Fix null pointer dereference in trace
+984debc133ef drm/amd/display: Assign linear_pitch_alignment even for VM
+12c6967428a0 drm/amd/pm: fix the Out-of-bounds read warning
+687fe329f18a drm/amd/display: Ensure array index tg_inst won't be -1
+2a5626eeb3b5 drm/amd/display: Check gpio_id before used as array index
+84723eb6068c drm/amd/display: Stop amdgpu_dm initialize when stream nums greater than 6
+3941a3aa4b65 drm/amd/display: Fix incorrect size calculation for loop
+9ba2ea6337b4 drm/amd/display: Check index for aux_rd_interval before using
+4e70c0f5251c drm/amd/display: Add array index check for hdcp ddc access
+b38a4815f79b drm/amd/display: Check num_valid_sets before accessing reader_wm_sets[]
+fa71face755e drm/amd/display: Check msg_id before processing transcation
+52cbcf980509 drm/amd/display: Release state memory if amdgpu_dm_create_color_properties fail
+8aa2864044b9 drm/amd/display: Check link_index before accessing dc->links[]
+871cd9d881fa drm/amd/display: Add otg_master NULL check within resource_log_pipe_topology_update
+674704a5dabe drm/amd/display: Release clck_src memory if clk_src_construct fails
+8e2734bf4447 drm/amd/display: Ensure index calculation will not overflow
+a54f7e866cc7 drm/amd/display: Skip inactive planes within ModeSupportAndSystemConfiguration
+188fd1616ec4 drm/amd/display: Fix index may exceed array range within fpu_update_bw_bounding_box
+be1684930f52 drm/amdgpu: Fix out-of-bounds write warning
+547033b59306 drm/amdkfd: Check debug trap enable before write dbg_ev_file
+d768394fa994 drm/amdgpu: Fix out-of-bounds read of df_v1_7_channel_number
+8944acd0f9db drm/amdgpu: fix ucode out-of-bounds read warning
+51dfc0a4d609 drm/amdgpu: fix mc_data out-of-bounds read warning
+b1f7810b05d1 drm/amdgpu: fix dereference after null check
+6d3581edffea drm/xe: Don't overmap identity VRAM mapping
+162e48cb1d84 drm/bridge: tc358767: Check if fully initialized before signalling HPD event via IRQ
+26c56049cc4f drm/amd/display: added NULL check at start of dc_validate_stream
+466423c6dd8a drm/amd/display: Remove register from DCN35 DMCUB diagnostic collection
+d6b54900c564 drm/amd/display: Avoid overflow from uint32_t to uint8_t
+8b0ddf19cca2 drm/amd/display: Check BIOS images before it is used
+c4d31653c03b drm/amd/display: Skip wbscl_set_scaler_filter if filter is null
+70bd03b89f20 net/mlx5e: SHAMPO, Fix incorrect page release
+30479f31d44d btrfs: fix qgroup reserve leaks in cow_file_range
