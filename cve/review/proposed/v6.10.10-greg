@@ -1,0 +1,91 @@
+4e32c25b58b9 libfs: fix get_stashed_dentry()
+f806de88d8f7 maple_tree: remove rcu_read_lock() from mt_validate()
+fe1910f9337b tcp_bpf: fix return value of tcp_bpf_sendmsg()
+031ae72825ce ila: call nf_unregister_net_hooks() sooner
+546ea84d07e3 sched: sch_cake: fix bulk flow accounting logic for host fairness
+c13fda93aca1 bpf: Remove tst_run from lwt_seg6local_prog_ops.
+a6e9c391d45b HID: cougar: fix slab-out-of-bounds Read in cougar_report_fixup
+206f533a0a7c Input: uinput - reject requests with unreasonable number of slots
+810ee43d9cd2 Squashfs: sanity check symbolic link size
+cd9253c23aed btrfs: fix race between direct IO write and fsync when using same fd
+a7b38c785209 drm/amd/display: Check UnboundedRequestEnabled's value
+3a82f62b0d9d drm/amd/display: Run DC_LOG_DC after checking link->link_enc
+5d93060d430b drm/amd/display: Check HDCP returned status
+673f816b9e1e drm/amd/display: Validate function returns
+9ff2e14cf013 drm/amdgpu: add missing error handling in function amdgpu_gmc_flush_gpu_tlb_pasid
+116a678f3a9a drm/amd/display: Check denominator pbn_div before used
+ea79068d4073 drm/amd/display: Check denominator crb_pipes before used
+3b3a2a9c6349 sch/netem: fix use after free in netem_dequeue
+a3c1e45156ad net: microchip: vcap: Fix use-after-free error in kunit test
+ab7ca09520e9 mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
+3f6b2f60b463 drm/imagination: Free pvr_vm_gpuva after unlink
+611ff1b1ae98 xen: privcmd: Fix possible access to a freed kirqfd instance
+97155021ae17 HID: amd_sfh: free driver_data after destroying hid device
+e8c276d4dc0e misc: fastrpc: Fix double free of 'buf' in error path
+48b9a8dabcc3 VMCI: Fix use-after-free when removing resource in vmci_resource_remove()
+7dd9c26bd6cf can: mcp251x: fix deadlock if an interrupt occurs during mcp251x_open
+76fe372ccb81 can: bcm: Remove proc entry when dev is unregistered.
+6e4aa08fa9c6 drm/amdgpu: Fix amdgpu_device_reset_sriov retry logic
+5572a55a6f83 nvmet-tcp: fix kernel crash if commands allocation fails
+47ec9b417ed9 ACPI: processor: Fix memory leaks in error paths of processor_add()
+2488444274c7 arm64: acpi: Harden get_cpu_for_acpi_id() against missing CPU entry
+98f887f820c9 workqueue: Improve scalability of workqueue watchdog touch
+b4a90b543d9f ASoC: dapm: Fix UAF for snd_soc_pcm_runtime object
+0cc65482f5b0 ASoC: Intel: Boards: Fix NULL pointer deref in BYT/CHT boards harder
+adad2e460e50 gpio: rockchip: fix OF node leak in probe()
+3523a3df03c6 smb: client: fix double put of @cfile in smb2_rename_path()
+84c65d800876 iio: buffer-dmaengine: fix releasing dma channel on error
+0a50c35277f9 net: ethernet: ti: am65-cpsw: Fix NULL dereference on XDP_TX
+b6fb565a2d15 x86/tdx: Fix data leak in mmio_read()
+d33d26036a02 rtmutex: Drop rt_mutex::wait_lock before scheduling
+0974d03eb479 powerpc/rtas: Prevent Spectre v1 gadget construction in sys_rtas()
+bb6705c3f93b bpf: add check for invalid name in btf_name_valid_section()
+72a6e22c604c fscache: delete fscache_cookie_lru_timer when fscache exits to avoid UAF
+177e1cc2f412 tracing/osnoise: Use a cpumask to know what threads are kthreads
+d2603279c7d6 eventfs: Use list_del_rcu() for SRCU protected list variable
+c145eea2f75f wifi: mwifiex: Do not return unused priv in mwifiex_get_priv_by_id()
+a11dda723c64 iommufd: Require drivers to supply the cache_invalidate_user ops
+c68bbf5e334b Bluetooth: btnxpuart: Fix Null pointer dereference in btnxpuart_flush()
+5eb178f373b4 btrfs: handle errors from btrfs_dec_ref() properly
+b56329a78231 btrfs: replace BUG_ON() with error handling at update_ref_for_cow()
+28cb13f29faf btrfs: don't BUG_ON() when 0 reference count at btrfs_lookup_extent_info()
+4df153652cc4 binder: fix UAF caused by offsets overwrite
+f9c169b51b6c smb: client: fix double put of @cfile in smb2_set_path_size()
+5787fcaab9eb nilfs2: fix missing cleanup on rollforward recovery error
+2a5dc090b92c ice: move netif_queue_set_napi to rtnl-protected sections
+b739dffa5d57 of/irq: Prevent device address out-of-bounds read in interrupt map walk
+92e9bac18124 kunit/overflow: Fix UB in overflow_allocation_test
+4bcdd831d9d0 KVM: x86: Acquire kvm->srcu when handling KVM_SET_VCPU_EVENTS
+734ad0af3609 powerpc/qspinlock: Fix deadlock in MCS queue
+78c5a6f1f630 ksmbd: unset the binding mark of a reused connection
+d11a67634227 ice: Add netif_device_attach/detach into PF reset flow
+2920294686ec spi: intel: Add check devm_kasprintf() returned value
+2504b8405768 ice: protect XDP configuration with a mutex
+7e4196935069 fou: Fix null-ptr-deref in GRO.
+335e35b74852 pci/hotplug/pnv_php: Fix hotplug driver crash on Powernv
+adc539784c98 wifi: rtw88: usb: schedule rx work after everything is set up
+fb1adbd7e50f uio_hv_generic: Fix kernel NULL pointer dereference in hv_uio_rescind
+e58f5142f883 ublk_drv: fix NULL pointer dereference in ublk_ctrl_start_recovery()
+e240b0fde52f uprobes: Use kzalloc to allocate xol area
+2ab9d830262c perf/aux: Fix AUX buffer serialization
+a54da9df75cd hwmon: (hp-wmi-sensors) Check if WMI event data exists
+8cad724c8537 hwmon: (adc128d818) Fix underflows seen when writing limit attributes
+af64e3e15378 hwmon: (lm95234) Fix underflows seen when writing limit attributes
+0403e10bf082 hwmon: (nct6775-core) Fix underflows seen when writing limit attributes
+5c1de37969b7 hwmon: (w83627ehf) Fix underflows seen when writing limit attributes
+284b75a3d83c ata: libata: Fix memory leak for error path in ata_host_alloc()
+c5af2c90ba56 irqchip/gic-v2m: Fix refcount leak in gicv2m_of_init()
+b686ecdeacf6 riscv: misaligned: Restrict user access to kernel memory
+5e9784e99762 codetag: debug: mark codetags for poisoned page as empty
+71c186efc1b2 userfaultfd: fix checks for huge PMDs
+b6ecc6620376 net: mana: Fix error handling in mana_create_txq/rxq's NAPI cleanup
+683408258917 nilfs2: protect references to superblock parameters exposed in sysfs
+db163a463bb9 wifi: ath12k: fix firmware crash due to invalid peer nss
+2a97388a807b ELF: fix kernel.randomize_va_space double read
+9215152677d4 wifi: iwlwifi: mvm: use IWL_FW_CHECK for link ID check
+ebbe26fd54a9 udf: Avoid excessive partition lengths
+4e8771a3666c smb/server: fix potential null-ptr-deref of lease_ctx_info in smb2_open()
+17f5eebf6780 Input: ili210x - use kvmalloc() to allocate buffer for firmware update
+a4e772898f8b PCI: Add missing bridge lock to pci_bus_lock()
+2560db6ede1a net: phy: Fix missing of_node_put() for leds
+51d37982bbac cachefiles: Set the max subreq size for cache writes to MAX_RW_COUNT
