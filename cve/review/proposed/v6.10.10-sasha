@@ -1,0 +1,109 @@
+cd9253c23aed btrfs: fix race between direct IO write and fsync when using same fd
+c48b5a4cf312 x86/mm: Fix PTI for i386 some more
+e58f5142f883 ublk_drv: fix NULL pointer dereference in ublk_ctrl_start_recovery()
+517b58c1f924 cifs: Fix zero_point init on inode initialisation
+3523a3df03c6 smb: client: fix double put of @cfile in smb2_rename_path()
+6f01bdbfef3b nvme-pci: allocate tagset on reset if necessary
+5572a55a6f83 nvmet-tcp: fix kernel crash if commands allocation fails
+f232de7cdb4b net/mlx5e: SHAMPO, Fix page leak
+48b9a8dabcc3 VMCI: Fix use-after-free when removing resource in vmci_resource_remove()
+fb1adbd7e50f uio_hv_generic: Fix kernel NULL pointer dereference in hv_uio_rescind
+4df153652cc4 binder: fix UAF caused by offsets overwrite
+e8c276d4dc0e misc: fastrpc: Fix double free of 'buf' in error path
+e81bb580ec08 iio: adc: ad_sigma_delta: fix irq_flags on irq request
+4e8771a3666c smb/server: fix potential null-ptr-deref of lease_ctx_info in smb2_open()
+50f2b98dc83d MIPS: cevt-r4k: Don't call get_c0_compare_int if timer irq is installed
+86db7bfb0670 net: hns3: void array out of bound when loop tnl_num
+b2f11c6f3e1f lib/generic-radix-tree.c: Fix rare race in __genradix_ptr_alloc()
+b739dffa5d57 of/irq: Prevent device address out-of-bounds read in interrupt map walk
+810ee43d9cd2 Squashfs: sanity check symbolic link size
+e5876b088ba0 usbnet: ipheth: race between ipheth_close and error handling
+206f533a0a7c Input: uinput - reject requests with unreasonable number of slots
+97155021ae17 HID: amd_sfh: free driver_data after destroying hid device
+a6e9c391d45b HID: cougar: fix slab-out-of-bounds Read in cougar_report_fixup
+b8e947e9f64c btrfs: initialize location to fix -Wmaybe-uninitialized in btrfs_lookup_dentry()
+c3a5e3e872f3 vfs: Fix potential circular locking through setxattr() and removexattr()
+51d37982bbac cachefiles: Set the max subreq size for cache writes to MAX_RW_COUNT
+c68bbf5e334b Bluetooth: btnxpuart: Fix Null pointer dereference in btnxpuart_flush()
+a4e772898f8b PCI: Add missing bridge lock to pci_bus_lock()
+2899d58462ba ethtool: fail closed if we can't get max channel used in indirection tables
+28cb13f29faf btrfs: don't BUG_ON() when 0 reference count at btrfs_lookup_extent_info()
+b56329a78231 btrfs: replace BUG_ON() with error handling at update_ref_for_cow()
+5eb178f373b4 btrfs: handle errors from btrfs_dec_ref() properly
+b8ccef048354 btrfs: clean up our handling of refs == 0 in snapshot delete
+1f9d44c0a127 btrfs: replace BUG_ON with ASSERT in walk_down_proc()
+a580fb2c3479 btrfs: don't BUG_ON on ENOMEM from btrfs_lookup_extent_info() in walk_down_proc()
+c13fda93aca1 bpf: Remove tst_run from lwt_seg6local_prog_ops.
+1d648bf79d4d PCI: qcom: Override NO_SNOOP attribute for SA8775P RC
+c145eea2f75f wifi: mwifiex: Do not return unused priv in mwifiex_get_priv_by_id()
+5c1de37969b7 hwmon: (w83627ehf) Fix underflows seen when writing limit attributes
+0403e10bf082 hwmon: (nct6775-core) Fix underflows seen when writing limit attributes
+af64e3e15378 hwmon: (lm95234) Fix underflows seen when writing limit attributes
+8cad724c8537 hwmon: (adc128d818) Fix underflows seen when writing limit attributes
+ede596b1434b scsi: lpfc: Handle mailbox timeouts in lpfc_get_sfp_info
+7cbff570dbe8 scsi: ufs: core: Remove SCSI host only if added
+adc539784c98 wifi: rtw88: usb: schedule rx work after everything is set up
+335e35b74852 pci/hotplug/pnv_php: Fix hotplug driver crash on Powernv
+824ac4a5edd3 um: line: always fill *error_out in setup_one_line()
+bf4c89fc8797 block: don't call bio_uninit from bio_endio
+b5e86a95541c iommu/vt-d: Handle volatile descriptor status read
+611ff1b1ae98 xen: privcmd: Fix possible access to a freed kirqfd instance
+858430db28a5 net: xilinx: axienet: Fix race in axienet_stop
+7e4196935069 fou: Fix null-ptr-deref in GRO.
+bb6705c3f93b bpf: add check for invalid name in btf_name_valid_section()
+33f339a1ba54 bpf, net: Fix a potential race in do_sock_getsockopt()
+2504b8405768 ice: protect XDP configuration with a mutex
+2a5dc090b92c ice: move netif_queue_set_napi to rtnl-protected sections
+2560db6ede1a net: phy: Fix missing of_node_put() for leds
+a54da9df75cd hwmon: (hp-wmi-sensors) Check if WMI event data exists
+ef4a99a0164e igc: Unlock on error in igc_io_resume()
+2920294686ec spi: intel: Add check devm_kasprintf() returned value
+d11a67634227 ice: Add netif_device_attach/detach into PF reset flow
+76fe372ccb81 can: bcm: Remove proc entry when dev is unregistered.
+ea79068d4073 drm/amd/display: Check denominator crb_pipes before used
+116a678f3a9a drm/amd/display: Check denominator pbn_div before used
+0974d03eb479 powerpc/rtas: Prevent Spectre v1 gadget construction in sys_rtas()
+ccacbbc31762 crypto: qat - initialize user_input.lock for rate_limiting
+bdbdc7cecd00 drm/amdgpu: Fix smatch static checker warning
+673f816b9e1e drm/amd/display: Validate function returns
+3a82f62b0d9d drm/amd/display: Run DC_LOG_DC after checking link->link_enc
+9da0f7736763 drm/amdgpu: Fix register access violation
+ee0d382feb44 usb: gadget: aspeed_udc: validate endpoint index for ast udc
+ebbe26fd54a9 udf: Avoid excessive partition lengths
+a7b38c785209 drm/amd/display: Check UnboundedRequestEnabled's value
+3f6b2f60b463 drm/imagination: Free pvr_vm_gpuva after unlink
+5f7762042f8a drm/panthor: Restrict high priorities on group_create
+c346c629765a btrfs: qgroup: don't use extent changeset when not needed
+6576dd6695f2 nilfs2: fix state management in error path of log writing function
+683408258917 nilfs2: protect references to superblock parameters exposed in sysfs
+5787fcaab9eb nilfs2: fix missing cleanup on rollforward recovery error
+031ae72825ce ila: call nf_unregister_net_hooks() sooner
+fe1910f9337b tcp_bpf: fix return value of tcp_bpf_sendmsg()
+b6ecc6620376 net: mana: Fix error handling in mana_create_txq/rxq's NAPI cleanup
+d2603279c7d6 eventfs: Use list_del_rcu() for SRCU protected list variable
+72a6e22c604c fscache: delete fscache_cookie_lru_timer when fscache exits to avoid UAF
+71c186efc1b2 userfaultfd: fix checks for huge PMDs
+4828d207dc51 userfaultfd: don't BUG_ON() if khugepaged yanks our page table
+5bfbcd1ee57b tracing/timerlat: Add interface_lock around clearing of kthread in stop_kthread()
+49aa8a1f4d68 tracing: Avoid possible softlockup in tracing_iter_reset()
+e6a53481da29 tracing/timerlat: Only clear timer if a kthread exists
+177e1cc2f412 tracing/osnoise: Use a cpumask to know what threads are kthreads
+be721b451aff spi: rockchip: Resolve unbalanced runtime PM / system PM handling
+ab7ca09520e9 mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
+3e3de7947c75 mm: vmalloc: ensure vmap_block is initialised before adding to queue
+5e9784e99762 codetag: debug: mark codetags for poisoned page as empty
+409faf8c97d5 mm: vmalloc: optimize vmap_lazy_nr arithmetic when purging each vmap_area
+7dd9c26bd6cf can: mcp251x: fix deadlock if an interrupt occurs during mcp251x_open
+b686ecdeacf6 riscv: misaligned: Restrict user access to kernel memory
+0cc65482f5b0 ASoC: Intel: Boards: Fix NULL pointer deref in BYT/CHT boards harder
+3002240d1649 fuse: fix memory leak in fuse_create_open
+25dfc9e357af perf/x86/intel: Limit the period on Haswell
+b6fb565a2d15 x86/tdx: Fix data leak in mmio_read()
+844436e045ac ksmbd: Unlock on in ksmbd_tcp_set_interfaces()
+78c5a6f1f630 ksmbd: unset the binding mark of a reused connection
+f9c169b51b6c smb: client: fix double put of @cfile in smb2_set_path_size()
+734ad0af3609 powerpc/qspinlock: Fix deadlock in MCS queue
+b4a90b543d9f ASoC: dapm: Fix UAF for snd_soc_pcm_runtime object
+0a50c35277f9 net: ethernet: ti: am65-cpsw: Fix NULL dereference on XDP_TX
+3b3a2a9c6349 sch/netem: fix use after free in netem_dequeue
+4e32c25b58b9 libfs: fix get_stashed_dentry()
