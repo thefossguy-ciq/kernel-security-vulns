@@ -40,12 +40,13 @@ Ids become "published" when they are submitted to CVE for publication.  To do
 this, normally a git commit id is used to generate the information in the CVE
 entry.
 
-When published, four files for each CVE id are created in the following naming
+When published, five files for each CVE id are created in the following naming
 format:
 	published/YEAR/CVE-YEAR-ID
 	published/YEAR/CVE-YEAR-ID.sha1
 	published/YEAR/CVE-YEAR-ID.json
 	published/YEAR/CVE-YEAR-ID.mbox
+	published/YEAR/CVE-YEAR-ID.dyad
 
 The CVE-YEAR-ID file will be the original file that was in the reserved
 directory, in case text information in it was present.  It can also be used to
@@ -59,6 +60,10 @@ to CVE when published.
 
 The .mbox file shall contain the mail message of the CVE entry that can be
 submitted to the public mailing list for publication in human-readable format.
+
+The .dyad file shall contain the output of the 'dyad' tool that shows the pairs
+of vulnerable:fixed versions and git ids for the .sha1 of the CVE entry.  This
+file is easy to parse by tools and is used by some of the existing scripts.
 
 If a:
 	published/YEAR/CVE-YEAR-ID.vulnerable
