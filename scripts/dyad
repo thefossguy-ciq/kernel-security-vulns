@@ -40,7 +40,7 @@ fi
 # and the git version of it
 DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
-SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
+SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep -w "${SCRIPT}" | awk '{print $3}')
 
 # Initialize some global variable arrays
 fixed_set=()
