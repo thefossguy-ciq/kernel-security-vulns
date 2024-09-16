@@ -506,7 +506,7 @@ if [[ "${GIT_SHA}" == "" ]]; then
 fi
 
 # Header boiler plate info to show what is happening
-info "$0 version: ${SCRIPT_VERSION}"
+info "${SCRIPT} version: ${SCRIPT_VERSION}"
 
 #
 # See if the SHA given to us is a valid SHA in the git repo.
