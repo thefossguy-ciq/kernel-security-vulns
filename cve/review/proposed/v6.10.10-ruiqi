@@ -1,0 +1,73 @@
+4e32c25b58b9 libfs: fix get_stashed_dentry()
+3b3a2a9c6349 sch/netem: fix use after free in netem_dequeue
+0a50c35277f9 net: ethernet: ti: am65-cpsw: Fix NULL dereference on XDP_TX
+b4a90b543d9f ASoC: dapm: Fix UAF for snd_soc_pcm_runtime object
+734ad0af3609 powerpc/qspinlock: Fix deadlock in MCS queue
+f9c169b51b6c smb: client: fix double put of @cfile in smb2_set_path_size()
+78c5a6f1f630 ksmbd: unset the binding mark of a reused connection
+844436e045ac ksmbd: Unlock on in ksmbd_tcp_set_interfaces()
+284b75a3d83c ata: libata: Fix memory leak for error path in ata_host_alloc()
+25dfc9e357af perf/x86/intel: Limit the period on Haswell
+c5af2c90ba56 irqchip/gic-v2m: Fix refcount leak in gicv2m_of_init()
+3002240d1649 fuse: fix memory leak in fuse_create_open
+0cc65482f5b0 ASoC: Intel: Boards: Fix NULL pointer deref in BYT/CHT boards harder
+b686ecdeacf6 riscv: misaligned: Restrict user access to kernel memory
+7dd9c26bd6cf can: mcp251x: fix deadlock if an interrupt occurs during mcp251x_open
+5e9784e99762 codetag: debug: mark codetags for poisoned page as empty
+3e3de7947c75 mm: vmalloc: ensure vmap_block is initialised before adding to queue
+ab7ca09520e9 mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook
+be721b451aff spi: rockchip: Resolve unbalanced runtime PM / system PM handling
+177e1cc2f412 tracing/osnoise: Use a cpumask to know what threads are kthreads
+e6a53481da29 tracing/timerlat: Only clear timer if a kthread exists
+5bfbcd1ee57b tracing/timerlat: Add interface_lock around clearing of kthread in stop_kthread()
+71c186efc1b2 userfaultfd: fix checks for huge PMDs
+72a6e22c604c fscache: delete fscache_cookie_lru_timer when fscache exits to avoid UAF
+d2603279c7d6 eventfs: Use list_del_rcu() for SRCU protected list variable
+b6ecc6620376 net: mana: Fix error handling in mana_create_txq/rxq's NAPI cleanup
+fe1910f9337b tcp_bpf: fix return value of tcp_bpf_sendmsg()
+031ae72825ce ila: call nf_unregister_net_hooks() sooner
+5787fcaab9eb nilfs2: fix missing cleanup on rollforward recovery error
+683408258917 nilfs2: protect references to superblock parameters exposed in sysfs
+c346c629765a btrfs: qgroup: don't use extent changeset when not needed
+3f6b2f60b463 drm/imagination: Free pvr_vm_gpuva after unlink
+76fe372ccb81 can: bcm: Remove proc entry when dev is unregistered.
+d11a67634227 ice: Add netif_device_attach/detach into PF reset flow
+ffc17e1479e8 platform/x86: dell-smbios: Fix error path in dell_smbios_init()
+2a5dc090b92c ice: move netif_queue_set_napi to rtnl-protected sections
+2504b8405768 ice: protect XDP configuration with a mutex
+bb6705c3f93b bpf: add check for invalid name in btf_name_valid_section()
+7e4196935069 fou: Fix null-ptr-deref in GRO.
+611ff1b1ae98 xen: privcmd: Fix possible access to a freed kirqfd instance
+824ac4a5edd3 um: line: always fill *error_out in setup_one_line()
+335e35b74852 pci/hotplug/pnv_php: Fix hotplug driver crash on Powernv
+adc539784c98 wifi: rtw88: usb: schedule rx work after everything is set up
+7cbff570dbe8 scsi: ufs: core: Remove SCSI host only if added
+ede596b1434b scsi: lpfc: Handle mailbox timeouts in lpfc_get_sfp_info
+c145eea2f75f wifi: mwifiex: Do not return unused priv in mwifiex_get_priv_by_id()
+c13fda93aca1 bpf: Remove tst_run from lwt_seg6local_prog_ops.
+a580fb2c3479 btrfs: don't BUG_ON on ENOMEM from btrfs_lookup_extent_info() in walk_down_proc()
+b8ccef048354 btrfs: clean up our handling of refs == 0 in snapshot delete
+5eb178f373b4 btrfs: handle errors from btrfs_dec_ref() properly
+a4e772898f8b PCI: Add missing bridge lock to pci_bus_lock()
+c68bbf5e334b Bluetooth: btnxpuart: Fix Null pointer dereference in btnxpuart_flush()
+a6e9c391d45b HID: cougar: fix slab-out-of-bounds Read in cougar_report_fixup
+97155021ae17 HID: amd_sfh: free driver_data after destroying hid device
+206f533a0a7c Input: uinput - reject requests with unreasonable number of slots
+810ee43d9cd2 Squashfs: sanity check symbolic link size
+b739dffa5d57 of/irq: Prevent device address out-of-bounds read in interrupt map walk
+4e8771a3666c smb/server: fix potential null-ptr-deref of lease_ctx_info in smb2_open()
+6e4aa08fa9c6 drm/amdgpu: Fix amdgpu_device_reset_sriov retry logic
+84c65d800876 iio: buffer-dmaengine: fix releasing dma channel on error
+e8c276d4dc0e misc: fastrpc: Fix double free of 'buf' in error path
+4df153652cc4 binder: fix UAF caused by offsets overwrite
+fb1adbd7e50f uio_hv_generic: Fix kernel NULL pointer dereference in hv_uio_rescind
+48b9a8dabcc3 VMCI: Fix use-after-free when removing resource in vmci_resource_remove()
+98f887f820c9 workqueue: Improve scalability of workqueue watchdog touch
+47ec9b417ed9 ACPI: processor: Fix memory leaks in error paths of processor_add()
+f232de7cdb4b net/mlx5e: SHAMPO, Fix page leak
+5572a55a6f83 nvmet-tcp: fix kernel crash if commands allocation fails
+6f01bdbfef3b nvme-pci: allocate tagset on reset if necessary
+adad2e460e50 gpio: rockchip: fix OF node leak in probe()
+3523a3df03c6 smb: client: fix double put of @cfile in smb2_rename_path()
+e58f5142f883 ublk_drv: fix NULL pointer dereference in ublk_ctrl_start_recovery()
+cd9253c23aed btrfs: fix race between direct IO write and fsync when using same fd
