@@ -8,7 +8,7 @@
 #	  in that release.
 #
 # Usage:
-#	dtrak [options] GIT_SHA
+#	strak [options] GIT_SHA
 #	For full options, see the help text below.
 #
 # Requires:
@@ -51,6 +51,7 @@ help()
 	echo ""
 	echo "Arguments:"
 	echo " -h, --help			This information"
+	echo " --fixed=FIXED_VERSION		Kernel version to show what was fixed in it"
 	echo " -v, --verbose			Show debugging information to stdout"
 	echo ""
 	exit 1
@@ -203,6 +204,27 @@ search_year()
 	wait
 }
 
+fixed_version()
+{
+	local fixed_version=$1
+	local out
+	local id
+	local year
+	local commit
+
+	cd "cve/published/"
+	out=$(git grep -i -l "fixed in ${fixed_version}" | cut -f 2 -d '/' | cut -f 1 -d '.')
+	if [[ "${out}" != "" ]]; then
+		while IFS= read -r id; do
+			year=$(echo "${id}" | cut -f 2 -d '-')
+			commit=$(cat ${year}/${id}.sha1)
+			echo "${id} is fixed in ${1} with commit ${commit}"
+		done <<< "${out}"
+	else
+		echo "${1} does not have any CVE ids assigned yet."
+	fi
+}
+
 
 #############################
 #############################
@@ -223,15 +245,17 @@ fi
 
 # Parse the command line
 short_opts="hv"
-long_opts="help,verbose"
+long_opts="help,verbose,fixed:"
 
+FIXED_VERSION=""
 TMP=$(getopt -o "${short_opts}" --long "${long_opts}" --name="${SCRIPT}" -- "$@")
 eval set -- "${TMP}"
 while :; do
 	dbg "arg=${1}"
 	case "${1}" in
 		-h | --help	) help;;
-		-v | --verbose	) DEBUG=1;			shift ;;
+		--fixed		) FIXED_VERSION="${2}";	shift 2 ;;
+		-v | --verbose	) DEBUG=1;		shift ;;
 		-- )		  shift; break ;;
 	esac
 done
@@ -243,9 +267,15 @@ GIT_SHA=$1
 # forgot the git sha on the command line.
 set -o nounset
 
-dbg "git id to look up = ${GIT_SHA}"
 
 cd "${DIR}"/../ || exit 1
+
+if [[ "${FIXED_VERSION}" != "" ]]; then
+	fixed_version "${FIXED_VERSION}"
+	exit 0
+fi
+
+dbg "git id to look up = ${GIT_SHA}"
 
 for y in cve/published/* ; do
 	year=$(echo "${y}" | cut -f 3 -d '/')
