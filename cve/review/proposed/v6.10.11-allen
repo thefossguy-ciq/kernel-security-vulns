@@ -1,0 +1,19 @@
+b1d305abef464 net/mlx5: Fix bridge mode operations when there are no VFs
+b4cd80b033894 mptcp: pm: Fix uaf in __timer_delete_sync
+e835d5144f5ef drm/amd/display: Avoid race between dcn35_set_drr() and dc_state_destruct()
+9bd7ff293fc84 drm/xe/client: fix deadlock in show_meminfo()
+f52e98d16e9bd platform/x86: panasonic-laptop: Fix SINF array out of bounds accesses
+22d96a285449b usb: typec: ucsi: Only set number of plug altmodes after registration
+479ffee68d59c wifi: mt76: mt7921: fix NULL pointer access in mt7921_ipv6_addr_change
+ea5ff5d351b52 dma-buf: heaps: Fix off-by-one in CMA heap fault handler
+db213b0cfe326 firmware: qcom: uefisecapp: Fix deadlock in qcuefi_acquire()
+2a8787c1cdc7b spi: nxp-fspi: fix the KASAN report out-of-bounds bug
+8b26ff7af8c32 netfilter: nft_socket: fix sk refcount leaks
+4f9a71435953f ASoC: meson: axg-card: fix 'use-after-free'
+74efed51e0a4d usbnet: ipheth: do not stop RX on failing RX callback
+38cc0334baabc ASoC: codecs: avoid possible garbage value in peb2466_reg_read()
+3f62ea572b3e8 net: phy: dp83822: Fix NULL pointer dereference on DP83825 devices
+a7789fd4caaf9 net: hsr: prevent NULL pointer dereference in hsr_proxy_announce()
+cbd7ec083413c net: dpaa: Pad packets to ETH_ZLEN
+a7aeb03888b92 drm/amd/display: Avoid race between dcn10_set_drr() and dc_state_destruct()
+94c4aa2661112 drm/xe/client: add missing bo locking in show_meminfo()
