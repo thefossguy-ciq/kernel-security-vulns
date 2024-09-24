@@ -1,0 +1,19 @@
+479ffee68d59 wifi: mt76: mt7921: fix NULL pointer access in mt7921_ipv6_addr_change
+f52e98d16e9b platform/x86: panasonic-laptop: Fix SINF array out of bounds accesses
+b4cd80b03389 mptcp: pm: Fix uaf in __timer_delete_sync
+db213b0cfe32 firmware: qcom: uefisecapp: Fix deadlock in qcuefi_acquire()
+b1d305abef46 net/mlx5: Fix bridge mode operations when there are no VFs
+3f62ea572b3e net: phy: dp83822: Fix NULL pointer dereference on DP83825 devices
+8b26ff7af8c3 netfilter: nft_socket: fix sk refcount leaks
+a7789fd4caaf net: hsr: prevent NULL pointer dereference in hsr_proxy_announce()
+cbd7ec083413 net: dpaa: Pad packets to ETH_ZLEN
+2a8787c1cdc7 spi: nxp-fspi: fix the KASAN report out-of-bounds bug
+8c7c44be5767 drm/syncobj: Fix syncobj leak in drm_syncobj_eventfd_ioctl
+ea5ff5d351b5 dma-buf: heaps: Fix off-by-one in CMA heap fault handler
+a7aeb03888b9 drm/amd/display: Avoid race between dcn10_set_drr() and dc_state_destruct()
+e835d5144f5e drm/amd/display: Avoid race between dcn35_set_drr() and dc_state_destruct()
+9bd7ff293fc8 drm/xe/client: fix deadlock in show_meminfo()
+94c4aa266111 drm/xe/client: add missing bo locking in show_meminfo()
+b787a3386412 spi: geni-qcom: Fix incorrect free_irq() sequence
+4f9a71435953 ASoC: meson: axg-card: fix 'use-after-free'
+22d96a285449 usb: typec: ucsi: Only set number of plug altmodes after registration
