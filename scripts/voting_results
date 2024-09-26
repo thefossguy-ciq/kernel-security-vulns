@@ -116,7 +116,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     oneline=$(git --no-pager log --format="%h %s" -n1 ${mainlinelongsha})
     subject=$(echo ${oneline} | cut -d' ' -f 2-)
     mainlinesha=$(echo ${oneline} | cut -d' ' -f 1)
-    cve=0; greg=0; lee=0; sasha=0; allen=0; votes=0
+    cve=0; greg=0; lee=0; sasha=0; guest=0; votes=0
 
     for f in ${REVIEWFILES}; do
         USER=${f#*-}
@@ -133,7 +133,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
                     sasha=1
                     ;;
                 allen)
-                    allen=1
+                    guest=1
                     ;;
                 *)
                     echo "Unexpected user '${USER}' - exiting"
@@ -155,27 +155,27 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
 
     if [ ${cve} == 1 ]; then
          CVE+=("${oneline}")
-    elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 -a ${allen} == 1 ]; then
+    elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
         ALL+=("${oneline}")
     elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
         GREGLEESASHA+=("${oneline}")
-    elif [ ${greg} == 1 -a ${lee} == 1 -a ${allen} == 1 ]; then
+    elif [ ${greg} == 1 -a ${lee} == 1 -a ${guest} == 1 ]; then
         GREGLEEALLEN+=("${oneline}")
-    elif [ ${greg} == 1 -a ${sasha} == 1 -a ${allen} == 1 ]; then
+    elif [ ${greg} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
         GREGSASHAALLEN+=("${oneline}")
-    elif [ ${lee} == 1 -a ${sasha} == 1 -a ${allen} == 1 ]; then
+    elif [ ${lee} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
         LEESASHAALLEN+=("${oneline}")
     elif [ ${greg} == 1 -a ${lee} == 1 ]; then
         GREGLEE+=("${oneline}")
     elif [ ${greg} == 1 -a ${sasha} == 1 ]; then
         GREGSASHA+=("${oneline}")
-    elif [ ${greg} == 1 -a ${allen} == 1 ]; then
+    elif [ ${greg} == 1 -a ${guest} == 1 ]; then
         GREGALLEN+=("${oneline}")
     elif [ ${lee} == 1 -a ${sasha} == 1 ]; then
         LEESASHA+=("${oneline}")
-    elif [ ${lee} == 1 -a ${allen} == 1 ]; then
+    elif [ ${lee} == 1 -a ${guest} == 1 ]; then
         LEEALLEN+=("${oneline}")
-    elif [ ${sasha} == 1 -a ${allen} == 1 ]; then
+    elif [ ${sasha} == 1 -a ${guest} == 1 ]; then
         SASHAALLEN+=("${oneline}")
     elif [ ${greg} == 1 ]; then
         GREG+=("${oneline}")
@@ -183,12 +183,12 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
         LEE+=("${oneline}")
     elif [ ${sasha} == 1 ]; then
         SASHA+=("${oneline}")
-    elif [ ${allen} == 1 ]; then
+    elif [ ${guest} == 1 ]; then
         ALLEN+=("${oneline}")
     fi
 
     echo "${oneline}"
-    echo -e "\tCVE:\t${cve}\tGreg:\t${greg}\tLee:\t${lee}\tSasha:\t${sasha}\tAllen:\t${allen}"
+    echo -e "\tCVE:\t${cve}\tGreg:\t${greg}\tLee:\t${lee}\tSasha:\t${sasha}\tGuest:\t${guest}"
 done
 
 print_blue "\nAlready assigned a CVE"
@@ -209,19 +209,19 @@ for c in "${GREGLEESASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nGreg, Lee and Allen agree"
+print_blue "\nGreg, Lee and Guest agree"
 for c in "${GREGLEEALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
-print_blue "\nGreg, Sasha and Allen agree"
+print_blue "\nGreg, Sasha and Guest agree"
 for c in "${GREGSASHAALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
-print_blue "\nLee, Sasha and Allen agree"
+print_blue "\nLee, Sasha and Guest agree"
 for c in "${LEESASHAALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
@@ -239,7 +239,7 @@ for c in "${GREGSASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nGreg and Allen agree"
+print_blue "\nGreg and Guest agree"
 for c in "${GREGALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
@@ -251,13 +251,13 @@ for c in "${LEESASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nLee and Allen agree"
+print_blue "\nLee and Guest agree"
 for c in "${LEEALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
-print_blue "\nSasha and Allen agree"
+print_blue "\nSasha and Guest agree"
 for c in "${SASHAALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
@@ -281,7 +281,7 @@ for c in "${SASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nAllen only"
+print_blue "\nGuest only"
 for c in "${ALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
