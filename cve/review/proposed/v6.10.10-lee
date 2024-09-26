@@ -1,0 +1,101 @@
+4e32c25b58b9 libfs: fix get_stashed_dentry() [auto: cve already created]
+3b3a2a9c6349 sch/netem: fix use after free in netem_dequeue [auto: cve already created]
+0a50c35277f9 net: ethernet: ti: am65-cpsw: Fix NULL dereference on XDP_TX [auto: cve already created]
+a3c1e45156ad net: microchip: vcap: Fix use-after-free error in kunit test
+b4a90b543d9f ASoC: dapm: Fix UAF for snd_soc_pcm_runtime object [auto: cve already created]
+4bcdd831d9d0 KVM: x86: Acquire kvm->srcu when handling KVM_SET_VCPU_EVENTS
+734ad0af3609 powerpc/qspinlock: Fix deadlock in MCS queue [auto: cve already created]
+f9c169b51b6c smb: client: fix double put of @cfile in smb2_set_path_size() [auto: cve already created]
+78c5a6f1f630 ksmbd: unset the binding mark of a reused connection [auto: cve already created]
+b6fb565a2d15 x86/tdx: Fix data leak in mmio_read() [auto: cve already created]
+25dfc9e357af perf/x86/intel: Limit the period on Haswell
+d33d26036a02 rtmutex: Drop rt_mutex::wait_lock before scheduling
+0cc65482f5b0 ASoC: Intel: Boards: Fix NULL pointer deref in BYT/CHT boards harder [auto: cve already created]
+b686ecdeacf6 riscv: misaligned: Restrict user access to kernel memory [auto: cve already created]
+7dd9c26bd6cf can: mcp251x: fix deadlock if an interrupt occurs during mcp251x_open [auto: cve already created]
+5e9784e99762 codetag: debug: mark codetags for poisoned page as empty [auto: cve already created]
+3e3de7947c75 mm: vmalloc: ensure vmap_block is initialised before adding to queue
+ab7ca09520e9 mm/slub: add check for s->flags in the alloc_tagging_slab_free_hook [auto: cve already created]
+be721b451aff spi: rockchip: Resolve unbalanced runtime PM / system PM handling
+177e1cc2f412 tracing/osnoise: Use a cpumask to know what threads are kthreads [auto: cve already created]
+e6a53481da29 tracing/timerlat: Only clear timer if a kthread exists
+4828d207dc51 userfaultfd: don't BUG_ON() if khugepaged yanks our page table
+71c186efc1b2 userfaultfd: fix checks for huge PMDs [auto: cve already created]
+72a6e22c604c fscache: delete fscache_cookie_lru_timer when fscache exits to avoid UAF [auto: cve already created]
+d2603279c7d6 eventfs: Use list_del_rcu() for SRCU protected list variable [auto: cve already created]
+b6ecc6620376 net: mana: Fix error handling in mana_create_txq/rxq's NAPI cleanup [auto: cve already created]
+fe1910f9337b tcp_bpf: fix return value of tcp_bpf_sendmsg() [auto: cve already created]
+031ae72825ce ila: call nf_unregister_net_hooks() sooner [auto: cve already created]
+546ea84d07e3 sched: sch_cake: fix bulk flow accounting logic for host fairness
+5787fcaab9eb nilfs2: fix missing cleanup on rollforward recovery error [auto: cve already created]
+683408258917 nilfs2: protect references to superblock parameters exposed in sysfs [auto: cve already created]
+5f7762042f8a drm/panthor: Restrict high priorities on group_create
+3f6b2f60b463 drm/imagination: Free pvr_vm_gpuva after unlink [auto: cve already created]
+db163a463bb9 wifi: ath12k: fix firmware crash due to invalid peer nss
+a7b38c785209 drm/amd/display: Check UnboundedRequestEnabled's value [auto: cve already created]
+2a97388a807b ELF: fix kernel.randomize_va_space double read
+9215152677d4 wifi: iwlwifi: mvm: use IWL_FW_CHECK for link ID check
+ebbe26fd54a9 udf: Avoid excessive partition lengths [auto: cve already created]
+6fe9ca2ca389 usb: gadget: aspeed_udc: validate endpoint index for ast udc
+3a82f62b0d9d drm/amd/display: Run DC_LOG_DC after checking link->link_enc [auto: cve already created]
+673f816b9e1e drm/amd/display: Validate function returns [auto: cve already created]
+bdbdc7cecd00 drm/amdgpu: Fix smatch static checker warning
+0974d03eb479 powerpc/rtas: Prevent Spectre v1 gadget construction in sys_rtas() [auto: cve already created]
+86f271f22bbb PCI: keystone: Add workaround for Errata #i2037 (AM65x SR 1.0)
+116a678f3a9a drm/amd/display: Check denominator pbn_div before used [auto: cve already created]
+ea79068d4073 drm/amd/display: Check denominator crb_pipes before used [auto: cve already created]
+76fe372ccb81 can: bcm: Remove proc entry when dev is unregistered. [auto: cve already created]
+d11a67634227 ice: Add netif_device_attach/detach into PF reset flow [auto: cve already created]
+2920294686ec spi: intel: Add check devm_kasprintf() returned value [auto: cve already created]
+a54da9df75cd hwmon: (hp-wmi-sensors) Check if WMI event data exists [auto: cve already created]
+2560db6ede1a net: phy: Fix missing of_node_put() for leds [auto: cve already created]
+2a5dc090b92c ice: move netif_queue_set_napi to rtnl-protected sections [auto: cve already created]
+2504b8405768 ice: protect XDP configuration with a mutex [auto: cve already created]
+bb6705c3f93b bpf: add check for invalid name in btf_name_valid_section() [auto: cve already created]
+7e4196935069 fou: Fix null-ptr-deref in GRO. [auto: cve already created]
+611ff1b1ae98 xen: privcmd: Fix possible access to a freed kirqfd instance [auto: cve already created]
+824ac4a5edd3 um: line: always fill *error_out in setup_one_line()
+335e35b74852 pci/hotplug/pnv_php: Fix hotplug driver crash on Powernv [auto: cve already created]
+adc539784c98 wifi: rtw88: usb: schedule rx work after everything is set up [auto: cve already created]
+7cbff570dbe8 scsi: ufs: core: Remove SCSI host only if added
+e4f949ef1516 scsi: pm80xx: Set phy->enable_completion only when we wait for it
+ede596b1434b scsi: lpfc: Handle mailbox timeouts in lpfc_get_sfp_info
+8cad724c8537 hwmon: (adc128d818) Fix underflows seen when writing limit attributes [auto: cve already created]
+af64e3e15378 hwmon: (lm95234) Fix underflows seen when writing limit attributes [auto: cve already created]
+0403e10bf082 hwmon: (nct6775-core) Fix underflows seen when writing limit attributes [auto: cve already created]
+5c1de37969b7 hwmon: (w83627ehf) Fix underflows seen when writing limit attributes [auto: cve already created]
+c145eea2f75f wifi: mwifiex: Do not return unused priv in mwifiex_get_priv_by_id() [auto: cve already created]
+a11dda723c64 iommufd: Require drivers to supply the cache_invalidate_user ops
+c13fda93aca1 bpf: Remove tst_run from lwt_seg6local_prog_ops. [auto: cve already created]
+a580fb2c3479 btrfs: don't BUG_ON on ENOMEM from btrfs_lookup_extent_info() in walk_down_proc()
+b8ccef048354 btrfs: clean up our handling of refs == 0 in snapshot delete
+5eb178f373b4 btrfs: handle errors from btrfs_dec_ref() properly [auto: cve already created]
+b56329a78231 btrfs: replace BUG_ON() with error handling at update_ref_for_cow() [auto: cve already created]
+28cb13f29faf btrfs: don't BUG_ON() when 0 reference count at btrfs_lookup_extent_info() [auto: cve already created]
+2899d58462ba ethtool: fail closed if we can't get max channel used in indirection tables
+a4e772898f8b PCI: Add missing bridge lock to pci_bus_lock() [auto: cve already created]
+c68bbf5e334b Bluetooth: btnxpuart: Fix Null pointer dereference in btnxpuart_flush() [auto: cve already created]
+51d37982bbac cachefiles: Set the max subreq size for cache writes to MAX_RW_COUNT [auto: cve already created]
+8a2be2f1db26 i3c: mipi-i3c-hci: Error out instead on BUG_ON() in IBI DMA setup
+5127c42c77de spi: hisi-kunpeng: Add verification for the max_frequency provided by the firmware
+a6e9c391d45b HID: cougar: fix slab-out-of-bounds Read in cougar_report_fixup [auto: cve already created]
+97155021ae17 HID: amd_sfh: free driver_data after destroying hid device [auto: cve already created]
+206f533a0a7c Input: uinput - reject requests with unreasonable number of slots [auto: cve already created]
+810ee43d9cd2 Squashfs: sanity check symbolic link size [auto: cve already created]
+b739dffa5d57 of/irq: Prevent device address out-of-bounds read in interrupt map walk [auto: cve already created]
+86db7bfb0670 net: hns3: void array out of bound when loop tnl_num
+92e9bac18124 kunit/overflow: Fix UB in overflow_allocation_test
+50f2b98dc83d MIPS: cevt-r4k: Don't call get_c0_compare_int if timer irq is installed
+4e8771a3666c smb/server: fix potential null-ptr-deref of lease_ctx_info in smb2_open() [auto: cve already created]
+b48aa9917589 staging: iio: frequency: ad9834: Validate frequency parameter value
+e8c276d4dc0e misc: fastrpc: Fix double free of 'buf' in error path [auto: cve already created]
+4df153652cc4 binder: fix UAF caused by offsets overwrite [auto: cve already created]
+fb1adbd7e50f uio_hv_generic: Fix kernel NULL pointer dereference in hv_uio_rescind [auto: cve already created]
+48b9a8dabcc3 VMCI: Fix use-after-free when removing resource in vmci_resource_remove() [auto: cve already created]
+2ab9d830262c perf/aux: Fix AUX buffer serialization [auto: cve already created]
+98f887f820c9 workqueue: Improve scalability of workqueue watchdog touch
+2488444274c7 arm64: acpi: Harden get_cpu_for_acpi_id() against missing CPU entry
+5572a55a6f83 nvmet-tcp: fix kernel crash if commands allocation fails [auto: cve already created]
+3523a3df03c6 smb: client: fix double put of @cfile in smb2_rename_path() [auto: cve already created]
+e58f5142f883 ublk_drv: fix NULL pointer dereference in ublk_ctrl_start_recovery() [auto: cve already created]
+cd9253c23aed btrfs: fix race between direct IO write and fsync when using same fd [auto: cve already created]
