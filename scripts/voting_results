@@ -82,8 +82,8 @@ TOP=${RANGE#*..}
 BOTTOM=${RANGE%..*}
 SCRIPTDIR=$(dirname ${0})
 PROPOSED=${SCRIPTDIR}/../cve/review/proposed
-REVIEWFILES=$(ls ${PROPOSED} | grep -E "${TOP}-(lee|sasha|greg|allen)$")
-ANNOTATEDFILES=$(ls ${PROPOSED} | grep -E "${TOP}.*-annotated-(lee|sasha|greg|allen)$")
+REVIEWFILES=$(ls ${PROPOSED} | grep -E "${TOP}-(lee|sasha|greg|ruiqi)$")
+ANNOTATEDFILES=$(ls ${PROPOSED} | grep -E "${TOP}.*-annotated-(lee|sasha|greg|ruiqi)$")
 
 CVE=()
 ALL=()
@@ -132,7 +132,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
                 sasha)
                     sasha=1
                     ;;
-                allen)
+                ruiqi)
                     guest=1
                     ;;
                 *)
@@ -209,24 +209,6 @@ for c in "${GREGLEESASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nGreg, Lee and Guest agree"
-for c in "${GREGLEEALLEN[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nGreg, Sasha and Guest agree"
-for c in "${GREGSASHAALLEN[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nLee, Sasha and Guest agree"
-for c in "${LEESASHAALLEN[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
 print_blue "\nGreg and Lee agree"
 for c in "${GREGLEE[@]}"; do
     echo "  ${c}"
@@ -239,26 +221,8 @@ for c in "${GREGSASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nGreg and Guest agree"
-for c in "${GREGALLEN[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
 print_blue "\nLee and Sasha agree"
 for c in "${LEESASHA[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nLee and Guest agree"
-for c in "${LEEALLEN[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nSasha and Guest agree"
-for c in "${SASHAALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
@@ -277,6 +241,44 @@ done
 
 print_blue "\nSasha only"
 for c in "${SASHA[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\n------------ GUEST RESULTS, use for re-review only at this time ----------------"
+
+print_blue "\nGreg, Lee and Guest agree"
+for c in "${GREGLEEALLEN[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nGreg, Sasha and Guest agree"
+for c in "${GREGSASHAALLEN[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nLee, Sasha and Guest agree"
+for c in "${LEESASHAALLEN[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nGreg and Guest agree"
+for c in "${GREGALLEN[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nLee and Guest agree"
+for c in "${LEEALLEN[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nSasha and Guest agree"
+for c in "${SASHAALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
