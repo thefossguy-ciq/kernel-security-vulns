@@ -245,8 +245,6 @@ for c in "${SASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\n------------ GUEST RESULTS, use for re-review only at this time ----------------"
-
 print_blue "\nGreg, Lee and Guest agree"
 for c in "${GREGLEEALLEN[@]}"; do
     echo "  ${c}"
@@ -264,6 +262,8 @@ for c in "${LEESASHAALLEN[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
+
+print_blue "\n------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------"
 
 print_blue "\nGreg and Guest agree"
 for c in "${GREGALLEN[@]}"; do
