@@ -89,21 +89,21 @@ CVE=()
 ALL=()
 
 GREGLEESASHA=()
-GREGLEEALLEN=()
-GREGSASHAALLEN=()
-LEESASHAALLEN=()
+GREGLEEGUEST=()
+GREGSASHAGUEST=()
+LEESASHAGUEST=()
 
 GREGLEE=()
 GREGSASHA=()
-GREGALLEN=()
+GREGGUEST=()
 LEESASHA=()
-LEEALLEN=()
-SASHAALLEN=()
+LEEGUEST=()
+SASHAGUEST=()
 
 GREG=()
 LEE=()
 SASHA=()
-ALLEN=()
+GUEST=()
 
 for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     mainlinelongsha=$(git --no-pager log -n1 ${stablesha} | grep -i upstream | grep -oE "[a-f0-9]{40,}") || true
@@ -160,23 +160,23 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
         GREGLEESASHA+=("${oneline}")
     elif [ ${greg} == 1 -a ${lee} == 1 -a ${guest} == 1 ]; then
-        GREGLEEALLEN+=("${oneline}")
+        GREGLEEGUEST+=("${oneline}")
     elif [ ${greg} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
-        GREGSASHAALLEN+=("${oneline}")
+        GREGSASHAGUEST+=("${oneline}")
     elif [ ${lee} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
-        LEESASHAALLEN+=("${oneline}")
+        LEESASHAGUEST+=("${oneline}")
     elif [ ${greg} == 1 -a ${lee} == 1 ]; then
         GREGLEE+=("${oneline}")
     elif [ ${greg} == 1 -a ${sasha} == 1 ]; then
         GREGSASHA+=("${oneline}")
     elif [ ${greg} == 1 -a ${guest} == 1 ]; then
-        GREGALLEN+=("${oneline}")
+        GREGGUEST+=("${oneline}")
     elif [ ${lee} == 1 -a ${sasha} == 1 ]; then
         LEESASHA+=("${oneline}")
     elif [ ${lee} == 1 -a ${guest} == 1 ]; then
-        LEEALLEN+=("${oneline}")
+        LEEGUEST+=("${oneline}")
     elif [ ${sasha} == 1 -a ${guest} == 1 ]; then
-        SASHAALLEN+=("${oneline}")
+        SASHAGUEST+=("${oneline}")
     elif [ ${greg} == 1 ]; then
         GREG+=("${oneline}")
     elif [ ${lee} == 1 ]; then
@@ -184,7 +184,7 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     elif [ ${sasha} == 1 ]; then
         SASHA+=("${oneline}")
     elif [ ${guest} == 1 ]; then
-        ALLEN+=("${oneline}")
+        GUEST+=("${oneline}")
     fi
 
     echo "${oneline}"
@@ -228,19 +228,19 @@ for c in "${LEESASHA[@]}"; do
 done
 
 print_blue "\nGreg, Lee and Guest agree"
-for c in "${GREGLEEALLEN[@]}"; do
+for c in "${GREGLEEGUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
 print_blue "\nGreg, Sasha and Guest agree"
-for c in "${GREGSASHAALLEN[@]}"; do
+for c in "${GREGSASHAGUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
 print_blue "\nLee, Sasha and Guest agree"
-for c in "${LEESASHAALLEN[@]}"; do
+for c in "${LEESASHAGUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
@@ -266,25 +266,25 @@ done
 print_blue "\n------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------"
 
 print_blue "\nGreg and Guest agree"
-for c in "${GREGALLEN[@]}"; do
+for c in "${GREGGUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
 print_blue "\nLee and Guest agree"
-for c in "${LEEALLEN[@]}"; do
+for c in "${LEEGUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
 print_blue "\nSasha and Guest agree"
-for c in "${SASHAALLEN[@]}"; do
+for c in "${SASHAGUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
 
 print_blue "\nGuest only"
-for c in "${ALLEN[@]}"; do
+for c in "${GUEST[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
