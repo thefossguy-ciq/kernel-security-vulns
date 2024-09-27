@@ -227,24 +227,6 @@ for c in "${LEESASHA[@]}"; do
     print_annotations "${c}"
 done
 
-print_blue "\nGreg only"
-for c in "${GREG[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nLee only"
-for c in "${LEE[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nSasha only"
-for c in "${SASHA[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
 print_blue "\nGreg, Lee and Guest agree"
 for c in "${GREGLEEALLEN[@]}"; do
     echo "  ${c}"
@@ -259,6 +241,24 @@ done
 
 print_blue "\nLee, Sasha and Guest agree"
 for c in "${LEESASHAALLEN[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nGreg only"
+for c in "${GREG[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nLee only"
+for c in "${LEE[@]}"; do
+    echo "  ${c}"
+    print_annotations "${c}"
+done
+
+print_blue "\nSasha only"
+for c in "${SASHA[@]}"; do
     echo "  ${c}"
     print_annotations "${c}"
 done
