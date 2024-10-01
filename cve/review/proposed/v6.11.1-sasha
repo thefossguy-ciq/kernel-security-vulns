@@ -1,0 +1,2 @@
+6b08b4ee5e60d powercap: intel_rapl: Change an error pointer to NULL
+625fa77151f00 USB: usbtmc: prevent kernel-usb-infoleak
