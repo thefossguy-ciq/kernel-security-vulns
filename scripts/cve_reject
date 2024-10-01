@@ -71,8 +71,8 @@ if [[ "$f" != "" ]]; then
 		files+=(${entry})
 	done
 	#echo "files found = ${#files[@]}"
-	if [[ "${#files[@]}" != "4" ]]; then
-		echo "The number of files found is ${#files[@]}, when is should be 4, what is going on?"
+	if [[ "${#files[@]}" < "4" ]]; then
+		echo "The number of files found is ${#files[@]}, when is should be at least 4, what is going on?"
 		echo "files are:"
 		for entry in "${files[@]}"; do
 			echo "	${entry}"
