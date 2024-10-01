@@ -1,0 +1,2 @@
+af77c4fc18718 ocfs2: strict bound check before memcmp in ocfs2_xattr_find_entry()
+9e3041fecdc8f ocfs2: add bounds checking to ocfs2_xattr_find_entry()
