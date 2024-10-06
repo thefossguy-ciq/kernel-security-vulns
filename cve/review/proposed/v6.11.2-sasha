@@ -1,0 +1,103 @@
+c8770db2d5443 tcp: check skb is non-NULL in tcp_rto_delta_us()
+94b0818fa6355 can: bcm: Clear bo->bcm_proc_read after remove_proc_entry().
+a3dd920977dcc drivers/perf: Fix ali_drw_pmu driver interrupt status clearing
+1ba0403ac6447 block, bfq: fix uaf for accessing waker_bfqq after splitting
+c7f114d864ac9 f2fs: fix to avoid use-after-free in f2fs_stop_gc_thread()
+5d99e198be279 bpf, lsm: Add check for BPF LSM return value
+b113bc7c0e83b media: mediatek: vcodec: Fix VP8 stateless decoder smatch warning
+6a64c5220c5df autofs: fix missing fput for FSCONFIG_SET_FD
+1a0bd289a5db1 f2fs: atomic: fix to avoid racing w/ GC
+862bf7cbd772c wifi: mt76: mt7915: fix oops on non-dbdc mt7986
+930c6ab93492c f2fs: fix to don't set SB_RDONLY in f2fs_handle_critical_error()
+e229897d373a8 ntb: intel: Fix the NULL vs IS_ERR() bug for debugfs_create_dir()
+2e4b02fad0949 scsi: elx: libefc: Fix potential use after free in efc_nport_vport_del()
+9d301de12da6e wifi: mac80211: use two-phase skb reclamation in ieee80211_do_stop()
+9403001ad65ae nilfs2: fix potential null-ptr-deref in nilfs_btree_insert()
+5aa57d9f2d531 af_unix: Don't return OOB skb in manage_oob().
+1403c8b14765e IB/core: Fix ib_cache_setup_one error flow cleanup
+26e197b7f9240 block: fix potential invalid pointer dereference in blk_add_partition
+e7a7ef9a0742d wifi: mac80211: don't use rate mask for offchannel TX either
+8a79261763784 nfsd: fix refcount leak when file is unhashed after being found
+43aec4d01bd2c f2fs: check discard support for conventional zones
+18ec12c97b39f driver core: Fix a potential null-ptr-deref in module_add_driver()
+95f6580352a72 powercap: intel_rapl: Fix off by one in get_rpi()
+177b49dbf9c1d wifi: ath11k: use work queue to process beacon tx event
+c9ea57c91f03b nbd: fix race between timeout and normal completion
+c58dc5a1f886f coresight: tmc: sg: Do not leak sg_table
+e6a3531dd542c dm-verity: restart or panic on an I/O error
+62c2aa6b1f565 nvdimm: Fix devs leaks in scan_labels()
+e0d3b845a1b10 crypto: iaa - Fix potential use after free bug
+4f5a100f87f32 f2fs: Require FMODE_WRITE for atomic write ioctls
+a09c17240bdf2 io_uring/sqpoll: retain test for whether the CPU is valid
+c500a86693a12 PCI: kirin: Fix buffer overflow in kirin_pcie_parse_port()
+b5109b60ee4fc net: seeq: Fix use after free vulnerability in ether3 Driver Due to Race Condition
+44d1745962605 KVM: Use dedicated mutex to protect kvm_usage_count to avoid deadlock
+9c778fe48d20e netfilter: nf_reject_ipv6: fix nf_reject_ip6_tcphdr_put()
+8c2bd38b95f75 icmp: change the order of rate limits
+157f29152b61c netkit: Assign missing bpf_net_context
+46d7ebfe6a75a drivers: media: dvb-frontends/rtl2830: fix an out-of-bounds write error
+56310ddb50b19 wifi: rtw89: remove unused C2H event ID RTW89_MAC_C2H_FUNC_READ_WOW_CAM to prevent out-of-bounds reading
+116e04ba1459f bpf, x64: Fix tailcall hierarchy
+9be85491619f1 media: mediatek: vcodec: Fix H264 multi stateless decoder smatch warning
+f98c3de92bb05 wifi: mt76: mt7996: use hweight16 to get correct tx antenna
+c6b72f5d82b10 ext4: avoid OOB when system.data xattr changes underneath the filesystem
+5fe6e308abaea bpf: Fix use-after-free in bpf_uprobe_multi_link_attach()
+23ab1cb6591db drm/xe: fix engine_class bounds check again
+96cfeb0389530 f2fs: fix to wait dio completion
+32556ce93bc45 bpf: Fix helper writes to read-only maps
+a949075d4bbf1 wifi: iwlwifi: mvm: set the cipher for secured NDP ranging
+4b3786a6c5397 bpf: Zero former ARG_PTR_TO_{LONG,INT} args in case of error
+6188a1c762eb9 PCI: keystone: Fix if-statement expression in ks_pcie_quirk()
+5e5b2a56c57de ext4: avoid buffer_head leak in ext4_mark_inode_used()
+47d40d93292d9 RISC-V: KVM: Don't zero-out PMU snapshot area before freeing data
+ee85e0938aa8f ext4: check stripe size compatibility on remount as well
+dc12502905b7a vdpa/mlx5: Fix invalid mr resource destroy
+18ad4df091dd5 block, bfq: fix possible UAF for bfqq->bic with merge chain
+f0e5311aa8022 firmware_loader: Block path traversal
+8f6887349b2f8 iommufd: Protect against overflow of ALIGN() during iova allocation
+f503ae90c7355 wifi: mt76: mt7996: fix NULL pointer dereference in mt7996_mcu_sta_bfer_he
+02e9e9366fefe vhost_vdpa: assign irq bypass producer token correctly
+642c89c475419 netfilter: nf_tables: Keep deleted flowtable hooks until after RCU
+e3aaebcbb7c6b tpm: Clean up TPM space after command failure
+112e6e83a8942 IB/mlx5: Fix UMR pd cleanup on error flow of driver init
+88b1afbf0f6b2 vfs: fix race between evice_inodes() and find_inode()&iput()
+3d2786d65aaa9 bpf: correctly handle malformed BPF_CORE_TYPE_ID_LOCAL relos
+f011c9cf04c06 io_uring/sqpoll: do not allow pinning outside of cpuset
+fd8489294dd2b RDMA/hns: Fix Use-After-Free of rsv_qp on HIP08
+0e735a4c61372 wifi: rtw88: always wait for both firmware loading attempts
+c290fe508eee3 exfat: resolve memory leak from exfat_create_upcase_table()
+9c93684401046 x86/sgx: Fix deadlock in SGX NUMA node search
+b04f06fc02436 crypto: hisilicon/qm - inject error before stopping queue
+bfe5c02654261 f2fs: fix to check atomic_file in f2fs ioctl interfaces
+8151a6c13111b drm/amd/display: Skip Recompute DSC Params if no Stream on Link
+e766e6a92410c RDMA/cxgb4: Added NULL check for lookup_atid
+852856e3b6f67 drm/xe: Use reserved copy engine for user binds on faulting devices
+c7f06284a6427 ep93xx: clock: Fix off by one in ep93xx_div_recalc_rate()
+08ae395ea22fb drm/amd/display: Add null check for set_output_gamma in dcn30_set_output_transfer_func
+2f3d8ff457982 fuse: use exclusive lock when FUSE_I_CACHE_IO_MODE is set
+d925c04d974c6 drm/amd/display: Check link_res->hpo_dp_link_enc before using it
+d4fc4d0147152 x86/tdx: Fix "in-kernel MMIO" check
+04ccecfa959d3 ipv6: avoid possible NULL deref in rt6_uncached_list_flush_dev()
+3e4289b29e216 RDMA/rtrs-clt: Reset cid to con_num - 1 to stay in bounds
+98b74bb4d7e96 mm/hugetlb.c: fix UAF of vma in hugetlb fault pathway
+f9c96351aa671 nilfs2: fix potential oob read in nilfs_btree_check_delete()
+e98dba934b2fc firmware: arm_scmi: Fix double free in OPTEE transport
+4bb1e7d027413 ACPI: sysfs: validate return type of _STR method
+9a22b2812393d padata: use integer wrap around to prevent deadlock on seq_nr overflow
+89a906dfa8c3b ARM: 9410/1: vfp: Use asm volatile in fmrx/fmxr macros
+86dfdd8288907 RDMA/iwcm: Fix WARNING:at_kernel/workqueue.c:#check_flush_dependency
+22451a16b7ab7 nfsd: return -EINVAL when namelen is 0
+8ae06f360cfac drivers: media: dvb-frontends/rtl2832: fix an out-of-bounds write error
+ea7e2d5e49c05 mm: call the security_mmap_file() LSM hook in remap_file_pages()
+7878d3a385efa media: mediatek: vcodec: Fix H264 stateless decoder smatch warning
+d078cbf5c38de nfsd: call cache_put if xdr_reserve_space returns NULL
+f81eaf08385dd scsi: sd: Fix off-by-one error in sd_read_block_characteristics()
+0beca868cde87 drm/amd/display: Check link_res->hpo_dp_link_enc before using it
+884ee6dc85b95 f2fs: get rid of online repaire on corrupted directory
+92de36080c932 bpf: Fail verification for sign-extension of packet data/data_end/data_meta
+7ee85f5515e86 btrfs: fix race setting file private on concurrent lseek using same fd
+b1339be951ad3 sock_map: Add a cond_resched() in sock_hash_free()
+3b299b99556c1 x86/mm: Use IPIs to synchronize LAM enablement
+6b7b282e6baea RISC-V: KVM: Fix sbiret init before forwarding to userspace
+6d7c6ae1efb1f wifi: wilc1000: fix potential RCU dereference issue in wilc_parse_join_bss_param
+70fd1966c93bf KEYS: prevent NULL pointer dereference in find_asymmetric_key()
