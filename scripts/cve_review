@@ -207,6 +207,7 @@ oob|\
 oops|\
 panic|\
 refcount|\
+system|\
 syzkaller|\
 syzbot|\
 uaf|\
