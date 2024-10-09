@@ -35,3 +35,8 @@ d6b54900c564 drm/amd/display: Avoid overflow from uint32_t to uint8_t
 c4d31653c03b drm/amd/display: Skip wbscl_set_scaler_filter if filter is null
 70bd03b89f20 net/mlx5e: SHAMPO, Fix incorrect page release
 30479f31d44d btrfs: fix qgroup reserve leaks in cow_file_range
+7c70e60fbf4b drm/amd/display: Disable DMCUB timeout for DCN35
+ad28d7c3d989 drm/amd/display: Correct the defined value for AMDGPU_DMUB_NOTIFICATION_MAX
+56ddb9aa3b32 crypto: stm32/cryp - call finalize with bh disabled
+2fe209d0ad2e smack: tcp: ipv4, fix incorrect labeling
+172e422ffea2 fsnotify: clear PARENT_WATCHED flags lazily
