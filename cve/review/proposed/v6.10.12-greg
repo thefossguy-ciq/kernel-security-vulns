@@ -1,0 +1,7 @@
+0668ebc8c228 wifi: iwlwifi: mvm: pause TCM when the firmware is stopped
+3a84454f5204 wifi: iwlwifi: mvm: don't wait for tx queues if firmware is dead
+9e3041fecdc8 ocfs2: add bounds checking to ocfs2_xattr_find_entry()
+af77c4fc1871 ocfs2: strict bound check before memcmp in ocfs2_xattr_find_entry() [auto: cve already created]
+7ffaa2002518 Bluetooth: btintel_pcie: Allocate memory for driver private data [auto: cve already created]
+625fa77151f0 USB: usbtmc: prevent kernel-usb-infoleak
+6b08b4ee5e60 powercap: intel_rapl: Change an error pointer to NULL
