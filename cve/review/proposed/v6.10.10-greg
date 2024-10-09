@@ -89,3 +89,10 @@ ebbe26fd54a9 udf: Avoid excessive partition lengths
 a4e772898f8b PCI: Add missing bridge lock to pci_bus_lock()
 2560db6ede1a net: phy: Fix missing of_node_put() for leds
 51d37982bbac cachefiles: Set the max subreq size for cache writes to MAX_RW_COUNT
+b48aa9917589 staging: iio: frequency: ad9834: Validate frequency parameter value
+5127c42c77de spi: hisi-kunpeng: Add verification for the max_frequency provided by the firmware
+8a2be2f1db26 i3c: mipi-i3c-hci: Error out instead on BUG_ON() in IBI DMA setup
+e4f949ef1516 scsi: pm80xx: Set phy->enable_completion only when we wait for it
+86f271f22bbb PCI: keystone: Add workaround for Errata #i2037 (AM65x SR 1.0)
+b2f11c6f3e1f lib/generic-radix-tree.c: Fix rare race in __genradix_ptr_alloc()
+6576dd6695f2 nilfs2: fix state management in error path of log writing function
