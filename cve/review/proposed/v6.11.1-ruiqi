@@ -1,0 +1,3 @@
+49243adc715e cpufreq/amd-pstate: Add the missing cpufreq_cpu_put()
+7ffaa2002518 Bluetooth: btintel_pcie: Allocate memory for driver private data
+625fa77151f0 USB: usbtmc: prevent kernel-usb-infoleak

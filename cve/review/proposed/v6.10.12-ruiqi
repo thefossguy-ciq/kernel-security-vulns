@@ -1,0 +1,7 @@
+0668ebc8c228 wifi: iwlwifi: mvm: pause TCM when the firmware is stopped
+3a84454f5204 wifi: iwlwifi: mvm: don't wait for tx queues if firmware is dead
+786c5be9ac29 wifi: mac80211: free skb on error path in ieee80211_beacon_get_ap()
+9e3041fecdc8 ocfs2: add bounds checking to ocfs2_xattr_find_entry()
+af77c4fc1871 ocfs2: strict bound check before memcmp in ocfs2_xattr_find_entry()
+7ffaa2002518 Bluetooth: btintel_pcie: Allocate memory for driver private data
+625fa77151f0 USB: usbtmc: prevent kernel-usb-infoleak
