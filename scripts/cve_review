@@ -198,6 +198,7 @@ corrupt[a-z]*|\
 crash[a-z]*|\
 denial|\
 dos|\
+exploit|\
 [-\s_]fault|\
 [-\s_]hang[a-z]*|hung|\
 info[-\s_a-z].*leak|leak|\
