@@ -1,0 +1,114 @@
+0e735a4c6137 wifi: rtw88: always wait for both firmware loading attempts
+47d40d93292d RISC-V: KVM: Don't zero-out PMU snapshot area before freeing data
+4bcda1eaf184 mount: handle OOM on mnt_warn_timestamp_expiry
+6a64c5220c5d autofs: fix missing fput for FSCONFIG_SET_FD
+89a906dfa8c3 ARM: 9410/1: vfp: Use asm volatile in fmrx/fmxr macros
+e7a7ef9a0742 wifi: mac80211: don't use rate mask for offchannel TX either
+a949075d4bbf wifi: iwlwifi: mvm: set the cipher for secured NDP ranging
+862bf7cbd772 wifi: mt76: mt7915: fix oops on non-dbdc mt7986
+f98c3de92bb0 wifi: mt76: mt7996: use hweight16 to get correct tx antenna
+9c9368440104 x86/sgx: Fix deadlock in SGX NUMA node search
+9d301de12da6 wifi: mac80211: use two-phase skb reclamation in ieee80211_do_stop()
+6d7c6ae1efb1 wifi: wilc1000: fix potential RCU dereference issue in wilc_parse_join_bss_param
+5aa57d9f2d53 af_unix: Don't return OOB skb in manage_oob().
+b1339be951ad sock_map: Add a cond_resched() in sock_hash_free()
+94b0818fa635 can: bcm: Clear bo->bcm_proc_read after remove_proc_entry().
+157f29152b61 netkit: Assign missing bpf_net_context
+2c84b0aa28b9 net: ipv6: rpl_iptunnel: Fix memory leak in rpl_input
+04ccecfa959d ipv6: avoid possible NULL deref in rt6_uncached_list_flush_dev()
+c9ea57c91f03 nbd: fix race between timeout and normal completion
+18ad4df091dd block, bfq: fix possible UAF for bfqq->bic with merge chain
+3fc3e45fcdea erofs: fix error handling in z_erofs_init_decompressor
+9e2f9d34dd12 erofs: handle overlapped pclusters out of crafted images properly
+1ba0403ac644 block, bfq: fix uaf for accessing waker_bfqq after splitting
+73aeab373557 block, bfq: fix procress reference leakage for bfqq in merge chain
+26e197b7f924 block: fix potential invalid pointer dereference in blk_add_partition
+e98dba934b2f firmware: arm_scmi: Fix double free in OPTEE transport
+f2642d97f210 ARM: versatile: fix OF node leak in CPUs prepare
+5f58a88cc910 reset: berlin: fix OF node leak in probe() error path
+b14e40f5dc7c reset: k210: fix OF node leak in probe() error path
+ca140a0dc0a1 clocksource/drivers/qcom: Add missing iounmap() on errors in msm_dt_timer_init()
+97688a9c5b1f ASoC: loongson: fix error release
+aa578e897520 fbdev: hpfb: Fix an error handling path in hpfb_dio_probe()
+293aa9ec694e iommu/amd: Handle error path in amd_iommu_probe_device()
+9139f93209d1 rcu/nocb: Fix RT throttling hrtimer armed from offline CPU
+2073ae37d550 mtd: rawnand: mtk: Fix init error path
+3a8990b8a778 iommu/arm-smmu-qcom: hide last LPASS SMMU context bank from linux
+fd39730c5889 drm/stm: ltdc: check memory returned by devm_kzalloc()
+2e4b02fad094 scsi: elx: libefc: Fix potential use after free in efc_nport_vport_del()
+2efba0c09541 drm/xe: fix missing 'xe_vm_put'
+e3aaebcbb7c6 tpm: Clean up TPM space after command failure
+5d99e198be27 bpf, lsm: Add check for BPF LSM return value
+92de36080c93 bpf: Fail verification for sign-extension of packet data/data_end/data_meta
+3d2786d65aaa bpf: correctly handle malformed BPF_CORE_TYPE_ID_LOCAL relos
+56199bb956c3 s390/ap: Fix deadlock caused by recursive lock of the AP bus scan mutex
+5e5b2a56c57d ext4: avoid buffer_head leak in ext4_mark_inode_used()
+227d31b9214d ext4: avoid potential buffer_head leak in __ext4_new_inode()
+c6b72f5d82b1 ext4: avoid OOB when system.data xattr changes underneath the filesystem
+ee85e0938aa8 ext4: check stripe size compatibility on remount as well
+9403001ad65a nilfs2: fix potential null-ptr-deref in nilfs_btree_insert()
+f9c96351aa67 nilfs2: fix potential oob read in nilfs_btree_check_delete()
+8ae06f360cfa drivers: media: dvb-frontends/rtl2832: fix an out-of-bounds write error
+46d7ebfe6a75 drivers: media: dvb-frontends/rtl2830: fix an out-of-bounds write error
+6188a1c762eb PCI: keystone: Fix if-statement expression in ks_pcie_quirk()
+62c2aa6b1f56 nvdimm: Fix devs leaks in scan_labels()
+86dfdd828890 RDMA/iwcm: Fix WARNING:at_kernel/workqueue.c:#check_flush_dependency
+9be85491619f media: mediatek: vcodec: Fix H264 multi stateless decoder smatch warning
+b113bc7c0e83 media: mediatek: vcodec: Fix VP8 stateless decoder smatch warning
+7878d3a385ef media: mediatek: vcodec: Fix H264 stateless decoder smatch warning
+3e4289b29e21 RDMA/rtrs-clt: Reset cid to con_num - 1 to stay in bounds
+9d6e9f10e2e0 clk: ti: dra7-atl: Fix leak of of_nodes
+8a7926176378 nfsd: fix refcount leak when file is unhashed after being found
+112e6e83a894 IB/mlx5: Fix UMR pd cleanup on error flow of driver init
+1403c8b14765 IB/core: Fix ib_cache_setup_one error flow cleanup
+c500a86693a1 PCI: kirin: Fix buffer overflow in kirin_pcie_parse_port()
+fd8489294dd2 RDMA/hns: Fix Use-After-Free of rsv_qp on HIP08
+74d315b5af18 RDMA/hns: Fix spin_unlock_irqrestore() called with IRQs enabled
+d3745e3ae6c0 PCI: qcom-ep: Enable controller resources like PHY only after refclk is available
+e766e6a92410 RDMA/cxgb4: Added NULL check for lookup_atid
+e229897d373a ntb: intel: Fix the NULL vs IS_ERR() bug for debugfs_create_dir()
+d078cbf5c38d nfsd: call cache_put if xdr_reserve_space returns NULL
+22451a16b7ab nfsd: return -EINVAL when namelen is 0
+c7f114d864ac f2fs: fix to avoid use-after-free in f2fs_stop_gc_thread()
+884ee6dc85b9 f2fs: get rid of online repaire on corrupted directory
+930c6ab93492 f2fs: fix to don't set SB_RDONLY in f2fs_handle_critical_error()
+18ec12c97b39 driver core: Fix a potential null-ptr-deref in module_add_driver()
+c58dc5a1f886 coresight: tmc: sg: Do not leak sg_table
+dc12502905b7 vdpa/mlx5: Fix invalid mr resource destroy
+02e9e9366fef vhost_vdpa: assign irq bypass producer token correctly
+c7f06284a642 ep93xx: clock: Fix off by one in ep93xx_div_recalc_rate()
+9c778fe48d20 netfilter: nf_reject_ipv6: fix nf_reject_ip6_tcphdr_put()
+b5109b60ee4f net: seeq: Fix use after free vulnerability in ether3 Driver Due to Race Condition
+c8770db2d544 tcp: check skb is non-NULL in tcp_rto_delta_us()
+0cbfd45fbcf0 bonding: Fix unnecessary warnings and logs from bond_xdp_get_xmit_slave()
+2f3d8ff45798 fuse: use exclusive lock when FUSE_I_CACHE_IO_MODE is set
+ea7e2d5e49c0 mm: call the security_mmap_file() LSM hook in remap_file_pages()
+a09c17240bdf io_uring/sqpoll: retain test for whether the CPU is valid
+d925c04d974c drm/amd/display: Check link_res->hpo_dp_link_enc before using it
+7f44beadcc11 io_uring/sqpoll: do not put cpumask on stack
+874c5b601856 soc: versatile: integrator: fix OF node leak in probe() error path
+44d174596260 KVM: Use dedicated mutex to protect kvm_usage_count to avoid deadlock
+8151a6c13111 drm/amd/display: Skip Recompute DSC Params if no Stream on Link
+70fd1966c93b KEYS: prevent NULL pointer dereference in find_asymmetric_key()
+f81eaf08385d scsi: sd: Fix off-by-one error in sd_read_block_characteristics()
+8265d06b7794 USB: appledisplay: close race between probe and completion handler
+2c6b6afa59e7 usb: dwc2: drd: fix clock gating on USB role switch
+15a62b811758 bus: integrator-lm: fix OF node leak in probe()
+f0e5311aa802 firmware_loader: Block path traversal
+a5e61b50c9f4 drbd: Add NULL check for net_conf to prevent dereference in state validation
+f503ae90c735 wifi: mt76: mt7996: fix NULL pointer dereference in mt7996_mcu_sta_bfer_he
+9679ca7326e5 wifi: mt76: mt7925: fix a potential array-index-out-of-bounds issue for clc
+7ee85f5515e8 btrfs: fix race setting file private on concurrent lseek using same fd
+4f5a100f87f3 f2fs: Require FMODE_WRITE for atomic write ioctls
+43aec4d01bd2 f2fs: check discard support for conventional zones
+88b1afbf0f6b vfs: fix race between evice_inodes() and find_inode()&iput()
+3c58a9575e02 netfs: Delete subtree of 'fs/netfs' when netfs module exits
+8f6a7c9467ea nfs: fix memory leak in error path of nfs4_do_reclaim
+8c2bd38b95f7 icmp: change the order of rate limits
+a309320ddbac cpuidle: riscv-sbi: Use scoped device node handling to fix missing of_node_put
+9a22b2812393 padata: use integer wrap around to prevent deadlock on seq_nr overflow
+1c4f26a41f9d soc: versatile: realview: fix memory leak during device remove
+c774f2564c00 soc: versatile: realview: fix soc_dev leak during device remove
+c290fe508eee exfat: resolve memory leak from exfat_create_upcase_table()
+98b74bb4d7e9 mm/hugetlb.c: fix UAF of vma in hugetlb fault pathway
+5fe6e308abae bpf: Fix use-after-free in bpf_uprobe_multi_link_attach()
