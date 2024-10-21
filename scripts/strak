@@ -263,10 +263,14 @@ done
 # Rest of the command line argument is the git sha we are looking at
 GIT_SHA=$1
 
+if [[ "${GIT_SHA}" == "" && "${FIXED_VERSION}" == "" ]]; then
+	help
+	exit 1
+fi
+
 # Now we can test for unset variables, before we would have failed if someone
 # forgot the git sha on the command line.
 set -o nounset
-
 
 cd "${DIR}"/../ || exit 1
 
