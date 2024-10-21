@@ -126,3 +126,19 @@ d81873f9e715 drm/amd/display: Fix index out of bounds in DCN30 color transformat
 9bce8005ec0d blk_iocost: fix more out of bound shifts
 e106b7ad13c1 wifi: ath12k: fix array out-of-bound access in SoC stats
 69f253e46af9 wifi: ath11k: fix array out-of-bound access in SoC stats
+52d4e3fb3d34 drm/amd/display: Fix system hang while resume with TBT monitor
+0d5e5e8a0aa4 drm/amd/display: update DML2 policy EnhancedPrefetchScheduleAccelerationFinal DCN35
+bff1709b3980 mac802154: Fix potential RCU dereference issue in mac802154_scan_worker
+cc749e61c011 ext4: fix i_data_sem unlock order in ext4_ind_migrate()
+7b986c7430a6 ALSA: asihpi: Fix potential OOB array access
+498365e52beb wifi: mwifiex: Fix memcpy() field-spanning write warning in mwifiex_cmd_802_11_scan_ext()
+5493f9714e4c cpufreq: amd-pstate: add check for cpufreq_cpu_get's return value
+0d196e7589ce exec: don't WARN for racy path_noexec check
+5afc29ba44fd ASoC: Intel: soc-acpi-intel-rpl-match: add missing empty item
+c0f02536fffb cpufreq: Avoid a bad reference count on CPU node
+d2b537b3e533 exfat: fix memory leak in exfat_load_bitmap()
+23dfdb56581a ext4: fix access to uninitialised lock in fc replay path
+dda898d7ffe8 ext4: dax: fix overflowing extents beyond inode size when partially writing
+a15268787b79 drm/amd/display: Avoid overflow assignment in link_dp_cts
+cc31744a2945 x86/mm/ident_map: Use gbpages only where full GB page should be mapped.
+08062af0a521 net: napi: Prevent overflow of napi_defer_hard_irqs
