@@ -180,7 +180,7 @@ kernel_version_is_mainline()
 	kernel_version_is_queue "${VERSION}"
 	local queue=$?
 	if [[ "${queue}" == "1" ]] ; then
-		return 0
+		return 1
 	fi
 
 	# if the REL_ARRAY only has 2 elements in it, it's a mainline release
