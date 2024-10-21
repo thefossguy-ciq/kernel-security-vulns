@@ -68,3 +68,8 @@ f81eaf08385d scsi: sd: Fix off-by-one error in sd_read_block_characteristics()
 0beca868cde8 drm/amd/display: Check link_res->hpo_dp_link_enc before using it
 d925c04d974c drm/amd/display: Check link_res->hpo_dp_link_enc before using it
 8c2bd38b95f7 icmp: change the order of rate limits
+77d48d39e991 efistub/tpm: Use ACPI reclaim memory for event log to avoid corruption
+bfe5c0265426 f2fs: fix to check atomic_file in f2fs ioctl interfaces
+4bb1e7d02741 ACPI: sysfs: validate return type of _STR method
+32556ce93bc4 bpf: Fix helper writes to read-only maps
+95f6580352a7 powercap: intel_rapl: Fix off by one in get_rpi()
