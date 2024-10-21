@@ -1,0 +1,128 @@
+e7d4e1438533 drm/amd/display: handle nulled pipe context in DCE110's set_drr()
+7257d9c9a3c6 drm/xe: Prevent null pointer access in xe_migrate_copy
+7b99b5ab8859 gpiolib: Fix potential NULL pointer dereference in gpiod_get_label()
+a5242874488e ACPICA: check null return of ACPI_ALLOCATE_ZEROED() in acpi_db_convert_to_package()
+557a6cd84764 wifi: iwlwifi: mvm: avoid NULL pointer dereference
+5559598742fb drm/amd/display: Pass non-null to dcn20_validate_apply_pipe_split_flags
+1ff12bcd7dea drm/amd/display: Check null pointers before using them
+be1fb44389ca drm/amd/display: Check null pointers before used
+fdd5ecbbff75 drm/amd/display: Check null pointers before multiple uses
+f22f4754aaa4 drm/amd/display: Add null check for head_pipe in dcn201_acquire_free_pipe_for_layer
+ac2140449184 drm/amd/display: Add null check for head_pipe in dcn32_acquire_idle_pipe_for_head_pipe_in_layer
+cba7fec86417 drm/amd/display: Add NULL check for clk_mgr and clk_mgr->funcs in dcn30_init_hw
+4b6377f0e960 drm/amd/display: Add NULL check for clk_mgr and clk_mgr->funcs in dcn401_init_hw
+c395fd47d156 drm/amd/display: Add NULL check for clk_mgr in dcn32_init_hw
+8e4ed3cf1642 drm/amd/display: Add null check for pipe_ctx->plane_state in dcn20_program_pipe
+66d71a72539e drm/amd/display: Add null check for top_pipe_to_program in commit_planes_for_stream
+8141f21b9417 drm/amd/display: Handle null 'stream_status' in 'planes_changed_for_existing_stream'
+62ed6f0f198d drm/amd/display: Add NULL check for function pointer in dcn20_set_output_transfer_func
+dd340acd42c2 drm/amd/display: Add NULL check for function pointer in dcn401_set_output_transfer_func
+28574b08c70e drm/amd/display: Add NULL check for function pointer in dcn32_set_output_transfer_func
+0fe20258b498 drm/amd/display: Add null check for 'afb' in amdgpu_dm_update_cursor (v2)
+95d9e0803e51 drm/amd/display: Check null pointers before using dc->clk_mgr
+1b686053c06f drm/amd/display: Check null pointer before try to access it
+cd9e9e0852d5 drm/amd/display: Add null check for 'afb' in amdgpu_dm_plane_handle_cursor_update (v2)
+4416377ae1fd drm/amdgpu: add list empty check to avoid null pointer issue
+16007768551d drm/msm/adreno: Assign msm_gpu->pdev earlier to avoid nullptrs
+367cd9ceba19 drm/amd/display: Check null-initialized variables
+53369581dc0c drm/printer: Allow NULL data in devcoredump printer
+186fb12e7a7b drm/amd/pm: ensure the fw_info is not null before using it
+5784d9fcfd43 ocfs2: fix null-ptr-deref when journal load failed.
+33b525cef4cf ocfs2: fix possible null-ptr-deref in ocfs2_set_buffer_uptodate
+fb5cc65f9736 Input: adp5589-keys - fix NULL pointer dereference
+c3b47f49e831 btrfs: fix a NULL pointer dereference when failed to start a new trasacntion
+221af82f606d vhost/scsi: null-ptr-dereference in vhost_scsi_get_req()
+92ceba94de6f netfilter: nf_tables: prevent nf_skb_duplicated corruption
+333b4fd11e89 Bluetooth: L2CAP: Fix uaf in l2cap_connect
+c20029db2839 net: avoid potential underflow in qdisc_pkt_len_init() with UFO
+49d14b54a527 net: test for not too small csum_start in virtio_net_hdr_to_skb()
+aec7291003df ppp: do not assume bh is held in ppp_channel_bridge_input()
+8beee4d8dee7 sctp: set sk_state back to CLOSED if autobind fails in sctp_listen_start
+94745807f3eb wifi: ath9k_htc: Use __skb_set_length() for resetting urb before resubmit
+b0b2fc815e51 jfs: UBSAN: shift-out-of-bounds in dbFindBits
+d6c1b3599b2f jfs: Fix uaf in dbFreeBits
+d64ff0d23067 jfs: check if leafidx greater than num leaves per dmap tree
+2b59ffad47db jfs: Fix uninit-value access of new_ea in ea_buffer
+985b67cd8639 ext4: filesystems without casefold feature cannot be mounted with siphash
+65a6ce4726c2 f2fs: fix to don't panic system for no free segment fault injection
+1a00a393d6a7 ext4: no need to continue when the number of entries is 1
+0ce160c5bdb6 ext4: fix timer use-after-free on failed mount
+2af148ef8549 ocfs2: fix uninit-value in ocfs2_get_block()
+35fccce29feb ocfs2: cancel dqi_sync_work before freeing oinfo
+c03a82b4a0c9 ocfs2: remove unreasonable unlock in ocfs2_read_blocks
+6cb9df81a2c4 gfs2: fix double destroy_workqueue error
+41fd1e94066a btrfs: wait for fixup workers before stopping cleaner kthread during umount
+7b124695db40 net/mlx5e: Fix crash caused by calling __xfrm_state_delete() twice
+7f7b850689ac fs/inode: Prevent dump_mapping() accessing invalid dentry.d_name.name
+04915240e2c3 btrfs: don't readahead the relocation inode on RST
+fd70e9f1d85f rcu-tasks: Fix access non-existent percpu rtpcp variable in rcu_tasks_need_gpcb()
+7dd34d7b7dcf bpf: Fix a sdiv overflow issue
+bc212465326e rxrpc: Fix a race between socket set up and I/O thread creation
+fe513c2ef0a1 static_call: Replace pointless WARN_ON() in static_call_module_notify()
+a0ffa68c70b3 net/ncsi: Disable the ncsi work before freeing the associated structure
+7dd5d2514a8e wifi: rtw89: avoid to add interface to list twice when SER
+830802a0fea8 x86/ioapic: Handle allocation failures gracefully
+c225c4f6056b mm/filemap: fix filemap_get_folios_contig THP panic
+ce645b9fdc78 mm/gup: fix memfd_pin_folios alloc race panic
+96c6ca71572a btrfs: send: fix buffer overflow detection when copying path to cache entry
+c08dfb1b4949 ceph: remove the incorrect Fw reference check when dirtying pages
+0a2ed70a549e ACPI: PAD: fix crash in exit_round_robin()
+f53e1c9c726d Bluetooth: MGMT: Fix possible crash on mgmt_index_removed
+76959aff14a0 ACPI: battery: Fix possible crash when unregistering a battery hook
+7eced90b202d arm64: trans_pgd: mark PTEs entries as valid to avoid dead kexec()
+2be1d4f11944 scsi: lpfc: Validate hdwq pointers before dereferencing in reset/errata paths
+5ca60b86f57a ocfs2: reserve space for inline xattr before attaching reflink tree
+9ab27eb5866c remoteproc: k3-r5: Fix error handling when power-up failed
+59090e479ac7 mm, slub: avoid zeroing kmalloc redzone
+f5cacdc6f2bb jbd2: stop waiting for space when jbd2_cleanup_journal_tail() returns error
+829e0c9f0855 tracing/timerlat: Fix a race during cpuhp processing
+0bb0a5c12ecf tracing/timerlat: Fix duplicated kthread creation due to CPU online/offline
+2b7ec33e534f cpufreq: loongson3: Use raw_smp_processor_id() in do_service_request()
+eaf3adb8faab drm/amd/display: fix a UBSAN warning in DML2.1
+b995c0a6de6c drm/amd/display: Initialize denominators' default to 1
+305790dd9105 platform/mellanox: mlxbf-pmc: fix lockdep warning
+4e2524ba2ca5 ext4: avoid use-after-free in ext4_ext_show_leaf()
+7d59ac07ccb5 platform/x86: ISST: Fix the KASAN report slab-out-of-bounds bug
+c26ab35702f8 ext4: fix slab-use-after-free in ext4_split_extent_at()
+a164f3a432aa ext4: aovid use-after-free in ext4_ext_insert_extent()
+5b4b2dcace35 ext4: update orig_path in ext4_find_extent()
+6121258c2b33 ext4: fix off by one issue in alloc_flex_gd()
+da6ef2dffe60 cachefiles: fix dentry leak in cachefiles_open_file()
+3718a619a8c0 drm/amd/display: Check phantom_stream before it is used
+35ff747c8676 drm/amd/display: Check stream before comparing them
+6d64d3948619 drm/amd/display: Increase array size of dummy_boolean
+3f96f545f877 drm/amd/display: Fix possible overflow in integer multiplication
+58a8ee96f84d drm/amd/display: Check stream_status before it is used
+4067f4fa0423 drm/amd/display: Initialize get_bytes_per_element's default to 1
+c0277b9d7c2e drm/amdgpu: fix unchecked return value warning for amdgpu_gfx
+92549780e327 drm/amdgpu: fix unchecked return value warning for amdgpu_atombios
+47d7d3fd72af ASoC: imx-card: Set card.owner to avoid a warning calltrace if SND=m
+340e61e44c1d nfsd: map the EBADMSG to nfserr_io to avoid warning
+dc09f007caed mailbox: bcm2835: Fix timeout during suspend mode
+203617128803 wifi: cfg80211: Set correct chandef when starting CAC
+bee1aed819a8 media: i2c: ar0521: Use cansleep version of gpiod_set_value()
+dcaa6c31134c ext4: fix double brelse() the buffer of the extents path
+b4afe4183ec7 resource: fix region_intersects() vs add_memory_driver_managed()
+25f18cb1b673 media: qcom: camss: Remove use_count guard in stop_streaming
+ab9a9a9e9647 net: add more sanity checks to qdisc_pkt_len_init()
+24256415d186 l2tp: prevent possible tunnel refcount underflow
+790533e44bfc drm/xe/guc_submit: add missing locking in wedged_fini
+5beb6fba25db drm/mediatek: ovl_adaptor: Add missing of_node_put()
+c56b6f3d801d mm/hugetlb: fix memfd_pin_folios free_huge_pages leak
+790533e44bfc drm/xe/guc_submit: add missing locking in wedged_fini
+0fa5e94a1811 net/xen-netback: prevent UAF in xenvif_flush_hash()
+95cdd538e0e5 fbdev: efifb: Register sysfs groups through driver core
+4a6921095eb0 fbdev: pxafb: Fix possible use after free in pxafb_task()
+2d2be279f1ca drm/xe: fix UAF around queue destruction
+618507257797 i3c: master: svc: Fix use after free vulnerability in svc_i3c_master Driver Due to Race Condition
+74231870cf49 drm/xe/vm: move xa_alloc to prevent UAF
+892abca6877a drm/amd/display: Deallocate DML memory if allocation fails
+e794b7b9b929 drm: omapdrm: Add missing check for alloc_ordered_workqueue
+ed2e4bb17a48 wifi: rtw89: avoid reading out of bounds when loading TX power FW elements
+bc50b614d599 drm/amd/display: Fix index out of bounds in DCN30 degamma hardware format translation
+b7e99058eb2e drm/amd/display: Fix index out of bounds in degamma hardware format translation
+bdf606810210 drm/amd/display: Implement bounds check for stream encoder creation in DCN401
+d81873f9e715 drm/amd/display: Fix index out of bounds in DCN30 color transformation
+9bce8005ec0d blk_iocost: fix more out of bound shifts
+e106b7ad13c1 wifi: ath12k: fix array out-of-bound access in SoC stats
+69f253e46af9 wifi: ath11k: fix array out-of-bound access in SoC stats
