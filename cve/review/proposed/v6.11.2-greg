@@ -1,0 +1,70 @@
+6d7c6ae1efb1 wifi: wilc1000: fix potential RCU dereference issue in wilc_parse_join_bss_param
+73aeab373557 block, bfq: fix procress reference leakage for bfqq in merge chain
+26e197b7f924 block: fix potential invalid pointer dereference in blk_add_partition
+f503ae90c735 wifi: mt76: mt7996: fix NULL pointer dereference in mt7996_mcu_sta_bfer_he
+0e735a4c6137 wifi: rtw88: always wait for both firmware loading attempts
+e7a7ef9a0742 wifi: mac80211: don't use rate mask for offchannel TX either
+9d301de12da6 wifi: mac80211: use two-phase skb reclamation in ieee80211_do_stop()
+5aa57d9f2d53 af_unix: Don't return OOB skb in manage_oob().
+b1339be951ad sock_map: Add a cond_resched() in sock_hash_free()
+94b0818fa635 can: bcm: Clear bo->bcm_proc_read after remove_proc_entry().
+04ccecfa959d ipv6: avoid possible NULL deref in rt6_uncached_list_flush_dev()
+9e2f9d34dd12 erofs: handle overlapped pclusters out of crafted images properly
+92de36080c93 bpf: Fail verification for sign-extension of packet data/data_end/data_meta
+c6b72f5d82b1 ext4: avoid OOB when system.data xattr changes underneath the filesystem
+ee85e0938aa8 ext4: check stripe size compatibility on remount as well
+9403001ad65a nilfs2: fix potential null-ptr-deref in nilfs_btree_insert()
+c7f114d864ac f2fs: fix to avoid use-after-free in f2fs_stop_gc_thread()
+884ee6dc85b9 f2fs: get rid of online repaire on corrupted directory
+930c6ab93492 f2fs: fix to don't set SB_RDONLY in f2fs_handle_critical_error()
+9c778fe48d20 netfilter: nf_reject_ipv6: fix nf_reject_ip6_tcphdr_put()
+0cbfd45fbcf0 bonding: Fix unnecessary warnings and logs from bond_xdp_get_xmit_slave()
+8001070cfbec mm: migrate: annotate data-race in migrate_folio_unmap()
+8f6887349b2f iommufd: Protect against overflow of ALIGN() during iova allocation
+88b1afbf0f6b vfs: fix race between evice_inodes() and find_inode()&iput()
+63dff3e48871 lsm: add the inode_free_security_rcu() LSM implementation hook
+c290fe508eee exfat: resolve memory leak from exfat_create_upcase_table()
+98b74bb4d7e9 mm/hugetlb.c: fix UAF of vma in hugetlb fault pathway
+2a058ab3286d mm: change vmf_anon_prepare() to __vmf_anon_prepare()
+5fe6e308abae bpf: Fix use-after-free in bpf_uprobe_multi_link_attach()
+d078cbf5c38d nfsd: call cache_put if xdr_reserve_space returns NULL
+c8770db2d544 tcp: check skb is non-NULL in tcp_rto_delta_us()
+177b49dbf9c1 wifi: ath11k: use work queue to process beacon tx event
+89a906dfa8c3 ARM: 9410/1: vfp: Use asm volatile in fmrx/fmxr macros
+f98c3de92bb0 wifi: mt76: mt7996: use hweight16 to get correct tx antenna
+157f29152b61 netkit: Assign missing bpf_net_context
+18ad4df091dd block, bfq: fix possible UAF for bfqq->bic with merge chain
+08ae395ea22f drm/amd/display: Add null check for set_output_gamma in dcn30_set_output_transfer_func
+fac1bceeeb04 xen: use correct end address of kernel for conflict checking
+9c602adb799e sched/deadline: Fix schedstats vs deadline servers
+d16a5f852025 quota: avoid missing put_quota_format when DQUOT_SUSPENDED is passed
+112e6e83a894 IB/mlx5: Fix UMR pd cleanup on error flow of driver init
+22451a16b7ab nfsd: return -EINVAL when namelen is 0
+65f666c62036 lib/sbitmap: define swap_lock as raw_spinlock_t
+dc12502905b7 vdpa/mlx5: Fix invalid mr resource destroy
+a09c17240bdf io_uring/sqpoll: retain test for whether the CPU is valid
+8151a6c13111 drm/amd/display: Skip Recompute DSC Params if no Stream on Link
+43aec4d01bd2 f2fs: check discard support for conventional zones
+24cc57d8faaa padata: Honor the caller's alignment in case of chunk_size 0
+5d99e198be27 bpf, lsm: Add check for BPF LSM return value
+86dfdd828890 RDMA/iwcm: Fix WARNING:at_kernel/workqueue.c:#check_flush_dependency
+18ec12c97b39 driver core: Fix a potential null-ptr-deref in module_add_driver()
+47d40d93292d RISC-V: KVM: Don't zero-out PMU snapshot area before freeing data
+862bf7cbd772 wifi: mt76: mt7915: fix oops on non-dbdc mt7986
+f1a54e860b1b drm/vc4: hdmi: Handle error case of pm_runtime_resume_and_get
+1403c8b14765 IB/core: Fix ib_cache_setup_one error flow cleanup
+74d315b5af18 RDMA/hns: Fix spin_unlock_irqrestore() called with IRQs enabled
+3c58a9575e02 netfs: Delete subtree of 'fs/netfs' when netfs module exits
+56310ddb50b1 wifi: rtw89: remove unused C2H event ID RTW89_MAC_C2H_FUNC_READ_WOW_CAM to prevent out-of-bounds reading
+a26a5107bc52 wifi: cfg80211: fix UBSAN noise in cfg80211_wext_siwscan()
+e63866a47556 jfs: fix out-of-bounds in dbNextAG() and diAlloc()
+8ae06f360cfa drivers: media: dvb-frontends/rtl2832: fix an out-of-bounds write error
+46d7ebfe6a75 drivers: media: dvb-frontends/rtl2830: fix an out-of-bounds write error
+3e4289b29e21 RDMA/rtrs-clt: Reset cid to con_num - 1 to stay in bounds
+c7f06284a642 ep93xx: clock: Fix off by one in ep93xx_div_recalc_rate()
+23ab1cb6591d drm/xe: fix engine_class bounds check again
+0199d2f2bd8c PCI: xilinx-nwl: Fix off-by-one in INTx IRQ handler
+f81eaf08385d scsi: sd: Fix off-by-one error in sd_read_block_characteristics()
+0beca868cde8 drm/amd/display: Check link_res->hpo_dp_link_enc before using it
+d925c04d974c drm/amd/display: Check link_res->hpo_dp_link_enc before using it
+8c2bd38b95f7 icmp: change the order of rate limits
