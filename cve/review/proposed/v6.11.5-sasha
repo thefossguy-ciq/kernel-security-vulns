@@ -1,0 +1,75 @@
+3878ae04e9fc2 bpf: Fix incorrect delta propagation between linked registers
+4dbc1d1a9f39c net/mlx5e: Don't call cleanup on profile rollback failure
+d62b14045c651 net/mlx5: Fix command bitmask initialization
+d4f25be27e3ef net/mlx5: Check for invalid vector index on EQ creation
+88806efc034a9 net: ethernet: mtk_eth_soc: fix memory corruption during fq dma init
+4678adf94da4a vmxnet3: Fix packet corruption in vmxnet3_xdp_xmit_frame
+64a90991ba8d4 Bluetooth: bnep: fix wild-memory-access in proto_unregister
+82926f52d7a09 drm/xe: Don't free job in TDR
+befab3a278c59 usb: typec: altmode should keep reference to parent
+1ab60323c5201 smb: client: fix OOBs when building SMB2_IOCTL request
+19ebc1e6cab33 smb: client: fix possible double free in smb2_set_ea()
+fca6caeb4a61d scsi: target: core: Fix null-ptr-deref in target_alloc_device()
+e8c526f2bdf18 tcp/dccp: Don't use timer_pending() in reqsk_queue_unlink().
+c186b7a7f2387 net: ethernet: rtsn: fix potential memory leak in rtsn_start_xmit()
+99714e37e8333 net: xilinx: axienet: fix potential memory leak in axienet_start_xmit()
+cf57b5d7a2aad net: ethernet: aeroflex: fix potential memory leak in greth_start_xmit_gbit()
+a1494d532e285 netdevsim: use cond_resched() in nsim_dev_trap_report_work()
+e7457532cb716 drm/amd/amdgpu: Fix double unlock in amdgpu_mes_add_ring
+09661f75e75cb ring-buffer: Fix reader locking when changing the sub buffer order
+25c12b459db83 net/smc: Fix memory leak when using percpu refs
+293f53263266b drm/msm: Avoid NULL dereference in msm_disp_state_print_regs()
+7988bdbbb85ac RDMA/bnxt_re: Fix a bug while setting up Level-2 PBL pages
+8be3e5b0c96be RDMA/bnxt_re: Avoid CPU lockups due fifo occupancy check loop
+87b4d8d28f6af RDMA/bnxt_re: Fix incorrect dereference of srq in async event
+a9e6e7443922a RDMA/bnxt_re: Fix out of bound check
+39b13dce1a91c firmware: arm_scmi: Fix the double free in scmi_debugfs_common_setup()
+c9bd4a82b4ed3 ALSA: hda/cs8409: Fix possible NULL dereference
+73ab05aa46b02 sched/core: Disable page allocation in task_tick_mm_cid()
+4809a017a2bc4 drm/vmwgfx: Handle possible ENOMEM in vmw_stdu_connector_atomic_check
+30a59cc79754f riscv, bpf: Fix possible infinite tailcall when CONFIG_CFI_CLANG is enabled
+797d73ee232dd bpf: Check the remaining info_cnt before repeating btf fields
+2b5648416e479 x86/resctrl: Avoid overflow in MB settings in bw_validate()
+c5c1ae73b7741 RDMA/bnxt_re: Add a check for memory allocation
+45126b155e3b5 bpf: Fix memory leak in bpf_core_apply
+ca9984c5f0ab3 bpf: devmap: provide rxq after redirect
+09d88791c7cd8 bpf: Make sure internal and UAPI bpf_redirect flags don't overlap
+e9bd9c498cb0f bpf: sync_linked_regs() must preserve subreg_def
+23ee4a25661c3 serial: qcom-geni: fix dma rx cancellation
+1442ee0011983 irqchip/gic-v4: Don't allow a VMOVP on a dying VPE
+665a58fe663ac pinctrl: apple: check devm_kasprintf() returned value
+b0f0e3f0552a5 pinctrl: stm32: check devm_kasprintf() returned value
+16a6d2e685e8f pinctrl: intel: platform: fix error path in device_for_each_child_node()
+3fd976afe9743 pinctrl: nuvoton: fix a double free in ma35_pinctrl_dt_node_to_map_func()
+e4d2102018542 x86/bugs: Use code segment selector for VERW operand
+9462f4ca56e7d tty: n_gsm: Fix use-after-free in gsm_cleanup_mux
+48a2440d0f20c x86/entry_32: Clear CPU buffers after register restore in NMI return
+2e2e5143d4868 x86/entry_32: Do not clobber user EFLAGS.ZF
+02ac3a9ef3a18 parport: Proper fix for array out-of-bounds access
+5189df7b80882 USB: gadget: dummy-hcd: Fix "task hung" problem
+7d381137cb6ec xhci: tegra: fix checked USB2 port number
+f956052e00de2 vt: prevent kernel-infoleak in con_font_get()
+a9b7b535ba192 Bluetooth: ISO: Fix multiple init when debugfs is disabled
+d458cd1221e9e Bluetooth: Call iso_exit() on module unload
+c7c44e57750c3 iio: light: veml6030: fix IIO device retrieval from embedded device
+19a198b67767d scsi: ufs: core: Set SDEV_OFFLINE when UFS is shut down
+8f7033aa4089f io_uring/sqpoll: ensure task state is TASK_RUNNING when running task_work
+42aafd8b48ada ublk: don't allow user copy for unprivileged device
+c25c0c9035bb8 blk-mq: setup queue ->tag_set before initializing hctx
+e972b08b91ef4 blk-rq-qos: fix crash on rq_qos_wait vs. rq_qos_wake_function race
+50e4b3b94090b x86/entry: Have entry_ibpb() invalidate return predictions
+6e02a277f1db2 iommu/vt-d: Fix incorrect pci_for_each_dma_alias() for non-PCI devices
+3d041393ea8c8 mptcp: prevent MPC handshake on port-based signal endpoints
+4dabcdf581217 tcp: fix mptcp DSS corruption due to large pmtu xmit
+2d6a1c835685d mm/damon/tests/sysfs-kunit.h: fix memory leak in damon_sysfs_test_add_targets()
+7528c4fb12375 mm/swapfile: skip HugeTLB pages for unuse_vma
+6fa1066fc5d00 mm/mremap: fix move_normal_pmd/retract_page_tables race
+bea07fd63192b maple_tree: correct tree corruption on spanning store
+217a3d98d1e98 net: microchip: vcap api: Fix memory leaks in vcap_api_encode_rule_test()
+13f8f1e05f1dc arm64: probes: Fix uprobes for big-endian kernels
+acc450aa07099 arm64: probes: Remove broken LDR (literal) uprobe support
+d8794ac20a299 posix-clock: Fix missing timespec64 check in pc_clock_settime()
+7decd1f5904a4 mptcp: pm: fix UaF read in mptcp_pm_nl_rm_addr_or_subflow
+7aa8804c0b67b ksmbd: fix user-after-free from session log off
+2ab5e243c2266 btrfs: fix uninitialized pointer free on read_alloc_one_name() error
+66691c6e2f18d btrfs: fix uninitialized pointer free in add_inode_ref()
