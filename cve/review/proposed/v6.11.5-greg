@@ -1,0 +1,26 @@
+9462f4ca56e7 tty: n_gsm: Fix use-after-free in gsm_cleanup_mux
+7aa8804c0b67 ksmbd: fix user-after-free from session log off
+2ab5e243c226 btrfs: fix uninitialized pointer free on read_alloc_one_name() error
+66691c6e2f18 btrfs: fix uninitialized pointer free in add_inode_ref()
+3fd976afe974 pinctrl: nuvoton: fix a double free in ma35_pinctrl_dt_node_to_map_func()
+d458cd1221e9 Bluetooth: Call iso_exit() on module unload
+a9b7b535ba19 Bluetooth: ISO: Fix multiple init when debugfs is disabled
+7d381137cb6e xhci: tegra: fix checked USB2 port number
+7decd1f5904a mptcp: pm: fix UaF read in mptcp_pm_nl_rm_addr_or_subflow
+08cfa12adf88 nilfs2: propagate directory read errors from nilfs_find_entry()
+963a7f4d3b90 fat: fix uninitialized variable
+4dabcdf58121 tcp: fix mptcp DSS corruption due to large pmtu xmit
+f956052e00de vt: prevent kernel-infoleak in con_font_get()
+e972b08b91ef blk-rq-qos: fix crash on rq_qos_wait vs. rq_qos_wake_function race
+c25c0c9035bb blk-mq: setup queue ->tag_set before initializing hctx
+2d6a1c835685 mm/damon/tests/sysfs-kunit.h: fix memory leak in damon_sysfs_test_add_targets()
+0885ef470560 mm: vmscan.c: fix OOM on swap stress test
+217a3d98d1e9 net: microchip: vcap api: Fix memory leaks in vcap_api_encode_rule_test()
+e4d210201854 x86/bugs: Use code segment selector for VERW operand
+8f7033aa4089 io_uring/sqpoll: ensure task state is TASK_RUNNING when running task_work
+28127dba64d8 drm/radeon: Fix encoder->possible_clones
+6fa1066fc5d0 mm/mremap: fix move_normal_pmd/retract_page_tables race
+42aafd8b48ad ublk: don't allow user copy for unprivileged device
+02ac3a9ef3a1 parport: Proper fix for array out-of-bounds access
+b0f0e3f0552a pinctrl: stm32: check devm_kasprintf() returned value
+665a58fe663a pinctrl: apple: check devm_kasprintf() returned value
