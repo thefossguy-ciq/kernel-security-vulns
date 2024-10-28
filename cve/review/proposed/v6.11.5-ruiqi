@@ -1,0 +1,32 @@
+66691c6e2f18 btrfs: fix uninitialized pointer free in add_inode_ref()
+2ab5e243c226 btrfs: fix uninitialized pointer free on read_alloc_one_name() error
+7aa8804c0b67 ksmbd: fix user-after-free from session log off
+7decd1f5904a mptcp: pm: fix UaF read in mptcp_pm_nl_rm_addr_or_subflow
+217a3d98d1e9 net: microchip: vcap api: Fix memory leaks in vcap_api_encode_rule_test()
+bea07fd63192 maple_tree: correct tree corruption on spanning store
+08cfa12adf88 nilfs2: propagate directory read errors from nilfs_find_entry()
+963a7f4d3b90 fat: fix uninitialized variable
+6fa1066fc5d0 mm/mremap: fix move_normal_pmd/retract_page_tables race
+7528c4fb1237 mm/swapfile: skip HugeTLB pages for unuse_vma
+4dabcdf58121 tcp: fix mptcp DSS corruption due to large pmtu xmit
+6e02a277f1db iommu/vt-d: Fix incorrect pci_for_each_dma_alias() for non-PCI devices
+e972b08b91ef blk-rq-qos: fix crash on rq_qos_wait vs. rq_qos_wake_function race
+c25c0c9035bb blk-mq: setup queue ->tag_set before initializing hctx
+42aafd8b48ad ublk: don't allow user copy for unprivileged device
+8f7033aa4089 io_uring/sqpoll: ensure task state is TASK_RUNNING when running task_work
+28127dba64d8 drm/radeon: Fix encoder->possible_clones
+c7c44e57750c iio: light: veml6030: fix IIO device retrieval from embedded device
+d458cd1221e9 Bluetooth: Call iso_exit() on module unload
+a9b7b535ba19 Bluetooth: ISO: Fix multiple init when debugfs is disabled
+f956052e00de vt: prevent kernel-infoleak in con_font_get()
+7d381137cb6e xhci: tegra: fix checked USB2 port number
+ffe85c24d7ca usb: typec: qcom-pmic-typec: fix sink status being overwritten with RP_DEF
+5189df7b8088 USB: gadget: dummy-hcd: Fix "task hung" problem
+02ac3a9ef3a1 parport: Proper fix for array out-of-bounds access
+9462f4ca56e7 tty: n_gsm: Fix use-after-free in gsm_cleanup_mux
+e4d210201854 x86/bugs: Use code segment selector for VERW operand
+3fd976afe974 pinctrl: nuvoton: fix a double free in ma35_pinctrl_dt_node_to_map_func()
+16a6d2e685e8 pinctrl: intel: platform: fix error path in device_for_each_child_node()
+93b8ddc54507 pinctrl: ocelot: fix system hang on level based interrupts
+b0f0e3f0552a pinctrl: stm32: check devm_kasprintf() returned value
+665a58fe663a pinctrl: apple: check devm_kasprintf() returned value
