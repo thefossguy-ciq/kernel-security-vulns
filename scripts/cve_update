@@ -163,7 +163,7 @@ update_year() {
 	total_count=$(ls cve/published/${year}/*.sha1 | wc -l)
 	count=0
 
-	echo "Updating ${txtcyn}${count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
+	echo "Updating ${txtcyn}${total_count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
 	for id in cve/published/${year}/*.sha1 ; do
 		count=$((count + 1))
 		count_string=$(printf "[%04d/%04d]" ${count} ${total_count})
