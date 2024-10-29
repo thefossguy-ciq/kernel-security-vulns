@@ -414,12 +414,13 @@ if [[ "${default_status}" == "affected" ]]; then
 				vuln_array_json+="versions[]=$(jo --	\
 					-s version="${vuln}"	\
 					-s status="affected"	\
+					-s versionType="semver"	\
 					) "
 				vuln_array_json+="versions[]=$(jo --	\
 					-s version="0"		\
 					-s lessThan="${vuln}"	\
 					-s status="unaffected"	\
-					-s versionType="custom"	\
+					-s versionType="semver"	\
 					) "
 				break
 			fi
@@ -474,7 +475,7 @@ for entry in "${dyad_entries[@]}"; do
 			-s version="${vuln}"	\
 			-s lessThan="${fix}"	\
 			-s status="affected"	\
-			-s versionType="custom"	\
+			-s versionType="semver"	\
 			) "
 	else
 		# much more tricky, we now need to say what ranges are
@@ -496,7 +497,7 @@ for entry in "${dyad_entries[@]}"; do
 				-s version="${fix}"				\
 				-s lessThanOrEqual="*"				\
 				-s status="unaffected"				\
-				-s versionType="original_commit_for_fix"	\
+				-s versionType="semver"				\
 				) "
 		else
 			# This is a stable range, so make an unaffected
@@ -508,7 +509,7 @@ for entry in "${dyad_entries[@]}"; do
 				-s version="${fix}"				\
 				-s lessThanOrEqual="${MAJOR}.${MINOR}.*"	\
 				-s status="unaffected"				\
-				-s versionType="custom"				\
+				-s versionType="semver"				\
 				) "
 		fi
 	fi
