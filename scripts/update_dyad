@@ -24,12 +24,14 @@ DEBUG=0
 if [[ -t 1 ]]; then
 	txtred=$(tput setaf 1)		# Red
 	txtgrn=$(tput setaf 2)		# Green
+	txtylw=$(tput setaf 3)		# Yellow
 	txtblu=$(tput setaf 4)		# Blue
 	txtcyn=$(tput setaf 6)		# Cyan
 	txtrst=$(tput sgr0)		# Text reset
 else
 	txtred=""
 	txtgrn=""
+	txtylw=""
 	txtblu=""
 	txtcyn=""
 	txtrst=""
@@ -99,6 +101,7 @@ dyad="${DIR}/dyad"
 update_cve()
 {
 	local id=$1
+	local string=$2
 	local message=""
 	local tmp_dyad
 	local sha
@@ -117,7 +120,7 @@ update_cve()
 	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${id}" | cut -f 1 -d '.')
 	dbg "	id=${id} sha=${sha} cve=${cve}"
-	message+="Updating ${txtcyn}${cve}${txtrst}..."
+	message+="Updating ${txtcyn}${cve}${txtrst} ${txtylw}${string}${txtrst}..."
 
 	# Look to see if we have a "og_vuln" that is provided to us in a
 	# published CVE.  This is used for when we can't determine it on our
@@ -173,16 +176,19 @@ update_year() {
 	local year=$1
 	local threads=$(nproc)
 
-	# get a count of ids for this year
-	count=$(ls cve/published/${year}/*.sha1 | wc -l)
+	# get a total count of ids for this year
+	total_count=$(ls cve/published/${year}/*.sha1 | wc -l)
+	count=0
 
-	echo "Updating ${txtcyn}${count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
+	echo "Updating ${txtcyn}${total_count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
 	for id in cve/published/${year}/*.sha1 ; do
+		count=$((count + 1))
+		count_string=$(printf "[%04d/%04d]" ${count} ${total_count})
 		while :
 		do
 			if [[ $(jobs -p | wc -l) -lt ${threads} ]]; then
 				#echo "id=${id}"
-				update_cve "${id}" &
+				update_cve "${id}" "${count_string}" &
 				break
 			else
 				sleep 1
