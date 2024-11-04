@@ -496,7 +496,7 @@ for entry in "${dyad_entries[@]}"; do
 				-s version="${fix}"				\
 				-s lessThanOrEqual="*"				\
 				-s status="unaffected"				\
-				-s versionType="semver"				\
+				-s versionType="original_commit_for_fix"	\
 				) "
 		else
 			# This is a stable range, so make an unaffected
