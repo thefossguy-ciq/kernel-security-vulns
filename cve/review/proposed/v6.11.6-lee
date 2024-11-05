@@ -1,0 +1,67 @@
+8b62645b09f8 bpf: Use raw_spinlock_t in ringbuf
+2cf596636607 reset: starfive: jh71x0: Fix accessing the empty member on JH7110 SoC
+09d88791c7cd bpf: Make sure internal and UAPI bpf_redirect flags don't overlap
+ca9984c5f0ab bpf: devmap: provide rxq after redirect
+c5c1ae73b774 RDMA/bnxt_re: Add a check for memory allocation
+797d73ee232d bpf: Check the remaining info_cnt before repeating btf fields
+30a59cc79754 riscv, bpf: Fix possible infinite tailcall when CONFIG_CFI_CLANG is enabled
+73ab05aa46b0 sched/core: Disable page allocation in task_tick_mm_cid()
+c9bd4a82b4ed ALSA: hda/cs8409: Fix possible NULL dereference
+39b13dce1a91 firmware: arm_scmi: Fix the double free in scmi_debugfs_common_setup()
+a9e6e7443922 RDMA/bnxt_re: Fix out of bound check
+87b4d8d28f6a RDMA/bnxt_re: Fix incorrect dereference of srq in async event
+8be3e5b0c96b RDMA/bnxt_re: Avoid CPU lockups due fifo occupancy check loop
+7988bdbbb85a RDMA/bnxt_re: Fix a bug while setting up Level-2 PBL pages
+293f53263266 drm/msm: Avoid NULL dereference in msm_disp_state_print_regs()
+09661f75e75c ring-buffer: Fix reader locking when changing the sub buffer order
+a1494d532e28 netdevsim: use cond_resched() in nsim_dev_trap_report_work()
+e8c526f2bdf1 tcp/dccp: Don't use timer_pending() in reqsk_queue_unlink().
+fca6caeb4a61 scsi: target: core: Fix null-ptr-deref in target_alloc_device()
+19ebc1e6cab3 smb: client: fix possible double free in smb2_set_ea()
+1ab60323c520 smb: client: fix OOBs when building SMB2_IOCTL request
+befab3a278c5 usb: typec: altmode should keep reference to parent
+82926f52d7a0 drm/xe: Don't free job in TDR
+64a90991ba8d Bluetooth: bnep: fix wild-memory-access in proto_unregister
+88806efc034a net: ethernet: mtk_eth_soc: fix memory corruption during fq dma init
+d62b14045c65 net/mlx5: Fix command bitmask initialization
+1da9cfd6c41c net/mlx5: Unregister notifier on eswitch init failure
+4dbc1d1a9f39 net/mlx5e: Don't call cleanup on profile rollback failure
+26bc0a81f64c nvme-pci: fix race condition between reset and nvme_dev_disable()
+373b9338c972 uprobe: avoid out-of-bounds memory access of fetching args [auto: cve already created]
+d92b90f9a54d drm/vboxvideo: Replace fake VLA at end of vbva_mouse_pointer_shape with real VLA
+134475a9ab84 LoongArch: Don't crash in stack_top() for tasks without vDSO
+73f35080477e tracing/probes: Fix MAX_TRACE_ARGS limit handling
+0b6e2e22cb23 tracing: Consider the NULL character when validating the event length
+1230fe7ad397 netfilter: bpf: must hold reference on net namespace
+f2767a41959e net: pse-pd: Fix out of bound for loop
+eb592008f79b octeon_ep: Add SKB allocation failures handling in __octep_oq_process_rx()
+a552e2ef5fd1 bpf, arm64: Fix address emission with tag-based KASAN enabled
+47dd5447cab8 net: wwan: fix global oob in wwan_rtnl_policy
+f504465970ae net: sched: fix use-after-free in taprio_change()
+b22db8b8befe net: sched: use RCU read-side critical section in taprio_dump()
+1bf4470a3939 Bluetooth: SCO: Fix UAF on sco_sock_timeout
+246b435ad668 Bluetooth: ISO: Fix UAF on iso_sock_timeout
+c2f803052bc7 bpf: Add the missing BPF_LINK_TYPE invocation for sockmap
+1d59d474e1cb PCI: Hold rescan lock while adding devices during host probe
+72cafe63b35d ALSA: firewire-lib: Avoid division by zero in apply_constraint_to_size()
+d5ff2fb2e716 nfsd: cancel nfsd_shrinker_work using sync mode in nfs4_state_shutdown_net
+9a5dd6115139 smb: client: Handle kstrdup failures for passwords
+2ce1007f42b8 cifs: fix warning when destroy 'cifs_io_request_pool'
+3c36a72c1d27 btrfs: reject ro->rw reconfiguration if there are hard ro requirements
+bf58f03931fd drm/amd: Guard against bad data for ATIF ACPI method
+6ed469df0bfb nilfs2: fix kernel bug due to missing clearing of buffer delay flag
+f559b2e9c5c5 KVM: nSVM: Ignore nCR3[4:0] when loading PDPTEs from memory
+ae8f8b376102 KVM: arm64: Unregister redistributor for failed vCPU creation
+c6c167afa090 KVM: arm64: Fix shift-out-of-bounds bug
+f6a6780e0b9b firewire: core: fix invalid port index for parent device
+3267cb6d3a17 x86/lam: Disable ADDRESS_MASKING in most cases
+69cc6fad5df4 LoongArch: Enable IRQ if do_ale() triggered in irq-enabled context
+6889cd2a93e1 xfrm: fix one more kernel-infoleak in algo dumping
+825711e00117 md/raid10: fix null ptr dereference in raid10_size()
+ba1959f71117 drm/amd/display: Disable PSR-SU on Parade 08-01 TCON too
+48771da48072 platform/x86/intel/pmc: Fix pmc_core_iounmap to call iounmap for valid addresses
+8dd91e8d31fe nfsd: fix race between laundromat and free_stateid
+db7e59e6a39a ASoC: qcom: sc7280: Fix missing Soundwire runtime stream alloc
+d0e806b0cc62 ASoC: qcom: sdm845: add missing soundwire runtime stream alloc
+49da1463c9e3 ASoC: qcom: Fix NULL Dereference in asoc_qcom_lpass_cpu_platform_probe()
+86e6b1547b3d x86: fix user address masking non-canonical speculation issue
