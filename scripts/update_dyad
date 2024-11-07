@@ -183,7 +183,7 @@ update_year() {
 	echo "Updating ${txtcyn}${total_count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
 	for id in cve/published/${year}/*.sha1 ; do
 		count=$((count + 1))
-		count_string=$(printf "[%04d/%04d]" ${count} ${total_count})
+		count_string=$(printf "[%04d/%04d %02d%%]" ${count} ${total_count} $((count * 100 / total_count)))
 		while :
 		do
 			if [[ $(jobs -p | wc -l) -lt ${threads} ]]; then
