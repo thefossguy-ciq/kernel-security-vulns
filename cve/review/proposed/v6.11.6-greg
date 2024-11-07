@@ -1,0 +1,72 @@
+19ebc1e6cab3 smb: client: fix possible double free in smb2_set_ea()
+82926f52d7a0 drm/xe: Don't free job in TDR
+f504465970ae net: sched: fix use-after-free in taprio_change()
+8dd91e8d31fe nfsd: fix race between laundromat and free_stateid
+39b13dce1a91 firmware: arm_scmi: Fix the double free in scmi_debugfs_common_setup()
+45126b155e3b bpf: Fix memory leak in bpf_core_apply
+3fc5410f225d RDMA/bnxt_re: Fix a possible memory leak
+25c12b459db8 net/smc: Fix memory leak when using percpu refs
+cf57b5d7a2aa net: ethernet: aeroflex: fix potential memory leak in greth_start_xmit_gbit()
+99714e37e833 net: xilinx: axienet: fix potential memory leak in axienet_start_xmit()
+c186b7a7f238 net: ethernet: rtsn: fix potential memory leak in rtsn_start_xmit()
+c401ed1c7099 net: systemport: fix potential memory leak in bcm_sysport_xmit()
+fed07d3eb8a8 net: bcmasp: fix potential memory leak in bcmasp_xmit()
+2cb3f56e827a net/sun3_82586: fix potential memory leak in sun3_82586_send_packet()
+e4dd8bfe0f6a be2net: fix potential memory leak in be_xmit()
+6889cd2a93e1 xfrm: fix one more kernel-infoleak in algo dumping
+09d88791c7cd bpf: Make sure internal and UAPI bpf_redirect flags don't overlap
+a1494d532e28 netdevsim: use cond_resched() in nsim_dev_trap_report_work()
+c226964ec786 udf: refactor inode_bmap() to handle error
+264db9d666ad udf: fix uninit-value use in udf_get_fileshortad
+35ceae44742e fsnotify: Avoid data race between fsnotify_recalc_mask() and fsnotify_object_watched()
+3f0ab59e6537 xfrm: validate new SA's prefixlen using SA family when sel.family is unset
+1230fe7ad397 netfilter: bpf: must hold reference on net namespace
+1bf4470a3939 Bluetooth: SCO: Fix UAF on sco_sock_timeout
+3c36a72c1d27 btrfs: reject ro->rw reconfiguration if there are hard ro requirements
+6ed469df0bfb nilfs2: fix kernel bug due to missing clearing of buffer delay flag
+8b62645b09f8 bpf: Use raw_spinlock_t in ringbuf
+ca9984c5f0ab bpf: devmap: provide rxq after redirect
+4dbc1d1a9f39 net/mlx5e: Don't call cleanup on profile rollback failure
+73f35080477e tracing/probes: Fix MAX_TRACE_ARGS limit handling
+1d59d474e1cb PCI: Hold rescan lock while adding devices during host probe
+bf58f03931fd drm/amd: Guard against bad data for ATIF ACPI method
+d0e806b0cc62 ASoC: qcom: sdm845: add missing soundwire runtime stream alloc
+2b0f922323cc mm: don't install PMD mappings when THPs are disabled by the hw/process/vma
+373b9338c972 uprobe: avoid out-of-bounds memory access of fetching args
+d92b90f9a54d drm/vboxvideo: Replace fake VLA at end of vbva_mouse_pointer_shape with real VLA
+eb592008f79b octeon_ep: Add SKB allocation failures handling in __octep_oq_process_rx()
+1dec67e0d9fb fsl/fman: Fix refcount handling of fman-related devices
+47dd5447cab8 net: wwan: fix global oob in wwan_rtnl_policy
+8ea607330a39 bpf: Fix overloading of MEM_UNINIT's meaning
+73ab05aa46b0 sched/core: Disable page allocation in task_tick_mm_cid()
+a9e6e7443922 RDMA/bnxt_re: Fix out of bound check
+fca6caeb4a61 scsi: target: core: Fix null-ptr-deref in target_alloc_device()
+1ab60323c520 smb: client: fix OOBs when building SMB2_IOCTL request
+befab3a278c5 usb: typec: altmode should keep reference to parent
+64a90991ba8d Bluetooth: bnep: fix wild-memory-access in proto_unregister
+d62b14045c65 net/mlx5: Fix command bitmask initialization
+b22db8b8befe net: sched: use RCU read-side critical section in taprio_dump()
+ae8f8b376102 KVM: arm64: Unregister redistributor for failed vCPU creation
+48771da48072 platform/x86/intel/pmc: Fix pmc_core_iounmap to call iounmap for valid addresses
+e8c526f2bdf1 tcp/dccp: Don't use timer_pending() in reqsk_queue_unlink().
+69cc6fad5df4 LoongArch: Enable IRQ if do_ale() triggered in irq-enabled context
+1da9cfd6c41c net/mlx5: Unregister notifier on eswitch init failure
+3543152f2d33 vsock: Update rx_bytes on read_skb()
+26bc0a81f64c nvme-pci: fix race condition between reset and nvme_dev_disable()
+2ce1007f42b8 cifs: fix warning when destroy 'cifs_io_request_pool'
+088984c8d54c ACPI: PRM: Find EFI_MEMORY_RUNTIME block for PRM handler and context
+be2ca3825372 Revert "fs/9p: simplify iget to remove unnecessary paths"
+8be3e5b0c96b RDMA/bnxt_re: Avoid CPU lockups due fifo occupancy check loop
+c9bd4a82b4ed ALSA: hda/cs8409: Fix possible NULL dereference
+293f53263266 drm/msm: Avoid NULL dereference in msm_disp_state_print_regs()
+49da1463c9e3 ASoC: qcom: Fix NULL Dereference in asoc_qcom_lpass_cpu_platform_probe()
+03a86c24aea0 drm/xe: fix unbalanced rpm put() with fence_fini()
+1f97c03f43fa bpf: Preserve param->string when parsing mount options
+c2f803052bc7 bpf: Add the missing BPF_LINK_TYPE invocation for sockmap
+797d73ee232d bpf: Check the remaining info_cnt before repeating btf fields
+c6c167afa090 KVM: arm64: Fix shift-out-of-bounds bug
+f2767a41959e net: pse-pd: Fix out of bound for loop
+2b5648416e47 x86/resctrl: Avoid overflow in MB settings in bw_validate()
+f6a6780e0b9b firewire: core: fix invalid port index for parent device
+825711e00117 md/raid10: fix null ptr dereference in raid10_size()
+134475a9ab84 LoongArch: Don't crash in stack_top() for tasks without vDSO
