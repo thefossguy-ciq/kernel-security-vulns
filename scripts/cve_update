@@ -200,7 +200,7 @@ else
 		#echo "found='${found}"
 		if [[ "${found}" != "" ]]; then
 			# strip off the CVE root, as that's what update_cve is expecting:
-			update_cve "cve/${found/#$CVE_ROOT}"
+			update_cve "cve/${found/#$CVE_ROOT}" "1"
 			exit 0
 		fi
 	fi
