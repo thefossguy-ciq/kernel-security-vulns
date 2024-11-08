@@ -70,3 +70,11 @@ f2767a41959e net: pse-pd: Fix out of bound for loop
 f6a6780e0b9b firewire: core: fix invalid port index for parent device
 825711e00117 md/raid10: fix null ptr dereference in raid10_size()
 134475a9ab84 LoongArch: Don't crash in stack_top() for tasks without vDSO
+a552e2ef5fd1 bpf, arm64: Fix address emission with tag-based KASAN enabled
+229fd15908fe fs: don't try and remove empty rbtree node
+72cafe63b35d ALSA: firewire-lib: Avoid division by zero in apply_constraint_to_size()
+88806efc034a net: ethernet: mtk_eth_soc: fix memory corruption during fq dma init
+09661f75e75c ring-buffer: Fix reader locking when changing the sub buffer order
+7988bdbbb85a RDMA/bnxt_re: Fix a bug while setting up Level-2 PBL pages
+c5c1ae73b774 RDMA/bnxt_re: Add a check for memory allocation
+6e62807c7fbb posix-clock: posix-clock: Fix unbalanced locking in pc_clock_settime()
