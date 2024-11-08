@@ -53,3 +53,12 @@ bfa54a793ba7 driver core: bus: Fix double free in driver API bus_register()
 486fd58af7ac zram: don't free statically defined names
 6dbf1f341b6b SUNRPC: Fix integer overflow in decode_rc_list()
 827a07525c09 thermal: core: Free tzp copy along with the thermal zone
+9cf14f5a2746 fbdev: sisfb: Fix strbuf array overflow
+a54c441b46a0 clk: imx: Remove CLK_SET_PARENT_GATE for DRAM mux for i.MX7D
+532b53cebe58 secretmem: disable memfd_secret() if arch cannot set direct map
+0a3c84f71680 scsi: lpfc: Ensure DA_ID handling completion before deleting an NPIV instance
+e25fbcd97cf5 virtio_pmem: Check device status before requesting flush
+e32d262c89e2 mptcp: handle consistently DSS corruption
+631083143315 net: explicitly clear the sk pointer, when pf->create fails
+0b2ad4f6f2be drm/vc4: Stop the active perfmon before being destroyed
+a842e443ca81 net: phy: dp83869: fix memory corruption when enabling fiber
