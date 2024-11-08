@@ -1,0 +1,77 @@
+295416091e448 firmware: arm_scmi: Fix slab-use-after-free in scmi_bus_notifier()
+ca61d6836e6f4 firmware: qcom: scm: fix a NULL-pointer dereference
+d34f4f058edf1 drm/i915/hdcp: Add encoder check in hdcp2_get_capability
+31b42af516afa drm/i915/hdcp: Add encoder check in intel_hdcp_get_capability
+1d60d74e85264 io_uring/rw: fix missing NOWAIT check for O_DIRECT start write
+add4163aca0d4 drm/tests: hdmi: Fix memory leaks in drm_display_mode_from_cea_vic()
+926163342a2e7 drm/connector: hdmi: Fix memory leak in drm_display_mode_from_cea_vic()
+d2f551b1f72b4 nvmet-auth: assign dh_key to NULL after kfree_sensitive
+dc60992ce76fb xfs: fix finding a last resort AG in xfs_filestream_pick_ag
+aec8e6bf83910 btrfs: fix use-after-free of block device file in __btrfs_free_extra_devids()
+01e215975fd80 mctp i2c: handle NULL header address
+bc0a2f3a73fcd ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
+281dd25c1a018 mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
+f64e67e5d3a45 fork: do not invoke uffd on fork if error occurs
+4aa923a6e6406 drm/amd/pm: Vangogh: Fix kernel memory out of bounds write
+c749d9b7ebbc5 iov_iter: fix copy_page_from_iter_atomic() if KMAP_LOCAL_FORCE_MAP
+9c70b2a33cd2a sched/numa: Fix the potential null pointer dereference in task_numa_work()
+cb7e509c4e019 scsi: ufs: core: Fix another deadlock during RTC update
+37233169a6ea9 riscv: Prevent a bad reference count on CPU nodes
+25f00a13dccf8 spi: spi-fsl-dspi: Fix crash when not using GPIO chip select
+d48e1dea3931d btrfs: fix error propagation of split bios
+117932eea99b7 cgroup/bpf: use a dedicated workqueue for cgroup bpf destruction
+101c268bd2f37 cxl/port: Fix use-after-free, permit out-of-order decoder shutdown
+e9e1b20fae7de thunderbolt: Fix KASAN reported stack out-of-bounds read in tb_retimer_scan()
+d949d1d14fa28 mm: shmem: fix data-race in shmem_getattr()
+b3a033e3ecd34 nilfs2: fix potential deadlock with newly created symlinks
+41e192ad2779c nilfs2: fix kernel bug due to missing clearing of checked flag
+691e79ffc4215 iio: gts-helper: Fix memory leaks in iio_gts_build_avail_scale_table()
+369f05688911b iio: gts-helper: Fix memory leaks for the error path of iio_gts_build_avail_scale_table()
+efa353ae1b054 iio: adc: ad7124: fix division by zero in ad7124_set_channel_odr()
+6bd301819f8f6 staging: iio: frequency: ad9832: fix division by zero in ad9832_calc_freqreg()
+7245012f0f496 wifi: iwlwifi: mvm: fix 6 GHz scan construction
+07c90acb071b9 wifi: iwlegacy: Clear stale interrupts before resuming device
+d5fee261dfd9e wifi: cfg80211: clear wdev->cqm_config pointer on free
+e15d84b3bba18 wifi: ath10k: Fix memory leak in management tx
+393b6bc174b0d wifi: mac80211: do not pass a stopped vif to the driver in .get_txpower
+34c21f94fa1e1 phy: qcom: qmp-usbc: fix NULL-deref on runtime suspend
+29240130ab77c phy: qcom: qmp-usb-legacy: fix NULL-deref on runtime suspend
+bd9e4d4a3b127 phy: qcom: qmp-usb: fix NULL-deref on runtime suspend
+63a81588cd202 rpcrdma: Always release the rpcrdma_device's xa_array
+8286f8b622990 NFSD: Never decrement pending_async_copies on error
+63fab04cbd0f9 NFSD: Initialize struct nfsd4_copy earlier
+031d6f608290c fs/ntfs3: Additional check in ntfs_file_release
+a33fb016e49e3 fs/ntfs3: Fix general protection fault in run_is_mapped_full
+d178944db36b3 fs/ntfs3: Additional check in ni_clear()
+03b097099eef2 fs/ntfs3: Fix possible deadlock in mi_read
+c4a8ba334262e fs/ntfs3: Add rough attr alloc_size check
+5b2db723455a8 fs/ntfs3: Fix warning possible deadlock in ntfs_set_state
+9931122d04c6d fs/ntfs3: Check if more than chunk-size bytes are written
+556bdf27c2dd5 ntfs3: Add bounds checking to mi_enum_attr()
+a85df8c7b5ee2 drm/tegra: Fix NULL vs IS_ERR() check in probe()
+4018651ba5c40 drm/mediatek: Fix potential NULL dereference in mtk_crtc_destroy()
+1c10941e34c5f ACPI: CPPC: Make rmw_lock a raw_spin_lock
+50793801fc7f6 fsdax: dax_unshare_iter needs to copy entire blocks
+d5953d680f7e9 netfilter: nft_payload: sanitize offset and length before calling skb_checksum()
+12ae97c531fcd mlxsw: spectrum_ipip: Fix memory leak when changing remote IPv6 address
+0a66e5582b510 mlxsw: spectrum_ptp: Add missing verification before pushing Tx header
+393397fbdcad7 bpf: Check the validity of nr_words in bpf_iter_bits_new()
+101ccfbabf473 bpf: Free dynamically allocated bits in bpf_iter_bits_destroy()
+1e67d8641813f Bluetooth: hci: fix null-ptr-deref in hci_read_supported_codecs
+4ed234fe793f2 netfilter: nf_reject_ipv6: fix potential crash in nf_send_reset6()
+f48d258f0ac54 netfilter: Fix use-after-free in get_info()
+9ab5cf19fb0e4 net: fix crash when config small gso_max_size/gso_ipv4_max_size
+13400ac8fb80c bpf: Fix out-of-bounds write in trie_get_next_key()
+a13e690191eaf net/sched: sch_api: fix xa_insert() error path in tcf_block_get_ext()
+4ce1f56a1eace netdevsim: Add trailing zero to terminate the string in nsim_nexthop_bucket_activity_write()
+aa30eb3260b2d bpf: Force checkpoint when jmp history is too long
+2e95c4384438a net/sched: stop qdisc_tree_reduce_backlog on TC_H_ROOT
+66600fac7a984 net: stmmac: TSO: Fix unbalanced DMA map/unmap for non-paged SKB data
+740be3b9a6d73 sock_map: fix a NULL pointer dereference in sock_map_link_update_prog()
+2ef9439f7a19f ASoC: dapm: fix bounds checker error in dapm_widget_list_create
+f1e54d11b210b macsec: Fix use-after-free while sending the offloading packet
+07a6e3b78a65f wifi: iwlwifi: mvm: Fix response handling in iwl_mvm_send_recovery_cmd()
+3ed092997a004 wifi: iwlwifi: mvm: don't leak a link on AP removal
+76d3ddff7153c RDMA/bnxt_re: synchronize the qp-handle table array
+befd716ed429b wifi: ath11k: Fix invalid ring usage in full monitor mode
+dc783ba4b9df3 lib: alloc_tag_module_unload must wait for pending kfree_rcu calls
