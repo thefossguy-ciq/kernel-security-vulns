@@ -24,3 +24,12 @@ e4d210201854 x86/bugs: Use code segment selector for VERW operand
 02ac3a9ef3a1 parport: Proper fix for array out-of-bounds access
 b0f0e3f0552a pinctrl: stm32: check devm_kasprintf() returned value
 665a58fe663a pinctrl: apple: check devm_kasprintf() returned value
+1442ee001198 irqchip/gic-v4: Don't allow a VMOVP on a dying VPE
+48a2440d0f20 x86/entry_32: Clear CPU buffers after register restore in NMI return
+13f8f1e05f1d arm64: probes: Fix uprobes for big-endian kernels
+d8794ac20a29 posix-clock: Fix missing timespec64 check in pc_clock_settime()
+93b8ddc54507 pinctrl: ocelot: fix system hang on level based interrupts
+16a6d2e685e8 pinctrl: intel: platform: fix error path in device_for_each_child_node()
+c7c44e57750c iio: light: veml6030: fix IIO device retrieval from embedded device
+7528c4fb1237 mm/swapfile: skip HugeTLB pages for unuse_vma
+bea07fd63192 maple_tree: correct tree corruption on spanning store
