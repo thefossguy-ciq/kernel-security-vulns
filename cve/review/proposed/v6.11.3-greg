@@ -142,3 +142,5 @@ dda898d7ffe8 ext4: dax: fix overflowing extents beyond inode size when partially
 a15268787b79 drm/amd/display: Avoid overflow assignment in link_dp_cts
 cc31744a2945 x86/mm/ident_map: Use gbpages only where full GB page should be mapped.
 08062af0a521 net: napi: Prevent overflow of napi_defer_hard_irqs
+282864cc5d3f drm/panthor: Fix access to uninitialized variable in tick_ctx_cleanup()
+cac075706f29 drm/panthor: Fix race when converting group handle to group object
