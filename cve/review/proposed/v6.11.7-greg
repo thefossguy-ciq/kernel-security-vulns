@@ -1,0 +1,62 @@
+f48d258f0ac5 netfilter: Fix use-after-free in get_info()
+101ccfbabf47 bpf: Free dynamically allocated bits in bpf_iter_bits_destroy()
+d5fee261dfd9 wifi: cfg80211: clear wdev->cqm_config pointer on free
+101c268bd2f3 cxl/port: Fix use-after-free, permit out-of-order decoder shutdown
+aec8e6bf8391 btrfs: fix use-after-free of block device file in __btrfs_free_extra_devids()
+d2f551b1f72b nvmet-auth: assign dh_key to NULL after kfree_sensitive
+dc783ba4b9df lib: alloc_tag_module_unload must wait for pending kfree_rcu calls
+4ed234fe793f netfilter: nf_reject_ipv6: fix potential crash in nf_send_reset6()
+c40dd8c47325 bpf, test_run: Fix LIVE_FRAME frame update after a page has been recycled
+c4a8ba334262 fs/ntfs3: Add rough attr alloc_size check
+03b097099eef fs/ntfs3: Fix possible deadlock in mi_read
+d178944db36b fs/ntfs3: Additional check in ni_clear()
+a33fb016e49e fs/ntfs3: Fix general protection fault in run_is_mapped_full
+031d6f608290 fs/ntfs3: Additional check in ntfs_file_release
+41e192ad2779 nilfs2: fix kernel bug due to missing clearing of checked flag
+b3a033e3ecd3 nilfs2: fix potential deadlock with newly created symlinks
+d949d1d14fa2 mm: shmem: fix data-race in shmem_getattr()
+bc0a2f3a73fc ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow
+dc60992ce76f xfs: fix finding a last resort AG in xfs_filestream_pick_ag
+f1e54d11b210 macsec: Fix use-after-free while sending the offloading packet
+1c10941e34c5 ACPI: CPPC: Make rmw_lock a raw_spin_lock
+e9e1b20fae7d thunderbolt: Fix KASAN reported stack out-of-bounds read in tb_retimer_scan()
+d48e1dea3931 btrfs: fix error propagation of split bios
+4aa923a6e640 drm/amd/pm: Vangogh: Fix kernel memory out of bounds write
+b125a0def25a resource,kexec: walk_system_ram_res_rev must retain resource flags
+2b059d0d1e62 slub/kunit: fix a WARNING due to unwrapped __kmalloc_cache_noprof
+6e58c3310622 ice: fix crash on probe for DPLL enabled E810 LOM
+ad4a3ca6a8e8 ipv4: ip_tunnel: Fix suspicious RCU usage warning in ip_tunnel_init_flow()
+90e0569dd3d3 ipv4: ip_tunnel: Fix suspicious RCU usage warning in ip_tunnel_find()
+12ae97c531fc mlxsw: spectrum_ipip: Fix memory leak when changing remote IPv6 address
+07c90acb071b wifi: iwlegacy: Clear stale interrupts before resuming device
+c749d9b7ebbc iov_iter: fix copy_page_from_iter_atomic() if KMAP_LOCAL_FORCE_MAP
+3deb12c788c3 mptcp: init: protect sched with rcu_read_lock
+409dc5196d5b arm64: dts: imx8ulp: correct the flexspi compatible string
+108bc59fe817 drm/amdgpu: fix random data corruption for sdma 7
+1e67d8641813 Bluetooth: hci: fix null-ptr-deref in hci_read_supported_codecs
+add4163aca0d drm/tests: hdmi: Fix memory leaks in drm_display_mode_from_cea_vic()
+bd9e4d4a3b12 phy: qcom: qmp-usb: fix NULL-deref on runtime suspend
+29240130ab77 phy: qcom: qmp-usb-legacy: fix NULL-deref on runtime suspend
+34c21f94fa1e phy: qcom: qmp-usbc: fix NULL-deref on runtime suspend
+926163342a2e drm/connector: hdmi: Fix memory leak in drm_display_mode_from_cea_vic()
+e15d84b3bba1 wifi: ath10k: Fix memory leak in management tx
+691e79ffc421 iio: gts-helper: Fix memory leaks in iio_gts_build_avail_scale_table()
+15e8156713cc mm: shrinker: avoid memleak in alloc_shrinker_info
+f64e67e5d3a4 fork: do not invoke uffd on fork if error occurs
+985da552a98e fork: only invoke khugepaged, ksm hooks if no error
+5d01b56f0518 drm/panthor: Fix firmware initialization on systems with a page size > 4k
+393b6bc174b0 wifi: mac80211: do not pass a stopped vif to the driver in .get_txpower
+25f00a13dccf spi: spi-fsl-dspi: Fix crash when not using GPIO chip select
+393397fbdcad bpf: Check the validity of nr_words in bpf_iter_bits_new()
+50793801fc7f fsdax: dax_unshare_iter needs to copy entire blocks
+556bdf27c2dd ntfs3: Add bounds checking to mi_enum_attr()
+9931122d04c6 fs/ntfs3: Check if more than chunk-size bytes are written
+740be3b9a6d7 sock_map: fix a NULL pointer dereference in sock_map_link_update_prog()
+4ce1f56a1eac netdevsim: Add trailing zero to terminate the string in nsim_nexthop_bucket_activity_write()
+9ab5cf19fb0e net: fix crash when config small gso_max_size/gso_ipv4_max_size
+d5953d680f7e netfilter: nft_payload: sanitize offset and length before calling skb_checksum()
+63fab04cbd0f NFSD: Initialize struct nfsd4_copy earlier
+6bd301819f8f staging: iio: frequency: ad9832: fix division by zero in ad9832_calc_freqreg()
+efa353ae1b05 iio: adc: ad7124: fix division by zero in ad7124_set_channel_odr()
+9c70b2a33cd2 sched/numa: Fix the potential null pointer dereference in task_numa_work()
+281dd25c1a01 mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
