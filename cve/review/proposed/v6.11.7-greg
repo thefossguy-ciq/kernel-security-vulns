@@ -60,3 +60,4 @@ d5953d680f7e netfilter: nft_payload: sanitize offset and length before calling s
 efa353ae1b05 iio: adc: ad7124: fix division by zero in ad7124_set_channel_odr()
 9c70b2a33cd2 sched/numa: Fix the potential null pointer dereference in task_numa_work()
 281dd25c1a01 mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
+13400ac8fb80 bpf: Fix out-of-bounds write in trie_get_next_key()
