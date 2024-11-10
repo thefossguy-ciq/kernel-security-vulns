@@ -21,23 +21,19 @@
 # Change these to suit your own setup
 STABLEREMOTE=stable     # Whatever you called your Stable remote
 
-print_red()
-{
-    if [[ -t 1 ]]; then
-        echo -e "\e[01;31m$@\e[0m"
-    else
-	echo -e "$@"
-    fi
-}
+# Define colors if we're in a terminal
+if [[ -t 1 ]]; then
+    RED="\e[1;31m"
+    BLUE="\e[1;34m"
+    RESET="\e[0m"
+else
+    RED=""
+    BLUE=""
+    RESET=""
+fi
 
-print_blue()
-{
-    if [[ -t 1 ]]; then
-        echo -e "\e[01;34m$@\e[0m"
-    else
-	echo -e "$@"
-    fi
-}
+print_red() { echo -e "${RED}$*${RESET}"; }
+print_blue() { echo -e "${BLUE}$*${RESET}"; }
 
 function print_annotations()
 {
