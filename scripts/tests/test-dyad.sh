@@ -413,6 +413,105 @@ test_version_matching() {
     print_result "$name" "$result" "$message"
 }
 
+test_stable_branch_pairs() {
+    local name="Stable branch commit pairs test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/stable-kernel"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh stable tree
+    rm -rf "$TEST_DIR/stable-kernel"
+    mkdir -p "$TEST_DIR/stable-kernel"
+    cd "$TEST_DIR/stable-kernel" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial empty commit
+    git commit --allow-empty -m "Initial commit" > /dev/null 2>&1
+
+    # Create version 6.2
+    echo "# version 6.2" > Makefile
+    mkdir -p drivers/test
+    echo "int test(void) { return 0; }" > drivers/test/test.c
+    git add Makefile drivers/test/test.c
+    git commit -m "Linux 6.2" > /dev/null 2>&1
+    git tag -a v6.2 -m "Linux 6.2" > /dev/null 2>&1
+
+    # Add vulnerable code
+    cat > drivers/test/test.c << 'EOF'
+int test(void) {
+    /* BUG: No bounds checking */
+    return -1;
+}
+EOF
+    git add drivers/test/test.c
+    git commit -m "test: add feature without bounds checking" > /dev/null 2>&1
+    local vuln_commit=$(git rev-parse HEAD)
+
+    # Add a fix
+    cat > drivers/test/test.c << 'EOF'
+int test(void) {
+    /* Fixed: added bounds checking */
+    return 0;
+}
+EOF
+    git add drivers/test/test.c
+    git commit -m "test: add missing bounds checking
+
+Fixed security vulnerability in test function.
+
+Fixes: ${vuln_commit:0:12} ('test: add feature without bounds checking')
+Cc: stable@vger.kernel.org" > /dev/null 2>&1
+    local fix_commit=$(git rev-parse HEAD)
+
+    # Tag 6.3
+    git tag -a v6.3 -m "Linux 6.3" > /dev/null 2>&1
+
+    # Create id_found_in that deterministically maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${vuln_commit})
+        echo "6.2"
+        ;;
+    ${fix_commit})
+        echo "6.3"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Just the fix commit
+    local output
+    output=$($DYAD "${fix_commit:0:12}" 2>&1)
+
+    local expected1="6.2:${vuln_commit}:6.3:${fix_commit}"
+    if ! echo "$output" | grep -q "^${expected1}\$"; then
+        result=1
+        message+="Test 1: Expected output to match '${expected1}'. Got '${output}' instead. "
+    fi
+
+    # Test case 2: With explicit vulnerable commit
+    output=$($DYAD --vulnerable="${vuln_commit:0:12}" "${fix_commit:0:12}" 2>&1)
+
+    local expected2="6.3:${vuln_commit}:6.3:${fix_commit}"
+    if ! echo "$output" | grep -q "^${expected2}\$"; then
+        result=1
+        message+="Test 2: Expected output to match '${expected2}'. Got '${output}' instead. "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -425,6 +524,7 @@ test_version_parsing
 test_debug_output
 test_missing_environment
 test_version_matching
+test_stable_branch_pairs
 
 # Print summary
 echo "------------------------"
