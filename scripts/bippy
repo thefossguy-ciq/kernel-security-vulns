@@ -79,8 +79,8 @@ dbg() {
 
 
 # Parse the command line
-short_opts="j:m:c:s:u:hv"
-long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,diff:,reference:,help,verbose"
+short_opts="j:m:c:s:u:n:hv"
+long_opts="json:,mbox:,cve:,sha:,vulnerable:,user:,name:,diff:,reference:,help,verbose"
 JSON_FILE=""
 MBOX_FILE=""
 DIFF_FILE=""
