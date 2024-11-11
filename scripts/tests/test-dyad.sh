@@ -725,6 +725,82 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_cherry_pick_no_fixes() {
+    local name="Cherry-picked fix without Fixes tag test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Initial commit and tag for 6.1
+    echo "Linux 6.1" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.1" > /dev/null 2>&1
+    git tag -a v6.1 -m "Linux 6.1" > /dev/null 2>&1
+
+    # Add code with bug
+    mkdir -p drivers/test
+    echo "buggy code" > drivers/test/bug.c
+    git add drivers/test/bug.c
+    git commit -m "test: add new feature
+
+This adds a new feature that will later be found to have issues." > /dev/null 2>&1
+    local bug_commit=$(git rev-parse HEAD)
+    git tag -a v6.1.1 -m "Linux 6.1.1" > /dev/null 2>&1
+
+    # Add the fix much later
+    echo "fixed code" > drivers/test/bug.c
+    git add drivers/test/bug.c
+    git commit -m "test: fix use-after-free in driver
+
+The original implementation in commit ${bug_commit:0:12} failed to
+properly handle resource cleanup, leading to a use-after-free condition.
+This patch fixes the issue by ensuring proper cleanup order." > /dev/null 2>&1
+    local fix_commit=$(git rev-parse HEAD)
+    git tag -a v6.1.2 -m "Linux 6.1.2" > /dev/null 2>&1
+
+    # Create id_found_in that only maps exact versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${bug_commit})
+        echo "6.1.1"
+        ;;
+    ${fix_commit})
+        echo "6.1.2"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test with explicit vulnerable commit
+    local output
+    output=$($DYAD --vulnerable="${bug_commit:0:12}" "${fix_commit:0:12}" 2>&1)
+
+    # Should show version range from bug to fix, accommodate possible ^0 suffix
+    if ! echo "$output" | grep -Eq "6\.1\.1(\^0)?:[a-f0-9]+:6\.1\.2:${fix_commit}"; then
+        result=1
+        message+="Fix with explicit vulnerable commit not found. Expected 6.1.1(^0)? to 6.1.2 range. Got: $output"
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -740,6 +816,7 @@ test_version_matching
 test_stable_branch_pairs
 test_multiple_vulnerable_commits
 test_stable_backport_fix
+test_cherry_pick_no_fixes
 
 # Print summary
 echo "------------------------"
