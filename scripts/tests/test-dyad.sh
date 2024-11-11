@@ -604,6 +604,127 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_stable_backport_fix() {
+    local name="Stable backport fix test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial version
+    echo "Linux 6.1" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.1" > /dev/null 2>&1
+    git tag -a v6.1 -m "Linux 6.1" > /dev/null 2>&1
+
+    # Add vulnerable commit
+    mkdir -p drivers/test
+    echo "vulnerable code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: add vulnerable feature" > /dev/null 2>&1
+    local vuln_commit=$(git rev-parse HEAD)
+
+    # Create stable branch for 6.1.y
+    git checkout -b linux-6.1.y > /dev/null 2>&1
+
+    # Add the mainline fix first
+    git checkout master > /dev/null 2>&1
+    echo "Linux 6.2" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.2" > /dev/null 2>&1
+    git tag -a v6.2 -m "Linux 6.2" > /dev/null 2>&1
+
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability
+
+Fix a security issue in the test driver.
+
+Fixes: ${vuln_commit:0:12} ('test: add vulnerable feature')
+Cc: stable@vger.kernel.org" > /dev/null 2>&1
+    local mainline_fix=$(git rev-parse HEAD)
+
+    # Tag the mainline fix version
+    echo "Linux 6.3" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.3" > /dev/null 2>&1
+    git tag -a v6.3 -m "Linux 6.3" > /dev/null 2>&1
+
+    # Create the stable backport
+    git checkout linux-6.1.y > /dev/null 2>&1
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability
+
+[Upstream commit ${mainline_fix:0:12}]
+
+Fix a security issue in the test driver.
+
+Fixes: ${vuln_commit:0:12} ('test: add vulnerable feature')" > /dev/null 2>&1
+    local stable_fix=$(git rev-parse HEAD)
+
+    # Tag the stable fix version
+    echo "Linux 6.1.1" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.1.1" > /dev/null 2>&1
+    git tag -a v6.1.1 -m "Linux 6.1.1" > /dev/null 2>&1
+
+    git checkout master > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${vuln_commit})
+        echo "6.1"
+        ;;
+    ${mainline_fix})
+        echo "6.3"
+        ;;
+    ${stable_fix})
+        echo "6.1.1"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Mainline fix should identify full range
+    local output
+    output=$($DYAD "${mainline_fix:0:12}" 2>&1)
+
+    # Should show vulnerable version being fixed in mainline
+    if ! echo "$output" | grep -q "6.1.*:.*6.3"; then
+        result=1
+        message+="Mainline fix version pair not found in output. Output: $output "
+    fi
+
+    # Test case 2: Stable fix should identify stable range
+    output=$($DYAD "${stable_fix:0:12}" 2>&1)
+
+    # Should show vulnerable version being fixed in stable
+    if ! echo "$output" | grep -q "6.1.*:.*6.1.1"; then
+        result=1
+        message+="Stable fix version pair not found in output. Output: $output "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -618,6 +739,7 @@ test_missing_environment
 test_version_matching
 test_stable_branch_pairs
 test_multiple_vulnerable_commits
+test_stable_backport_fix
 
 # Print summary
 echo "------------------------"
