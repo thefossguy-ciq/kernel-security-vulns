@@ -512,6 +512,98 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_multiple_vulnerable_commits() {
+    local name="Multiple vulnerable commits test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial version
+    echo "Linux 6.1" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.1" > /dev/null 2>&1
+    git tag -a v6.1 -m "Linux 6.1" > /dev/null 2>&1
+
+    # Add first vulnerable commit
+    mkdir -p drivers/test
+    echo "vulnerable code 1" > drivers/test/vuln1.c
+    git add drivers/test/vuln1.c
+    git commit -m "test: add first vulnerable feature" > /dev/null 2>&1
+    local vuln1_commit=$(git rev-parse HEAD)
+
+    # Create branch for stable releases
+    git checkout -b linux-6.1.y > /dev/null 2>&1
+
+    # Add second vulnerable commit in 6.2
+    git checkout master > /dev/null 2>&1
+    echo "Linux 6.2" > Makefile
+    echo "vulnerable code 2" > drivers/test/vuln2.c
+    git add Makefile drivers/test/vuln2.c
+    git commit -m "Linux 6.2 and second vulnerable feature" > /dev/null 2>&1
+    git tag -a v6.2 -m "Linux 6.2" > /dev/null 2>&1
+    local vuln2_commit=$(git rev-parse HEAD)
+
+    # Add the fix
+    echo "fixed code 1" > drivers/test/vuln1.c
+    echo "fixed code 2" > drivers/test/vuln2.c
+    git add drivers/test/vuln1.c drivers/test/vuln2.c
+    git commit -m "test: fix multiple vulnerabilities
+
+This fixes two separate vulnerabilities that were introduced earlier.
+
+Fixes: ${vuln1_commit:0:12} ('test: add first vulnerable feature')
+" > /dev/null 2>&1
+    local fix_commit=$(git rev-parse HEAD)
+
+    # Tag the fix version
+    echo "Linux 6.3" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.3" > /dev/null 2>&1
+    git tag -a v6.3 -m "Linux 6.3" > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${vuln1_commit})
+        echo "6.1"
+        ;;
+    ${fix_commit})
+        echo "6.3"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Fix commit should identify the vulnerability from Fixes: line
+    local output
+    output=$($DYAD "${fix_commit:0:12}" 2>&1)
+
+    # Should show vulnerable version being fixed
+    if ! echo "$output" | grep -q "6.1.*:.*6.3"; then
+        result=1
+        message+="Vulnerable version pair not found in output. Output: $output "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -525,6 +617,7 @@ test_debug_output
 test_missing_environment
 test_version_matching
 test_stable_branch_pairs
+test_multiple_vulnerable_commits
 
 # Print summary
 echo "------------------------"
