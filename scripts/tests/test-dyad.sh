@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2024
 #
-# Test script for dyad - verifies the functionality of dyad script 
+# Test script for dyad - verifies the functionality of dyad script
 # by running multiple test cases with different scenarios
 
 # Ensure TMPDIR is set
@@ -39,7 +39,7 @@ print_result() {
     local name=$1
     local result=$2
     local message=$3
-    
+
     if [ "$result" -eq 0 ]; then
         echo "${GREEN}✓ PASS${RESET}: $name"
         TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -57,20 +57,20 @@ setup_mock_upstream_repo() {
     mkdir -p "$repo_dir"
     cd "$repo_dir" || exit 1
     git init > /dev/null 2>&1
-    
+
     # Create the initial version marker
     echo "Linux 6.1" > Makefile
     git add Makefile
     git commit -m "Linux 6.1" > /dev/null 2>&1
     git tag -a "v6.1" -m "Linux 6.1" > /dev/null 2>&1
     local v6_1_commit=$(git rev-parse HEAD)
-    
+
     # Add a subsystem file with regular development
     mkdir -p drivers/subsystem
     echo "initial code" > drivers/subsystem/code.c
     git add drivers/subsystem/code.c
     git commit -m "subsystem: add initial implementation" > /dev/null 2>&1
-    
+
     # Create a vulnerability
     echo "vulnerable code" >> drivers/subsystem/code.c
     git add drivers/subsystem/code.c
@@ -79,32 +79,32 @@ setup_mock_upstream_repo() {
 This adds a new feature that will later be found to have security implications.
 " > /dev/null 2>&1
     local vuln_commit=$(git rev-parse HEAD)
-    
+
     # Some regular development commits
     mkdir -p drivers/other
     echo "unrelated change" > drivers/other/other.c
     git add drivers/other/other.c
     git commit -m "other: add new driver" > /dev/null 2>&1
-    
+
     # Version 6.2-rc1
     echo "Linux 6.2-rc1" > Makefile
     git add Makefile
     git commit -m "Linux 6.2-rc1" > /dev/null 2>&1
     git tag -a "v6.2-rc1" -m "Linux 6.2-rc1" > /dev/null 2>&1
-    
+
     # Version 6.2 release
     echo "Linux 6.2" > Makefile
     git add Makefile
     git commit -m "Linux 6.2" > /dev/null 2>&1
     git tag -a "v6.2" -m "Linux 6.2" > /dev/null 2>&1
     local v6_2_commit=$(git rev-parse HEAD)
-    
+
     # More development
     mkdir -p drivers/feature
     echo "feature" > drivers/feature/new.c
     git add drivers/feature/new.c
     git commit -m "feature: add new capability" > /dev/null 2>&1
-    
+
     # Fix for the vulnerability
     echo "fixed code" > drivers/subsystem/code.c
     git add drivers/subsystem/code.c
@@ -117,19 +117,19 @@ Fixes: ${vuln_commit:0:12} ('subsystem: add new feature to code.c')
 Cc: stable@vger.kernel.org
 " > /dev/null 2>&1
     local fix_commit=$(git rev-parse HEAD)
-    
+
     # Version 6.3-rc1
     echo "Linux 6.3-rc1" > Makefile
     git add Makefile
     git commit -m "Linux 6.3-rc1" > /dev/null 2>&1
     git tag -a "v6.3-rc1" -m "Linux 6.3-rc1" > /dev/null 2>&1
-    
+
     # Store commit IDs for later use
     echo "$v6_1_commit" > "$TEST_DIR/v6_1_commit"
     echo "$v6_2_commit" > "$TEST_DIR/v6_2_commit"
     echo "$vuln_commit" > "$TEST_DIR/vuln_commit"
     echo "$fix_commit" > "$TEST_DIR/fix_commit"
-    
+
     cd - > /dev/null 2>&1
 }
 
@@ -138,18 +138,18 @@ setup_mock_stable_repo() {
     local repo_dir="$TEST_DIR/stable-kernel"
     local fix_commit
     fix_commit=$(cat "$TEST_DIR/fix_commit")
-    
+
     # Clone the upstream repo to create the stable repo
     git clone "$TEST_DIR/linux" "$repo_dir" > /dev/null 2>&1
     cd "$repo_dir" || exit 1
-    
+
     # Create the 6.2.y branch at the 6.2 release point
     git checkout -b linux-6.2.y v6.2 > /dev/null 2>&1
-    
+
     # Backport the fix commit
     # First, get the patch from upstream
     git format-patch -1 "$fix_commit" > /dev/null 2>&1
-    
+
     # Create the backported fix with proper commit message
     echo "fixed code" > drivers/subsystem/code.c
     git add drivers/subsystem/code.c
@@ -164,16 +164,16 @@ Fixes: ${vuln_commit:0:12} ('subsystem: add new feature to code.c')
 Signed-off-by: Stable Developer <stable@example.com>
 " > /dev/null 2>&1
     local stable_fix_commit=$(git rev-parse HEAD)
-    
+
     # Create the stable release with the fix
     echo "Linux 6.2.1" > Makefile
     git add Makefile
     git commit -m "Linux 6.2.1" > /dev/null 2>&1
     git tag -a "v6.2.1" -m "Linux 6.2.1" > /dev/null 2>&1
-    
+
     # Store the stable fix commit ID
     echo "$stable_fix_commit" > "$TEST_DIR/stable_fix_commit"
-    
+
     cd - > /dev/null 2>&1
 }
 
@@ -181,7 +181,7 @@ Signed-off-by: Stable Developer <stable@example.com>
 setup_mock_commit_tree() {
     local commit_dir="$TEST_DIR/commit-tree"
     mkdir -p "$commit_dir"
-    
+
     # Create mock id_found_in script that handles both upstream and stable trees
     cat > "$commit_dir/id_found_in" << 'EOF'
 #!/bin/bash
@@ -216,9 +216,9 @@ fi
 echo "$VERSIONS" | sort -V
 
 EOF
-    
+
     chmod +x "$commit_dir/id_found_in"
-    
+
     # Create a mock git repo in the commit tree
     cd "$commit_dir" || exit 1
     git init > /dev/null 2>&1
@@ -234,21 +234,21 @@ test_basic_functionality() {
     local name="Basic functionality test"
     local result=0
     local output
-    
+
     # Mock environment setup
     export CVEKERNELTREE="$TEST_DIR/stable-kernel"
     export CVECOMMITTREE="$TEST_DIR/commit-tree"
-    
+
     setup_mock_upstream_repo
     setup_mock_stable_repo
     setup_mock_commit_tree
-    
+
     output=$($DYAD --help 2>&1)
     if [[ ! "$output" =~ "Usage:" ]]; then
         print_result "$name" 1 "Help message not found in output"
         return
     fi
-    
+
     print_result "$name" 0
 }
 
@@ -257,19 +257,19 @@ test_fix_commit() {
     local stable_fix_commit
     stable_fix_commit=$(cat "$TEST_DIR/stable_fix_commit")
     local output
-    
+
     output=$($DYAD "${stable_fix_commit:0:12}" 2>&1)
     if [[ "$?" -ne 0 ]]; then
         print_result "$name" 1 "Failed to process fix commit"
         return
     fi
-    
+
     # Verify output contains expected version pairs
     if [[ ! "$output" =~ "6.2.1" ]]; then
         print_result "$name" 1 "Fix version not found in output"
         return
     fi
-    
+
     print_result "$name" 0
 }
 
@@ -280,18 +280,18 @@ test_vulnerable_commit() {
     vuln_commit=$(cat "$TEST_DIR/vuln_commit")
     stable_fix_commit=$(cat "$TEST_DIR/stable_fix_commit")
     local output
-    
+
     output=$($DYAD --vulnerable="${vuln_commit:0:12}" "${stable_fix_commit:0:12}" 2>&1)
     if [[ "$?" -ne 0 ]]; then
         print_result "$name" 1 "Failed to process vulnerable commit"
         return
     fi
-    
+
     if [[ ! "$output" =~ "6.2" ]]; then
         print_result "$name" 1 "Vulnerable version not found in output"
         return
     fi
-    
+
     print_result "$name" 0
 }
 
@@ -299,13 +299,13 @@ test_invalid_git_sha() {
     local name="Invalid git SHA test"
     local result=0
     local output
-    
+
     output=$($DYAD "invalid_sha" 2>&1)
     if [[ ! "$output" =~ "ERROR: git id" ]]; then
         print_result "$name" 1 "Expected error message for invalid git SHA not found"
         return
     fi
-    
+
     print_result "$name" 0
 }
 
@@ -317,14 +317,14 @@ test_version_parsing() {
     vuln_commit=$(cat "$TEST_DIR/vuln_commit")
     local output
     local old_kernel_tree="$CVEKERNELTREE"
-    
+
     # Test with stable commit
     output=$($DYAD --verbose "${stable_fix_commit:0:12}" 2>&1)
     if [[ ! "$output" =~ "6.2.1" ]]; then
         print_result "$name" 1 "Stable version not found in output"
         return
     fi
-    
+
     # Test with upstream commit to verify rc handling
     export CVEKERNELTREE="$TEST_DIR/linux"
     output=$($DYAD --verbose "${vuln_commit:0:12}" 2>&1)
@@ -332,7 +332,7 @@ test_version_parsing() {
         print_result "$name" 1 "RC version parsing failed"
         return
     fi
-    
+
     export CVEKERNELTREE="$old_kernel_tree"
     print_result "$name" 0
 }
@@ -342,26 +342,26 @@ test_debug_output() {
     local stable_fix_commit
     stable_fix_commit=$(cat "$TEST_DIR/stable_fix_commit")
     local output
-    
+
     output=$($DYAD --verbose "${stable_fix_commit:0:12}" 2>&1)
     if [[ ! "$output" =~ "#" ]]; then
         print_result "$name" 1 "Debug output not found with --verbose flag"
         return
     fi
-    
+
     print_result "$name" 0
 }
 
 test_missing_environment() {
     local name="Missing environment variables test"
     local output
-    
+
     # Temporarily unset required environment variables
     local old_kernel_tree="$CVEKERNELTREE"
     local old_commit_tree="$CVECOMMITTREE"
     unset CVEKERNELTREE
     unset CVECOMMITTREE
-    
+
     output=$($DYAD "abcd1234" 2>&1)
     if [[ ! "$output" =~ "ERROR:" ]] || [[ ! "$output" =~ "needs setting" ]]; then
         print_result "$name" 1 "Expected error message for missing environment variables"
@@ -369,10 +369,48 @@ test_missing_environment() {
         export CVECOMMITTREE="$old_commit_tree"
         return
     fi
-    
+
     export CVEKERNELTREE="$old_kernel_tree"
     export CVECOMMITTREE="$old_commit_tree"
     print_result "$name" 0
+}
+
+test_version_matching() {
+    local name="Version matching test"
+    local fix_commit
+    local vuln_commit
+    fix_commit=$(cat "$TEST_DIR/fix_commit")
+    vuln_commit=$(cat "$TEST_DIR/vuln_commit")
+    local output
+    local result=0
+    local message=""
+
+    # Set required environment variables
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Test case 1: Basic version matching with fix commit only
+    output=$($DYAD "${fix_commit:0:12}" 2>&1)
+    if ! echo "$output" | grep -qE '[0-9]+\.[0-9]+[^:]*:[a-f0-9]+:[0-9]+\.[0-9]+[^:]*:[a-f0-9]+'; then
+        result=1
+        message+="No valid version:commit pairs found in fix commit output. "
+    fi
+
+    # Test case 2: Version matching with explicitly specified vulnerable commit
+    output=$($DYAD --vulnerable="${vuln_commit:0:12}" "${fix_commit:0:12}" 2>&1)
+    if ! echo "$output" | grep -qE '6\.2:[a-f0-9]+:6\.3-rc1:[a-f0-9]+'; then
+        result=1
+        message+="Expected mainline version pair not found. "
+    fi
+
+    # Test case 3: Check for all required versions in output
+    output=$($DYAD "${fix_commit:0:12}" 2>&1)
+    if ! echo "$output" | grep -q "6.2-rc1" && ! echo "$output" | grep -q "6.3-rc1"; then
+        result=1
+        message+="Expected mainline version numbers not found. "
+    fi
+
+    print_result "$name" "$result" "$message"
 }
 
 # Run all tests
@@ -386,6 +424,7 @@ test_invalid_git_sha
 test_version_parsing
 test_debug_output
 test_missing_environment
+test_version_matching
 
 # Print summary
 echo "------------------------"
