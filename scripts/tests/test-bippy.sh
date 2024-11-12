@@ -131,6 +131,28 @@ EOF
     echo "24dbfb3a-32d5-4af7-b929-e54122df5340" > "$TEST_DIR/linux.uuid"
 }
 
+# Download and cache the CVE schema
+setup_cve_schema() {
+    local schema_file="$TEST_DIR/cve_schema.json"
+    local schema_url="https://raw.githubusercontent.com/CVEProject/cve-schema/main/schema/CVE_Record_Format.json"
+
+    # Download schema if we don't have it
+    if [ ! -f "$schema_file" ]; then
+        if ! curl -sSL "$schema_url" -o "$schema_file"; then
+            echo "${RED}Failed to download CVE schema${RESET}" >&2
+            return 1
+        fi
+    fi
+
+    # Verify we have a valid JSON file
+    if ! jq empty "$schema_file" 2>/dev/null; then
+        echo "${RED}Downloaded schema is not valid JSON${RESET}" >&2
+        return 1
+    fi
+
+    echo "$schema_file"
+}
+
 # Test basic functionality
 test_basic_functionality() {
     local name="Basic bippy functionality test"
@@ -421,6 +443,136 @@ test_json_truncation() {
     print_result "$name" "$result" "$message"
 }
 
+# Test JSON schema validation
+test_json_schema_validation() {
+    local name="JSON schema validation test"
+    local result=0
+    local message=""
+    local fix_commit
+    fix_commit=$(cat "$TEST_DIR/fix_commit")
+
+    # Check for required tools
+    if ! command -v jq >/dev/null 2>&1; then
+        print_result "$name" 1 "jq is required but not installed"
+        return
+    fi
+
+    if ! command -v curl >/dev/null 2>&1; then
+        print_result "$name" 1 "curl is required but not installed"
+        return
+    fi
+
+    # Set required environment variables
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+    export CVE_USER="test@example.com"
+
+    # Create output file paths
+    local json_file="$TEST_DIR/output_schema_test.json"
+    local filter_file="$TEST_DIR/schema_validate.jq"
+
+    # Create the jq filter file for schema validation
+    cat > "$filter_file" << 'EOF'
+# Load the input files
+def check_required_props(properties):
+  reduce (properties | to_entries[]) as $prop ({valid: true, missing: []};
+    if $prop.value.required and (input | has($prop.key) | not)
+    then .valid = false | .missing += [$prop.key]
+    else .
+    end
+  );
+
+def check_type(value; type):
+  if type == "array" then (value | type == "array")
+  elif type == "string" then (value | type == "string")
+  elif type == "object" then (value | type == "object")
+  elif type == "number" then (value | type == "number")
+  elif type == "boolean" then (value | type == "boolean")
+  else false
+  end;
+
+def validate_schema:
+  # Required top-level fields
+  if (.dataType | not) then
+    "Missing required field: dataType"
+  elif (.dataVersion | not) then
+    "Missing required field: dataVersion"
+  elif (.cveMetadata | not) then
+    "Missing required field: cveMetadata"
+  elif (.cveMetadata.cveID | not) then
+    "Missing required field: cveMetadata.cveID"
+  elif (.containers | not) then
+    "Missing required field: containers"
+  elif (.containers.cna | not) then
+    "Missing required field: containers.cna"
+  elif (.containers.cna.descriptions | length == 0) then
+    "Missing or empty descriptions array"
+  elif (.containers.cna.affected | length == 0) then
+    "Missing or empty affected array"
+  # Type checks
+  elif (.dataType | type) != "string" then
+    "dataType must be a string"
+  elif (.dataVersion | type) != "string" then
+    "dataVersion must be a string"
+  elif (.cveMetadata.cveID | test("^CVE-\\d{4}-\\d+$") | not) then
+    "cveID format invalid"
+  else
+    "valid"
+  end;
+
+validate_schema
+EOF
+
+    # Get schema path
+    local schema_file
+    schema_file=$(setup_cve_schema)
+    if [ $? -ne 0 ] || [ ! -f "$schema_file" ]; then
+        print_result "$name" 1 "Failed to setup CVE schema"
+        return
+    fi
+
+    # Run bippy to generate JSON
+    $BIPPY --cve="CVE-2024-12345" \
+           --sha="${fix_commit:0:12}" \
+           --json="$json_file" \
+           --user="test@example.com" \
+           --name="Test User" 2>/dev/null
+
+    # Check if JSON file was created
+    if [ ! -f "$json_file" ]; then
+        print_result "$name" 1 "JSON file not created"
+        return
+    fi
+
+    # Validate JSON against our schema rules
+    local validation_output
+    validation_output=$(jq -r -f "$filter_file" "$json_file" 2>&1)
+    local validate_status=$?
+
+    if [ $validate_status -ne 0 ]; then
+        result=1
+        message="JSON validation failed with jq error: ${validation_output}"
+    elif [ "$validation_output" != "valid" ]; then
+        result=1
+        message="JSON validation failed: ${validation_output}"
+    fi
+
+    # Additional specific checks for required CVE fields
+    local required_fields=(
+        ".containers.cna.affected[].product"
+        ".containers.cna.descriptions[].value"
+    )
+
+    for field in "${required_fields[@]}"; do
+        if ! jq -e "$field" "$json_file" >/dev/null 2>&1; then
+            result=1
+            message+="Missing required field: $field. "
+        fi
+    done
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run tests
 echo "${BLUE}Running bippy tests...${RESET}"
 echo "------------------------"
@@ -434,6 +586,13 @@ test_basic_functionality
 test_reference_file_handling
 test_multiple_references
 test_json_truncation
+
+# Check for jq availability before running schema validation
+if command -v jq >/dev/null 2>&1; then
+    test_json_schema_validation
+else
+    echo "${BLUE}Skipping schema validation test - jq not installed${RESET}"
+fi
 
 # Print summary
 echo "------------------------"
