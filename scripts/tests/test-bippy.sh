@@ -257,6 +257,86 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+# Test multiple reference handling
+test_multiple_references() {
+    local name="Multiple references handling test"
+    local result=0
+    local message=""
+    local fix_commit
+    fix_commit=$(cat "$TEST_DIR/fix_commit")
+
+    # Set required environment variables
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+    export CVE_USER="test@example.com"
+
+    # Create output file paths
+    local json_file="$TEST_DIR/output_multi_ref.json"
+    local mbox_file="$TEST_DIR/output_multi_ref.mbox"
+    local ref_file="$TEST_DIR/multi_references.txt"
+
+    # Create reference file with multiple test URLs and formats
+    cat > "$ref_file" << EOF
+https://example.com/advisory/ABC-123
+https://security.example.org/issue-456
+http://cve.mitre.org/related/789
+https://bugzilla.kernel.org/show_bug.cgi?id=999
+EOF
+
+    # Run bippy with reference file
+    $BIPPY --cve="CVE-2024-12345" \
+           --sha="${fix_commit:0:12}" \
+           --json="$json_file" \
+           --mbox="$mbox_file" \
+           --user="test@example.com" \
+           --name="Test User" \
+           --reference="$ref_file" 2>/dev/null
+
+    # Verify JSON file contains all references
+    if [ ! -f "$json_file" ]; then
+        result=1
+        message+="JSON file not created. "
+    else
+        local missing_refs=()
+        while IFS= read -r ref; do
+            if ! grep -q "\"${ref}\"" "$json_file"; then
+                missing_refs+=("$ref")
+            fi
+        done < "$ref_file"
+
+        if [ ${#missing_refs[@]} -ne 0 ]; then
+            result=1
+            message+="Missing references in JSON: ${missing_refs[*]}. "
+        fi
+    fi
+
+    # Verify mbox file contains all references
+    if [ ! -f "$mbox_file" ]; then
+        result=1
+        message+="mbox file not created. "
+    else
+        local missing_refs=()
+        while IFS= read -r ref; do
+            if ! grep -q "${ref}" "$mbox_file"; then
+                missing_refs+=("$ref")
+            fi
+        done < "$ref_file"
+
+        if [ ${#missing_refs[@]} -ne 0 ]; then
+            result=1
+            message+="Missing references in mbox: ${missing_refs[*]}. "
+        fi
+
+        # Additional mbox-specific checks
+        if ! grep -q "Mitigation" "$mbox_file"; then
+            result=1
+            message+="Missing Mitigation section in mbox. "
+        fi
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run tests
 echo "${BLUE}Running bippy tests...${RESET}"
 echo "------------------------"
@@ -268,6 +348,7 @@ setup_mock_commit_tree
 # Run tests
 test_basic_functionality
 test_reference_file_handling
+test_multiple_references
 
 # Print summary
 echo "------------------------"
