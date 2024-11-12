@@ -337,6 +337,90 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+# Test JSON changelog/commit message truncation handling
+test_json_truncation() {
+    local name="JSON changelog truncation test"
+    local result=0
+    local message=""
+    local fix_commit
+    fix_commit=$(cat "$TEST_DIR/fix_commit")
+
+    # Set required environment variables
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+    export CVE_USER="test@example.com"
+
+    local json_file="$TEST_DIR/output_truncation.json"
+    local long_commit_file="$TEST_DIR/long_commit.txt"
+
+    # Create a commit message longer than 3982 bytes
+    printf 'test: Add very long commit message for truncation test\n\n' > "$long_commit_file"
+    printf 'a%.0s' {1..5000} >> "$long_commit_file"
+
+    # Modify the git repo to use this long commit message
+    (cd "$TEST_DIR/linux" && \
+        git add drivers/test/vuln.c && \
+        git commit --amend -F "$long_commit_file" > /dev/null 2>&1) || {
+            print_result "$name" 1 "Failed to set up test commit"
+            return
+        }
+
+    # Run bippy
+    $BIPPY --cve="CVE-2024-12345" \
+           --sha="${fix_commit:0:12}" \
+           --json="$json_file" \
+           --user="test@example.com" \
+           --name="Test User" 2>/dev/null
+
+    # Verify JSON file exists
+    if [ ! -f "$json_file" ]; then
+        print_result "$name" 1 "JSON file not created"
+        return
+    fi
+
+    # Extract the description text from JSON
+    local description
+    description=$(perl -MJSON::PP -e '
+        local $/;
+        my $json = decode_json(<>);
+        my $desc = $json->{containers}{cna}{descriptions}[0]{value};
+        print $desc;
+    ' "$json_file")
+
+    local desc_length=${#description}
+
+    # Check if description exists
+    if [ -z "$description" ]; then
+        print_result "$name" 1 "No description found in JSON"
+        return
+    fi
+
+    # Verify length is under limit
+    if [ "$desc_length" -gt 3982 ]; then
+        message+="Description length ($desc_length) exceeds 3982 byte limit. "
+    fi
+
+    # Verify truncation marker is present when needed
+    if [ "$desc_length" -ge 3970 ]; then
+        if ! echo "$description" | grep -q "---truncated---"; then
+            message+="Missing truncation marker in truncated description. "
+        fi
+    fi
+
+    # Verify required CVE prefix
+    local required_prefix="In the Linux kernel, the following vulnerability has been resolved:"
+    if ! echo "$description" | grep -q "^$required_prefix"; then
+        message+="Missing required CVE description prefix. "
+    fi
+
+    # Set result if any checks failed
+    if [ -n "$message" ]; then
+        result=1
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run tests
 echo "${BLUE}Running bippy tests...${RESET}"
 echo "------------------------"
@@ -349,6 +433,7 @@ setup_mock_commit_tree
 test_basic_functionality
 test_reference_file_handling
 test_multiple_references
+test_json_truncation
 
 # Print summary
 echo "------------------------"
