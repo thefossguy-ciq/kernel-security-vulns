@@ -191,6 +191,72 @@ test_basic_functionality() {
     print_result "$name" "$result" "$message"
 }
 
+# Test reference file handling
+test_reference_file_handling() {
+    local name="Reference file handling test"
+    local result=0
+    local message=""
+    local fix_commit
+    fix_commit=$(cat "$TEST_DIR/fix_commit")
+
+    # Set required environment variables
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+    export CVE_USER="test@example.com"
+
+    # Create output file paths
+    local json_file="$TEST_DIR/output_ref.json"
+    local mbox_file="$TEST_DIR/output_ref.mbox"
+    local ref_file="$TEST_DIR/references.txt"
+
+    # Create reference file with test URLs
+    cat > "$ref_file" << EOF
+https://example.com/advisory-123
+https://example.com/blog/security-notice
+EOF
+
+    # Run bippy with reference file
+    $BIPPY --cve="CVE-2024-12345" \
+           --sha="${fix_commit:0:12}" \
+           --json="$json_file" \
+           --mbox="$mbox_file" \
+           --user="test@example.com" \
+           --name="Test User" \
+           --reference="$ref_file" 2>/dev/null
+
+    # Verify JSON file includes references
+    if [ ! -f "$json_file" ]; then
+        result=1
+        message+="JSON file not created. "
+    else
+        if ! grep -q "advisory-123" "$json_file"; then
+            result=1
+            message+="First reference URL not found in JSON. "
+        fi
+        if ! grep -q "security-notice" "$json_file"; then
+            result=1
+            message+="Second reference URL not found in JSON. "
+        fi
+    fi
+
+    # Verify mbox file includes references
+    if [ ! -f "$mbox_file" ]; then
+        result=1
+        message+="mbox file not created. "
+    else
+        if ! grep -q "advisory-123" "$mbox_file"; then
+            result=1
+            message+="First reference URL not found in mbox. "
+        fi
+        if ! grep -q "security-notice" "$mbox_file"; then
+            result=1
+            message+="Second reference URL not found in mbox. "
+        fi
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run tests
 echo "${BLUE}Running bippy tests...${RESET}"
 echo "------------------------"
@@ -199,8 +265,9 @@ echo "------------------------"
 setup_mock_kernel_repo
 setup_mock_commit_tree
 
-# Run test
+# Run tests
 test_basic_functionality
+test_reference_file_handling
 
 # Print summary
 echo "------------------------"
