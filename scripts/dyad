@@ -101,96 +101,109 @@ info()
 }
 
 #############################
-# kernel_version_is_rc()
-#	Determine if a kernel version is a "-rc" release or not.
+# get_kernel_version_type()
+#   Determine the type of a kernel version (mainline, rc, queue, or stable)
 # arguments:
-#	"kernel version"
+#   "kernel version"
 # returns:
-#	1 if -rc, 0 if not
+#   Prints one of: "mainline", "rc", "queue", or "stable"
 #############################
-kernel_version_is_rc()
-{
-	#dbg "kernel_version_is_rc($1)"
+get_kernel_version_type() {
 	local VERSION=$1
-	if [[ "${VERSION}" =~ .*"rc" ]] ; then
-		#dbg "kernel_version_is_rc: ${VERSION} is -rc"
-		return 1
-	else
-		#dbg "kernel_version_is_rc: ${VERSION} is NOT -rc"
-		return 0
+
+	# First check if it's a queue version since that's a simple string match
+	if [[ "${VERSION}" =~ .*"queue" ]]; then
+		echo "queue"
+		return
 	fi
+
+	# Parse version number into components
+	# shellcheck disable=SC2206
+	local VERSION_PARTS=(${VERSION//./ })
+	local MAJOR=${VERSION_PARTS[0]}
+
+	# Ignore 2.6.X releases
+	if [[ "${MAJOR}" == "2" ]]; then
+		echo "mainline"
+		return
+	fi
+
+	# Check for -rc versions
+	if [[ "${VERSION}" =~ .*"rc" ]]; then
+		echo "rc"
+		return
+	fi
+
+	# If version only has X.Y format (no .Z), it's mainline
+	if [[ "${#VERSION_PARTS[@]}" == "2" ]]; then
+		echo "mainline"
+		return
+	fi
+
+	# Otherwise it's a stable release
+	echo "stable"
+}
+
+#############################
+# kernel_version_is_rc()
+#   Check if a kernel version is a release candidate
+#
+# Arguments:
+#   $1: Kernel version string to check
+#
+# Returns:
+#   1 if version is a release candidate, 0 otherwise
+#
+# Example:
+#   kernel_version_is_rc "6.7-rc1"  # Returns: 1
+#   kernel_version_is_rc "6.7"	  # Returns: 0
+#############################
+kernel_version_is_rc() {
+	local TYPE
+	TYPE=$(get_kernel_version_type "$1")
+	[[ "${TYPE}" == "rc" ]] && return 1 || return 0
 }
 
 #############################
 # kernel_version_is_queue()
-#	Determine if a kernel version is in a stable queue or not.
-# arguments:
-#	"kernel version"
-# returns:
-#	1 if in a queue, 0 if not
+#   Check if a kernel version is a queue version
+#
+# Arguments:
+#   $1: Kernel version string to check
+#
+# Returns:
+#   1 if version is a queue version, 0 otherwise
+#
+# Example:
+#   kernel_version_is_queue "6.7-queue"  # Returns: 1
+#   kernel_version_is_queue "6.7"		# Returns: 0
 #############################
-kernel_version_is_queue()
-{
-	local VERSION=$1
-
-	if [[ "${VERSION}" =~ .*"queue" ]] ; then
-		return 1
-	else
-		return 0
-	fi
+kernel_version_is_queue() {
+	local TYPE
+	TYPE=$(get_kernel_version_type "$1")
+	[[ "${TYPE}" == "queue" ]] && return 1 || return 0
 }
 
 #############################
 # kernel_version_is_mainline()
-#	Determine if a kernel version is a mainline kernel or not (i.e. a
-#	stable one).
-# arguments:
-#	"kernel version"
-# returns:
-#	1 if mainline, 0 if not
+#   Check if a kernel version is mainline
+#   Note: Both pure mainline and rc versions are considered mainline
+#
+# Arguments:
+#   $1: Kernel version string to check
+#
+# Returns:
+#   1 if version is mainline or rc, 0 otherwise
+#
+# Example:
+#   kernel_version_is_mainline "6.7"	  # Returns: 1
+#   kernel_version_is_mainline "6.7-rc1"  # Returns: 1
+#   kernel_version_is_mainline "6.7.1"	# Returns: 0
 #############################
-kernel_version_is_mainline()
-{
-	#dbg "kernel_version_is_mainline($1)"
-	local VERSION=$1
-
-	# shellcheck disable=SC2206
-	local REL_ARRAY=(${VERSION//./ })
-	local MAJOR=${REL_ARRAY[0]}
-	#local BASE=${REL_ARRAY[0]}.${REL_ARRAY[1]}.${REL_ARRAY[2]}
-	#local REL=${REL_ARRAY[3]}
-	#local MINOR=${REL_ARRAY[2]}
-
-	# If this is a 2.6.X release, just return now, we don't care about them
-	# anymore
-	if [[ "${MAJOR}" == "2" ]] ; then
-		return 1
-	fi
-
-	kernel_version_is_rc "${VERSION}"
-	local rc=$?
-	#echo "rc=$rc"
-	# If this is a -rc release, it's a mainline release
-	#if [[ "${VERSION}" =~ *"-rc"* ]] ; then
-	if [[ "${rc}" == "1" ]] ; then
-		return 1
-	fi
-
-	# If this is in a queue, it's not a mainline release
-	kernel_version_is_queue "${VERSION}"
-	local queue=$?
-	if [[ "${queue}" == "1" ]] ; then
-		return 1
-	fi
-
-	# if the REL_ARRAY only has 2 elements in it, it's a mainline release
-	# (X.Y, not X.Y.Z)
-	if [[ "${#REL_ARRAY[@]}" == "2" ]] ; then
-		return 1
-	fi
-
-	# Must be a stable release
-	return 0
+kernel_version_is_mainline() {
+	local TYPE
+	TYPE=$(get_kernel_version_type "$1")
+	[[ "${TYPE}" == "mainline" || "${TYPE}" == "rc" ]] && return 1 || return 0
 }
 
 #############################
@@ -399,31 +412,19 @@ git_short_id()
 # arguments
 #	"kernel version"
 #############################
-kernel_id_info()
-{
-	local kernel=${1}
+kernel_id_info() {
+	local kernel=$1
+	local type
+	type=$(get_kernel_version_type "${kernel}")
 
-	# figure out if this is a -rc kernel or not
-	kernel_version_is_mainline "${kernel}"
-	local kernel_mainline=$?
-	kernel_version_is_rc "${kernel}"
-	local kernel_rc=$?
-	kernel_version_is_queue "${kernel}"
-	local kernel_queue=$?
-
-	# Print out some debugging to see if kernel version detection is working:
 	local dbg_string="${kernel} is "
-	if [[ "${kernel_queue}" == "1" ]]; then
-		dbg_string+="queue "
-	fi
-	if [[ "${kernel_rc}" == "1" ]]; then
-		dbg_string+="-rc and "
-	fi
-	if [[ "${kernel_mainline}" == "1" ]]; then
-		dbg_string+="mainline"
-	else
-		dbg_string+="not mainline"
-	fi
+	case "${type}" in
+		"queue")   dbg_string+="queue ";;
+		"rc")	  dbg_string+="-rc and mainline";;
+		"mainline") dbg_string+="mainline";;
+		"stable")   dbg_string+="not mainline";;
+	esac
+
 	dbg "${dbg_string}"
 }
 
