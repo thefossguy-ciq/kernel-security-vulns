@@ -208,37 +208,28 @@ kernel_version_is_mainline() {
 
 #############################
 # kernel_version_match()
-#	Determine if the "major.minor" versions of 2 kernel numbers passed in
-#	are matching or not.
-# arguments:
-#	"kernel version 1 of format X.Y.Z  .Z is optional"
-#	"kernel version 2 of format X.Y.Z  .Z is optional"
-# returns:
-#	1 if X.Y matches, 0 if not
+#   Compare two kernel version strings to see if they share the same major.minor
+#   version numbers (X.Y), ignoring any patch version (Z). For example,
+#   "4.9.1" and "4.9.2" match, while "4.9.1" and "4.10.1" don't.
+#
+# Arguments:
+#   $1: First kernel version string (format: X.Y or X.Y.Z)
+#   $2: Second kernel version string (format: X.Y or X.Y.Z)
+#
+# Returns:
+#   1 if major.minor versions match
+#   0 if they don't match
+#
+# Example:
+#   kernel_version_match "4.9.1" "4.9.2"   # returns 1 (match)
+#   kernel_version_match "4.9" "4.9.1"     # returns 1 (match)
+#   kernel_version_match "4.9.1" "4.10.1"  # returns 0 (no match)
 #############################
 kernel_version_match()
 {
-	local VERSION_1=$1
-	local VERSION_2=$2
-
-	# shellcheck disable=SC2206
-	local REL_ARRAY_1=(${VERSION_1//./ })
-	# shellcheck disable=SC2206
-	local REL_ARRAY_2=(${VERSION_2//./ })
-	local MAJOR_1=${REL_ARRAY_1[0]}
-	local MAJOR_2=${REL_ARRAY_2[0]}
-
-	if [[ "${MAJOR_1}" == "${MAJOR_2}" ]] ; then
-		local MINOR_1=${REL_ARRAY_1[1]}
-		local MINOR_2=${REL_ARRAY_2[1]}
-		if [[ "${MINOR_1}" == "${MINOR_2}" ]] ; then
-			# dbg "kernel_version_match: ${1} ${2}: succeeded"
-			return 1
-		fi
-	fi
-
-	# dbg "kernel_version_match: ${1} ${2}: failed"
-	return 0
+    local v1=(${1//./ })
+    local v2=(${2//./ })
+    [[ "${v1[0]}" == "${v2[0]}" && "${v1[1]}" == "${v2[1]}" ]] && return 1 || return 0
 }
 
 #############################
