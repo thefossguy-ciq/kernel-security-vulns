@@ -6,9 +6,6 @@
 # Test script for bippy - verifies the basic functionality of bippy script
 # by running a simple test case
 
-# Ensure TMPDIR is set
-TMPDIR=${TMPDIR:-/tmp}
-
 # Colors for output
 if [[ -t 1 ]]; then
     RED=$(tput setaf 1)

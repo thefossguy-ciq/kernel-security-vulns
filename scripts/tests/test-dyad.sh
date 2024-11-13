@@ -6,9 +6,6 @@
 # Test script for dyad - verifies the functionality of dyad script
 # by running multiple test cases with different scenarios
 
-# Ensure TMPDIR is set
-TMPDIR=${TMPDIR:-/tmp}
-
 # Colors for output
 if [[ -t 1 ]]; then
     RED=$(tput setaf 1)

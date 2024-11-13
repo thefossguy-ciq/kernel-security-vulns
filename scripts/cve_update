@@ -51,11 +51,6 @@ help() {
 	exit 1
 }
 
-if [[ "${TMPDIR}" == "" ]]; then
-	echo "TMPDIR environment variable must be set, exiting ${SCRIPT}"
-	exit 1
-fi
-
 CVE=$1
 
 # don't use unset variables
@@ -84,8 +79,8 @@ update_cve()
 	local diff
 	local diff_option
 
-	tmp_json=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.json" || exit 1)
-	tmp_mbox=$(mktemp "${TMPDIR}/${SCRIPT}XXXX.mbox" || exit 1)
+	tmp_json=$(mktemp -t "${SCRIPT}XXXX.json" || exit 1)
+	tmp_mbox=$(mktemp -t "${SCRIPT}XXXX.mbox" || exit 1)
 	sha=$(cat "${id}")
 	cve=$(echo "${id}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${id}" | cut -f 1 -d '.')

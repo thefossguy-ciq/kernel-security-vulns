@@ -625,7 +625,7 @@ else
 		dbg "	nothing in v, skipping vuln lines check"
 	else
 		# We have some vulnerable kernels, let's figure out where they are
-		v_file=$(mktemp "${TMPDIR}"/"${SCRIPT}".XXXX || exit 1)
+		v_file=$(mktemp -t "${SCRIPT}".XXXX || exit 1)
 		for id in "${v[@]}"; do
 			echo "${id}" >> "${v_file}"
 		done
