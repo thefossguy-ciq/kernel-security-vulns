@@ -1306,6 +1306,200 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_legacy_kernel_handling() {
+    local name="Legacy 2.6.x kernel handling test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial 2.6.32 version
+    echo "Linux 2.6.32" > Makefile
+    mkdir -p drivers/test
+    git add Makefile
+    git commit -m "Linux 2.6.32" > /dev/null 2>&1
+    git tag -a v2.6.32 -m "Linux 2.6.32" > /dev/null 2>&1
+
+    # Add a base feature
+    echo "base feature" > drivers/test/base.c
+    git add drivers/test/base.c
+    git commit -m "test: add base feature to 2.6.32" > /dev/null 2>&1
+    local base_commit=$(git rev-parse HEAD)
+
+    # Create 2.6.32.y branch
+    git checkout -b linux-2.6.32.y > /dev/null 2>&1
+
+    # Add vulnerable code in 2.6.32.1
+    echo "vulnerable code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: add feature to 2.6.32.1" > /dev/null 2>&1
+    local legacy_vuln_commit=$(git rev-parse HEAD)
+    git tag -a v2.6.32.1 -m "Linux 2.6.32.1" > /dev/null 2>&1
+
+    # Fix in 2.6.32.2
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability in 2.6.32.2
+
+Found a security issue in earlier code.
+
+Fixes: ${legacy_vuln_commit:0:12} ('test: add feature to 2.6.32.1')" > /dev/null 2>&1
+    local legacy_fix_commit=$(git rev-parse HEAD)
+    git tag -a v2.6.32.2 -m "Linux 2.6.32.2" > /dev/null 2>&1
+
+    # Add another vulnerable feature
+    echo "second vulnerable code" > drivers/test/vuln2.c
+    git add drivers/test/vuln2.c
+    git commit -m "test: add second feature to 2.6.32.2" > /dev/null 2>&1
+    local legacy_vuln2_commit=$(git rev-parse HEAD)
+
+    # Fix second vulnerability in 2.6.32.3
+    echo "second fixed code" > drivers/test/vuln2.c
+    git add drivers/test/vuln2.c
+    git commit -m "test: fix second security vulnerability
+
+Another security issue was found.
+
+Fixes: ${legacy_vuln2_commit:0:12} ('test: add second feature to 2.6.32.2')" > /dev/null 2>&1
+    local legacy_fix2_commit=$(git rev-parse HEAD)
+    git tag -a v2.6.32.3 -m "Linux 2.6.32.3" > /dev/null 2>&1
+
+    # Back to master for 2.6.33
+    git checkout master > /dev/null 2>&1
+    echo "Linux 2.6.33" > Makefile
+    git add Makefile
+    git commit -m "Linux 2.6.33" > /dev/null 2>&1
+    git tag -a v2.6.33 -m "Linux 2.6.33" > /dev/null 2>&1
+
+    # Add mainline vulnerability
+    echo "mainline vulnerable code" > drivers/test/mainline_vuln.c
+    git add drivers/test/mainline_vuln.c
+    git commit -m "test: add vulnerable feature to mainline" > /dev/null 2>&1
+    local mainline_vuln_commit=$(git rev-parse HEAD)
+
+    # Fix mainline vulnerability in 2.6.34
+    echo "mainline fixed code" > drivers/test/mainline_vuln.c
+    git add drivers/test/mainline_vuln.c
+    git commit -m "test: fix mainline security vulnerability
+
+Fix security issue in mainline.
+
+Fixes: ${mainline_vuln_commit:0:12} ('test: add vulnerable feature to mainline')" > /dev/null 2>&1
+    local mainline_fix_commit=$(git rev-parse HEAD)
+    git tag -a v2.6.34 -m "Linux 2.6.34" > /dev/null 2>&1
+
+    # Add complex fix in stable branch
+    git checkout linux-2.6.32.y > /dev/null 2>&1
+    echo "complex fix" > drivers/test/complex.c
+    git add drivers/test/complex.c
+    git commit -m "test: fix spanning multiple versions
+
+Fixes multiple issues:
+Fixes: ${legacy_vuln_commit:0:12} ('test: add feature to 2.6.32.1')" > /dev/null 2>&1
+    local complex_fix_commit=$(git rev-parse HEAD)
+    git tag -a v2.6.32.4 -m "Linux 2.6.32.4" > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${base_commit})
+        echo "2.6.32"
+        ;;
+    ${legacy_vuln_commit})
+        echo "2.6.32.1"
+        ;;
+    ${legacy_fix_commit})
+        echo "2.6.32.2"
+        ;;
+    ${legacy_vuln2_commit})
+        echo "2.6.32.2"
+        ;;
+    ${legacy_fix2_commit})
+        echo "2.6.32.3"
+        ;;
+    ${mainline_vuln_commit})
+        echo "2.6.33"
+        ;;
+    ${mainline_fix_commit})
+        echo "2.6.34"
+        ;;
+    ${complex_fix_commit})
+        echo "2.6.32.4"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test cases
+    # Test case 1: Basic version handling with 2.6.x stable kernel
+    local output
+    local output_no_debug
+
+    output=$($DYAD "${legacy_fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    # Should show the correct range for 2.6.x versions, accommodating ^0 suffix
+    if ! echo "$output_no_debug" | grep -Eq "2\.6\.32\.1(\^0)?:${legacy_vuln_commit}:2\.6\.32\.2:${legacy_fix_commit}"; then
+        result=1
+        message+="Expected 2.6.x version range not found in output: $output_no_debug "
+    fi
+
+    # Test case 2: Multiple fixes in 2.6.x stable series
+    output=$($DYAD "${legacy_fix2_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    if ! echo "$output_no_debug" | grep -Eq "2\.6\.32\.2(\^0)?:${legacy_vuln2_commit}:2\.6\.32\.3:${legacy_fix2_commit}"; then
+        result=1
+        message+="Second fix in 2.6.x stable series not handled correctly. Output: $output_no_debug "
+    fi
+
+    # Test case 3: Simple mainline 2.6.x handling
+    output=$($DYAD "${mainline_fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    if ! echo "$output_no_debug" | grep -q "2.6.33:${mainline_vuln_commit}:2.6.34:${mainline_fix_commit}"; then
+        result=1
+        message+="Mainline 2.6.x version handling incorrect. Output: $output_no_debug "
+    fi
+
+    # Test case 4: Complex fix
+    output=$($DYAD "${complex_fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    # Should match the single fix
+    if ! echo "$output_no_debug" | grep -Eq "2\.6\.32\.1(\^0)?:${legacy_vuln_commit}:2\.6\.32\.4:${complex_fix_commit}"; then
+        result=1
+        message+="Complex fix handling incorrect. Expected fix from 2.6.32.1 to 2.6.32.4. Output: $output_no_debug "
+    fi
+
+    # Test case 5: Check explicit vulnerable commit handling
+    output=$($DYAD --vulnerable="${legacy_vuln_commit:0:12}" "${complex_fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    if ! echo "$output_no_debug" | grep -Eq "2\.6\.32\.1(\^0)?:${legacy_vuln_commit}:2\.6\.32\.4:${complex_fix_commit}"; then
+        result=1
+        message+="Explicit vulnerable commit handling incorrect. Expected 2.6.32.1 to 2.6.32.4 range. Output: $output_no_debug "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -1326,6 +1520,7 @@ test_missing_fixes
 test_multiple_branch_fixes
 test_rc_version_handling
 test_multiple_fixes_tags
+test_legacy_kernel_handling
 
 # Print summary
 echo "------------------------"
