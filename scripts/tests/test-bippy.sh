@@ -68,6 +68,12 @@ setup_mock_kernel_repo() {
     git commit -m "test: add vulnerable feature" > /dev/null 2>&1
     local vuln_commit=$(git rev-parse HEAD)
 
+    # Tag a release
+    echo "Linux 6.2" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.2" > /dev/null 2>&1
+    git tag -a "v6.2" -m "Linux 6.2" > /dev/null 2>&1
+
     # Add the fix
     echo "fixed code" > drivers/test/vuln.c
     git add drivers/test/vuln.c
@@ -81,10 +87,10 @@ Cc: stable@vger.kernel.org" > /dev/null 2>&1
     local fix_commit=$(git rev-parse HEAD)
 
     # Tag the fix version
-    echo "Linux 6.2" > Makefile
+    echo "Linux 6.3" > Makefile
     git add Makefile
-    git commit -m "Linux 6.2" > /dev/null 2>&1
-    git tag -a "v6.2" -m "Linux 6.2" > /dev/null 2>&1
+    git commit -m "Linux 6.3" > /dev/null 2>&1
+    git tag -a "v6.3" -m "Linux 6.3" > /dev/null 2>&1
 
     # Store commit IDs for later use
     echo "$vuln_commit" > "$TEST_DIR/vuln_commit"
