@@ -798,6 +798,128 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_missing_fixes() {
+    local name="Missing fixes in version history test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial version - 6.1
+    echo "Linux 6.1" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.1" > /dev/null 2>&1
+    git tag -a v6.1 -m "Linux 6.1" > /dev/null 2>&1
+
+    # Create branch for 6.1.y
+    git checkout -b linux-6.1.y > /dev/null 2>&1
+
+    # Back to master for 6.2
+    git checkout master > /dev/null 2>&1
+    echo "Linux 6.2" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.2" > /dev/null 2>&1
+    git tag -a v6.2 -m "Linux 6.2" > /dev/null 2>&1
+
+    # Create branch for 6.2.y
+    git checkout -b linux-6.2.y > /dev/null 2>&1
+
+    # Back to master for vulnerable code
+    git checkout master > /dev/null 2>&1
+
+    # Add vulnerable code in 6.3
+    mkdir -p drivers/test
+    echo "vulnerable code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: add vulnerable feature" > /dev/null 2>&1
+    local vuln_commit=$(git rev-parse HEAD)
+
+    # Tag 6.3
+    echo "Linux 6.3" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.3" > /dev/null 2>&1
+    git tag -a v6.3 -m "Linux 6.3" > /dev/null 2>&1
+
+    # Create branch for 6.3.y
+    git checkout -b linux-6.3.y > /dev/null 2>&1
+
+    # Add fix only in 6.4
+    git checkout master > /dev/null 2>&1
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability
+
+This fixes a security issue introduced earlier.
+
+Fixes: ${vuln_commit:0:12} ('test: add vulnerable feature')" > /dev/null 2>&1
+    local fix_commit=$(git rev-parse HEAD)
+
+    # Tag 6.4
+    echo "Linux 6.4" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.4" > /dev/null 2>&1
+    git tag -a v6.4 -m "Linux 6.4" > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${vuln_commit})
+        echo "6.3"
+        ;;
+    ${fix_commit})
+        echo "6.4"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Fix commit should identify version range from vulnerable to fixed
+    local output
+    local output_no_debug
+    output=$($DYAD "${fix_commit:0:12}" 2>&1)
+    # Filter out debug lines (starting with #)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    # Should only show one line with the vulnerability range
+    local expected_pattern="6\.3:${vuln_commit}:6\.4:${fix_commit}"
+    if ! echo "$output_no_debug" | grep -q "${expected_pattern}"; then
+        result=1
+        message+="Expected version range pattern not found. Expected: ${expected_pattern}, Got: $output_no_debug "
+    fi
+
+    # Should not contain additional lines with unfixed versions
+    local line_count
+    line_count=$(echo "$output_no_debug" | wc -l)
+    if [ "$line_count" -ne 1 ]; then
+        result=1
+        message+="Expected exactly one version range line, got ${line_count} lines. Output: $output_no_debug "
+    fi
+
+    # Test case 2: Earlier versions should not appear in the non-debug output
+    if echo "$output_no_debug" | grep -q "6\.2"; then
+        result=1
+        message+="Found unexpected version 6.2 in output which should not be included. Output: $output_no_debug "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -814,6 +936,7 @@ test_stable_branch_pairs
 test_multiple_vulnerable_commits
 test_stable_backport_fix
 test_cherry_pick_no_fixes
+test_missing_fixes
 
 # Print summary
 echo "------------------------"
