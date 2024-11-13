@@ -920,6 +920,140 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_multiple_branch_fixes() {
+    local name="Multiple branch fix handling test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial version - 5.15
+    echo "Linux 5.15" > Makefile
+    git add Makefile
+    git commit -m "Linux 5.15" > /dev/null 2>&1
+    git tag -a v5.15 -m "Linux 5.15" > /dev/null 2>&1
+
+    # Create 5.15.y branch and add vulnerable code there
+    git checkout -b linux-5.15.y > /dev/null 2>&1
+    mkdir -p drivers/test
+    echo "vulnerable code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: add feature to stable branch" > /dev/null 2>&1
+    local stable_vuln_commit=$(git rev-parse HEAD)
+    git tag -a v5.15.1 -m "Linux 5.15.1" > /dev/null 2>&1
+
+    # Back to master for 6.0
+    git checkout master > /dev/null 2>&1
+    echo "Linux 6.0" > Makefile
+    mkdir -p drivers/test
+    echo "vulnerable code" > drivers/test/vuln.c
+    git add Makefile drivers/test/vuln.c
+    git commit -m "test: add feature to mainline
+
+This adds a new feature that will later be found to have security implications." > /dev/null 2>&1
+    local mainline_vuln_commit=$(git rev-parse HEAD)
+    git tag -a v6.0 -m "Linux 6.0" > /dev/null 2>&1
+
+    # Fix in mainline first - 6.1
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability in feature
+
+A security issue was discovered in the feature added earlier.
+
+Fixes: ${mainline_vuln_commit:0:12} ('test: add feature to mainline')" > /dev/null 2>&1
+    local mainline_fix_commit=$(git rev-parse HEAD)
+
+    echo "Linux 6.1" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.1" > /dev/null 2>&1
+    git tag -a v6.1 -m "Linux 6.1" > /dev/null 2>&1
+
+    # Backport fix to 5.15.y
+    git checkout linux-5.15.y > /dev/null 2>&1
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability in feature
+
+[Upstream commit ${mainline_fix_commit:0:12}]
+
+Backported from mainline to fix security issue discovered in earlier feature.
+
+Fixes: ${stable_vuln_commit:0:12} ('test: add feature to stable branch')" > /dev/null 2>&1
+    local stable_fix_commit=$(git rev-parse HEAD)
+
+    echo "Linux 5.15.2" > Makefile
+    git add Makefile
+    git commit -m "Linux 5.15.2" > /dev/null 2>&1
+    git tag -a v5.15.2 -m "Linux 5.15.2" > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${mainline_vuln_commit})
+        echo "6.0"
+        ;;
+    ${mainline_fix_commit})
+        echo "6.1"
+        ;;
+    ${stable_vuln_commit})
+        echo "5.15.1"
+        ;;
+    ${stable_fix_commit})
+        echo "5.15.2"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Mainline fix should show mainline version range
+    local output
+    local output_no_debug
+
+    output=$($DYAD "${mainline_fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    local expected_mainline="6.0:${mainline_vuln_commit}:6.1:${mainline_fix_commit}"
+    if ! echo "$output_no_debug" | grep -q "${expected_mainline}"; then
+        result=1
+        message+="Mainline version range not found. Expected: ${expected_mainline}, Got: $output_no_debug "
+    fi
+
+    # Test case 2: Stable fix should show stable version range
+    output=$($DYAD "${stable_fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    local expected_stable="5.15.1:${stable_vuln_commit}:5.15.2:${stable_fix_commit}"
+    if ! echo "$output_no_debug" | grep -q "${expected_stable}"; then
+        result=1
+        message+="Stable version range not found. Expected: ${expected_stable}, Got: $output_no_debug "
+    fi
+
+    # Test case 3: Each output should only show one version range
+    if [ "$(echo "$output_no_debug" | wc -l)" -ne 1 ]; then
+        result=1
+        message+="Expected exactly one version range line for stable fix, got multiple lines. Output: $output_no_debug "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -937,6 +1071,7 @@ test_multiple_vulnerable_commits
 test_stable_backport_fix
 test_cherry_pick_no_fixes
 test_missing_fixes
+test_multiple_branch_fixes
 
 # Print summary
 echo "------------------------"
