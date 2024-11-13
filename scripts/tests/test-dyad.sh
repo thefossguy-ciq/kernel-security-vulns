@@ -1054,6 +1054,130 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_rc_version_handling() {
+    local name="RC version handling test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial version - 6.4
+    echo "Linux 6.4" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.4" > /dev/null 2>&1
+    git tag -a v6.4 -m "Linux 6.4" > /dev/null 2>&1
+
+    # Add vulnerable code in first RC of 6.5
+    echo "Linux 6.5-rc1" > Makefile
+    mkdir -p drivers/test
+    echo "vulnerable code" > drivers/test/vuln.c
+    git add Makefile drivers/test/vuln.c
+    git commit -m "test: add feature with vulnerability" > /dev/null 2>&1
+    local vuln_commit=$(git rev-parse HEAD)
+    git tag -a v6.5-rc1 -m "Linux 6.5-rc1" > /dev/null 2>&1
+
+    # Some development between RC1 and RC2
+    echo "more changes" >> drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: add more features" > /dev/null 2>&1
+
+    # Tag RC2
+    echo "Linux 6.5-rc2" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.5-rc2" > /dev/null 2>&1
+    git tag -a v6.5-rc2 -m "Linux 6.5-rc2" > /dev/null 2>&1
+
+    # Fix the vulnerability in RC3
+    echo "fixed code" > drivers/test/vuln.c
+    git add drivers/test/vuln.c
+    git commit -m "test: fix security vulnerability
+
+A security issue was discovered in the feature added in RC1.
+
+Fixes: ${vuln_commit:0:12} ('test: add feature with vulnerability')" > /dev/null 2>&1
+    local fix_commit=$(git rev-parse HEAD)
+
+    # Tag RC3
+    echo "Linux 6.5-rc3" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.5-rc3" > /dev/null 2>&1
+    git tag -a v6.5-rc3 -m "Linux 6.5-rc3" > /dev/null 2>&1
+
+    # Final 6.5 release
+    echo "Linux 6.5" > Makefile
+    git add Makefile
+    git commit -m "Linux 6.5" > /dev/null 2>&1
+    git tag -a v6.5 -m "Linux 6.5" > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${vuln_commit})
+        echo "6.5"
+        echo "6.5-rc1"
+        ;;
+    ${fix_commit})
+        echo "6.5"
+        echo "6.5-rc3"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Basic version handling with explicit vulnerable commit
+    local output
+    local output_no_debug
+
+    output=$($DYAD --vulnerable="${vuln_commit:0:12}" "${fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+
+    # Should show two ranges: one for rc versions and one for final release
+    local expected_rc="6.5:${vuln_commit}:6.5-rc3:${fix_commit}"
+    local expected_final="6.5:${vuln_commit}:6.5:${fix_commit}"
+
+    if ! echo "$output_no_debug" | grep -q "${expected_rc}"; then
+        result=1
+        message+="Expected RC version range not found. Expected to find: ${expected_rc}, Got: $output_no_debug "
+    fi
+
+    if ! echo "$output_no_debug" | grep -q "${expected_final}"; then
+        result=1
+        message+="Expected final version range not found. Expected to find: ${expected_final}, Got: $output_no_debug "
+    fi
+
+    # Test case 2: Should show exactly two lines (RC and final version ranges)
+    local line_count
+    line_count=$(echo "$output_no_debug" | wc -l)
+    if [ "$line_count" -ne 2 ]; then
+        result=1
+        message+="Expected exactly two version range lines (RC and final), got ${line_count} lines. Output: $output_no_debug "
+    fi
+
+    # Test case 3: Previous version should not be marked as vulnerable
+    if echo "$output_no_debug" | grep -q "6\.4"; then
+        result=1
+        message+="Found unexpected version 6.4 in output which should not be included. Output: $output_no_debug "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -1072,6 +1196,7 @@ test_stable_backport_fix
 test_cherry_pick_no_fixes
 test_missing_fixes
 test_multiple_branch_fixes
+test_rc_version_handling
 
 # Print summary
 echo "------------------------"
