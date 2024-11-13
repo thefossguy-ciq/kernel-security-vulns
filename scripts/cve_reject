@@ -9,9 +9,14 @@
 #	cve_reject [CVE_ENTRY]
 #
 
-# TODO - make these options that are not hard-coded
+KERNEL_TREE=${CVEKERNELTREE}
 
-KERNEL_TREE="/home/gregkh/linux/stable/linux-stable"
+if [ ! -d ${KERNEL_TREE} ]; then
+       echo "CVEKERNELTREE needs setting to the stable repo directory"
+       echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+       echo "See HOWTO in the root of this repo"
+       exit 1
+fi
 
 # don't use unset variables
 set -o nounset
