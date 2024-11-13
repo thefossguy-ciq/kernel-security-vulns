@@ -1178,6 +1178,134 @@ EOF
     print_result "$name" "$result" "$message"
 }
 
+test_multiple_fixes_tags() {
+    local name="Multiple Fixes tags handling test"
+    local result=0
+    local message=""
+
+    # Set up environment
+    export CVEKERNELTREE="$TEST_DIR/linux"
+    export CVECOMMITTREE="$TEST_DIR/commit-tree"
+
+    # Create fresh repo
+    rm -rf "$TEST_DIR/linux"
+    mkdir -p "$TEST_DIR/linux"
+    cd "$TEST_DIR/linux" || exit 1
+    git init > /dev/null 2>&1
+
+    # Create initial version - 5.15
+    echo "Linux 5.15" > Makefile
+    git add Makefile
+    git commit -m "Linux 5.15" > /dev/null 2>&1
+    git tag -a v5.15 -m "Linux 5.15" > /dev/null 2>&1
+
+    # Add first vulnerable code
+    mkdir -p drivers/test
+    echo "vulnerable code 1" > drivers/test/vuln1.c
+    git add drivers/test/vuln1.c
+    git commit -m "test: add first vulnerable feature" > /dev/null 2>&1
+    local vuln1_commit=$(git rev-parse HEAD)
+
+    # Tag 5.16
+    echo "Linux 5.16" > Makefile
+    git add Makefile
+    git commit -m "Linux 5.16" > /dev/null 2>&1
+    git tag -a v5.16 -m "Linux 5.16" > /dev/null 2>&1
+
+    # Add second vulnerable code
+    echo "vulnerable code 2" > drivers/test/vuln2.c
+    git add drivers/test/vuln2.c
+    git commit -m "test: add second vulnerable feature" > /dev/null 2>&1
+    local vuln2_commit=$(git rev-parse HEAD)
+
+    # Tag 5.17
+    echo "Linux 5.17" > Makefile
+    git add Makefile
+    git commit -m "Linux 5.17" > /dev/null 2>&1
+    git tag -a v5.17 -m "Linux 5.17" > /dev/null 2>&1
+
+    # Fix both vulnerabilities with one commit
+    echo "fixed code 1" > drivers/test/vuln1.c
+    echo "fixed code 2" > drivers/test/vuln2.c
+    git add drivers/test/vuln1.c drivers/test/vuln2.c
+    git commit -m "test: fix multiple security vulnerabilities
+
+This fixes two separate security issues:
+1. A vulnerability in the first feature
+2. A vulnerability in the second feature
+
+Fixes: ${vuln1_commit:0:12} ('test: add first vulnerable feature')
+Fixes: ${vuln2_commit:0:12} ('test: add second vulnerable feature')" > /dev/null 2>&1
+    local fix_commit=$(git rev-parse HEAD)
+
+    # Tag 5.18
+    echo "Linux 5.18" > Makefile
+    git add Makefile
+    git commit -m "Linux 5.18" > /dev/null 2>&1
+    git tag -a v5.18 -m "Linux 5.18" > /dev/null 2>&1
+
+    # Create id_found_in that maps commits to versions
+    cat > "$TEST_DIR/commit-tree/id_found_in" << EOF
+#!/bin/bash
+COMMIT=\$1
+
+case "\$COMMIT" in
+    ${vuln1_commit})
+        echo "5.16"
+        ;;
+    ${vuln2_commit})
+        echo "5.17"
+        ;;
+    ${fix_commit})
+        echo "5.18"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+    chmod +x "$TEST_DIR/commit-tree/id_found_in"
+
+    cd - > /dev/null 2>&1
+
+    # Test case 1: Fix commit should identify both vulnerabilities
+    local output
+    local output_no_debug
+    
+    output=$($DYAD "${fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+    
+    # Should show range from first vulnerability to fix
+    local expected_first="5.16:${vuln1_commit}:5.18:${fix_commit}"
+    if ! echo "$output_no_debug" | grep -q "${expected_first}"; then
+        result=1
+        message+="First vulnerability range not found. Expected: ${expected_first}, Got: $output_no_debug "
+    fi
+
+    # Test case 2: Using --vulnerable with first commit
+    output=$($DYAD --vulnerable="${vuln1_commit:0:12}" "${fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+    
+    # Should show exactly the specified range
+    if ! echo "$output_no_debug" | grep -q "^${expected_first}\$"; then
+        result=1
+        message+="Explicit first vulnerable commit range not found. Expected: ${expected_first}, Got: $output_no_debug "
+    fi
+
+    # Test case 3: Using --vulnerable with second commit
+    output=$($DYAD --vulnerable="${vuln2_commit:0:12}" "${fix_commit:0:12}" 2>&1)
+    output_no_debug=$(echo "$output" | grep -v "^#")
+    
+    # Should show range from second vulnerability to fix
+    local expected_second="5.17:${vuln2_commit}:5.18:${fix_commit}"
+    if ! echo "$output_no_debug" | grep -q "^${expected_second}\$"; then
+        result=1
+        message+="Explicit second vulnerable commit range not found. Expected: ${expected_second}, Got: $output_no_debug "
+    fi
+
+    print_result "$name" "$result" "$message"
+}
+
 # Run all tests
 echo "${BLUE}Running dyad tests...${RESET}"
 echo "------------------------"
@@ -1197,6 +1325,7 @@ test_cherry_pick_no_fixes
 test_missing_fixes
 test_multiple_branch_fixes
 test_rc_version_handling
+test_multiple_fixes_tags
 
 # Print summary
 echo "------------------------"
