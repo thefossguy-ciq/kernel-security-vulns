@@ -22,11 +22,11 @@ DEBUG=0
 
 # Initialize our color variables if we are a normal terminal
 if [[ -t 1 ]]; then
-	txtred=$(tput setaf 1)          # Red
-	txtgrn=$(tput setaf 2)          # Green
-	txtblu=$(tput setaf 4)          # Blue
-	txtcyn=$(tput setaf 6)          # Cyan
-	txtrst=$(tput sgr0)             # Text reset
+	txtred=$(tput setaf 1)	# Red
+	txtgrn=$(tput setaf 2)	# Green
+	txtblu=$(tput setaf 4)	# Blue
+	txtcyn=$(tput setaf 6)	# Cyan
+	txtrst=$(tput sgr0)	# Text reset
 else
 	txtred=""
 	txtgrn=""
