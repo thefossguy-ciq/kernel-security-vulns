@@ -18,6 +18,12 @@ if [ ! -d ${KERNEL_TREE} ]; then
        exit 1
 fi
 
+txtred=$(tput setaf 1)		# Red
+txtgrn=$(tput setaf 2)		# Green
+txtblu=$(tput setaf 4)		# Blue
+txtcyn=$(tput setaf 6)		# Cyan
+txtrst=$(tput sgr0)		# Text reset
+
 # don't use unset variables
 set -o nounset
 
@@ -53,7 +59,7 @@ CVE_ROOT="${DIR}/../cve/"
 # make sure that this is even a valid CVE for us to handle
 f=$(find "${CVE_ROOT}/" -type f | grep "${CVE_ENTRY}")
 if [[ "${f}" == "" ]]; then
-	echo "No CVE entry found for ${CVE_ENTRY}, are you sure it is correct?"
+	echo "${txtred}No CVE entry found for ${txtcyn}${CVE_ENTRY}${txtrst}, are you sure it is correct?"
 	exit 1
 fi
 
@@ -77,12 +83,12 @@ if [[ "$f" != "" ]]; then
 	done
 	#echo "files found = ${#files[@]}"
 	if [[ "${#files[@]}" < "4" ]]; then
-		echo "The number of files found is ${#files[@]}, when is should be at least 4, what is going on?"
-		echo "files are:"
+		echo "${txtred}The number of files found is ${txtcyn}${#files[@]}${txtrst}, when is should be at least 4, what is going on?"
+		echo "${txtred}files are:${txtrst}"
 		for entry in "${files[@]}"; do
-			echo "	${entry}"
+			echo "	${txtcyn}${entry}${txtrst}"
 			done
-		echo "Exiting, please fix up!"
+		echo "${txtred}Exiting, please fix up!${txtrst}"
 		exit 1
 	fi
 
@@ -108,20 +114,20 @@ In-Reply-To: ${message_id}
 ${CVE_ENTRY} has now been rejected and is no longer a valid CVE.
 
 EOF
-	echo "Rejected message is at ${rejected_mbox}"
+	echo "Rejected message is at ${txtcyn}${rejected_mbox}${txtrst}"
 	echo "To send it, please run"
-	echo "	git send-email ${rejected_mbox}"
+	echo "	${txtgrn}git send-email ${rejected_mbox}${txtrst}"
 	echo ""
 
 else
 	# Let's look in the reserved section
 	# FIXME: not done yet.
-	echo "FIXME!  ${CVE_ENTRY} not found in the published area, is it somewhere else?"
-	echo "the file ${f} seemed to match???"
+	echo "${txtred}FIXME!${txtrst}  ${txtcyn}${CVE_ENTRY}${txtrst} not found in the published area, is it somewhere else?"
+	echo "the file ${txtcyn}${f}${txtrst} seemed to match???"
 	exit 1
 fi
 
 echo "To reject the CVE with cve.org, please run:"
-echo "	cve -o Linux reject ${CVE_ENTRY} -j '{\"rejectedReasons\": [{\"lang\": \"en\", \"value\": \"This CVE ID has been rejected or withdrawn by its CVE Numbering Authority.\"}]}'"
+echo "	${txtgrn}cve -o Linux reject ${CVE_ENTRY} -j '{\"rejectedReasons\": [{\"lang\": \"en\", \"value\": \"This CVE ID has been rejected or withdrawn by its CVE Numbering Authority.\"}]}'${txtrst}"
 
 exit
