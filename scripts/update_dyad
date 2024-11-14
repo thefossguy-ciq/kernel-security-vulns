@@ -20,23 +20,6 @@
 # set to 1 to get some debugging logging messages (or use -v/--verbose option)
 DEBUG=0
 
-# Colors are good!
-if [[ -t 1 ]]; then
-	txtred=$(tput setaf 1)		# Red
-	txtgrn=$(tput setaf 2)		# Green
-	txtylw=$(tput setaf 3)		# Yellow
-	txtblu=$(tput setaf 4)		# Blue
-	txtcyn=$(tput setaf 6)		# Cyan
-	txtrst=$(tput sgr0)		# Text reset
-else
-	txtred=""
-	txtgrn=""
-	txtylw=""
-	txtblu=""
-	txtcyn=""
-	txtrst=""
-fi
-
 # Initialize our color variables if we are a normal terminal
 if [[ -t 1 ]]; then
 	txtred=$(tput setaf 1)          # Red
