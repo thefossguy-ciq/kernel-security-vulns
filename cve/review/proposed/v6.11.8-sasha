@@ -1,0 +1,59 @@
+6ca575374dd9a vsock/virtio: Initialization of the dangling pointer occurring in vsk->trans
+0b63c0e01fba4 ocfs2: remove entry once instead of null-ptr-dereference in ocfs2_xa_remove()
+f903663a8dcd6 clk: qcom: videocc-sm8350: use HW_CTRL_TRIGGER for vcodec GDSCs
+37bb562837929 USB: serial: io_edgeport: fix use after free in debug printk
+7dd08a0b41930 usb: typec: fix potential out of bounds in ucsi_ccg_update_set_new_cam_cmd()
+029778a4fd2c9 usb: typec: qcom-pmic: init value of hdr_len/txbuf_len earlier
+9cfb31e4c89d2 usb: dwc3: fix fault at system suspend if device was already runtime suspended
+498dbd9aea205 usb: musb: sunxi: Fix accessing an released usb phy
+f8f931bba0f92 mm/thp: fix deferred split unqueue naming and locking
+4401e9d10ab02 mm/damon/core: avoid overflow in damon_feed_loop_next_input()
+9e05e5c7ee875 signal: restore the override_rlimit logic
+ace149e0830c3 filemap: Fix bounds checking in filemap_read()
+c9a75ec45f111 btrfs: reinitialize delayed ref list after deleting it from the list
+81d2fb4c7c18a idpf: avoid vport access in idpf_get_link_ksettings
+751ecf6afd656 arm64/sve: Discard stale CPU state when handling SVE traps
+1f26339b2ed63 net: vertexcom: mse102x: Fix possible double free of TX skb
+fed13a5478680 dm: fix a crash if blk_alloc_disk fails
+c0ade5d989795 dm cache: fix potential out-of-bounds access on the first resume
+7922277197254 dm cache: fix out-of-bounds access to the dirty bitset when resizing
+135496c208ba2 dm cache: fix flushing uninitialized delayed_work on cache_ctr error
+04de7589e0a95 KEYS: trusted: dcp: fix NULL dereference in AEAD crypto operation
+a6dd15981c03f drm/amdgpu: prevent NULL pointer dereference if ATIF is not supported
+b46dadf7e3cfe drm/amdgpu: Adjust debugfs register access permissions
+4d75b9468021c drm/amdgpu: add missing size check in amdgpu_debugfs_gprwave_read()
+f790a2c494c4e drm/amdgpu: Adjust debugfs eviction and IB access permissions
+f432a1621f049 drm/panthor: Be stricter about IO mapping flags
+444fa5b100e5c drm/panthor: Lock XArray when getting entries for the VM
+b04ce1e718bd5 drm/imagination: Break an object reference loop
+9265fed6db601 tpm: Lock TPM chip in tpm_pm_suspend() first
+64a2b6ed4bfd8 drm/xe: Drop VM dma-resv lock on xe_sync_in_fence_get failure in exec IOCTL
+af797b831d897 drm/xe: Fix possible exec queue leak in exec IOCTL
+b8fc56fbca748 ksmbd: fix slab-use-after-free in smb3_preauth_hash_rsp
+3abab905b14f4 ksmbd: Fix the missing xa_store error check
+0a77d947f599b ksmbd: check outstanding simultaneous SMB operations
+0a77715db2261 ksmbd: fix slab-use-after-free in ksmbd_smb2_session_create
+e6a3ea83fbe15 media: v4l2-tpg: prevent the risk of a division by zero
+96d8569563916 media: vivid: fix buffer overwrite when using > 32 buffers
+458ea1c0be991 media: av7110: fix a spectre vulnerability
+576a307a7650b media: cx24116: prevent overflows on SNR calculus
+14a22762c3dae media: s5p-jpeg: prevent buffer overflows
+438d3085ba5b8 media: ar0521: don't overflow when checking PLL values
+2aee207e5b3c9 media: mgb4: protect driver against spectre
+fa88dc7db176c media: dvb-core: add missing buffer index check
+9bb4af400c386 ASoC: stm32: spdifrx: fix dma channel release in stm32_spdifrx_remove
+972e63e895abb media: dvbdev: prevent the risk of out of memory access
+d293958a8595b net/smc: do not leave a dangling sk pointer in __smc_create()
+fc9de52de38f6 rxrpc: Fix missing locking causing hanging calls
+71803c1dfa29e net: arc: fix the device for dma_map_single/dma_unmap_single
+3f7d9c1964fcd virtio_net: Add hash_key_length check
+c03d278fdf35e netfilter: nf_tables: wait for rcu grace period on net_device removal
+df3dff8ab6d79 net: hns3: fix kernel crash when uninstalling driver
+f30490e9695ef i40e: fix race condition by adding filter's intermediate sync state
+5ccdcdf186aec net: xilinx: axienet: Enqueue Tx packets in dql before dmaengine starts
+e15c5506dd398 net: enetc: allocate vf_state during PF probes
+0ead60804b64f sctp: properly validate chunk size in sctp_sf_ootb()
+2feb023110843 regulator: rtq2208: Fix uninitialized use of regulator_config
+4a74da044ec9e security/keys: fix slab-out-of-bounds in key_task_permission
+bceec87a73804 platform/x86/amd/pmc: Detect when STB is not available
+177f25d1292c7 HID: core: zero-initialize the report buffer
