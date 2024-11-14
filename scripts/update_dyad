@@ -12,7 +12,7 @@
 # that no one wants to see.
 #
 # Usage:
-#	update_dyad
+#	update_dyad [--cve-user=email@example.com] [CVE-ID or year]
 #
 # Requires:
 #  dyad
@@ -42,9 +42,58 @@ DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
 
 help() {
-	echo "${SCRIPT}"
-	echo "	Note, CVE_USER must be set to your CVE_USER email address"
+	echo "Usage: ${SCRIPT} [OPTIONS] [CVE-ID or year]"
+	echo "Options:"
+	echo "  --cve-user=EMAIL    Set the CVE user email address"
+	echo "  -h, --help          Show this help message"
+	echo "  -v, --verbose       Enable verbose output"
+	echo ""
+	echo "Either set CVE_USER environment variable or use --cve-user option"
 	exit 1
+}
+
+# Parse command line arguments
+parse_args() {
+	local TEMP
+	TEMP=$(getopt -o hv --long help,verbose,cve-user: -n "${SCRIPT}" -- "$@")
+	if [ $? -ne 0 ]; then
+		help
+	fi
+
+	eval set -- "$TEMP"
+
+	while true; do
+		case "$1" in
+			--cve-user)
+				export CVE_USER="$2"
+				shift 2
+				;;
+			-h|--help)
+				help
+				;;
+			-v|--verbose)
+				DEBUG=1
+				shift
+				;;
+			--)
+				shift
+				break
+				;;
+			*)
+				echo "${txtred}Error:${txtrst} Invalid option: $1" >&2
+				help
+				;;
+		esac
+	done
+
+	# Store remaining argument (CVE-ID or year) if any
+	CVE="$1"
+
+	# Validate that CVE_USER is set either via environment or command line
+	if [ -z "${CVE_USER}" ]; then
+		echo "${txtred}Error:${txtrst} CVE_USER must be set via environment variable or --cve-user option" >&2
+		help
+	fi
 }
 
 dyad="${DIR}/dyad"
@@ -193,7 +242,7 @@ process_single_cve() {
 }
 
 main() {
-	local CVE=${1:-""}
+	parse_args "$@"
 
 	if [[ -z "${CVE}" ]]; then
 		# Process all years
