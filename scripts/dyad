@@ -640,6 +640,12 @@ else
 			for kernel in ${x}; do
 				kernel_id_info "${kernel}"
 
+				kernel_version_is_queue "${kernel}"
+				kernel_is_queue=$?
+				if [[ "${kernel_is_queue}" == 1 ]] ; then
+					continue
+				fi
+
 				kernel_version_is_mainline "${kernel}"
 				kernel_is_mainline=$?
 				if [[ "${kernel_is_mainline}" == "0" ]]; then
