@@ -31,11 +31,21 @@ if [ ! -d ${KERNEL_TREE} ]; then
 fi
 
 # Colors are good!
-txtred=$(tput setaf 1)		# Red
-txtgrn=$(tput setaf 2)		# Green
-txtblu=$(tput setaf 4)		# Blue
-txtcyn=$(tput setaf 6)		# Cyan
-txtrst=$(tput sgr0)		# Text reset
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtylw=$(tput setaf 3)		# Yellow
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtylw=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
 
 # don't use unset variables
 set -o nounset
