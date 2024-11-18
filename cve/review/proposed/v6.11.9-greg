@@ -1,0 +1,11 @@
+610a79ffea02 afs: Fix lock recursion
+ef7134c7fc48 smb: client: Fix use-after-free of network namespace.
+78f636e82b22 s390/ap: Fix CCA crypto card behavior within protected execution environment
+4e1e3dd88a4c RDMA/siw: Add sendpage_ok() check to disable MSG_SPLICE_PAGES
+1f021341eef4 nvme-multipath: defer partition scanning
+73adbd92f322 LoongArch: KVM: Mark hrtimer to expire in hard interrupt context
+28a5dfd4f615 drm/vmwgfx: Limit display layout ioctl array size to VMWGFX_NUM_DISPLAY_UNITS
+9c1813b32534 drm/xe/ufence: Prefetch ufence addr to catch bogus address
+704573851b51 mm: krealloc: Fix MTE false alarm in __do_krealloc
+44d0469f79bd bpf: Add sk_is_inet and IS_ICSK check in tls_sw_has_ctx_tx/rx
+97ee04feb682 virtio_pci: Fix admin vq cleanup by using correct info pointer
