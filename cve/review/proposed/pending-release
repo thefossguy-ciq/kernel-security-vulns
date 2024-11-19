@@ -1,0 +1,2 @@
+ecf2b43018da media: uvcvideo: Skip parsing frames of type UVC_VS_UNDEFINED in uvc_parse_format
+e629295bd60abf4da1db85b82819ca6a4f6c1e79
