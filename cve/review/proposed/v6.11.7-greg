@@ -61,3 +61,12 @@ efa353ae1b05 iio: adc: ad7124: fix division by zero in ad7124_set_channel_odr()
 9c70b2a33cd2 sched/numa: Fix the potential null pointer dereference in task_numa_work()
 281dd25c1a01 mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves
 13400ac8fb80 bpf: Fix out-of-bounds write in trie_get_next_key()
+8286f8b62299 NFSD: Never decrement pending_async_copies on error
+3ed092997a00 wifi: iwlwifi: mvm: don't leak a link on AP removal
+37233169a6ea riscv: Prevent a bad reference count on CPU nodes
+369f05688911 iio: gts-helper: Fix memory leaks for the error path of iio_gts_build_avail_scale_table()
+63a81588cd20 rpcrdma: Always release the rpcrdma_device's xa_array
+a85df8c7b5ee drm/tegra: Fix NULL vs IS_ERR() check in probe()
+bffdf9d7e51a Input: edt-ft5x06 - fix regmap leak when probe fails
+b8423a2f5814 usb: typec: qcom-pmic-typec: fix missing fwnode removal in error path
+9581acb91eaf usb: typec: fix unreleased fwnode_handle in typec_port_register_altmodes()
