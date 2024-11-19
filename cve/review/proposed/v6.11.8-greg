@@ -49,3 +49,17 @@ fed13a547868 dm: fix a crash if blk_alloc_disk fails
 3b557be89fc6 net: wwan: t7xx: Fix off-by-one error in t7xx_dpmaif_rx_buf_alloc()
 9b58031ff96b idpf: fix idpf_vc_core_init error path
 81d2fb4c7c18 idpf: avoid vport access in idpf_get_link_ksettings
+ecf2b43018da media: uvcvideo: Skip parsing frames of type UVC_VS_UNDEFINED in uvc_parse_format
+f8f931bba0f9 mm/thp: fix deferred split unqueue naming and locking
+444fa5b100e5 drm/panthor: Lock XArray when getting entries for the VM
+438d3085ba5b media: ar0521: don't overflow when checking PLL values
+3f7d9c1964fc virtio_net: Add hash_key_length check
+029778a4fd2c usb: typec: qcom-pmic: init value of hdr_len/txbuf_len earlier
+b04ce1e718bd drm/imagination: Break an object reference loop
+9265fed6db60 tpm: Lock TPM chip in tpm_pm_suspend() first
+64a2b6ed4bfd drm/xe: Drop VM dma-resv lock on xe_sync_in_fence_get failure in exec IOCTL
+af797b831d89 drm/xe: Fix possible exec queue leak in exec IOCTL
+f30490e9695e i40e: fix race condition by adding filter's intermediate sync state
+432dc0654c61 ucounts: fix counter leak in inc_rlimit_get_ucounts()
+a373830f96db KVM: PPC: Book3S HV: Mask off LPCR_MER for a vCPU before running it to avoid spurious interrupts
+0a97195d2181 EDAC/qcom: Make irq configuration optional
