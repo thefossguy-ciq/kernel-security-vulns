@@ -1,0 +1,13 @@
+8421d4c8762bd bpf: Check validity of link->type in bpf_link_show_fdinfo()
+73adbd92f3223 LoongArch: KVM: Mark hrtimer to expire in hard interrupt context
+3ec4350d4efb5 RISCV: KVM: use raw_spinlock for critical section in imsic
+610a79ffea021 afs: Fix lock recursion
+15f3434748164 fs: Fix uninitialized value issue in from_kuid and from_kgid
+44d0469f79bd3 bpf: Add sk_is_inet and IS_ICSK check in tls_sw_has_ctx_tx/rx
+97ee04feb682c virtio_pci: Fix admin vq cleanup by using correct info pointer
+d06923670b5a5 nvme: make keep-alive synchronous operation
+1f021341eef41 nvme-multipath: defer partition scanning
+4e1e3dd88a4ce RDMA/siw: Add sendpage_ok() check to disable MSG_SPLICE_PAGES
+782373ba27660 nvme: tcp: avoid race between queue_lock lock and destroy
+393c554093c0c pinctrl: aw9523: add missing mutex_destroy
+ef7134c7fc48e smb: client: Fix use-after-free of network namespace.
