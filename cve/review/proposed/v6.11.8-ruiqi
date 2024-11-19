@@ -1,0 +1,56 @@
+ca61d6836e6f firmware: qcom: scm: fix a NULL-pointer dereference
+0a97195d2181 EDAC/qcom: Make irq configuration optional
+295416091e44 firmware: arm_scmi: Fix slab-use-after-free in scmi_bus_notifier()
+bceec87a7380 platform/x86/amd/pmc: Detect when STB is not available
+4a74da044ec9 security/keys: fix slab-out-of-bounds in key_task_permission
+2feb02311084 regulator: rtq2208: Fix uninitialized use of regulator_config
+e15c5506dd39 net: enetc: allocate vf_state during PF probes
+5ccdcdf186ae net: xilinx: axienet: Enqueue Tx packets in dql before dmaengine starts
+f30490e9695e i40e: fix race condition by adding filter's intermediate sync state
+df3dff8ab6d7 net: hns3: fix kernel crash when uninstalling driver
+25d70702142a net: stmmac: Fix unbalanced IRQ wake disable warning on single irq case
+71803c1dfa29 net: arc: fix the device for dma_map_single/dma_unmap_single
+d293958a8595 net/smc: do not leave a dangling sk pointer in __smc_create()
+71712cf519fa drivers: net: ionic: add missed debugfs cleanup to ionic_probe() error path
+50b9fa751d1a media: adv7604: prevent underflow condition when reporting colorspace
+9bb4af400c38 ASoC: stm32: spdifrx: fix dma channel release in stm32_spdifrx_remove
+fa88dc7db176 media: dvb-core: add missing buffer index check
+96d856956391 media: vivid: fix buffer overwrite when using > 32 buffers
+e6a3ea83fbe1 media: v4l2-tpg: prevent the risk of a division by zero
+0a77715db226 ksmbd: fix slab-use-after-free in ksmbd_smb2_session_create
+0a77d947f599 ksmbd: check outstanding simultaneous SMB operations
+3abab905b14f ksmbd: Fix the missing xa_store error check
+b8fc56fbca74 ksmbd: fix slab-use-after-free in smb3_preauth_hash_rsp
+af797b831d89 drm/xe: Fix possible exec queue leak in exec IOCTL
+64a2b6ed4bfd drm/xe: Drop VM dma-resv lock on xe_sync_in_fence_get failure in exec IOCTL
+9265fed6db60 tpm: Lock TPM chip in tpm_pm_suspend() first
+b04ce1e718bd drm/imagination: Break an object reference loop
+f432a1621f04 drm/panthor: Be stricter about IO mapping flags
+4d75b9468021 drm/amdgpu: add missing size check in amdgpu_debugfs_gprwave_read()
+04de7589e0a9 KEYS: trusted: dcp: fix NULL dereference in AEAD crypto operation
+135496c208ba dm cache: fix flushing uninitialized delayed_work on cache_ctr error
+792227719725 dm cache: fix out-of-bounds access to the dirty bitset when resizing
+c0ade5d98979 dm cache: fix potential out-of-bounds access on the first resume
+fed13a547868 dm: fix a crash if blk_alloc_disk fails
+54c814c8b23b scsi: ufs: core: Start the RTC update work later
+dc270d715969 nfs: Fix KMSAN warning in decode_getfattr_attrs()
+3b557be89fc6 net: wwan: t7xx: Fix off-by-one error in t7xx_dpmaif_rx_buf_alloc()
+1f26339b2ed6 net: vertexcom: mse102x: Fix possible double free of TX skb
+751ecf6afd65 arm64/sve: Discard stale CPU state when handling SVE traps
+9c9201afebea mm/slab: fix warning caused by duplicate kmem_cache creation in kmem_buckets_create
+a373830f96db KVM: PPC: Book3S HV: Mask off LPCR_MER for a vCPU before running it to avoid spurious interrupts
+81d2fb4c7c18 idpf: avoid vport access in idpf_get_link_ksettings
+9b58031ff96b idpf: fix idpf_vc_core_init error path
+2b084d820594 btrfs: fix the length of reserved qgroup to free
+c9a75ec45f11 btrfs: reinitialize delayed ref list after deleting it from the list
+ace149e0830c filemap: Fix bounds checking in filemap_read()
+498dbd9aea20 usb: musb: sunxi: Fix accessing an released usb phy
+9cfb31e4c89d usb: dwc3: fix fault at system suspend if device was already runtime suspended
+029778a4fd2c usb: typec: qcom-pmic: init value of hdr_len/txbuf_len earlier
+7dd08a0b4193 usb: typec: fix potential out of bounds in ucsi_ccg_update_set_new_cam_cmd()
+37bb56283792 USB: serial: io_edgeport: fix use after free in debug printk
+f903663a8dcd clk: qcom: videocc-sm8350: use HW_CTRL_TRIGGER for vcodec GDSCs
+807babf69027 staging: vchiq_arm: Use devm_kzalloc() for drv_mgmt allocation
+404b739e8955 staging: vchiq_arm: Use devm_kzalloc() for vchiq_arm_state allocation
+0b63c0e01fba ocfs2: remove entry once instead of null-ptr-dereference in ocfs2_xa_remove()
+432dc0654c61 ucounts: fix counter leak in inc_rlimit_get_ucounts()
