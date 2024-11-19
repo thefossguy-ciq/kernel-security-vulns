@@ -1,0 +1,71 @@
+2b059d0d1e62 slub/kunit: fix a WARNING due to unwrapped __kmalloc_cache_noprof
+07a6e3b78a65 wifi: iwlwifi: mvm: Fix response handling in iwl_mvm_send_recovery_cmd()
+f1e54d11b210 macsec: Fix use-after-free while sending the offloading packet [auto: cve already created]
+2ef9439f7a19 ASoC: dapm: fix bounds checker error in dapm_widget_list_create
+740be3b9a6d7 sock_map: fix a NULL pointer dereference in sock_map_link_update_prog() [auto: cve already created]
+66600fac7a98 net: stmmac: TSO: Fix unbalanced DMA map/unmap for non-paged SKB data
+6e58c3310622 ice: fix crash on probe for DPLL enabled E810 LOM
+ad4a3ca6a8e8 ipv4: ip_tunnel: Fix suspicious RCU usage warning in ip_tunnel_init_flow()
+90e0569dd3d3 ipv4: ip_tunnel: Fix suspicious RCU usage warning in ip_tunnel_find()
+2e95c4384438 net/sched: stop qdisc_tree_reduce_backlog on TC_H_ROOT
+4ce1f56a1eac netdevsim: Add trailing zero to terminate the string in nsim_nexthop_bucket_activity_write() [auto: cve already created]
+a13e690191ea net/sched: sch_api: fix xa_insert() error path in tcf_block_get_ext()
+13400ac8fb80 bpf: Fix out-of-bounds write in trie_get_next_key() [auto: cve already created]
+9ab5cf19fb0e net: fix crash when config small gso_max_size/gso_ipv4_max_size [auto: cve already created]
+f48d258f0ac5 netfilter: Fix use-after-free in get_info() [auto: cve already created]
+4ed234fe793f netfilter: nf_reject_ipv6: fix potential crash in nf_send_reset6() [auto: cve already created]
+1e67d8641813 Bluetooth: hci: fix null-ptr-deref in hci_read_supported_codecs [auto: cve already created]
+101ccfbabf47 bpf: Free dynamically allocated bits in bpf_iter_bits_destroy() [auto: cve already created]
+393397fbdcad bpf: Check the validity of nr_words in bpf_iter_bits_new() [auto: cve already created]
+12ae97c531fc mlxsw: spectrum_ipip: Fix memory leak when changing remote IPv6 address [auto: cve already created]
+d5953d680f7e netfilter: nft_payload: sanitize offset and length before calling skb_checksum() [auto: cve already created]
+50793801fc7f fsdax: dax_unshare_iter needs to copy entire blocks [auto: cve already created]
+1c10941e34c5 ACPI: CPPC: Make rmw_lock a raw_spin_lock [auto: cve already created]
+4018651ba5c4 drm/mediatek: Fix potential NULL dereference in mtk_crtc_destroy()
+556bdf27c2dd ntfs3: Add bounds checking to mi_enum_attr() [auto: cve already created]
+9931122d04c6 fs/ntfs3: Check if more than chunk-size bytes are written [auto: cve already created]
+c4a8ba334262 fs/ntfs3: Add rough attr alloc_size check [auto: cve already created]
+03b097099eef fs/ntfs3: Fix possible deadlock in mi_read [auto: cve already created]
+d178944db36b fs/ntfs3: Additional check in ni_clear() [auto: cve already created]
+a33fb016e49e fs/ntfs3: Fix general protection fault in run_is_mapped_full [auto: cve already created]
+031d6f608290 fs/ntfs3: Additional check in ntfs_file_release [auto: cve already created]
+63fab04cbd0f NFSD: Initialize struct nfsd4_copy earlier [auto: cve already created]
+bd9e4d4a3b12 phy: qcom: qmp-usb: fix NULL-deref on runtime suspend [auto: cve already created]
+29240130ab77 phy: qcom: qmp-usb-legacy: fix NULL-deref on runtime suspend [auto: cve already created]
+34c21f94fa1e phy: qcom: qmp-usbc: fix NULL-deref on runtime suspend [auto: cve already created]
+393b6bc174b0 wifi: mac80211: do not pass a stopped vif to the driver in .get_txpower [auto: cve already created]
+e15d84b3bba1 wifi: ath10k: Fix memory leak in management tx [auto: cve already created]
+d5fee261dfd9 wifi: cfg80211: clear wdev->cqm_config pointer on free [auto: cve already created]
+07c90acb071b wifi: iwlegacy: Clear stale interrupts before resuming device [auto: cve already created]
+7245012f0f49 wifi: iwlwifi: mvm: fix 6 GHz scan construction
+6bd301819f8f staging: iio: frequency: ad9832: fix division by zero in ad9832_calc_freqreg() [auto: cve already created]
+efa353ae1b05 iio: adc: ad7124: fix division by zero in ad7124_set_channel_odr() [auto: cve already created]
+691e79ffc421 iio: gts-helper: Fix memory leaks in iio_gts_build_avail_scale_table() [auto: cve already created]
+41e192ad2779 nilfs2: fix kernel bug due to missing clearing of checked flag [auto: cve already created]
+b3a033e3ecd3 nilfs2: fix potential deadlock with newly created symlinks [auto: cve already created]
+d949d1d14fa2 mm: shmem: fix data-race in shmem_getattr() [auto: cve already created]
+e9e1b20fae7d thunderbolt: Fix KASAN reported stack out-of-bounds read in tb_retimer_scan() [auto: cve already created]
+101c268bd2f3 cxl/port: Fix use-after-free, permit out-of-order decoder shutdown [auto: cve already created]
+117932eea99b cgroup/bpf: use a dedicated workqueue for cgroup bpf destruction
+d48e1dea3931 btrfs: fix error propagation of split bios [auto: cve already created]
+25f00a13dccf spi: spi-fsl-dspi: Fix crash when not using GPIO chip select [auto: cve already created]
+cb7e509c4e01 scsi: ufs: core: Fix another deadlock during RTC update
+9c70b2a33cd2 sched/numa: Fix the potential null pointer dereference in task_numa_work() [auto: cve already created]
+c749d9b7ebbc iov_iter: fix copy_page_from_iter_atomic() if KMAP_LOCAL_FORCE_MAP [auto: cve already created]
+4aa923a6e640 drm/amd/pm: Vangogh: Fix kernel memory out of bounds write [auto: cve already created]
+3deb12c788c3 mptcp: init: protect sched with rcu_read_lock
+f64e67e5d3a4 fork: do not invoke uffd on fork if error occurs [auto: cve already created]
+985da552a98e fork: only invoke khugepaged, ksm hooks if no error [auto: cve already created]
+bc0a2f3a73fc ocfs2: pass u64 to ocfs2_truncate_inline maybe overflow [auto: cve already created]
+b125a0def25a resource,kexec: walk_system_ram_res_rev must retain resource flags
+01e215975fd8 mctp i2c: handle NULL header address
+aec8e6bf8391 btrfs: fix use-after-free of block device file in __btrfs_free_extra_devids() [auto: cve already created]
+dc60992ce76f xfs: fix finding a last resort AG in xfs_filestream_pick_ag [auto: cve already created]
+d2f551b1f72b nvmet-auth: assign dh_key to NULL after kfree_sensitive [auto: cve already created]
+926163342a2e drm/connector: hdmi: Fix memory leak in drm_display_mode_from_cea_vic() [auto: cve already created]
+add4163aca0d drm/tests: hdmi: Fix memory leaks in drm_display_mode_from_cea_vic() [auto: cve already created]
+1d60d74e8526 io_uring/rw: fix missing NOWAIT check for O_DIRECT start write
+409dc5196d5b arm64: dts: imx8ulp: correct the flexspi compatible string
+31b42af516af drm/i915/hdcp: Add encoder check in intel_hdcp_get_capability
+d34f4f058edf drm/i915/hdcp: Add encoder check in hdcp2_get_capability
+dc783ba4b9df lib: alloc_tag_module_unload must wait for pending kfree_rcu calls [auto: cve already created]
