@@ -1,0 +1,54 @@
+ca61d6836e6f firmware: qcom: scm: fix a NULL-pointer dereference
+295416091e44 firmware: arm_scmi: Fix slab-use-after-free in scmi_bus_notifier()
+177f25d1292c HID: core: zero-initialize the report buffer [auto: cve already created]
+bceec87a7380 platform/x86/amd/pmc: Detect when STB is not available
+4a74da044ec9 security/keys: fix slab-out-of-bounds in key_task_permission [auto: cve already created]
+2feb02311084 regulator: rtq2208: Fix uninitialized use of regulator_config [auto: cve already created]
+0ead60804b64 sctp: properly validate chunk size in sctp_sf_ootb() [auto: cve already created]
+e15c5506dd39 net: enetc: allocate vf_state during PF probes [auto: cve already created]
+5ccdcdf186ae net: xilinx: axienet: Enqueue Tx packets in dql before dmaengine starts [auto: cve already created]
+df3dff8ab6d7 net: hns3: fix kernel crash when uninstalling driver [auto: cve already created]
+71803c1dfa29 net: arc: fix the device for dma_map_single/dma_unmap_single [auto: cve already created]
+fc9de52de38f rxrpc: Fix missing locking causing hanging calls [auto: cve already created]
+d293958a8595 net/smc: do not leave a dangling sk pointer in __smc_create() [auto: cve already created]
+972e63e895ab media: dvbdev: prevent the risk of out of memory access
+9bb4af400c38 ASoC: stm32: spdifrx: fix dma channel release in stm32_spdifrx_remove [auto: cve already created]
+fa88dc7db176 media: dvb-core: add missing buffer index check [auto: cve already created]
+2aee207e5b3c media: mgb4: protect driver against spectre
+14a22762c3da media: s5p-jpeg: prevent buffer overflows
+576a307a7650 media: cx24116: prevent overflows on SNR calculus [auto: cve already created]
+458ea1c0be99 media: av7110: fix a spectre vulnerability [auto: cve already created]
+96d856956391 media: vivid: fix buffer overwrite when using > 32 buffers [auto: cve already created]
+e6a3ea83fbe1 media: v4l2-tpg: prevent the risk of a division by zero [auto: cve already created]
+0a77715db226 ksmbd: fix slab-use-after-free in ksmbd_smb2_session_create [auto: cve already created]
+0a77d947f599 ksmbd: check outstanding simultaneous SMB operations [auto: cve already created]
+3abab905b14f ksmbd: Fix the missing xa_store error check [auto: cve already created]
+b8fc56fbca74 ksmbd: fix slab-use-after-free in smb3_preauth_hash_rsp [auto: cve already created]
+f432a1621f04 drm/panthor: Be stricter about IO mapping flags
+4d75b9468021 drm/amdgpu: add missing size check in amdgpu_debugfs_gprwave_read() [auto: cve already created]
+a6dd15981c03 drm/amdgpu: prevent NULL pointer dereference if ATIF is not supported
+04de7589e0a9 KEYS: trusted: dcp: fix NULL dereference in AEAD crypto operation [auto: cve already created]
+135496c208ba dm cache: fix flushing uninitialized delayed_work on cache_ctr error [auto: cve already created]
+792227719725 dm cache: fix out-of-bounds access to the dirty bitset when resizing [auto: cve already created]
+c0ade5d98979 dm cache: fix potential out-of-bounds access on the first resume [auto: cve already created]
+fed13a547868 dm: fix a crash if blk_alloc_disk fails [auto: cve already created]
+54c814c8b23b scsi: ufs: core: Start the RTC update work later
+dc270d715969 nfs: Fix KMSAN warning in decode_getfattr_attrs()
+1f26339b2ed6 net: vertexcom: mse102x: Fix possible double free of TX skb [auto: cve already created]
+751ecf6afd65 arm64/sve: Discard stale CPU state when handling SVE traps [auto: cve already created]
+9c9201afebea mm/slab: fix warning caused by duplicate kmem_cache creation in kmem_buckets_create
+81d2fb4c7c18 idpf: avoid vport access in idpf_get_link_ksettings [auto: cve already created]
+9b58031ff96b idpf: fix idpf_vc_core_init error path
+c9a75ec45f11 btrfs: reinitialize delayed ref list after deleting it from the list [auto: cve already created]
+ecf2b43018da media: uvcvideo: Skip parsing frames of type UVC_VS_UNDEFINED in uvc_parse_format
+ace149e0830c filemap: Fix bounds checking in filemap_read() [auto: cve already created]
+9e05e5c7ee87 signal: restore the override_rlimit logic [auto: cve already created]
+4401e9d10ab0 mm/damon/core: avoid overflow in damon_feed_loop_next_input() [auto: cve already created]
+498dbd9aea20 usb: musb: sunxi: Fix accessing an released usb phy [auto: cve already created]
+9cfb31e4c89d usb: dwc3: fix fault at system suspend if device was already runtime suspended
+7dd08a0b4193 usb: typec: fix potential out of bounds in ucsi_ccg_update_set_new_cam_cmd() [auto: cve already created]
+37bb56283792 USB: serial: io_edgeport: fix use after free in debug printk [auto: cve already created]
+f903663a8dcd clk: qcom: videocc-sm8350: use HW_CTRL_TRIGGER for vcodec GDSCs [auto: cve already created]
+0b63c0e01fba ocfs2: remove entry once instead of null-ptr-dereference in ocfs2_xa_remove() [auto: cve already created]
+6ca575374dd9 vsock/virtio: Initialization of the dangling pointer occurring in vsk->trans [auto: cve already created]
+2d5404caa8c7 Linux 6.12-rc7 [auto: cve already created]
