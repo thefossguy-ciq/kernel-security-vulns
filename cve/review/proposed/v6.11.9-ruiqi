@@ -1,0 +1,12 @@
+ef7134c7fc48 smb: client: Fix use-after-free of network namespace.
+79efebae4afc 9p: Avoid creating multiple slab caches with the same name
+4e1e3dd88a4c RDMA/siw: Add sendpage_ok() check to disable MSG_SPLICE_PAGES
+1f021341eef4 nvme-multipath: defer partition scanning
+cf8989d20d64 powerpc/powernv: Free name on error in opal_event_init()
+c199fac88fe7 nvme-loop: flush off pending I/O while shutting down loop controller
+d06923670b5a nvme: make keep-alive synchronous operation
+97ee04feb682 virtio_pci: Fix admin vq cleanup by using correct info pointer
+44d0469f79bd bpf: Add sk_is_inet and IS_ICSK check in tls_sw_has_ctx_tx/rx
+15f343474816 fs: Fix uninitialized value issue in from_kuid and from_kgid
+610a79ffea02 afs: Fix lock recursion
+73adbd92f322 LoongArch: KVM: Mark hrtimer to expire in hard interrupt context
