@@ -1,0 +1,36 @@
+6825cb07b79ff drm/amd/display: Handle dml allocation failure to avoid crash
+16dd2825c2353 drm/amd/display: Adjust VSDB parser for replay feature
+f7c7c5aa55637 pmdomain: imx93-blk-ctrl: correct remove path
+c0403e4ceecae drm/xe/oa: Fix "Missing outer runtime PM protection" warning
+1635e407a4a64 Revert "mmc: dw_mmc: Fix IDMAC operation with pages bigger than 4K"
+f642c5c4d528d mptcp: hold pm lock when deleting entry
+66edc3a5894c7 mm: page_alloc: move mlocked flag clearance into free_pages_prepare()
+247d720b2c5d2 nommu: pass NULL argument to vma_iter_prealloc()
+aa0d42cacf093 KVM: VMX: Bury Intel PT virtualization (guest/host mode) behind CONFIG_BROKEN
+923168a0631bc ima: fix buffer overrun in ima_eventdigest_init_common
+4e39ecadf1d2a vp_vdpa: fix id_table array not null terminated error
+0b364cf53b202 vdpa: solidrun: Fix UB bug with devres
+d1aa0c04294e2 mm: revert "mm: shmem: fix data-race in shmem_getattr()"
+a4a282daf1a19 mm/mremap: fix address wraparound in move_page_tables()
+669b0cb81e4e4 fs/proc/task_mmu: prevent integer overflow in pagemap_scan_get_args()
+fd7b4f9f46d46 sched/task_stack: fix object_is_on_stack() for KASAN tagged pointers
+737f34137844d ocfs2: uncache inode which has failed entering the group
+8ce41b0f9d77c mm: fix NULL pointer dereference in alloc_pages_bulk_noprof
+a5ca1dc46a6b6 x86/CPU/AMD: Clear virtualized VMLOAD/VMSAVE on Zen4 client
+ca29cfcc4a210 ARM: fix cacheflush with PAN
+93d1f41a82de3 drm/vmwgfx: avoid null_ptr_deref in vmw_framebuffer_surface_create_handle
+3387e043918e1 drm/panthor: Fix handling of partial GPU mapping of BOs
+57f7c7dc78cd0 drivers: perf: Fix wrong put_cpu() placement
+60cf6206a1f51 virtio/vsock: Improve MSG_ZEROCOPY error handling
+fbf7085b3ad1c vsock: Fix sk_error_queue memory leak
+d7b0ff5a86672 virtio/vsock: Fix accept_queue memory leak
+e99c6873229fe net/mlx5e: CT: Fix null-ptr-deref in add rule err flow
+dd6e972cc5890 net/mlx5e: kTLS, Fix incorrect page refcounting
+9ca314419930f net/mlx5: fs, lock FTE when checking if active
+d0989c9d2b3a8 net/mlx5: Fix msix vectors to respect platform limit
+ce7356ae35943 mptcp: cope racing subflow creation in mptcp_rcv_space_adjust
+581302298524e mptcp: error out earlier on disconnect
+073d89808c065 net: fix data-races around sk->sk_forward_alloc
+ab1c793f457f7 drm/rockchip: vop: Fix a dereferenced before check warning
+eb72e7fcc8398 sctp: fix possible UAF in sctp_v6_available()
+1904fb9ebf911 netlink: terminate outstanding dump on socket close
