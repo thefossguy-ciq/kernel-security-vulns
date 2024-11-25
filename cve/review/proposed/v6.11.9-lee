@@ -1,0 +1,13 @@
+ef7134c7fc48 smb: client: Fix use-after-free of network namespace. [auto: cve already created]
+782373ba2766 nvme: tcp: avoid race between queue_lock lock and destroy
+4e1e3dd88a4c RDMA/siw: Add sendpage_ok() check to disable MSG_SPLICE_PAGES [auto: cve already created]
+1f021341eef4 nvme-multipath: defer partition scanning [auto: cve already created]
+d06923670b5a nvme: make keep-alive synchronous operation
+97ee04feb682 virtio_pci: Fix admin vq cleanup by using correct info pointer [auto: cve already created]
+44d0469f79bd bpf: Add sk_is_inet and IS_ICSK check in tls_sw_has_ctx_tx/rx [auto: cve already created]
+15f343474816 fs: Fix uninitialized value issue in from_kuid and from_kgid
+610a79ffea02 afs: Fix lock recursion [auto: cve already created]
+73adbd92f322 LoongArch: KVM: Mark hrtimer to expire in hard interrupt context [auto: cve already created]
+8421d4c8762b bpf: Check validity of link->type in bpf_link_show_fdinfo()
+9c1813b32534 drm/xe/ufence: Prefetch ufence addr to catch bogus address
+704573851b51 mm: krealloc: Fix MTE false alarm in __do_krealloc
