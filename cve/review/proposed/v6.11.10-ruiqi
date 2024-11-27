@@ -1,0 +1,30 @@
+1904fb9ebf91 netlink: terminate outstanding dump on socket close
+eb72e7fcc839 sctp: fix possible UAF in sctp_v6_available()
+073d89808c06 net: fix data-races around sk->sk_forward_alloc
+581302298524 mptcp: error out earlier on disconnect
+ce7356ae3594 mptcp: cope racing subflow creation in mptcp_rcv_space_adjust
+9ca314419930 net/mlx5: fs, lock FTE when checking if active
+dd6e972cc589 net/mlx5e: kTLS, Fix incorrect page refcounting
+e99c6873229f net/mlx5e: CT: Fix null-ptr-deref in add rule err flow
+d7b0ff5a8667 virtio/vsock: Fix accept_queue memory leak
+fbf7085b3ad1 vsock: Fix sk_error_queue memory leak
+60cf6206a1f5 virtio/vsock: Improve MSG_ZEROCOPY error handling
+57f7c7dc78cd drivers: perf: Fix wrong put_cpu() placement
+3387e043918e drm/panthor: Fix handling of partial GPU mapping of BOs
+93d1f41a82de drm/vmwgfx: avoid null_ptr_deref in vmw_framebuffer_surface_create_handle
+ca29cfcc4a21 ARM: fix cacheflush with PAN
+a5ca1dc46a6b x86/CPU/AMD: Clear virtualized VMLOAD/VMSAVE on Zen4 client
+8ce41b0f9d77 mm: fix NULL pointer dereference in alloc_pages_bulk_noprof
+737f34137844 ocfs2: uncache inode which has failed entering the group
+a4a282daf1a1 mm/mremap: fix address wraparound in move_page_tables()
+d1aa0c04294e mm: revert "mm: shmem: fix data-race in shmem_getattr()"
+4e39ecadf1d2 vp_vdpa: fix id_table array not null terminated error
+aa0d42cacf09 KVM: VMX: Bury Intel PT virtualization (guest/host mode) behind CONFIG_BROKEN
+cd45e963e44b nilfs2: fix null-ptr-deref in block_touch_buffer tracepoint
+247d720b2c5d nommu: pass NULL argument to vma_iter_prealloc()
+f642c5c4d528 mptcp: hold pm lock when deleting entry
+2026559a6c4c nilfs2: fix null-ptr-deref in block_dirty_buffer tracepoint
+c0403e4ceeca drm/xe/oa: Fix "Missing outer runtime PM protection" warning
+f7c7c5aa5563 pmdomain: imx93-blk-ctrl: correct remove path
+16dd2825c235 drm/amd/display: Adjust VSDB parser for replay feature
+6825cb07b79f drm/amd/display: Handle dml allocation failure to avoid crash
