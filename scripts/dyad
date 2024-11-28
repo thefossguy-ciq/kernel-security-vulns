@@ -826,8 +826,12 @@ for fixed_entry in "${fixed_set[@]}" ; do
 	# found way above as that's where the issue showed up (i.e before this
 	# stable kernel branch was forked from mainline.)
 	if [[ "${create}" == "0" ]]; then
-		dbg "	nothing found for ${fixed_version}, using default of ${vuln_mainline_pair}"
-		create_fixed_pair "${vuln_mainline_pair}" "${fixed_entry}"
+		if [[ "${vuln_mainline_pair}" == "" ]]; then
+			dbg "	no mainline pair vulnerable at this point in time (fix in the future?), so skipping ${fixed_version} for now"
+		else
+			dbg "	nothing found for ${fixed_version}, using default of ${vuln_mainline_pair}"
+			create_fixed_pair "${vuln_mainline_pair}" "${fixed_entry}"
+		fi
 	fi
 done
 
