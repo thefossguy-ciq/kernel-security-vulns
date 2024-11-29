@@ -67,7 +67,7 @@ file is easy to parse by tools and is used by some of the existing scripts.
 
 If a:
 	published/YEAR/CVE-YEAR-ID.vulnerable
-file is present, the cve_update script will us the git sha in that file as the
+file is present, the cve_update script will use the git sha in that file as the
 "commit where the vulnerability showed up" for doing the logic of creating the
 .json and .mbox files.  This allows us to set the commit id for this for
 commits that do NOT have a "Fixes:" tag, or if the "Fixes:" tag is incorrect.
