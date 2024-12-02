@@ -207,6 +207,7 @@ kernel[-\s_]*memory|memory|\
 oob|\
 oops|\
 panic|\
+reboot|\
 refcount|\
 system|\
 syzkaller|\
