@@ -24,3 +24,5 @@ a4a282daf1a1 mm/mremap: fix address wraparound in move_page_tables()
 4e39ecadf1d2 vp_vdpa: fix id_table array not null terminated error
 923168a0631b ima: fix buffer overrun in ima_eventdigest_init_common
 247d720b2c5d nommu: pass NULL argument to vma_iter_prealloc()
+0b364cf53b20 vdpa: solidrun: Fix UB bug with devres
+c0403e4ceeca drm/xe/oa: Fix "Missing outer runtime PM protection" warning
