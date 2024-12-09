@@ -1,0 +1,47 @@
+a3e6079bd93d5 drm/amd/display: Remove PIPE_DTO_SRC_SEL programming from set_dtbclk_dto
+27227a234c148 drm/amd/display: Fix handling of plane refcount
+b61badd20b443 drm/amdgpu: fix usage slab after free
+87651f31ae4e6 drm/xe/guc_submit: fix race around suspend_pending
+831214f77037d drm/sti: avoid potential dereference of error pointers
+e965e771b0694 drm/sti: avoid potential dereference of error pointers in sti_gdp_atomic_check
+c1ab40a1fdfee drm/sti: avoid potential dereference of error pointers in sti_hqvdp_atomic_check
+319e53f155907 drm/panic: Fix uninitialized spinlock acquisition with CONFIG_DRM_PANIC=n
+1db76ec2b4b20 binder: fix memleak of proc->delivered_freeze
+7e20434cbca81 binder: fix freeze UAF in binder_release_work()
+011e69a1b2301 binder: fix OOB in binder_add_freeze_work()
+dc8aea47b928c binder: fix node UAF in binder_add_freeze_work()
+3a4187ec454e1 iio: adc: ad7923: Fix buffer overflow for tx_buf and ring_xfer
+98100e88dd886 nfsd: fix nfs4_openowner leak when concurrent nfsd4_open occur
+be8f982c369c9 nfsd: make sure exp active before svc_export_show
+e74fa2447bf9e dm thin: Add missing destroy_work_on_stack()
+9e9e085effe9b mm/vmalloc: combine all TLB flush operations of KASAN shadow virtual address into one operation
+73b03b27736e4 leds: flash: mt6360: Fix device_for_each_child_node() refcounting in error paths
+9008fe8fad825 slab: Fix too strict alignment check in create_cache()
+4acc902ed3743 PCI: endpoint: Fix PCI domain ID release in pci_epc_destroy()
+3b2ac810d86eb i3c: master: svc: fix possible assignment of the same address to two devices
+3082990592f7c i3c: master: Fix miss free init_dyn_addr at i3c_master_put_i3c_addrs()
+588a9836a4ef7 s390/stacktrace: Use break instead of return statement
+fee9b240916df mtd: spinand: winbond: Fix 512GW, 01GW, 01JW and 02JW ECC information
+c5cf420303256 ceph: fix cred leak in ceph_mds_check_access()
+23426309a4064 ceph: pass cred pointer to ceph_mds_auth_match()
+bc8aeb04fd80c f2fs: fix to drop all discards after creating snapshot on lvm device
+dbc16915279a5 mm/slub: Avoid list corruption when removing a slab from the full list
+da9596955c059 nvmem: core: Check read_only flag for force_ro in bin_attr_nvmem_write()
+c174b53e95adf ad7780: fix division by zero in ad7780_write_raw()
+229e6ee43d2a1 iommu/arm-smmu: Defer probe of clients after smmu device bound
+45af52e7d3b85 ftrace: Fix regression with module command in stack_trace_filter
+c8b359dddb418 ovl: Filter invalid inodes with missing lookup function
+3dd075fe8ebbc media: uvcvideo: Require entities to have a non-zero unique ID
+0f514068fbc5d media: platform: allegro-dvt: Fix possible memory leak in allocate_buffers_internal()
+06d39d79cbd5a efi/libstub: Free correct pointer on failure
+4a058b34b52ed media: ts2020: fix null-ptr-deref in ts2020_probe()
+672f24ed6ebcd media: verisilicon: av1: Fix reference video buffer pointer assignment
+fd0af4cd35da0 media: imx-jpeg: Ensure power suppliers be suspended before detach them
+869f38ae07f7d media: i2c: tc358743: Fix crash in the probe error path when using polling
+17af2b39daf12 media: mtk-jpeg: Fix null-ptr-deref during unload module
+d2b7ecc26bd54 media: imx-jpeg: Set video drvdata before register video device
+8cbb1a7bd5973 media: amphion: Set video drvdata before register video device
+4f45d65b78149 media: qcom: camss: fix error path on configuration of power domains
+7c4e39f9d2af4 btrfs: ref-verify: fix use-after-free after invalid ref action
+05b36b04d74a5 btrfs: fix use-after-free in btrfs_encoded_read_endio()
+ac6f420291b3f quota: flush quota_release_work upon quota writeback
