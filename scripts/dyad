@@ -489,7 +489,16 @@ kernel_greater_than()
 # Verify that some basic environment variables are set up
 KERNEL_TREE=${CVEKERNELTREE}
 COMMIT_TREE=${CVECOMMITTREE}
-FOUND_IN=${COMMIT_TREE}/id_found_in
+
+# Try to find the most useful version of FOUND_IN:
+# If we have one in our tools/ directory, then use that, otherwise fall back to
+# the "old" version in the stand-alone repo.
+if [[ -x "${DIR}/../tools/verhaal/id_found_in" ]]; then
+	FOUND_IN="${DIR}/../tools/verhaal/id_found_in"
+else
+	FOUND_IN=${COMMIT_TREE}/id_found_in
+fi
+
 git_cmd="git --git-dir=${KERNEL_TREE}/.git"
 
 if [[ ! -d "${KERNEL_TREE}" ]] || [[ ! -d "${COMMIT_TREE}" ]]; then
