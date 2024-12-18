@@ -206,37 +206,6 @@ function version_is_mainline
 	return 0
 }
 
-#############################
-# git_full_id()
-#	returns the "FULL" sha1 of the short git id passed in
-# arguments
-#	"git id"
-# returns
-#	"full git id" if found, "" if not found
-#############################
-git_full_id()
-{
-	local short_id=${1}
-	local long_id=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${short_id}")
-	echo "${long_id}"
-}
-
-#############################
-# git_short_id()
-#	returns the "SHORT" sha1 of the short git id passed in
-# arguments
-#	"git id"
-# returns
-#	"short git id" if found, "" if not found
-#############################
-git_short_id()
-{
-	local id=${1}
-	local short_id
-	short_id=$(cd "${KERNEL_TREE}" && git log -1 --abbrev=12 --format="%h" "${id}" 2> /dev/null)
-	echo "${short_id}"
-}
-
 
 # =======
 # Main logic starts here
@@ -320,7 +289,7 @@ url_array=()
 for entry in "${dyad_entries[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
-	vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+	vuln_git=${x[1]}
 	fix=${x[2]}
 	fix_git=${x[3]}
 	dbg "	mbox:	vuln=${vuln}	vuln_git=${vuln_git}	fix=${fix}	fix_git=${fix_git}"
@@ -331,7 +300,6 @@ for entry in "${dyad_entries[@]}"; do
 		continue
 	fi
 
-	fix_git=$(git_short_id "${x[3]}")	# shorten the git id
 	# if the vulnerability showed up in the same releasae it was
 	# fixed in, then skip it for the mail message
 	if [[ "${vuln}" != "${fix}" ]]; then
@@ -343,8 +311,7 @@ for entry in "${dyad_entries[@]}"; do
 			vuln_array_mbox+=("Issue introduced in ${vuln} with commit ${vuln_git} and fixed in ${fix} with commit ${fix_git}")
 		fi
 	fi
-	long_id=$(git_full_id "${fix_git}")
-	url_array+=("https://git.kernel.org/stable/c/${long_id}")
+	url_array+=("https://git.kernel.org/stable/c/${fix_git}")
 done
 
 # For now, if we do not have ANYTHING to report in the mbox message (i.e. all
@@ -396,9 +363,9 @@ if [[ "${default_status}" == "affected" ]]; then
 	for entry in "${dyad_entries[@]}"; do
 		x=(${entry//:/ })
 		vuln=${x[0]}
-		vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+		vuln_git=${x[1]}
 		fix=${x[2]}
-		fix_git=$(git_short_id "${x[3]}")	# shorten the git id
+		fix_git=${x[3]}
 		dbg "	json:	vuln=${vuln}	vuln_git=${vuln_git}	fix=${fix}	fix_git=${fix_git}"
 
 		if [[ "${vuln}" == "0" ]]; then
@@ -432,9 +399,9 @@ fi
 for entry in "${dyad_entries[@]}"; do
 	x=(${entry//:/ })
 	vuln=${x[0]}
-	vuln_git=$(git_short_id "${x[1]}")	# shorten the git id
+	vuln_git=${x[1]}
 	fix=${x[2]}
-	fix_git=$(git_short_id "${x[3]}")	# shorten the git id
+	fix_git=${x[3]}
 
 	if [[ "${fix}" == "0" ]]; then
 		# FIXME: We are not generating the json pairs for this properly just yet.
@@ -445,7 +412,7 @@ for entry in "${dyad_entries[@]}"; do
 	# If the vulnerable kernel is 0 then the git id is the first in
 	# history, which we just manually substitute in here.
 	if [[ "${vuln}" == "0" ]]; then
-		vuln_git="1da177e4c3f4"	# ("Linux-2.6.12-rc2")
+		vuln_git="1da177e4c3f41524e886b7f1b8a0c1fc7321cac2" # ("Linux-2.6.12-rc2")
 	fi
 
 	# create the json array for the git ids
@@ -457,8 +424,7 @@ for entry in "${dyad_entries[@]}"; do
 		) "
 
 	# Add the git sha of the fix to the "all fix commits" array
-	long_id=$(git_full_id "${fix_git}")
-	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${long_id}") "
+	url_string_json+="references[]=$(jo -- -s url="https://git.kernel.org/stable/c/${fix_git}") "
 
 	# If the commit was found and fixed in the same release, let's not
 	# create a version number range as that will just confuse everyone
