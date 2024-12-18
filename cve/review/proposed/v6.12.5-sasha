@@ -1,0 +1,107 @@
+48796104c864 s390/pci: Fix leak of struct zpci_dev when zpci_add_device() fails
+b29bf7119d6b jffs2: Fix rtime decompressor
+fe051552f507 jffs2: Prevent rtime decompress memory corruption
+52fd1709e41d clk: en7523: Initialize num before accessing hws in en7523_register_clocks()
+951a3f59d268 btrfs: fix mount failure due to remount races
+0664e2c311b9 sched/deadline: Fix warning in migrate_enable for boosted tasks
+70ee7947a290 sched: fix warning in sched_setaffinity
+897df60c16d5 scsi: ufs: pltfrm: Dellocate HBA during ufshcd_pltfrm_remove()
+7eb75ce75271 io_uring/tctx: work around xa_store() allocation error issue
+88fd2b70120d LoongArch: Fix sleeping in atomic context for PREEMPT_RT
+3fc5d5a182f6 f2fs: fix to shrink read extent node in batches
+6cf7b65f7029 i3c: Use i3cdev->desc->info instead of calling i3c_device_get_info() to avoid deadlock
+6ca2738174e4 i3c: mipi-i3c-hci: Mask ring interrupts before ring stop request
+d5c367ef8287 f2fs: fix f2fs_bug_on when uninstalling filesystem call f2fs_evict_inode.
+4ca7cd938725 leds: class: Protect brightness_show() with led_cdev->led_access mutex
+4281f44ea8bf scsi: lpfc: Prevent NDLP reference count underflow in dev_loss_tmo callback
+d35f7672715d scsi: lpfc: Call lpfc_sli4_queue_unset() in restart and rmmod paths
+5a3e85c3c397 pinmux: Use sequential access to access desc->pinmux data
+b237e1f7d227 ring-buffer: Limit time with disabled interrupts in rb_check_pages()
+9f564f15f884 scsi: hisi_sas: Create all dump files during debugfs initialization
+2233c4a0b948 scsi: hisi_sas: Add cond_resched() for no forced preemption model
+3fe288a8214e Bluetooth: hci_core: Fix not checking skb length on hci_acldata_packet
+2b0f2fc9ed62 Bluetooth: hci_conn: Use disable_delayed_work_sync
+b9e9ed90b10c bpf: Call free_htab_elem() after htab_unlock_bucket()
+857282b819cb wifi: brcmfmac: Fix oops due to NULL pointer dereference in brcmf_sdiod_sglist_rw()
+e2e974357839 drm/amdgpu: set the right AMDGPU sg segment limitation
+6aacd1484468 virtio-net: fix overflow inside virtnet_rq_alloc
+a174706ba4da jfs: add a check to prevent array-index-out-of-bounds in dbAdjTree
+839f102efb16 jfs: fix array-index-out-of-bounds in jfs_readdir
+a5f5e4698f8a jfs: fix shift-out-of-bounds in dbSplit
+ca84a2c9be48 jfs: array-index-out-of-bounds fix in dtReadFirst
+7543c3e3b9b8 dma-debug: fix a possible deadlock on radix_lock
+2c437d9a0b49 drm/amd/display: Adding array index check to prevent memory corruption
+d6083f040d5d bpf: Prevent tailcall infinite loop caused by freplace
+95c38953cb1e wifi: ath10k: avoid NULL pointer error during sdio remove
+9df99c395d0f net: inet6: do not leave a dangling sk pointer in inet6_create()
+9365fa510c6f net: inet: do not leave a dangling sk pointer in inet_create()
+b4fcd63f6ef7 net: ieee802154: do not leave a dangling sk pointer in ieee802154_create()
+811a7ca7320c net: af_can: do not leave a dangling sk pointer in can_create()
+3945c799f12b Bluetooth: RFCOMM: avoid leaving dangling sk pointer in rfcomm_sock_alloc()
+7c4f78cdb8e7 Bluetooth: L2CAP: do not leave dangling sk pointer on error in l2cap_sock_create()
+46f2a11cb82b af_packet: avoid erroring out after sock_init_data() in packet_create()
+8fac3266c68a wifi: ath12k: fix atomic calls in ath12k_mac_op_set_bitrate_mask()
+b98333c67daf dlm: fix possible lkb_resource null dereference
+63de35a8fcfc drm/amd/display: Fix out-of-bounds access in 'dcn21_link_encoder_create'
+630d5d8f2bf6 wifi: rtw89: check return value of ieee80211_probereq_get() for RNR
+3e5e4a801aaf wifi: rtw88: use ieee80211_purge_tx_queue() to purge TX skb
+f39489fea677 sched_ext: add a missing rcu_read_lock/unlock pair at scx_select_cpu_dfl()
+59458fa4ddb4 kcsan: Turn report_filterlist_lock into a raw_spinlock
+c7fc0366c656 ext4: partial zero eof block on unaligned inode size extension
+8cca35cb29f8 btrfs: don't take dev_replace rwsem on task already holding it
+d7cb6d7414ea block: RCU protect disk->conv_zones_bitmap
+091c1dd2d4df mm/mempolicy: fix migrate_to_node() assuming there is at least one VMA in a MM
+a1268be280d8 mm/gup: handle NULL pages in unpin_user_pages()
+e30a0361b851 kasan: make report_lock a raw spinlock
+5f1b64e9a9b7 sched/numa: fix memory leak due to the overwritten vma->numab_state
+031e04bdc834 stackdepot: fix stack_depot_save_flags() in NMI context
+32cd3db7de97 xsk: fix OOB map writes when deleting elements
+ab244dd7cf4c bpf: fix OOB devmap writes when deleting elements
+a6fa67d26de3 drm/dp_mst: Fix resetting msg rx state after topology removal
+bd2fccac61b4 drm/dp_mst: Fix MST sideband message body length check
+b3fce429a1e0 cacheinfo: Allocate memory during CPU hotplug if not done from the primary CPU
+2379fb937de5 pmdomain: imx: gpcv2: Adjust delay after power up handshake
+b2e382ae12a6 bcache: revert replacing IS_ERR_OR_NULL with IS_ERR again
+985ebec4ab0a nilfs2: fix potential out-of-bounds memory access in nilfs_find_entry()
+64506b3d23a3 scsi: ufs: qcom: Only free platform MSIs when ESI is enabled
+1695c4361d35 scsi: ufs: core: Cancel RTC work during ufshcd_remove()
+eb48e9fc0028 scsi: ufs: core: sysfs: Prevent div by zero
+07c903db0a2f scsi: qla2xxx: Fix use after free on unload
+594bfc4947c4 arm64: ptrace: fix partial SETREGSET for NT_ARM_POE
+f5d71291841a arm64: ptrace: fix partial SETREGSET for NT_ARM_FPMR
+ca62d90085f4 arm64: ptrace: fix partial SETREGSET for NT_ARM_TAGGED_ADDR_CTRL
+af7f4780514f iommufd: Fix out_fput in iommufd_fault_alloc()
+ee1dfbdd8b4b can: dev: can_set_termination(): allow sleeping GPIOs
+313dab082289 ksmbd: fix Out-of-Bounds Write in ksmbd_vfs_stream_write
+fc342cf86e2d ksmbd: fix Out-of-Bounds Read in ksmbd_vfs_stream_read
+589e6cc75976 LoongArch: KVM: Protect kvm_check_requests() with SRCU
+7cd1f5f77925 LoongArch: Add architecture specific huge_pte_clear()
+59548215b76b HID: wacom: fix when get product name maybe null pointer
+27abc7b3fa2e bpf: Fix exact match conditions in trie_get_next_key()
+c32b624fa4f7 smb: client: fix potential race in cifs_put_tcon()
+965b5dd1894f ocfs2: free inode when ocfs2_get_init_inode() fails
+f10593ad9bc3 scsi: sg: Fix slab-use-after-free read in sg_release()
+5858b6875598 nvme-rdma: unquiesce admin_q before destroy it
+fec55c29e54d nvme-tcp: fix the memleak while create new ctrl failed
+984836621aad spi: mpc52xx: Add cancel_work_sync before module remove
+ca70b8baf2bd tcp_bpf: Fix the sk_mem_uncharge logic in tcp_bpf_sendmsg
+050b23d081da gpio: grgpio: Add NULL check in grgpio_probe
+750e51603395 net: avoid potential UAF in default_operstate()
+8588c99c7d47 geneve: do not assume mac header is set in geneve_xmit_skb()
+456f010bfaef netfilter: ipset: Hold module reference while requesting a module
+7b1d83da254b netfilter: nft_inner: incorrect percpu area handling under softirq
+0566f83d206c igb: Fix potential invalid memory access in igb_init_module()
+af8edaeddbc5 net: hsr: must allocate more bytes for RedBox support
+2c7f14ed9c19 net/smc: fix LGR and link use-after-free issue
+0541db8ee32c net/smc: initialize close_work early to avoid warning
+6a2fa13312e5 tipc: Fix use-after-free of kernel socket in cleanup_bearer().
+22be4727a8f8 dccp: Fix memory leak in dccp_feat_change_recv
+3301ab7d5aeb net/ipv6: release expired exception dst cached in socket
+a8c695005bfe can: j1939: j1939_session_new(): fix skb reference counting
+a747e02430df ipv6: avoid possible NULL deref in modify_prefix_route()
+c44daa7e3c73 net: Fix icmp host relookup triggering ip_rt_bug
+b9653d19e556 net: hsr: avoid potential out-of-bound access in fill_frame_info()
+b2420b8c81ec net: enetc: Do not configure preemptible TCs if SIs do not support
+04317f4eb2aa netfilter: x_tables: fix LED ID check in led_tg_check()
+146b6f1112eb ipvs: fix UB due to uninitialized stack access in ip_vs_protocol_init()
+9ad86d377ef4 can: hi311x: hi3110_can_ist(): fix potential use-after-free
