@@ -549,7 +549,7 @@ done
 
 dbg "We have found ${#fixed_set[@]} sets of fixed kernels"
 if [[ "${#fixed_set[@]}" == "0" ]] ; then
-	echo "${txtred}ERROT:${txtrst} No vulnerable and then fixed pairs of kernels were found for commit ${txtcyn}${GIT_SHA_SHORT}${txtrst}"
+	echo "${txtred}ERROR:${txtrst} No vulnerable and then fixed pairs of kernels were found for commit ${txtcyn}${GIT_SHA_SHORT}${txtrst}"
 	exit 1
 fi
 for fixed_entry in "${fixed_set[@]}"; do
