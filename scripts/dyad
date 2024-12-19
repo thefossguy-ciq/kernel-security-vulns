@@ -122,16 +122,18 @@ get_kernel_version_type() {
 	local VERSION_PARTS=(${VERSION//./ })
 	local MAJOR=${VERSION_PARTS[0]}
 
-	# Ignore 2.6.X releases
-	if [[ "${MAJOR}" == "2" ]]; then
-		echo "mainline"
-		return
-	fi
-
 	# Check for -rc versions
 	if [[ "${VERSION}" =~ .*"rc" ]]; then
 		echo "rc"
 		return
+	fi
+
+	# 2.6.X is just one more level "deep"
+	if [[ "${MAJOR}" == "2" ]]; then
+		if [[ "${#VERSION_PARTS[@]}" == "3" ]]; then
+			echo "mainline"
+			return
+		fi
 	fi
 
 	# If version only has X.Y format (no .Z), it's mainline
@@ -305,7 +307,14 @@ find_stable_git_id()
 	# shellcheck disable=SC2206
 	local fixed_array=(${fixed_version//./ })
 	local fixed_major=${fixed_array[0]}
-	local fixed_minor=${fixed_array[1]}
+	local fixed_minor
+	if [[ "${fixed_major}" == "2" ]]; then
+		# Ugh, 2.6.x.y, let's move everything left by one
+		fixed_major="2.6"
+		fixed_minor=${fixed_array[2]}
+	else
+		fixed_minor=${fixed_array[1]}
+	fi
 
 	local stable_git
 	stable_git=$($git_cmd log -1 --abbrev=40 --oneline --grep="${og_git}" "v${fixed_major}.${fixed_minor}..v${fixed_version}" | awk '{print $1}')
