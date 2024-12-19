@@ -71,7 +71,7 @@ update_cve()
 	revert=$(${ID_IS_REVERTED} "${sha}")
 	if [[ "${revert}" != "" ]]; then
 		#echo "${id} with sha ${sha} has been reverted!"
-		echo "${txtcyn}${cve}${txtrst} with sha ${txtcyn}${sha}${txtrst} has been reverted!"
+		echo "${txtcyn}${cve}${txtrst} with sha ${txtcyn}${sha}${txtrst} has been reverted, check to see if this is still a valid CVE"
 	fi
 }
 
