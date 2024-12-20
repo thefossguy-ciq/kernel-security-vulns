@@ -594,7 +594,10 @@ done
 # so now let's try to determine where the problem first showed up (i.e. became
 # vulnerable)
 #
-# If this is passed to us on the command line, it's easy, use that!
+# If this is passed to us on the command line, it's easy, use that as the
+# commit that will be deemed the "vulnerable" version (and might have been
+# backported).
+#
 # Otherwise, try to dig in the changelog text and find any "Fixes:" lines and
 # parse them to try to figure out where the issue first showed up at (i.e. what
 # kernel version and git id caused the problem.)
@@ -603,6 +606,7 @@ done
 # so we need to dig through the stable branches to get the real git id for
 # where the commit happened.  But note that sometimes they are the stable id.
 # Rely on the regression tests to get this all correct.
+v=()
 if [[ "${GIT_VULNERABLE}" != "" ]]; then
 	# We are asked to set the original vulnerable kernel to be a specific
 	# one, so no need to look it up.
@@ -618,7 +622,7 @@ if [[ "${GIT_VULNERABLE}" != "" ]]; then
 		exit 2
 	fi
 	info "	Setting original vulnerable kernel to be kernel ${txtcyn}${kernel}${txtrst} and git id ${txtcyn}${full_id}${txtrst}"
-	create_vulnerable_set "${kernel}" "${full_id}"
+	v+=("${full_id}")
 else
 	# Grab the full commit text, we need that to figure out what ids this commit
 	# actually fixes (if any)
@@ -633,7 +637,6 @@ else
 	vuln_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | sed -e 's/.*[F|f]ixes:/:/' | cut -f 2- -d ':' | sed -e 's/^[ \t]*//')
 	temp="${vuln_lines}"
 	dbg "vuln_lines=${temp}"
-	v=()
 	if [[ "${vuln_lines}" != "" ]] ; then
 		# get a list of vulnerable kernels, sort them by the order in
 		# which they are in the tree, oldest first.
@@ -646,50 +649,53 @@ else
 			v+=("${full_id}")
 		done <<<"${vuln_lines}"
 	fi
-	dbg "	number in v: ${#v[@]}"
-	if [[ "${#v[@]}" == "0" ]]; then
-		dbg "	nothing in v, skipping vuln lines check"
-	else
-		# We have some vulnerable kernels, let's figure out where they are
-		v_file=$(mktemp -t "${SCRIPT}".XXXX || exit 1)
-		for id in "${v[@]}"; do
-			echo "${id}" >> "${v_file}"
-		done
-		# use 'tac' as it's faster than having git do --reverse for 'git rev-list'
-		sort_order=$($git_cmd rev-list --topo-order $(cat "${v_file}") | grep --file "${v_file}" --max-count ${#v[@]} | tac)
-		rm "${v_file}"
-		# git rev-list --topo-order $(cat SET_OF_SHA1S) | grep --file SET_OF_SHA1S --max-count $(wc -l SET_OF_SHA1S)
-		dbg "sort_order=${sort_order}"
+fi
 
-		# figure out what kernels this commit fixes, (i.e. which are
-		# vulnerable) and add them to a list of vulnerable sets.
-		for id in ${sort_order}; do
-			full_id=$(git_full_id "${id}")
-			if [[ "${full_id}" == "" ]]; then
-				dbg "invalid fix: ${id}"
+# We now have a list of "vulnerable" kernels in v(), so walk them and create a
+# bunch of matching "vulnerable : fixed" kernel pairs
+dbg "	number in v: ${#v[@]}"
+if [[ "${#v[@]}" == "0" ]]; then
+	dbg "	nothing in v, skipping vuln lines check"
+else
+	# We have some vulnerable kernels, let's figure out where they are
+	v_file=$(mktemp -t "${SCRIPT}".XXXX || exit 1)
+	for id in "${v[@]}"; do
+		echo "${id}" >> "${v_file}"
+	done
+	# use 'tac' as it's faster than having git do --reverse for 'git rev-list'
+	sort_order=$($git_cmd rev-list --topo-order $(cat "${v_file}") | grep --file "${v_file}" --max-count ${#v[@]} | tac)
+	rm "${v_file}"
+	# git rev-list --topo-order $(cat SET_OF_SHA1S) | grep --file SET_OF_SHA1S --max-count $(wc -l SET_OF_SHA1S)
+	dbg "sort_order=${sort_order}"
+
+	# figure out what kernels this commit fixes, (i.e. which are
+	# vulnerable) and add them to a list of vulnerable sets.
+	for id in ${sort_order}; do
+		full_id=$(git_full_id "${id}")
+		if [[ "${full_id}" == "" ]]; then
+			dbg "invalid fix: ${id}"
+			continue
+		fi
+		x=$("${FOUND_IN}" "${full_id}")
+		for kernel in ${x}; do
+			kernel_id_info "${kernel}"
+
+			kernel_version_is_queue "${kernel}"
+			kernel_is_queue=$?
+			if [[ "${kernel_is_queue}" == 1 ]] ; then
 				continue
 			fi
-			x=$("${FOUND_IN}" "${full_id}")
-			for kernel in ${x}; do
-				kernel_id_info "${kernel}"
 
-				kernel_version_is_queue "${kernel}"
-				kernel_is_queue=$?
-				if [[ "${kernel_is_queue}" == 1 ]] ; then
-					continue
-				fi
-
-				kernel_version_is_mainline "${kernel}"
-				kernel_is_mainline=$?
-				if [[ "${kernel_is_mainline}" == "0" ]]; then
-					stable_id=$(find_stable_git_id "${full_id}" "${kernel}")
-					create_vulnerable_set "${kernel}" "${stable_id}"
-				else
-					create_vulnerable_set "${kernel}" "${full_id}"
-				fi
-			done
+			kernel_version_is_mainline "${kernel}"
+			kernel_is_mainline=$?
+			if [[ "${kernel_is_mainline}" == "0" ]]; then
+				stable_id=$(find_stable_git_id "${full_id}" "${kernel}")
+				create_vulnerable_set "${kernel}" "${stable_id}"
+			else
+				create_vulnerable_set "${kernel}" "${full_id}"
+			fi
 		done
-	fi
+	done
 fi
 
 dbg "Before winnowing we have found ${#vulnerable_set[@]} sets of vulnerable kernels"
