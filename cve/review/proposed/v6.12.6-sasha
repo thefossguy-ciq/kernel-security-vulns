@@ -1,0 +1,49 @@
+be26ba96421a block: Fix potential deadlock while freezing queue and acquiring sysfs_lock
+d7b028656c29 drm/xe/reg_sr: Remove register pool
+b548f5e9456c Bluetooth: btmtk: avoid UAF in btmtk_process_coredump
+7a17308c1788 Bluetooth: iso: Fix circular lock in iso_conn_big_sync
+168e28305b87 Bluetooth: iso: Fix circular lock in iso_listen_bis
+9c76fff747a7 Bluetooth: iso: Always release hdev at the end of iso_listen_bis
+581dd2dc168f Bluetooth: hci_event: Fix using rcu_read_(un)lock while iterating
+c53d96a4481f ACPICA: events/evxfregn: don't release the ContextMutex that was never acquired
+255cc582e6e1 ASoC: Intel: sof_sdw: Add space for a terminator into DAIs array
+f8d4bc455047 net/sched: netem: account for backlog updates from child qdisc
+acfcdb78d5d4 net: dsa: felix: fix stuck CPU-injected packets with short taprio windows
+b04df3da1b5c netfilter: nf_tables: do not defer rule destruction via call_rcu
+f36b01994d68 netfilter: IDLETIMER: Fix for possible ABBA deadlock
+3dd002f20098 net: renesas: rswitch: handle stop vs interrupt race
+66b7e9f85b84 net: renesas: rswitch: avoid use-after-put for a device tree node
+bb617328bafa net: renesas: rswitch: fix leaked pointer on error path
+5cb099902b6b net: renesas: rswitch: fix possible early skb release
+24c6843b7393 bnxt_en: Fix aggregation ID mask to prevent oops on 5760X chips
+b2e538a9827d ALSA: control: Avoid WARN() for symlink errors
+f07ae52f5cf6 regulator: axp20x: AXP717: set ramp_delay
+0f6ede9fbc74 net: defer final 'struct net' free in netns dismantle
+a6d75ecee2bf net: lapb: increase LAPB_HEADER_LEN
+f1d3334d604c wifi: cfg80211: sme: init n_channels before channels[] access
+11776cff0b56 net/mlx5: DR, prevent potential error pointer dereference
+b04d86fff66b tipc: fix NULL deref in cleanup_bearer()
+265e98f72bac acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl
+2e3dbf938656 wifi: nl80211: fix NL80211_ATTR_MLO_LINK_ID off-by-one
+75e072a390da bpf, sockmap: Fix update element with same
+ed1fc5d76b81 bpf, sockmap: Fix race between element replace and close()
+978c4486cca5 bpf,perf: Fix invalid prog_array access in perf_event_detach_bpf_prog
+659b9ba7cb2d bpf: Check size for BTF-based ctx access of pointer members
+53b001a21c9d xfs: unlock inodes when erroring out of xfs_trans_alloc_dir
+af9f02457f46 xfs: fix null bno_hint handling in xfs_rtallocate_rtg
+a592bb19abdc drm/amdkfd: Dereference null return value
+da0b986256ae drm/i915: Fix NULL pointer dereference in capture_engine
+74536f91962d iommu/vt-d: Fix qi_batch NULL pointer with nested parent domain
+1f2557e08a61 iommu/vt-d: Remove cache tags before disabling ATS
+4cfbca86f6a8 usb: gadget: u_serial: Fix the issue that gs_start_io crashed due to accessing null pointer
+a4faee01179a usb: dwc3: imx8mp: fix software node kernel dump
+1cf1bd88f129 usb: dwc2: Fix HCD port connection race
+336f72d3cbf5 usb: dwc2: Fix HCD resume
+eb9640fd1ce6 gpio: graniterapids: Fix vGPIO driver crash
+fe0418eb9bd6 block: Prevent potential deadlocks in zone write plug error recovery
+86e6ca55b83c blk-cgroup: Fix UAF in blkcg_unpin_online()
+21f1b85c8912 riscv: mm: Do not call pmd dtor on vmemmap page table teardown
+3ddccbefebdb virtio_net: correct netdev_tx_reset_queue() invocation point
+06d64ab46f19 tcp: check space before adding MPTCP SYN options
+b95629435b84 ksmbd: fix racy issue from session lookup and expire
+ef1b808e3b7c bpf: Fix UAF via mismatching bpf_prog/attachment RCU flavors
