@@ -1,0 +1,27 @@
+24c6843b7393 bnxt_en: Fix aggregation ID mask to prevent oops on 5760X chips
+3ddccbefebdb virtio_net: correct netdev_tx_reset_queue() invocation point
+1f2557e08a61 iommu/vt-d: Remove cache tags before disabling ATS
+74536f91962d iommu/vt-d: Fix qi_batch NULL pointer with nested parent domain
+b04d86fff66b tipc: fix NULL deref in cleanup_bearer()
+a6d75ecee2bf net: lapb: increase LAPB_HEADER_LEN
+86e6ca55b83c blk-cgroup: Fix UAF in blkcg_unpin_online()
+ed1fc5d76b81 bpf, sockmap: Fix race between element replace and close()
+2e3dbf938656 wifi: nl80211: fix NL80211_ATTR_MLO_LINK_ID off-by-one
+265e98f72bac acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl
+0f6ede9fbc74 net: defer final 'struct net' free in netns dismantle
+b548f5e9456c Bluetooth: btmtk: avoid UAF in btmtk_process_coredump
+d7b028656c29 drm/xe/reg_sr: Remove register pool
+ef1b808e3b7c bpf: Fix UAF via mismatching bpf_prog/attachment RCU flavors
+978c4486cca5 bpf,perf: Fix invalid prog_array access in perf_event_detach_bpf_prog
+da0b986256ae drm/i915: Fix NULL pointer dereference in capture_engine
+a592bb19abdc drm/amdkfd: Dereference null return value
+11776cff0b56 net/mlx5: DR, prevent potential error pointer dereference
+581dd2dc168f Bluetooth: hci_event: Fix using rcu_read_(un)lock while iterating
+b2e538a9827d ALSA: control: Avoid WARN() for symlink errors
+b04df3da1b5c netfilter: nf_tables: do not defer rule destruction via call_rcu
+21f1b85c8912 riscv: mm: Do not call pmd dtor on vmemmap page table teardown
+b3431a8bb336 riscv: Fix IPIs usage in kfence_protect_page()
+eb9640fd1ce6 gpio: graniterapids: Fix vGPIO driver crash
+1f806218164d iommu/tegra241-cmdqv: do not use smp_processor_id in preemptible context
+4cfbca86f6a8 usb: gadget: u_serial: Fix the issue that gs_start_io crashed due to accessing null pointer
+2828e5808bcd drm/i915: Fix memory leak by correcting cache object name in error handler
