@@ -1,0 +1,136 @@
+a23da88c6c80 rcu/kvfree: Fix data-race in __mod_timer / kvfree_call_rcu
+dafb28f02be4 ALSA: usx2y: Use snd_card_free_when_closed() at disconnection
+27aabf27fd01 Bluetooth: fix use-after-free in device_for_each_child()
+3a23787ca875 erofs: fix file-backed mounts over FUSE
+0bc8061ffc73 erofs: handle NONHEAD !delta[1] lclusters gracefully
+adc77b19f62d ocfs2: fix uninitialized value in ocfs2_file_read_iter()
+3bf39fa849ab netlink: fix false positive warning in extack during dumps
+5d066766c5f1 net/l2tp: fix warning in l2tp_exit_net found by syzbot
+0b882940665c Bluetooth: MGMT: Fix slab-use-after-free Read in set_powered_sync
+38d7aacca092 KVM: arm64: Get rid of userspace_irqchip_in_use
+02dffe9ab092 exfat: fix uninit-value in __exfat_get_dentry_set
+5c1b54456300 wifi: rtlwifi: Drastically reduce the attempts to read efuse in case of failures
+0c0a4eae26ac io_uring: check for overflows in io_pin_pages
+35f56c554eb1 netfilter: ipset: add missing range check in bitmap_ip_uadt
+9f070b1862f3 media: v4l2-core: v4l2-dv-timings: check cvt/gtf result
+d2913a07d903 ALSA: pcm: Add sanity NULL check for the default mmap fault handler
+6babe00ccd34 f2fs: fix to do sanity check on node blkaddr in truncate_node()
+826cc42adf44 brd: defer automatic disk creation until module initialization succeeds
+109aa654f85c firmware: arm_scpi: Check the DVFS OPP count returned by the firmware
+ede132a5cf55 RDMA/mlx5: Move events notifier registration to be after device registration
+7b0033dbc483 f2fs: fix race in concurrent f2fs_stop_gc_thread
+ce89e742a4c1 svcrdma: fix miss destroy percpu_counter in svc_rdma_proc_init()
+3051a77a09df bnxt_en: Fix receive ring space parameters when XDP is active
+c7acef99642b PCI: Fix use-after-free of slot->bus on hot remove
+7afb86733685 smb: Don't leak cfid when reconnect races with open_cached_dir
+1c82587cb576 hfsplus: don't query the device logical block size multiple times
+bdb281103373 wifi: ath12k: fix use-after-free in ath12k_dp_cc_cleanup()
+06dbbb4d5f71 powerpc/mm/fault: Fix kfence page fault reporting
+178b8f38932d scsi: bfa: Fix use-after-free in bfad_im_module_exit()
+f8c989a0c89a nfsd: release svc_expkey/svc_export with rcu_work
+902cc179c931 ext4: supress data-race warnings in ext4_free_inodes_{count,set}()
+1304446f6786 wifi: ath12k: fix crash when unbinding
+4bdec0d1f658 smb: client: fix NULL ptr deref in crypto_aead_setkey()
+cf5a60d971c7 Revert "block, bfq: merge bfq_release_process_ref() into bfq_put_cooperator()"
+a9685b409a03 smb: prevent use-after-free due to open_cached_dir error paths
+3fa640d035e5 smb: During unmount, ensure all cached dir instances drop their dentry
+4617fb8fc15e ubifs: authentication: Fix use-after-free in ubifs_tnc_end_commit
+3802f73bd807 block: fix uaf for flush rq while iterating tags
+3f23f96528e8 sunrpc: fix one UAF issue caused by sunrpc kernel tcp socket
+e8b8344de398 block, bfq: fix bfqq uaf in bfq_limit_depth()
+2e07c88914fc drm: zynqmp_kms: Unplug DRM device before removal
+c31e72d021db tcp: Fix use-after-free of nreq in reqsk_timer_handler().
+9a8c5d89d327 ksmbd: fix use-after-free in SMB request handling
+343d7fe6df9e smb: client: fix use-after-free of signing key
+2862eee078a4 SUNRPC: make sure cache entry active before cache_show
+2fdb05dc0931 NFSv4.0: Fix a use-after-free problem in the asynchronous open()
+b7d0a97b2808 f2fs: fix null-ptr-deref in f2fs_submit_page_bio()
+1c0844c6184e udmabuf: change folios array from kmalloc to kvmalloc
+f399051ec1ff spi: tegra210-quad: Avoid shift-out-of-bounds
+332fa4a802b1 riscv: kvm: Fix out-of-bounds array access
+5dbcb1c1900f RDMA/hns: Fix out-of-order issue of requester when setting FENCE
+b909df18ce2a ALSA: usb-audio: Fix potential out-of-bound accesses for Extigy and Mbox devices
+184fa506e392 exfat: fix out-of-bounds access of directory entries
+6a057072ddd1 drm/amd/display: Fix null check for pipe_ctx->plane_state in dcn20_program_pipe
+6a057072ddd1 drm/amd/display: Fix null check for pipe_ctx->plane_state in dcn20_program_pipe
+2bc96c950705 drm/amd/display: Fix null check for pipe_ctx->plane_state in hwss_setup_dpp
+21d1b618b6b9 fsnotify: Fix ordering of iput() and watched_objects decrement
+ce8f9fb651fa comedi: Flush partial mappings in error case
+a0810c3d6dd2 ALSA: 6fire: Release resources at card release
+ecda483339a5 iommu/s390: Implement blocking domain
+63e72e551942 sh: intc: Fix use-after-free bug in register_intc_controller()
+e56aac6e5a25 usb: typec: fix potential array underflow in ucsi_ccg_sync_control()
+78261cb08f06 soc: qcom: geni-se: fix array underflow in geni_se_clk_tbl_get()
+93a11608fb37 crypto: qat/qat_420xx - fix off by one in uof_get_name()
+475b5098043e crypto: qat/qat_4xxx - fix off by one in uof_get_name()
+2996980e20b7 rcu/nocb: Fix missed RCU barrier on deoffloading
+1037d186edfc openrisc: Implement fixmap to fix earlycon
+31ad74b20227 cachefiles: Fix NULL pointer dereference in object->file
+223842c7702b drm: xlnx: zynqmp_disp: layer may be null while releasing
+2b94751626a6 wifi: cw1200: Fix potential NULL dereference
+81df5ed446b4 wifi: rtw89: coex: check NULL return of kmalloc in btc_fw_set_monreg()
+a78e72075642 cpufreq: CPPC: Fix possible null-ptr-deref for cpufreq_cpu_get_raw()
+1a1374bb8c59 cpufreq: CPPC: Fix possible null-ptr-deref for cppc_get_cpu_cost()
+6b526d17eed8 RDMA/hns: Fix NULL pointer derefernce in hns_roce_map_mr_sg()
+969c765e2b50 clk: clk-apple-nco: Add NULL check in applnco_probe
+f364cdeb3893 zram: fix NULL pointer in comp_algorithm_show()
+5089b3d874e9 PCI: endpoint: epf-mhi: Avoid NULL dereference if DT lacks 'mmio'
+1e02c641c3a4 NFSD: Prevent NULL dereference in nfsd4_process_cb_update()
+04e3e9188291 phy: realtek: usb: fix NULL deref in rtk_usb2phy_probe
+bf373d2919d9 phy: realtek: usb: fix NULL deref in rtk_usb3phy_probe
+e038f43edaf0 ASoC: imx-audmix: Add NULL check in imx_audmix_probe
+9ad467a2b271 ALSA: core: Fix possible NULL dereference caused by kunit_kzalloc()
+66ef47faa90d HID: hyperv: streamline driver probe to avoid devres issues
+1a0c640ce1cd wifi: ath12k: Skip Rx TID cleanup for self peer
+d4f36e5fd800 drm/amd/display: fix a memleak issue when driver is removed
+d241a139c2e9 wifi: mwifiex: Fix memcpy() field-spanning write warning in mwifiex_config_scan()
+ea4c990fa9e1 RDMA/rxe: Fix the qp flush warnings in req
+a3799717b881 iommu/tegra241-cmdqv: Fix alignment failure at max_n_shift
+d34db686a3d7 clk: ralink: mtmips: fix clocks probe order in oldest ralink SoCs
+41748675c0bf virtiofs: use pages instead of pointer for kernel direct IO
+fe4bf8d0b671 vfio/pci: Properly hide first-in-list PCIe extended capability
+ebaf81317e42 s390/iucv: MSG_PEEK causes memory leak in iucv_sock_destruct()
+e735a5da6442 KVM: arm64: Don't retire aborted MMIO instruction
+ca68ce0d9f4b wifi: ath12k: fix warning when unbinding
+3c891f7c6a4e sh: cpuinfo: Fix a warning for CONFIG_CPUMASK_OFFSTACK
+bcddf52b7a17 ubi: fastmap: Fix duplicate slab cache names while attaching
+3a4ce14d9a6b nfs/blocklayout: Don't attempt unregister for invalid block device
+686fb77712a4 mfd: intel_soc_pmic_bxtwc: Use IRQ domain for USB Type-C device
+03819abbeb11 net: usb: lan78xx: Fix double free issue with interrupt buffer allocation
+ae7370e61c5d net: usb: lan78xx: Fix memory leak on device unplug by freeing PHY device
+a3dd4d63eeb4 ALSA: usb-audio: Fix out of bounds reads when finding clock sources
+4a2291881098 usb: typec: ucsi: glink: fix off-by-one in connector_status
+0104dcdaad3a thermal: testing: Initialize some variables annoteded with _free()
+44ed4f90a97f drivers: soc: xilinx: add the missing kfree in xlnx_add_cb_for_suspend()
+b7df09bb3480 ALSA: us122l: Use snd_card_free_when_closed() at disconnection
+b04dcbb7f7b1 ALSA: caiaq: Use snd_card_free_when_closed() at disconnection
+0c0d0f42ffa6 xsk: Free skb when TX metadata options are invalid
+369a9c046c2f firmware_loader: Fix possible resource leak in fw_log_firmware_info()
+a7a7c1d423a6 f2fs: fix fiemap failure issue when page size is 16KB
+afc545da381b xen: Fix the issue of resource not being properly released in xenbus_dev_probe()
+6e4bf018bb04 clk: clk-loongson2: Fix memory corruption bug in struct loongson2_clk_provider
+02fb4f008433 clk: clk-loongson2: Fix potential buffer overflow in flexible-array member access
+5bee35e5389f um: ubd: Do not use drvdata in release
+d1db692a9be3 um: net: Do not use drvdata in release
+8619593634cb wifi: ath9k: add range check for conn_rsp_epid in htc_connect_service()
+156bb2c569cd unicode: Fix utf8_load() error path
+05b94cae1c47 powerpc/fadump: Move fadump_cma_init to setup_arch() after initmem_init()
+1acd73edbbfe f2fs: fix to account dirty data in __get_secs_required()
+a66dfaf18fd6 Bluetooth: MGMT: Fix possible deadlocks
+51b39d741970 um: vector: Do not use drvdata in release
+e9869c85c811 nvme-fabrics: fix kernel crash while shutting down controller
+22a3703af127 staging: vchiq_arm: Fix missing refcount decrement in error path for fw_node
+bc8f5921cd69 ipc: fix memleak if msg_init_ns failed in create_ipc_ns
+0b5bbeee4de6 isofs: avoid memory leak in iocharset
+7f33b92e5b18 NFSD: Prevent a potential integer overflow
+9c46a3a5b394 wifi: nl80211: fix bounds checker error in nl80211_parse_sched_scan
+61c5a3def90a Bluetooth: btmtk: adjust the position to init iso data anchor
+5eaa49741119 accel/ivpu: Prevent recovery invocation during probe and resume
+7d7cf89b119a PCI: qcom-ep: Move controller cleanups to qcom_pcie_perst_deassert()
+40e2125381dc PCI: tegra194: Move controller cleanups to pex_ep_event_pex_rst_deassert()
+a98b7761f697 um: Fix potential integer overflow during physmem setup
+3c63d8946e57 svcrdma: Address an integer overflow
+00f8f70a0e8c clk: sophgo: avoid integer overflow in sg2042_pll_recalc_rate()
+57ee12b6c514 hwmon: (nct6775-core) Fix overflows seen when writing limit attributes
+1fe774a93b46 EDAC/bluefield: Fix potential integer overflow
+e017671f534d initramfs: avoid filename buffer overrun
