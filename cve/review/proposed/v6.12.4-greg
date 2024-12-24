@@ -1,0 +1,39 @@
+05b36b04d74a btrfs: fix use-after-free in btrfs_encoded_read_endio()
+7c4e39f9d2af btrfs: ref-verify: fix use-after-free after invalid ref action
+06d39d79cbd5 efi/libstub: Free correct pointer on failure
+3082990592f7 i3c: master: Fix miss free init_dyn_addr at i3c_master_put_i3c_addrs()
+dc8aea47b928 binder: fix node UAF in binder_add_freeze_work()
+011e69a1b230 binder: fix OOB in binder_add_freeze_work()
+7e20434cbca8 binder: fix freeze UAF in binder_release_work()
+1db76ec2b4b2 binder: fix memleak of proc->delivered_freeze
+b61badd20b44 drm/amdgpu: fix usage slab after free
+3ed51857a50f btrfs: add a sanity check for btrfs root in btrfs_search_slot()
+3dd075fe8ebb media: uvcvideo: Require entities to have a non-zero unique ID
+c8b359dddb41 ovl: Filter invalid inodes with missing lookup function
+fd0af4cd35da media: imx-jpeg: Ensure power suppliers be suspended before detach them
+39e21403c978 kunit: string-stream: Fix a UAF bug in kunit_init_suite()
+4f45d65b7814 media: qcom: camss: fix error path on configuration of power domains
+17af2b39daf1 media: mtk-jpeg: Fix null-ptr-deref during unload module
+8cbb1a7bd597 media: amphion: Set video drvdata before register video device
+d2b7ecc26bd5 media: imx-jpeg: Set video drvdata before register video device
+3a4187ec454e iio: adc: ad7923: Fix buffer overflow for tx_buf and ring_xfer
+435c20eed572 kunit: Fix potential null dereference in kunit_device_driver_test()
+fa1944bbe622 md/raid5: Wait sync io to finish before changing group cnt
+f708e8b4cfd1 drm/mediatek: Fix child node refcount handling in early exit
+0f514068fbc5 media: platform: allegro-dvt: Fix possible memory leak in allocate_buffers_internal()
+869f38ae07f7 media: i2c: tc358743: Fix crash in the probe error path when using polling
+bc8aeb04fd80 f2fs: fix to drop all discards after creating snapshot on lvm device
+be8f982c369c nfsd: make sure exp active before svc_export_show
+87651f31ae4e drm/xe/guc_submit: fix race around suspend_pending
+4acc902ed374 PCI: endpoint: Fix PCI domain ID release in pci_epc_destroy()
+4a058b34b52e media: ts2020: fix null-ptr-deref in ts2020_probe()
+9e9e085effe9 mm/vmalloc: combine all TLB flush operations of KASAN shadow virtual address into one operation
+9e9e085effe9 mm/vmalloc: combine all TLB flush operations of KASAN shadow virtual address into one operation
+23426309a406 ceph: pass cred pointer to ceph_mds_auth_match()
+c5cf42030325 ceph: fix cred leak in ceph_mds_check_access()
+45af52e7d3b8 ftrace: Fix regression with module command in stack_trace_filter
+229e6ee43d2a iommu/arm-smmu: Defer probe of clients after smmu device bound
+c174b53e95ad ad7780: fix division by zero in ad7780_write_raw()
+dbc16915279a mm/slub: Avoid list corruption when removing a slab from the full list
+588a9836a4ef s390/stacktrace: Use break instead of return statement
+9008fe8fad82 slab: Fix too strict alignment check in create_cache()
