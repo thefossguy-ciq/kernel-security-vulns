@@ -1,0 +1,37 @@
+9398332f23fa drm/modes: Avoid divide by zero harder in drm_mode_vrefresh()
+85230ee36d88 drm/amdgpu: Handle NULL bo->tbo.resource (again) in amdgpu_vm_bo_update
+e1e1af9148dc drm/panel: himax-hx83102: Add a check to prevent NULL pointer dereference
+2b33eb8f1b3e net/smc: protect link down work from execute after lgr freed
+429fde2d81bc net: tun: fix tun_napi_alloc_frags()
+c58a812c8e49 ring-buffer: Fix overflow in __rb_map_vma
+07a756a49f4b Drivers: hv: util: Avoid accessing a ringbuffer not initialized yet
+9b42d1e8e4fe KVM: x86: Play nice with protected guests in complete_hypercall_exit()
+901ce9705fbb nilfs2: prevent use of deleted inode
+ee76746387f6 netdevsim: prevent bad user input in nsim_dev_health_break_write()
+b9b8301d369b net: netdevsim: fix nsim_pp_hold_write()
+5eb70dbebf32 netdev-genl: avoid empty messages in queue dump
+f49856f525ac udmabuf: fix memory leak on last export_udmabuf() error path
+12d908116f7e io_uring: Fix registered ring file refcount leak
+9cb189a88273 udmabuf: fix racy memfd sealing check
+0a16e24e34f2 udmabuf: also check for F_SEAL_FUTURE_WRITE
+59e43f5479cc xfs: sb_spino_align is not verified
+2d5df3a680ff net: mscc: ocelot: fix incorrect IFH SRC_PORT field in ocelot_ifh_set_basic()
+e9f2517a3e18 smb: client: fix TCP timers deadlock after rmmod
+550f7ca98ee0 ceph: give up on paths longer than PATH_MAX
+12eb22a5a609 ceph: validate snapdirname option length when mounting
+9abee475803f ceph: improve error handling and short/overflow-read logic in __ceph_sync_read()
+d6fd6f8280f0 ceph: fix memory leaks in __ceph_sync_read()
+66e0c4f91461 ceph: fix memory leak in ceph_direct_read_write()
+9590d32e090e ionic: Fix netdev notifier unregister on failure
+746e6ae2e202 ionic: no double destroy workqueue
+4c49f38e20a5 net: stmmac: fix TSO DMA API usage causing oops
+493afbd187c4 sched/fair: Fix NEXT_BUDDY
+8aca2bc96c83 mm: use aligned address in clear_gigantic_page()
+f5d09de9f1bf mm: use aligned address in copy_user_gigantic_page()
+773c05f417fa irqchip/gic-v3: Work around insecure GIC integrations
+fbbd84af6ba7 chelsio/chtls: prevent potential integer overflow on 32bit
+ce1219c3f76b net: mctp: handle skb cleanup on sock_queue failures
+74363ec674cb zram: fix uninitialized ZRAM not releasing backing device
+4b2efb9db0c2 accel/ivpu: Fix general protection fault in ivpu_bo_list()
+0f6482caa6ac accel/ivpu: Fix WARN in ivpu_ipc_send_receive_internal()
+5d009e024056 of: Fix refcount leakage for OF node returned by __of_get_dma_parent()
