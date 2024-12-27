@@ -1,0 +1,157 @@
+826cc42adf44 brd: defer automatic disk creation until module initialization succeeds
+f55bd479d866 s390/cpum_sf: Fix and protect memory allocation of SDBs with mutex
+e017671f534d initramfs: avoid filename buffer overrun [auto: cve already created]
+31ad74b20227 cachefiles: Fix NULL pointer dereference in object->file
+1c82587cb576 hfsplus: don't query the device logical block size multiple times
+2f3d93e210b9 ext4: fix race in buffer_head read fault injection
+93a11608fb37 crypto: qat/qat_420xx - fix off by one in uof_get_name() [auto: cve already created]
+475b5098043e crypto: qat/qat_4xxx - fix off by one in uof_get_name() [auto: cve already created]
+1fe774a93b46 EDAC/bluefield: Fix potential integer overflow [auto: cve already created]
+662f2f13e66d crypto: pcrypt - Call crypto layer directly when padata_do_parallel() return -EBUSY
+fefaae90398d EDAC/igen6: Avoid segmentation fault on module unload
+a23da88c6c80 rcu/kvfree: Fix data-race in __mod_timer / kvfree_call_rcu [auto: cve already created]
+2996980e20b7 rcu/nocb: Fix missed RCU barrier on deoffloading
+57ee12b6c514 hwmon: (nct6775-core) Fix overflows seen when writing limit attributes [auto: cve already created]
+0104dcdaad3a thermal: testing: Initialize some variables annoteded with _free()
+bba9e38c5ad4 crypto: bcm - add error check in the ahash_hmac_init function
+1f181d1cda56 irqchip/riscv-aplic: Prevent crash when MSI domain is missing
+78261cb08f06 soc: qcom: geni-se: fix array underflow in geni_se_clk_tbl_get() [auto: cve already created]
+109aa654f85c firmware: arm_scpi: Check the DVFS OPP count returned by the firmware [auto: cve already created]
+ed61c5913950 media: atomisp: Add check for rgby_data memory allocation failure
+66ef47faa90d HID: hyperv: streamline driver probe to avoid devres issues
+223ee2567a55 drm/vc4: hdmi: Avoid hang with debug registers when suspended
+8619593634cb wifi: ath9k: add range check for conn_rsp_epid in htc_connect_service() [auto: cve already created]
+e6a1c4037227 drm/omap: Fix locking in omap_gem_new_dmabuf()
+1c0844c6184e udmabuf: change folios array from kmalloc to kvmalloc
+1a0c640ce1cd wifi: ath12k: Skip Rx TID cleanup for self peer
+d4f36e5fd800 drm/amd/display: fix a memleak issue when driver is removed
+bdb281103373 wifi: ath12k: fix use-after-free in ath12k_dp_cc_cleanup()
+5eaa49741119 accel/ivpu: Prevent recovery invocation during probe and resume
+d241a139c2e9 wifi: mwifiex: Fix memcpy() field-spanning write warning in mwifiex_config_scan()
+0fbc7a5027c6 octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_common.c
+e26f8eac6bb2 octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_ethtool.c
+bd3110bc102a octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_flows.c
+ac9183023b6a octeontx2-pf: handle otx2_mbox_get_rsp errors in cn10k.c
+f5b942e6c54b octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_dmac_flt.c
+69297b0d3369 octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_dcbnl.c
+2e07c88914fc drm: zynqmp_kms: Unplug DRM device before removal
+223842c7702b drm: xlnx: zynqmp_disp: layer may be null while releasing
+2b94751626a6 wifi: cw1200: Fix potential NULL dereference
+a1144da794ad drm/amdgpu: Fix the memory allocation issue in amdgpu_discovery_get_nps_info()
+922f0e00017b drm/amdkfd: Use dynamic allocation for CU occupancy array in 'kfd_get_cu_occupancy()'
+cb4158ce8ec8 bpf: Mark raw_tp arguments with PTR_MAYBE_NULL
+81df5ed446b4 wifi: rtw89: coex: check NULL return of kmalloc in btc_fw_set_monreg()
+0b5bbeee4de6 isofs: avoid memory leak in iocharset
+5d609ba26247 bpf, sockmap: Several fixes to bpf_msg_pop_data
+d9ccb18f83ea ipv6: Fix soft lockups in fib6_select_path under high next hop churn
+dafb28f02be4 ALSA: usx2y: Use snd_card_free_when_closed() at disconnection
+b7df09bb3480 ALSA: us122l: Use snd_card_free_when_closed() at disconnection
+b04dcbb7f7b1 ALSA: caiaq: Use snd_card_free_when_closed() at disconnection
+a0810c3d6dd2 ALSA: 6fire: Release resources at card release
+61c5a3def90a Bluetooth: btmtk: adjust the position to init iso data anchor
+27aabf27fd01 Bluetooth: fix use-after-free in device_for_each_child()
+0c0d0f42ffa6 xsk: Free skb when TX metadata options are invalid
+3a23787ca875 erofs: fix file-backed mounts over FUSE
+0bc8061ffc73 erofs: handle NONHEAD !delta[1] lclusters gracefully
+8ca2a1eeadf0 bpf: fix recursive lock when verdict program return SK_PASS
+156bb2c569cd unicode: Fix utf8_load() error path
+ecda483339a5 iommu/s390: Implement blocking domain
+686fb77712a4 mfd: intel_soc_pmic_bxtwc: Use IRQ domain for USB Type-C device
+9b79d59e6b2b mfd: intel_soc_pmic_bxtwc: Use IRQ domain for TMU device
+0350d783ab88 mfd: intel_soc_pmic_bxtwc: Use IRQ domain for PMIC devices
+05b94cae1c47 powerpc/fadump: Move fadump_cma_init to setup_arch() after initmem_init()
+06dbbb4d5f71 powerpc/mm/fault: Fix kfence page fault reporting
+cadae3a45d23 powerpc/pseries: Fix dtl_access_lock to be a rw_semaphore
+a78e72075642 cpufreq: CPPC: Fix possible null-ptr-deref for cpufreq_cpu_get_raw()
+1a1374bb8c59 cpufreq: CPPC: Fix possible null-ptr-deref for cppc_get_cpu_cost()
+ea4c990fa9e1 RDMA/rxe: Fix the qp flush warnings in req
+332fa4a802b1 riscv: kvm: Fix out-of-bounds array access
+178b8f38932d scsi: bfa: Fix use-after-free in bfad_im_module_exit()
+6b526d17eed8 RDMA/hns: Fix NULL pointer derefernce in hns_roce_map_mr_sg()
+adc77b19f62d ocfs2: fix uninitialized value in ocfs2_file_read_iter() [auto: cve already created]
+a3799717b881 iommu/tegra241-cmdqv: Fix alignment failure at max_n_shift
+ede132a5cf55 RDMA/mlx5: Move events notifier registration to be after device registration
+969c765e2b50 clk: clk-apple-nco: Add NULL check in applnco_probe [auto: cve already created]
+d34db686a3d7 clk: ralink: mtmips: fix clocks probe order in oldest ralink SoCs
+f364cdeb3893 zram: fix NULL pointer in comp_algorithm_show()
+271ee263cc87 mailbox: mtk-cmdq: fix wrong use of sizeof in cmdq_get_clocks()
+b7d0a97b2808 f2fs: fix null-ptr-deref in f2fs_submit_page_bio()
+1acd73edbbfe f2fs: fix to account dirty data in __get_secs_required()
+41748675c0bf virtiofs: use pages instead of pointer for kernel direct IO
+7d7cf89b119a PCI: qcom-ep: Move controller cleanups to qcom_pcie_perst_deassert() [auto: cve already created]
+40e2125381dc PCI: tegra194: Move controller cleanups to pex_ep_event_pex_rst_deassert() [auto: cve already created]
+7b0033dbc483 f2fs: fix race in concurrent f2fs_stop_gc_thread
+3c63d8946e57 svcrdma: Address an integer overflow [auto: cve already created]
+5089b3d874e9 PCI: endpoint: epf-mhi: Avoid NULL dereference if DT lacks 'mmio'
+1e02c641c3a4 NFSD: Prevent NULL dereference in nfsd4_process_cb_update()
+f8c989a0c89a nfsd: release svc_expkey/svc_export with rcu_work
+ce89e742a4c1 svcrdma: fix miss destroy percpu_counter in svc_rdma_proc_init()
+fe4bf8d0b671 vfio/pci: Properly hide first-in-list PCIe extended capability
+03819abbeb11 net: usb: lan78xx: Fix double free issue with interrupt buffer allocation
+3bf39fa849ab netlink: fix false positive warning in extack during dumps
+5d066766c5f1 net/l2tp: fix warning in l2tp_exit_net found by syzbot
+ebaf81317e42 s390/iucv: MSG_PEEK causes memory leak in iucv_sock_destruct()
+3051a77a09df bnxt_en: Fix receive ring space parameters when XDP is active
+0b882940665c Bluetooth: MGMT: Fix slab-use-after-free Read in set_powered_sync
+a66dfaf18fd6 Bluetooth: MGMT: Fix possible deadlocks
+c31e72d021db tcp: Fix use-after-free of nreq in reqsk_timer_handler().
+04e3e9188291 phy: realtek: usb: fix NULL deref in rtk_usb2phy_probe
+bf373d2919d9 phy: realtek: usb: fix NULL deref in rtk_usb3phy_probe
+e56aac6e5a25 usb: typec: fix potential array underflow in ucsi_ccg_sync_control()
+369a9c046c2f firmware_loader: Fix possible resource leak in fw_log_firmware_info()
+6a057072ddd1 drm/amd/display: Fix null check for pipe_ctx->plane_state in dcn20_program_pipe
+2bc96c950705 drm/amd/display: Fix null check for pipe_ctx->plane_state in hwss_setup_dpp
+e038f43edaf0 ASoC: imx-audmix: Add NULL check in imx_audmix_probe
+9ad467a2b271 ALSA: core: Fix possible NULL dereference caused by kunit_kzalloc()
+2f2020327cc8 ASoC: mediatek: Check num_codecs is not zero to avoid panic during probe
+c4a585e952ca s390/pci: Fix potential double remove of hotplug slot
+afc545da381b xen: Fix the issue of resource not being properly released in xenbus_dev_probe()
+b909df18ce2a ALSA: usb-audio: Fix potential out-of-bound accesses for Extigy and Mbox devices
+a3dd4d63eeb4 ALSA: usb-audio: Fix out of bounds reads when finding clock sources [auto: cve already created]
+4a2291881098 usb: typec: ucsi: glink: fix off-by-one in connector_status [auto: cve already created]
+e735a5da6442 KVM: arm64: Don't retire aborted MMIO instruction
+38d7aacca092 KVM: arm64: Get rid of userspace_irqchip_in_use
+c7acef99642b PCI: Fix use-after-free of slot->bus on hot remove
+6e4bf018bb04 clk: clk-loongson2: Fix memory corruption bug in struct loongson2_clk_provider
+02fb4f008433 clk: clk-loongson2: Fix potential buffer overflow in flexible-array member access
+21d1b618b6b9 fsnotify: Fix ordering of iput() and watched_objects decrement [auto: cve already created]
+ce8f9fb651fa comedi: Flush partial mappings in error case [auto: cve already created]
+184fa506e392 exfat: fix out-of-bounds access of directory entries [auto: cve already created]
+ca68ce0d9f4b wifi: ath12k: fix warning when unbinding
+5c1b54456300 wifi: rtlwifi: Drastically reduce the attempts to read efuse in case of failures
+9c46a3a5b394 wifi: nl80211: fix bounds checker error in nl80211_parse_sched_scan
+1304446f6786 wifi: ath12k: fix crash when unbinding
+0c0a4eae26ac io_uring: check for overflows in io_pin_pages
+35f56c554eb1 netfilter: ipset: add missing range check in bitmap_ip_uadt [auto: cve already created]
+9a8c5d89d327 ksmbd: fix use-after-free in SMB request handling
+4bdec0d1f658 smb: client: fix NULL ptr deref in crypto_aead_setkey()
+5bee35e5389f um: ubd: Do not use drvdata in release
+d1db692a9be3 um: net: Do not use drvdata in release
+cf5a60d971c7 Revert "block, bfq: merge bfq_release_process_ref() into bfq_put_cooperator()"
+51b39d741970 um: vector: Do not use drvdata in release
+3c891f7c6a4e sh: cpuinfo: Fix a warning for CONFIG_CPUMASK_OFFSTACK
+ca59f9956d45 media: wl128x: Fix atomicity violation in fmc_send_cmd()
+1429826883bb media: intel/ipu6: do not handle interrupts when device is disabled
+d2913a07d903 ALSA: pcm: Add sanity NULL check for the default mmap fault handler
+343d7fe6df9e smb: client: fix use-after-free of signing key
+7afb86733685 smb: Don't leak cfid when reconnect races with open_cached_dir
+a9685b409a03 smb: prevent use-after-free due to open_cached_dir error paths
+3fa640d035e5 smb: During unmount, ensure all cached dir instances drop their dentry
+3fc137386c46 usb: musb: Fix hardware lockup on first Rx endpoint request
+b7fc65f5141c usb: dwc3: gadget: Fix looping of queued SG entries
+6babe00ccd34 f2fs: fix to do sanity check on node blkaddr in truncate_node()
+bc8f5921cd69 ipc: fix memleak if msg_init_ns failed in create_ipc_ns
+7f33b92e5b18 NFSD: Prevent a potential integer overflow [auto: cve already created]
+2862eee078a4 SUNRPC: make sure cache entry active before cache_show
+a98b7761f697 um: Fix potential integer overflow during physmem setup [auto: cve already created]
+2fdb05dc0931 NFSv4.0: Fix a use-after-free problem in the asynchronous open()
+bcddf52b7a17 ubi: fastmap: Fix duplicate slab cache names while attaching
+4617fb8fc15e ubifs: authentication: Fix use-after-free in ubifs_tnc_end_commit
+3802f73bd807 block: fix uaf for flush rq while iterating tags
+5416b76a8156 nvme-fabrics: fix kernel crash while shutting down controller
+e43c608f40c0 9p/xen: fix release of IRQ
+4db9ad82a6c8 sunrpc: clear XPRT_SOCK_UPD_TIMEOUT when reset transport
+3f23f96528e8 sunrpc: fix one UAF issue caused by sunrpc kernel tcp socket
+3a4ce14d9a6b nfs/blocklayout: Don't attempt unregister for invalid block device
+e8b8344de398 block, bfq: fix bfqq uaf in bfq_limit_depth()
+63e72e551942 sh: intc: Fix use-after-free bug in register_intc_controller()
