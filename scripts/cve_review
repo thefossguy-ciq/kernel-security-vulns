@@ -182,7 +182,7 @@ for h in ${SHAS[@]}; do
 
     print_blue "Processing ${TAG} fix: ${count} of ${NOSHAS} (%${percentage})"
 
-    MATCHES="\
+    BADMATCHES="\
 call[-\s_]*trace|\
 dead[-\s_]*lock|lock[-\s_]*up|\
 nul[l]*[-\s_]*p[a-z]*[-\s_]*deref[a-z]*|nul[l]*[-\s_]*p[a-z]*|null|deref[a-z]*|\
@@ -220,14 +220,27 @@ BUG|\
 KSPP|\
 WARN[A-Z]*\
 "
+    GOODMATCHES="\
+integer|\
+selftests|\
+tools/testing/|\
+locking[-\s_]dependency[-\s_]detected\
+"
+
     mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
+    commitfile0=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
 
     git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
 
-    cat ${commitmsgfile} | grep -C99999 --color=always -Pi "${MATCHES}" > ${commitfile} || true
+    cat ${commitfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Pi "${GOODMATCHES}" > ${commitfile0} || true
 
+    cat ${commitmsgfile0} | grep -C99999 --color=always -Pi "${BADMATCHES}" > ${commitfile} || true
+
+    if [ ! -s ${commitfile} ]; then
+         cat ${commitfile0} > ${commitfile}
+    fi
     if [ ! -s ${commitfile} ]; then
          cat ${commitmsgfile} > ${commitfile}
     fi
@@ -319,7 +332,7 @@ WARN[A-Z]*\
         echo -n "> "
         read CHOICE
     fi
-    rm -f ${commitfile}
+    rm -f ${commitfile} ${commitfile0}
 
     if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
         print_blue "\nExiting"
