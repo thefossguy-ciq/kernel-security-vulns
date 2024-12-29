@@ -134,3 +134,33 @@ a98b7761f697 um: Fix potential integer overflow during physmem setup
 57ee12b6c514 hwmon: (nct6775-core) Fix overflows seen when writing limit attributes
 1fe774a93b46 EDAC/bluefield: Fix potential integer overflow
 e017671f534d initramfs: avoid filename buffer overrun
+5d609ba26247 bpf, sockmap: Several fixes to bpf_msg_pop_data
+ff6cdc407f41 x86/CPU/AMD: Terminate the erratum_1386_microcode array
+323275ac2ff1 RDMA/hns: Fix cpu stuck caused by printings during reset
+0350d783ab88 mfd: intel_soc_pmic_bxtwc: Use IRQ domain for PMIC devices
+9b79d59e6b2b mfd: intel_soc_pmic_bxtwc: Use IRQ domain for TMU device
+69297b0d3369 octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_dcbnl.c
+ac9183023b6a octeontx2-pf: handle otx2_mbox_get_rsp errors in cn10k.c
+bd3110bc102a octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_flows.c
+e26f8eac6bb2 octeontx2-pf: handle otx2_mbox_get_rsp errors in otx2_ethtool.c
+c353ee4fb119 smb: Initialize cfid->tcon before performing network ops
+ff1060813d93 net/9p/usbg: fix handling of the failed kzalloc() memory allocation
+e8ba8a2bc4f6 rtc: check if __rtc_read_time was successful in rtc_timer_do_work()
+650703bc4ed3 nfs/localio: must clear res.replen in nfs_local_read_done
+7290f5923191 apparmor: test: Fix memory leak for aa_unpack_strdup()
+22e87bf3f77c vfio/mlx5: Fix an unwind issue in mlx5vf_add_migration_pages()
+c840b8e1f039 nfs_common: must not hold RCU while calling nfsd_file_put_local
+f10a890308a7 f2fs: fix to avoid potential deadlock in f2fs_record_stop_reason()
+2985b1844f3f PCI: Fix reset_method_store() memory leak
+f89d17ae2ac4 fbdev: sh7760fb: Fix a possible memory leak in sh7760fb_alloc_mem()
+95bbdca4999b scsi: qedi: Fix a possible memory leak in qedi_alloc_and_init_sb()
+c62c30429db3 scsi: qedf: Fix a possible memory leak in qedf_alloc_and_init_sb()
+200b977ebbc3 dlm: fix dlm_recover_members refcount on error
+bae085416093 erofs: fix blksize < PAGE_SIZE for file-backed mounts
+eb02688c5c45 ipv6: release nexthop on device removal
+a2f599046c67 drm/nouveau/gr/gf100: Fix missing unlock in gf100_gr_chan_new()
+ac4f4e5a2039 wifi: rtw89: unlock on error path in rtw89_ops_unassign_vif_chanctx()
+e47cb9d25332 drm/amdgpu/gfx9: Add Cleaner Shader Deinitialization in gfx_v9_0 Module
+ad980b04f51f crypto: caam - Fix the pointer passed to caam_qi_shutdown()
+22f9400a6f35 netfs/fscache: Add a memory barrier for FSCACHE_VOLUME_CREATING
+3c2fb1ca8086 nvme-pci: fix freeing of the HMB descriptor table
