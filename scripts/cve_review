@@ -302,7 +302,7 @@ locking[-\s_]dependency[-\s_]detected\
     commitlen=$(cat ${commitfile} | wc -l)
 
     if [ "${NAME}" == "greg" ]; then
-        bat ${commitfile}
+        bat --paging=always ${commitfile}
     elif [ ${commitlen} -gt ${clipcommitto} ]; then
         head -n ${clipcommitto} ${commitfile}
         print_blue "\nCommit has been clipped, press M to see the remainder"
