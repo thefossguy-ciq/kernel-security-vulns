@@ -235,7 +235,7 @@ locking[-\s_]dependency[-\s_]detected\
 
     cat ${commitfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Pi "${GOODMATCHES}" > ${commitfile0} || true
 
-    cat ${commitmsgfile0} | grep -C99999 --color=always -Pi "${BADMATCHES}" > ${commitfile} || true
+    cat ${commitfile0} | grep -C99999 --color=always -Pi "${BADMATCHES}" > ${commitfile} || true
 
     if [ ! -s ${commitfile} ]; then
          cat ${commitfile0} > ${commitfile}
