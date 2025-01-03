@@ -1,0 +1,21 @@
+d8e4771f99c0 mtd: rawnand: fix double free in atmel_pmecc_create_user()
+44f52bbe96df btrfs: fix use-after-free when COWing tree bock and tracing is enabled
+defc33b5541e Bluetooth: btusb: mediatek: change the conditions for ISO interface
+fa0308134d26 ALSA: memalloc: prefer dma_mapping_error() over explicit address checking
+3e74859ee35e btrfs: check folio mapping after unlock in relocate_one_folio()
+05aa156e156e powerpc/pseries/vas: Add close() callback in vas_vm_ops struct
+e33ac68e5e21 io_uring/sqpoll: fix sqpoll error handling races
+2dd59fe0e19e media: dvb-frontends: dib3000mb: fix uninit-value in dib3000_write_reg
+23579010cf0a bpf: Fix bpf_get_smp_processor_id() on !CONFIG_SMP
+5ebdc6be16c2 phy: core: Fix an OF node refcount leakage in _of_phy_get()
+a2d633cb1421 phy: core: Fix an OF node refcount leakage in of_phy_provider_lookup()
+fe4bfa9b6d7b phy: core: Fix that API devm_phy_put() fails to release the phy
+c0b82ab95b4f phy: core: Fix that API devm_of_phy_provider_unregister() fails to unregister the phy provider
+4dc48c88fcf8 phy: core: Fix that API devm_phy_destroy() fails to destroy the phy
+98feccbf32cf tracing: Prevent bad count for tracing_cpumask_write
+dc81e556f2a0 x86/fred: Clear WFE in missing-ENDBRANCH #CPs
+a60b990798eb PCI/MSI: Handle lack of irqdomain gracefully
+362f1bf98a3e dmaengine: mv_xor: fix child node refcount handling in early exit
+ccfa3131d4a0 dmaengine: fsl-edma: implement the cleanup path of fsl_edma3_attach_pd()
+c43ec96e8d34 dmaengine: at_xdmac: avoid null_prt_deref in at_xdmac_prep_dma_memset
+75cd4005da54 ublk: detach gendisk from ublk device if add_disk() fails
