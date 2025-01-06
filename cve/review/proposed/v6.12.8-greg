@@ -1,6 +1,6 @@
 d8e4771f99c0 mtd: rawnand: fix double free in atmel_pmecc_create_user()
 44f52bbe96df btrfs: fix use-after-free when COWing tree bock and tracing is enabled
-defc33b5541e Bluetooth: btusb: mediatek: change the conditions for ISO interface
+489304e67087 Bluetooth: btusb: mediatek: add intf release flow when usb disconnect
 fa0308134d26 ALSA: memalloc: prefer dma_mapping_error() over explicit address checking
 3e74859ee35e btrfs: check folio mapping after unlock in relocate_one_folio()
 05aa156e156e powerpc/pseries/vas: Add close() callback in vas_vm_ops struct
