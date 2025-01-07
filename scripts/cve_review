@@ -233,15 +233,14 @@ locking[-\s_]dependency[-\s_]detected\
 
     git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
 
-    cat ${commitfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Pi "${GOODMATCHES}" > ${commitfile0} || true
+    cat ${commitmsgfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Pi "${GOODMATCHES}" > ${commitfile0} || true
+    if [ ! -s ${commitfile0} ]; then
+        cat ${commitmsgfile} > ${commitfile0}
+    fi
 
     cat ${commitfile0} | grep -C99999 --color=always -Pi "${BADMATCHES}" > ${commitfile} || true
-
     if [ ! -s ${commitfile} ]; then
-         cat ${commitfile0} > ${commitfile}
-    fi
-    if [ ! -s ${commitfile} ]; then
-         cat ${commitmsgfile} > ${commitfile}
+        cat ${commitfile0} > ${commitfile}
     fi
     rm -f ${commitmsgfile}
 
