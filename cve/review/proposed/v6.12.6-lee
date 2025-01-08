@@ -1,0 +1,36 @@
+ef1b808e3b7c bpf: Fix UAF via mismatching bpf_prog/attachment RCU flavors [auto: cve already created]
+3ddccbefebdb virtio_net: correct netdev_tx_reset_queue() invocation point [auto: cve already created]
+21f1b85c8912 riscv: mm: Do not call pmd dtor on vmemmap page table teardown [auto: cve already created]
+86e6ca55b83c blk-cgroup: Fix UAF in blkcg_unpin_online() [auto: cve already created]
+fe0418eb9bd6 block: Prevent potential deadlocks in zone write plug error recovery
+b3431a8bb336 riscv: Fix IPIs usage in kfence_protect_page()
+eb9640fd1ce6 gpio: graniterapids: Fix vGPIO driver crash [auto: cve already created]
+4cfbca86f6a8 usb: gadget: u_serial: Fix the issue that gs_start_io crashed due to accessing null pointer [auto: cve already created]
+1f2557e08a61 iommu/vt-d: Remove cache tags before disabling ATS [auto: cve already created]
+74536f91962d iommu/vt-d: Fix qi_batch NULL pointer with nested parent domain [auto: cve already created]
+da0b986256ae drm/i915: Fix NULL pointer dereference in capture_engine [auto: cve already created]
+a592bb19abdc drm/amdkfd: Dereference null return value [auto: cve already created]
+53b001a21c9d xfs: unlock inodes when erroring out of xfs_trans_alloc_dir
+978c4486cca5 bpf,perf: Fix invalid prog_array access in perf_event_detach_bpf_prog [auto: cve already created]
+ed1fc5d76b81 bpf, sockmap: Fix race between element replace and close() [auto: cve already created]
+2e3dbf938656 wifi: nl80211: fix NL80211_ATTR_MLO_LINK_ID off-by-one [auto: cve already created]
+265e98f72bac acpi: nfit: vmalloc-out-of-bounds Read in acpi_nfit_ctl [auto: cve already created]
+b04d86fff66b tipc: fix NULL deref in cleanup_bearer() [auto: cve already created]
+11776cff0b56 net/mlx5: DR, prevent potential error pointer dereference [auto: cve already created]
+a6d75ecee2bf net: lapb: increase LAPB_HEADER_LEN [auto: cve already created]
+0f6ede9fbc74 net: defer final 'struct net' free in netns dismantle [auto: cve already created]
+f07ae52f5cf6 regulator: axp20x: AXP717: set ramp_delay
+b2e538a9827d ALSA: control: Avoid WARN() for symlink errors [auto: cve already created]
+24c6843b7393 bnxt_en: Fix aggregation ID mask to prevent oops on 5760X chips [auto: cve already created]
+66b7e9f85b84 net: renesas: rswitch: avoid use-after-put for a device tree node
+f36b01994d68 netfilter: IDLETIMER: Fix for possible ABBA deadlock
+b04df3da1b5c netfilter: nf_tables: do not defer rule destruction via call_rcu [auto: cve already created]
+581dd2dc168f Bluetooth: hci_event: Fix using rcu_read_(un)lock while iterating [auto: cve already created]
+9bde7c3b3ad0 Bluetooth: iso: Fix recursive locking warning
+168e28305b87 Bluetooth: iso: Fix circular lock in iso_listen_bis
+7a17308c1788 Bluetooth: iso: Fix circular lock in iso_conn_big_sync
+b548f5e9456c Bluetooth: btmtk: avoid UAF in btmtk_process_coredump [auto: cve already created]
+d7b028656c29 drm/xe/reg_sr: Remove register pool [auto: cve already created]
+be26ba96421a block: Fix potential deadlock while freezing queue and acquiring sysfs_lock
+f9244fb55f37 xen/netfront: fix crash when removing device [auto: cve already created]
+a2796dff62d6 x86/xen: don't do PV iret hypercall through hypercall page [auto: cve already created]
