@@ -1,0 +1,98 @@
+9ad86d377ef4 can: hi311x: hi3110_can_ist(): fix potential use-after-free [auto: cve already created]
+146b6f1112eb ipvs: fix UB due to uninitialized stack access in ip_vs_protocol_init()
+04317f4eb2aa netfilter: x_tables: fix LED ID check in led_tg_check() [auto: cve already created]
+b7529880cb96 netfilter: nft_socket: remove WARN_ON_ONCE on maximum cgroup level
+b2420b8c81ec net: enetc: Do not configure preemptible TCs if SIs do not support [auto: cve already created]
+b9653d19e556 net: hsr: avoid potential out-of-bound access in fill_frame_info() [auto: cve already created]
+c44daa7e3c73 net: Fix icmp host relookup triggering ip_rt_bug [auto: cve already created]
+a747e02430df ipv6: avoid possible NULL deref in modify_prefix_route() [auto: cve already created]
+a8c695005bfe can: j1939: j1939_session_new(): fix skb reference counting [auto: cve already created]
+3301ab7d5aeb net/ipv6: release expired exception dst cached in socket [auto: cve already created]
+22be4727a8f8 dccp: Fix memory leak in dccp_feat_change_recv [auto: cve already created]
+6a2fa13312e5 tipc: Fix use-after-free of kernel socket in cleanup_bearer(). [auto: cve already created]
+0541db8ee32c net/smc: initialize close_work early to avoid warning [auto: cve already created]
+2c7f14ed9c19 net/smc: fix LGR and link use-after-free issue [auto: cve already created]
+af8edaeddbc5 net: hsr: must allocate more bytes for RedBox support [auto: cve already created]
+7b1d83da254b netfilter: nft_inner: incorrect percpu area handling under softirq [auto: cve already created]
+992fd34122de igb: Fix potential invalid memory access in igb_init_module()
+456f010bfaef netfilter: ipset: Hold module reference while requesting a module [auto: cve already created]
+8588c99c7d47 geneve: do not assume mac header is set in geneve_xmit_skb() [auto: cve already created]
+750e51603395 net: avoid potential UAF in default_operstate() [auto: cve already created]
+050b23d081da gpio: grgpio: Add NULL check in grgpio_probe [auto: cve already created]
+ca70b8baf2bd tcp_bpf: Fix the sk_mem_uncharge logic in tcp_bpf_sendmsg [auto: cve already created]
+984836621aad spi: mpc52xx: Add cancel_work_sync before module remove
+fec55c29e54d nvme-tcp: fix the memleak while create new ctrl failed [auto: cve already created]
+5858b6875598 nvme-rdma: unquiesce admin_q before destroy it
+f10593ad9bc3 scsi: sg: Fix slab-use-after-free read in sg_release() [auto: cve already created]
+965b5dd1894f ocfs2: free inode when ocfs2_get_init_inode() fails [auto: cve already created]
+59548215b76b HID: wacom: fix when get product name maybe null pointer [auto: cve already created]
+7cd1f5f77925 LoongArch: Add architecture specific huge_pte_clear() [auto: cve already created]
+fc342cf86e2d ksmbd: fix Out-of-Bounds Read in ksmbd_vfs_stream_read [auto: cve already created]
+313dab082289 ksmbd: fix Out-of-Bounds Write in ksmbd_vfs_stream_write [auto: cve already created]
+ee1dfbdd8b4b can: dev: can_set_termination(): allow sleeping GPIOs [auto: cve already created]
+af7f4780514f iommufd: Fix out_fput in iommufd_fault_alloc() [auto: cve already created]
+07c903db0a2f scsi: qla2xxx: Fix use after free on unload [auto: cve already created]
+eb48e9fc0028 scsi: ufs: core: sysfs: Prevent div by zero [auto: cve already created]
+1695c4361d35 scsi: ufs: core: Cancel RTC work during ufshcd_remove() [auto: cve already created]
+64506b3d23a3 scsi: ufs: qcom: Only free platform MSIs when ESI is enabled [auto: cve already created]
+985ebec4ab0a nilfs2: fix potential out-of-bounds memory access in nilfs_find_entry() [auto: cve already created]
+5e0e913624bc bcache: revert replacing IS_ERR_OR_NULL with IS_ERR again
+a220d6b95b1a Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
+2379fb937de5 pmdomain: imx: gpcv2: Adjust delay after power up handshake [auto: cve already created]
+b3fce429a1e0 cacheinfo: Allocate memory during CPU hotplug if not done from the primary CPU [auto: cve already created]
+bd2fccac61b4 drm/dp_mst: Fix MST sideband message body length check [auto: cve already created]
+ab244dd7cf4c bpf: fix OOB devmap writes when deleting elements [auto: cve already created]
+32cd3db7de97 xsk: fix OOB map writes when deleting elements [auto: cve already created]
+031e04bdc834 stackdepot: fix stack_depot_save_flags() in NMI context
+5f1b64e9a9b7 sched/numa: fix memory leak due to the overwritten vma->numab_state [auto: cve already created]
+a1268be280d8 mm/gup: handle NULL pages in unpin_user_pages() [auto: cve already created]
+091c1dd2d4df mm/mempolicy: fix migrate_to_node() assuming there is at least one VMA in a MM [auto: cve already created]
+a0bd7dacbd51 s390/cpum_sf: Handle CPU hotplug remove during sampling
+8cca35cb29f8 btrfs: don't take dev_replace rwsem on task already holding it
+59458fa4ddb4 kcsan: Turn report_filterlist_lock into a raw_spinlock [auto: cve already created]
+e173bce05f70 ACPI: x86: Add adev NULL check to acpi_quirk_skip_serdev_enumeration()
+295991836b23 ACPI: video: force native for Apple MacbookPro11,2 and Air7,2
+9cc832d37799 soc: imx8m: Probe the SoC driver as platform driver
+3e5e4a801aaf wifi: rtw88: use ieee80211_purge_tx_queue() to purge TX skb [auto: cve already created]
+630d5d8f2bf6 wifi: rtw89: check return value of ieee80211_probereq_get() for RNR
+63de35a8fcfc drm/amd/display: Fix out-of-bounds access in 'dcn21_link_encoder_create' [auto: cve already created]
+b98333c67daf dlm: fix possible lkb_resource null dereference
+8fac3266c68a wifi: ath12k: fix atomic calls in ath12k_mac_op_set_bitrate_mask() [auto: cve already created]
+46f2a11cb82b af_packet: avoid erroring out after sock_init_data() in packet_create() [auto: cve already created]
+7c4f78cdb8e7 Bluetooth: L2CAP: do not leave dangling sk pointer on error in l2cap_sock_create() [auto: cve already created]
+3945c799f12b Bluetooth: RFCOMM: avoid leaving dangling sk pointer in rfcomm_sock_alloc() [auto: cve already created]
+811a7ca7320c net: af_can: do not leave a dangling sk pointer in can_create() [auto: cve already created]
+b4fcd63f6ef7 net: ieee802154: do not leave a dangling sk pointer in ieee802154_create() [auto: cve already created]
+9365fa510c6f net: inet: do not leave a dangling sk pointer in inet_create() [auto: cve already created]
+9df99c395d0f net: inet6: do not leave a dangling sk pointer in inet6_create() [auto: cve already created]
+95c38953cb1e wifi: ath10k: avoid NULL pointer error during sdio remove [auto: cve already created]
+d6083f040d5d bpf: Prevent tailcall infinite loop caused by freplace
+2320c9e6a768 drm/sched: memset() 'job' in drm_sched_job_init()
+2c437d9a0b49 drm/amd/display: Adding array index check to prevent memory corruption
+7543c3e3b9b8 dma-debug: fix a possible deadlock on radix_lock
+ca84a2c9be48 jfs: array-index-out-of-bounds fix in dtReadFirst [auto: cve already created]
+a5f5e4698f8a jfs: fix shift-out-of-bounds in dbSplit [auto: cve already created]
+839f102efb16 jfs: fix array-index-out-of-bounds in jfs_readdir [auto: cve already created]
+a174706ba4da jfs: add a check to prevent array-index-out-of-bounds in dbAdjTree [auto: cve already created]
+e2e974357839 drm/amdgpu: set the right AMDGPU sg segment limitation [auto: cve already created]
+857282b819cb wifi: brcmfmac: Fix oops due to NULL pointer dereference in brcmf_sdiod_sglist_rw() [auto: cve already created]
+b9e9ed90b10c bpf: Call free_htab_elem() after htab_unlock_bucket() [auto: cve already created]
+2b0f2fc9ed62 Bluetooth: hci_conn: Use disable_delayed_work_sync [auto: cve already created]
+3fe288a8214e Bluetooth: hci_core: Fix not checking skb length on hci_acldata_packet [auto: cve already created]
+2233c4a0b948 scsi: hisi_sas: Add cond_resched() for no forced preemption model [auto: cve already created]
+9f564f15f884 scsi: hisi_sas: Create all dump files during debugfs initialization [auto: cve already created]
+5a3e85c3c397 pinmux: Use sequential access to access desc->pinmux data
+f44ec8733a84 bpf: put bpf_link's program when link is safe to be deallocated
+4ca7cd938725 leds: class: Protect brightness_show() with led_cdev->led_access mutex [auto: cve already created]
+d5c367ef8287 f2fs: fix f2fs_bug_on when uninstalling filesystem call f2fs_evict_inode. [auto: cve already created]
+6ca2738174e4 i3c: mipi-i3c-hci: Mask ring interrupts before ring stop request
+6cf7b65f7029 i3c: Use i3cdev->desc->info instead of calling i3c_device_get_info() to avoid deadlock
+3fc5d5a182f6 f2fs: fix to shrink read extent node in batches
+88fd2b70120d LoongArch: Fix sleeping in atomic context for PREEMPT_RT [auto: cve already created]
+4fbd66d8254c MIPS: Loongson64: DTS: Really fix PCIe port nodes for ls7a
+cf89c9434af1 powerpc/prom_init: Fixup missing powermac #size-cells
+36008fe6e3dc smb: client: don't try following DFS links in cifs_tree_connect()
+7eb75ce75271 io_uring/tctx: work around xa_store() allocation error issue [auto: cve already created]
+70ee7947a290 sched: fix warning in sched_setaffinity
+0664e2c311b9 sched/deadline: Fix warning in migrate_enable for boosted tasks [auto: cve already created]
+48796104c864 s390/pci: Fix leak of struct zpci_dev when zpci_add_device() fails
