@@ -1,0 +1,21 @@
+2dd59fe0e19e media: dvb-frontends: dib3000mb: fix uninit-value in dib3000_write_reg [auto: cve already created]
+23579010cf0a bpf: Fix bpf_get_smp_processor_id() on !CONFIG_SMP [auto: cve already created]
+9d23e4865462 phy: rockchip: samsung-hdptx: Set drvdata before enabling runtime PM
+c180c3f42d34 ALSA: memalloc: prefer dma_mapping_error() over explicit address checking
+c43ec96e8d34 dmaengine: at_xdmac: avoid null_prt_deref in at_xdmac_prep_dma_memset [auto: cve already created]
+d8e4771f99c0 mtd: rawnand: fix double free in atmel_pmecc_create_user() [auto: cve already created]
+05aa156e156e powerpc/pseries/vas: Add close() callback in vas_vm_ops struct [auto: cve already created]
+50740f4dc78b scsi: megaraid_sas: Fix for a potential deadlock
+e54b00086f74 drm/dp_mst: Ensure mst_primary pointer is valid in drm_dp_mst_handle_up_req()
+7678abee0867 virtio-blk: don't keep queue frozen during system suspend
+75cd4005da54 ublk: detach gendisk from ublk device if add_disk() fails [auto: cve already created]
+98feccbf32cf tracing: Prevent bad count for tracing_cpumask_write [auto: cve already created]
+e33ac68e5e21 io_uring/sqpoll: fix sqpoll error handling races
+dc81e556f2a0 x86/fred: Clear WFE in missing-ENDBRANCH #CPs [auto: cve already created]
+27834971f616 virt: tdx-guest: Just leak decrypted memory on unrecoverable errors
+a60b990798eb PCI/MSI: Handle lack of irqdomain gracefully [auto: cve already created]
+afc6e39e824a power: supply: gpio-charger: Fix set charge current limits
+f2363e6fcc79 btrfs: fix transaction atomicity bug when enabling simple quotas
+44f52bbe96df btrfs: fix use-after-free when COWing tree bock and tracing is enabled [auto: cve already created]
+3e74859ee35e btrfs: check folio mapping after unlock in relocate_one_folio() [auto: cve already created]
+489304e67087 Bluetooth: btusb: mediatek: add intf release flow when usb disconnect [auto: cve already created]
