@@ -193,19 +193,19 @@ buffer[-\s_]*overflow|over[-\s_]*run|over[-\s_]*flow|\
 out[-\s_]*of[-\s_]*bound[s]*|bound[s]*|\
 use[-\s_]*after[-\s_]*free|use[-\s_]*after|after[-\s_]*free|\
 circular|\
-corrupt[a-z]*|\
 crash[a-z]*|\
 denial|\
 dos|\
 exploit|\
 [-\s_]fault|\
-[-\s_]hang[a-z]*|hung|\
+kernel[-\s_]hang|system[-\s_]hang|[-\s_]hang[a-z]*|hung|\
 info[-\s_a-z].*leak|leak|\
 malicious[a-z]*|\
 kernel[-\s_]*memory|memory|\
 oob|\
 oops|\
 panic|\
+possible recursive locking detected|\
 reboot|\
 refcount|\
 system|\
@@ -215,15 +215,19 @@ uaf|\
 underflow|\
 uninitial[a-z]*|\
 vuln[a-z]*|\
-BUG|\
+BUG:|\
 KSPP|\
 WARN[A-Z]*\
 "
     GOODMATCHES="\
+Alex Hung|\
+bogus|\
+false[-\s_]*alarm|false[-\s_]*positive|\
 integer|\
-selftests|\
-tools/testing/|\
 locking[-\s_]dependency[-\s_]detected\
+selftests|\
+theory[a-z]*|theoretical[a-z]*|\
+^ tools/.*|\
 "
 
     mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
