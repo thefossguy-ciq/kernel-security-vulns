@@ -301,6 +301,7 @@ theory[a-z]*|theoretical[a-z]*|\
 
     print_blue "Summary:\n"
 
+    echo >> ${commitfile}
     git --no-pager log -p --format="" --color=always -n1 ${h} >> ${commitfile}
     commitlen=$(cat ${commitfile} | wc -l)
 
