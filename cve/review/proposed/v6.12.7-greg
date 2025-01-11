@@ -42,3 +42,4 @@ c5b8ee5022a1 net/smc: check return value of sock_recvmsg when draining clc data
 9ab332deb671 net/smc: check smcd_v2_ext_offset when receiving proposal msg
 7863c9f3d24b net/smc: check v2_ext_offset/eid_cnt/ism_gid_cnt when receiving proposal msg
 a29e220d3c8e net/smc: check iparea_offset and ipv6_prefixes_cnt when receiving proposal msg
+faeec8e23c10 mm/page_alloc: don't call pfn_to_page() on possibly non-existent PFN in split_large_buddy()
