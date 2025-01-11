@@ -25,3 +25,5 @@ eb9640fd1ce6 gpio: graniterapids: Fix vGPIO driver crash
 1f806218164d iommu/tegra241-cmdqv: do not use smp_processor_id in preemptible context
 4cfbca86f6a8 usb: gadget: u_serial: Fix the issue that gs_start_io crashed due to accessing null pointer
 2828e5808bcd drm/i915: Fix memory leak by correcting cache object name in error handler
+9c76fff747a7 Bluetooth: iso: Always release hdev at the end of iso_listen_bis
+255cc582e6e1 ASoC: Intel: sof_sdw: Add space for a terminator into DAIs array
