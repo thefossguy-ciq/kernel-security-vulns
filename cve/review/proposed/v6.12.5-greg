@@ -82,3 +82,13 @@ f44ec8733a84 bpf: put bpf_link's program when link is safe to be deallocated
 050b23d081da gpio: grgpio: Add NULL check in grgpio_probe
 4a49194f587a ACPI: x86: Add adev NULL check to acpi_quirk_skip_serdev_enumeration()
 857282b819cb wifi: brcmfmac: Fix oops due to NULL pointer dereference in brcmf_sdiod_sglist_rw()
+a220d6b95b1a Revert "readahead: properly shorten readahead when falling back to do_page_cache_ra()"
+6aacd1484468 virtio-net: fix overflow inside virtnet_rq_alloc
+a0bd7dacbd51 s390/cpum_sf: Handle CPU hotplug remove during sampling
+fe051552f507 jffs2: Prevent rtime decompress memory corruption
+897df60c16d5 scsi: ufs: pltfrm: Dellocate HBA during ufshcd_pltfrm_remove()
+d7cb6d7414ea block: RCU protect disk->conv_zones_bitmap
+a6fa67d26de3 drm/dp_mst: Fix resetting msg rx state after topology removal
+594bfc4947c4 arm64: ptrace: fix partial SETREGSET for NT_ARM_POE
+f5d71291841a arm64: ptrace: fix partial SETREGSET for NT_ARM_FPMR
+ca62d90085f4 arm64: ptrace: fix partial SETREGSET for NT_ARM_TAGGED_ADDR_CTRL
