@@ -37,3 +37,5 @@ c174b53e95ad ad7780: fix division by zero in ad7780_write_raw()
 dbc16915279a mm/slub: Avoid list corruption when removing a slab from the full list
 588a9836a4ef s390/stacktrace: Use break instead of return statement
 9008fe8fad82 slab: Fix too strict alignment check in create_cache()
+0a726f542d7c PCI: imx6: Fix suspend/resume support on i.MX6QDL
+45c9f2b856a0 s390/entry: Mark IRQ entries to fix stack depot warnings
