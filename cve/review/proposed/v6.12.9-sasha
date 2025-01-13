@@ -1,0 +1,55 @@
+cbb26f7d8451 mptcp: fix TCP options overflow.
+59d9094df3d7 mm: hugetlb: independent PMD page table shared count
+8ec396d05d1b mm: reinstate ability to map write-sealed memfd mappings read-only
+6aaced5abd32 mm: vmscan: account for free pages to prevent infinite Loop in throttle_direct_reclaim()
+cddc76b16516 mm/kmemleak: fix sleeping function called from invalid context at print message
+ff7c2dea9dd1 gve: guard XDP xmit NDO on existence of xdp queues
+40338d7987d8 gve: guard XSK operations on the existence of queues
+d0e6983a6d17 mm: shmem: fix incorrect index alignment for within_size policy
+8debfc5b1aa5 mm/damon/core: fix new damon_target objects leaks on damon_commit_targets()
+d65474033740 fgraph: Add READ_ONCE() when accessing fgraph_array[]
+81adbd3ff21c drm: adv7511: Fix use-after-free in adv7533_attach_dsi()
+38fc96a58ce4 io_uring/rw: fix downgraded mshot read
+4e86729d1ff3 net/sctp: Prevent autoclose integer overflow in sctp_association_init()
+35bf430e08a1 sched_ext: initialize kit->cursor.flags
+de35994ecd2d workqueue: Do not warn when cancelling WQ_MEM_RECLAIM work from !WQ_MEM_RECLAIM worker
+a37eecb705f3 pinctrl: mcp23s08: Fix sleeping in atomic context due to regmap locking
+d0257e089d1b RDMA/uverbs: Prevent integer overflow issue
+18b2093f4598 sched_ext: Fix invalid irq restore in scx_ops_bypass()
+1fd8bc7cd889 maple_tree: reload mas before the second call for mas_empty_area
+5f3fd772d152 ocfs2: fix slab-use-after-free due to dangling pointer dqi_priv
+0179488ca992 ALSA: seq: oss: Fix races at processing SysEx messages
+5e0a67fdb894 drm/xe: Wait for migration job before unmapping pages
+528cef1b4170 drm/xe: Use non-interruptible wait when moving BO to system
+8765429279e7 ALSA: seq: Check UMP support for midi_version change
+1a4607ffba35 bpf: consider that tail calls invalidate packet pointers
+4d94f0555827 Bluetooth: hci_core: Fix sleeping function called from invalid context
+21e46a79bbe6 ksmbd: set ATTR_CTIME flags when setting mtime
+c4441ca86afe bpf: fix potential error return
+f10bef73fb35 btrfs: flush delalloc workers queue before stopping cleaner kthread during unmount
+5c3de6b02d38 drm/amdkfd: Correct the migration DMA map direction
+b5c32ff6a3a3 wifi: cfg80211: clear link ID from bitmap during link delete after clean up
+49dba1ded8dd wifi: mac80211: fix mbss changed flags corruption on 32 bit systems
+260466b576bc ila: serialize calls to nf_register_net_hooks()
+f91a5b808938 af_packet: fix vlan_get_protocol_dgram() vs MSG_PEEK
+77ee7a6d16b6 af_packet: fix vlan_get_tci() vs MSG_PEEK
+5b0af621c3f6 net: restrict SO_REUSEPORT to inet sockets
+68e068cabd2c net: reenable NETIF_F_IPV6_CSUM offload for BIG TCP packets
+c6e60a0a68b7 io_uring/net: always initialize kmsg->msg.msg_inq upfront
+fb514b313959 RDMA/rtrs: Ensure 'ib_sge list' is accessible
+4f619d518db9 net: wwan: t7xx: Fix FSM command timeout issue
+b06a6187ef98 ALSA: usb-audio: US16x08: Initialize array before use
+4db3d750ac7e nvmet: Don't overflow subsysnqn
+542ed8145e6f netfilter: nft_set_hash: unaligned atomic read on struct nft_set_ext
+2ac5415022d1 RDMA/rxe: Remove the direct link to net_device
+2a4f56fbcc47 net/mlx5e: Keep netdev when leave switchdev for devlink set legacy only
+5a03b368562a net/mlx5e: Skip restore TC rules for vport rep without loaded flag
+a4fd163aed2e netrom: check buffer length before accessing it
+4f4aa4aa2814 net: fix memory leak in tcp_conn_request()
+fe39b222a413 drm/xe: Fix fault on fd close after unbind
+fa5c4ba8cdbf RDMA/hns: Fix warning storm caused by invalid input in IO path
+0572eccf239c RDMA/hns: Fix accessing invalid dip_ctx during destroying QP
+9272cba0ded7 RDMA/bnxt_re: Fix the locking while accessing the QP table
+16b87037b488 RDMA/siw: Remove direct link to net_device
+79d330fbdffd RDMA/bnxt_re: Fix max SGEs for the Work Request
+900f83cf376b selinux: ignore unknown extended permissions
