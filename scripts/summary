@@ -14,7 +14,7 @@ total_assigned=0
 total_rejected=0
 total_sum=0
 
-printf " Year\tReserved\tAssigned\tRejected\tTotal\n"
+printf " Year\tReserved\tAssigned\tRejected\t  A+R\t\tTotal\n"
 
 for year in {2010..2030}; do
 	reserved=0
@@ -43,8 +43,8 @@ for year in {2010..2030}; do
 	sum=$((reserved + assigned + rejected))
 	total_sum=$((total_sum + sum))
 	if [[ "${sum}" != "0" ]]; then
-		printf "  %d:\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "${year}" "${reserved}" "${assigned}" "${rejected}" "${sum}"
+		printf "  %d:\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "${year}" "${reserved}" "${assigned}" "${rejected}" "$((assigned + rejected))" "${sum}"
 	fi
 
 done
-printf " %s:\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "Total" "${total_reserved}" "${total_assigned}" "${total_rejected}" "${total_sum}"
+printf " %s:\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "Total" "${total_reserved}" "${total_assigned}" "${total_rejected}" "$((total_assigned + total_rejected))" "${total_sum}"
