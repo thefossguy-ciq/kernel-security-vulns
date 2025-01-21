@@ -35,3 +35,5 @@ d0257e089d1b RDMA/uverbs: Prevent integer overflow issue
 49dba1ded8dd wifi: mac80211: fix mbss changed flags corruption on 32 bit systems
 b5c32ff6a3a3 wifi: cfg80211: clear link ID from bitmap during link delete after clean up
 4f4aa4aa2814 net: fix memory leak in tcp_conn_request()
+8ec396d05d1b mm: reinstate ability to map write-sealed memfd mappings read-only
+4e86729d1ff3 net/sctp: Prevent autoclose integer overflow in sctp_association_init()
