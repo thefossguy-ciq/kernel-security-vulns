@@ -25,3 +25,4 @@ e54b00086f74 drm/dp_mst: Ensure mst_primary pointer is valid in drm_dp_mst_handl
 711201a8b833 scsi: mpi3mr: Fix corrupt config pages PHY state is switched in sysfs
 e8d0ba147d90 ASoC: SOF: Intel: hda-dai: Do not release the link DMA on STOP
 9d23e4865462 phy: rockchip: samsung-hdptx: Set drvdata before enabling runtime PM
+7678abee0867 virtio-blk: don't keep queue frozen during system suspend
