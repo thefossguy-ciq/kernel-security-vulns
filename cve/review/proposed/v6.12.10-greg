@@ -58,3 +58,12 @@ dd410d784402 platform/x86/amd/pmc: Only disable IRQ1 wakeup where i8042 actually
 3f6bc9e3ab9b netfs: Fix kernel async DIO
 6268d5bc1035 sched_ext: Replace rq_lock() to raw_spin_rq_lock() in scx_ops_bypass()
 3cb97a927fff cgroup/cpuset: remove kernfs active break
+82163d63ae7a hwmon: (drivetemp) Fix driver producing garbage data when SCSI errors occur
+d0327c824338 netfs: Fix the (non-)cancellation of copy when cache is temporarily disabled
+38cf8e945721 netfs: Fix ceph copy to cache on write-begin
+d1cacd747768 netdev: prevent accessing NAPI instances from another namespace
+2ac538e40278 ksmbd: fix unexpectedly changed path in ksmbd_vfs_kern_path_locked
+a619cba8c69c gpio: virtuser: fix missing lookup table cleanups
+0e2909c6bec9 net/mlx5: Fix variable not being completed when function returns
+426046e2d62d net: stmmac: dwmac-tegra: Read iommu stream id from device tree
+98e2fb26d1a9 exfat: fix the new buffer was not zeroed before writing
