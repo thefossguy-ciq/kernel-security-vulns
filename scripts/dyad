@@ -1,7 +1,7 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+# Copyright (c) 2024-2025 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 #
 # dyad - create a listing of "pairs" of vulnerable:fixed kernels based on a
 #	 specific git SHA that purports to fix an issue.  Used in combination
@@ -493,10 +493,14 @@ COMMIT_TREE=${CVECOMMITTREE}
 # Try to find the most useful version of FOUND_IN:
 # If we have one in our tools/ directory, then use that, otherwise fall back to
 # the "old" version in the stand-alone repo.
-if [[ -x "${DIR}/../tools/verhaal/id_found_in" ]]; then
-	FOUND_IN="${DIR}/../tools/verhaal/id_found_in"
+if [[ -x "${DIR}/../tools/verhaal/id_find_active" ]]; then
+	FOUND_IN="${DIR}/../tools/verhaal/id_find_active"
+elif [[ -x "${DIR}/tools/verhaal/id_find_active" ]]; then
+	FOUND_IN="${DIR}/tools/verhaal/id_find_active"
 else
-	FOUND_IN=${COMMIT_TREE}/id_found_in
+	echo "${txtred}ERROR: no version of ${txtcyn}id_find_active${txtrst} found"
+	echo "	Usually this is in the verhaal directory, please be sure you have it somewhere for us to use"
+	exit 1
 fi
 
 git_cmd="git --git-dir=${KERNEL_TREE}/.git"
@@ -569,24 +573,17 @@ dbg "GIT_SHA=${GIT_SHA}	GIT_SHA_FULL=${GIT_SHA_FULL}	GIT_SHA_SHORT=${GIT_SHA_SHO
 # To do so we call ${FOUND_IN} to get the versions, and then we iterate over
 # the branches to get the git ids.
 #
+# ${FOUND_IN} will give us version:commit_id pairs, so we don't have to do much afterward
 fixed_kernels=$("${FOUND_IN}" "${GIT_SHA_FULL}")
 dbg "fixed_kernels=${fixed_kernels}"
 
-# no "" for variable on purpose, we want to split the line up
 for kernel in ${fixed_kernels}; do
-	#kernel_id_info "${kernel}"
+	kernel_split=(${kernel//:/ })
+	kernel_split_version=${kernel_split[0]}
+	kernel_split_id=${kernel_split[1]}
 
-	kernel_version_is_queue "${kernel}"
-	kernel_queue=$?
-	if [[ "${kernel_queue}" == "1" ]]; then
-		continue
-	fi
-
-	fix_id=$(find_git_id "${GIT_SHA_FULL}" "${kernel}")
-	#dbg "fix_id=${fix_id}"
-
-	create_fix_set "${kernel}" "${fix_id}"
-
+	# dbg "version=${kernel_split_version} id=${kernel_split_id}"
+	create_fix_set "${kernel_split_version}" "${kernel_split_id}"
 done
 
 dbg "We have found ${#fixed_set[@]} sets of fixed kernels"
@@ -687,21 +684,16 @@ else
 		fi
 		x=$("${FOUND_IN}" "${full_id}")
 		for kernel in ${x}; do
-			kernel_id_info "${kernel}"
+			kernel_split=(${kernel//:/ })
+			kernel_split_version=${kernel_split[0]}
+			kernel_split_id=${kernel_split[1]}
 
-			kernel_version_is_queue "${kernel}"
-			kernel_is_queue=$?
-			if [[ "${kernel_is_queue}" == 1 ]] ; then
-				continue
-			fi
-
-			kernel_version_is_mainline "${kernel}"
+			kernel_version_is_mainline "${kernel_split_version}"
 			kernel_is_mainline=$?
 			if [[ "${kernel_is_mainline}" == "0" ]]; then
-				stable_id=$(find_stable_git_id "${full_id}" "${kernel}")
-				create_vulnerable_set "${kernel}" "${stable_id}"
+				create_vulnerable_set "${kernel_split_version}" "${kernel_split_id}"
 			else
-				create_vulnerable_set "${kernel}" "${full_id}"
+				create_vulnerable_set "${kernel_split_version}" "${full_id}"
 			fi
 		done
 	done
