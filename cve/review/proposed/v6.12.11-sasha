@@ -1,0 +1,27 @@
+35cb2c6ce7da5 irqchip/gic-v3-its: Don't enable interrupts in its_irq_set_vcpu_affinity()
+0cef0bb836e3c mm: clear uffd-wp PTE/PMD state on mremap()
+726efa92e02b4 pmdomain: imx8mp-blk-ctrl: add missing loop break condition
+9860370c21727 gpio: xilinx: Convert gpio_lock to raw spinlock
+cbc5dde0a4612 fs/proc: fix softlockup in __read_vmcore (part 2)
+f505e6c91e7a2 filemap: avoid truncating 64-bit offset to 32 bits
+91751e248256e vsock: prevent null-ptr-deref in vsock_*[has_data|has_space]
+df137da9d6d16 vsock/virtio: cancel close work in the destructor
+2cb7c756f605e vsock/virtio: discard packets if the transport changes
+f6abafcd32f9c vsock/bpf: return early if transport is not assigned
+212fe1c0df4a1 zram: fix potential UAF of zram table
+17a4fde81d3a7 afs: Fix merge preference rule failure condition
+c13094b894de2 iomap: avoid avoid truncating 64-bit offset to 32 bits
+eb09fbeb48709 mac802154: check local interfaces before deleting sdata list
+fa2f9906a7b33 smb: client: fix double free of TCP_Server_Info::hostname
+59616a91e5e74 platform/x86: lenovo-yoga-tab2-pro-1380-fastcharger: fix serdev race
+e4b5ccd392b92 drm/v3d: Ensure job pointer is set to NULL after job completion
+2c3688090f8a1 net/mlx5e: Fix inversion dependency warning while enabling IPsec tunnel
+5641e82cb55b4 net/mlx5: Clear port select structure when fail to create
+001ba0902046c net: fec: handle page_pool_dev_alloc_pages error
+ffc90e9ca61b0 pfcp: Destroy device along with udp socket's netns dismantle.
+eb28fd76c0a08 gtp: Destroy device along with udp socket's netns dismantle.
+fe4de594f7a2e btrfs: add the missing error handling inside get_canonical_dev_path
+76201b5979768 pktgen: Avoid out-of-bounds access in get_imix_entries
+47e55e4b410f7 openvswitch: fix lockup on tx to unregistering netdev with carrier
+f0aa6a37a3dbb eth: bnxt: always recalculate features after XDP clearing, fix null-deref
+b3af60928ab91 bpf: Fix bpf_sk_select_reuseport() memory leak
