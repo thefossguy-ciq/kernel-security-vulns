@@ -1,0 +1,26 @@
+b3af60928ab9 bpf: Fix bpf_sk_select_reuseport() memory leak
+f0aa6a37a3db eth: bnxt: always recalculate features after XDP clearing, fix null-deref
+47e55e4b410f openvswitch: fix lockup on tx to unregistering netdev with carrier
+76201b597976 pktgen: Avoid out-of-bounds access in get_imix_entries
+fe4de594f7a2 btrfs: add the missing error handling inside get_canonical_dev_path
+eb28fd76c0a0 gtp: Destroy device along with udp socket's netns dismantle.
+ffc90e9ca61b pfcp: Destroy device along with udp socket's netns dismantle.
+001ba0902046 net: fec: handle page_pool_dev_alloc_pages error
+5641e82cb55b net/mlx5: Clear port select structure when fail to create
+2c3688090f8a net/mlx5e: Fix inversion dependency warning while enabling IPsec tunnel
+e4b5ccd392b9 drm/v3d: Ensure job pointer is set to NULL after job completion
+1b2128aa2d45 platform/x86: dell-uart-backlight: fix serdev race
+59616a91e5e7 platform/x86: lenovo-yoga-tab2-pro-1380-fastcharger: fix serdev race
+fa2f9906a7b3 smb: client: fix double free of TCP_Server_Info::hostname
+eb09fbeb4870 mac802154: check local interfaces before deleting sdata list
+c8b90d40d5bb netfs: Fix non-contiguous donation between completed reads
+17a4fde81d3a afs: Fix merge preference rule failure condition
+212fe1c0df4a zram: fix potential UAF of zram table
+f6abafcd32f9 vsock/bpf: return early if transport is not assigned
+2cb7c756f605 vsock/virtio: discard packets if the transport changes
+9e2bbab94b88 net/ncsi: fix locking in Get MAC Address handling
+726efa92e02b pmdomain: imx8mp-blk-ctrl: add missing loop break condition
+0cef0bb836e3 mm: clear uffd-wp PTE/PMD state on mremap()
+35cb2c6ce7da irqchip/gic-v3-its: Don't enable interrupts in its_irq_set_vcpu_affinity()
+2f8dea1692ee hrtimers: Handle CPU state correctly on hotplug
+de31b3cd7063 x86/fred: Fix the FRED RSP0 MSR out of sync with its per-CPU cache
