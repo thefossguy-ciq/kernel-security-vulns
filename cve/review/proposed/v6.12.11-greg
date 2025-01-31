@@ -1,0 +1,23 @@
+fa2f9906a7b3 smb: client: fix double free of TCP_Server_Info::hostname
+eb09fbeb4870 mac802154: check local interfaces before deleting sdata list
+b905bafdea21 hfs: Sanity check the root record
+17a4fde81d3a afs: Fix merge preference rule failure condition
+f6abafcd32f9 vsock/bpf: return early if transport is not assigned
+f0aa6a37a3db eth: bnxt: always recalculate features after XDP clearing, fix null-deref
+5641e82cb55b net/mlx5: Clear port select structure when fail to create
+212fe1c0df4a zram: fix potential UAF of zram table
+2cb7c756f605 vsock/virtio: discard packets if the transport changes
+91751e248256 vsock: prevent null-ptr-deref in vsock_*[has_data|has_space]
+f505e6c91e7a filemap: avoid truncating 64-bit offset to 32 bits
+726efa92e02b pmdomain: imx8mp-blk-ctrl: add missing loop break condition
+9322d1915f9d irqchip: Plug a OF node reference leak in platform_irqchip_probe()
+47e55e4b410f openvswitch: fix lockup on tx to unregistering netdev with carrier
+ffc90e9ca61b pfcp: Destroy device along with udp socket's netns dismantle.
+eb28fd76c0a0 gtp: Destroy device along with udp socket's netns dismantle.
+2c3688090f8a net/mlx5e: Fix inversion dependency warning while enabling IPsec tunnel
+c13094b894de iomap: avoid avoid truncating 64-bit offset to 32 bits
+b3af60928ab9 bpf: Fix bpf_sk_select_reuseport() memory leak
+76201b597976 pktgen: Avoid out-of-bounds access in get_imix_entries
+fe4de594f7a2 btrfs: add the missing error handling inside get_canonical_dev_path
+16ebb6f5b629 nfp: bpf: prevent integer overflow in nfp_bpf_event_output()
+001ba0902046 net: fec: handle page_pool_dev_alloc_pages error
