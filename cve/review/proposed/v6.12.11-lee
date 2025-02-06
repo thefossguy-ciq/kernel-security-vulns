@@ -1,0 +1,25 @@
+b3af60928ab9 bpf: Fix bpf_sk_select_reuseport() memory leak [auto: cve already created]
+f0aa6a37a3db eth: bnxt: always recalculate features after XDP clearing, fix null-deref [auto: cve already created]
+47e55e4b410f openvswitch: fix lockup on tx to unregistering netdev with carrier [auto: cve already created]
+76201b597976 pktgen: Avoid out-of-bounds access in get_imix_entries [auto: cve already created]
+fe4de594f7a2 btrfs: add the missing error handling inside get_canonical_dev_path [auto: cve already created]
+eb28fd76c0a0 gtp: Destroy device along with udp socket's netns dismantle. [auto: cve already created]
+ffc90e9ca61b pfcp: Destroy device along with udp socket's netns dismantle. [auto: cve already created]
+001ba0902046 net: fec: handle page_pool_dev_alloc_pages error [auto: cve already created]
+5641e82cb55b net/mlx5: Clear port select structure when fail to create [auto: cve already created]
+2c3688090f8a net/mlx5e: Fix inversion dependency warning while enabling IPsec tunnel [auto: cve already created]
+1b2128aa2d45 platform/x86: dell-uart-backlight: fix serdev race
+59616a91e5e7 platform/x86: lenovo-yoga-tab2-pro-1380-fastcharger: fix serdev race
+fa2f9906a7b3 smb: client: fix double free of TCP_Server_Info::hostname [auto: cve already created]
+eb09fbeb4870 mac802154: check local interfaces before deleting sdata list [auto: cve already created]
+c13094b894de iomap: avoid avoid truncating 64-bit offset to 32 bits [auto: cve already created]
+17a4fde81d3a afs: Fix merge preference rule failure condition [auto: cve already created]
+212fe1c0df4a zram: fix potential UAF of zram table [auto: cve already created]
+f6abafcd32f9 vsock/bpf: return early if transport is not assigned [auto: cve already created]
+2cb7c756f605 vsock/virtio: discard packets if the transport changes [auto: cve already created]
+91751e248256 vsock: prevent null-ptr-deref in vsock_*[has_data|has_space] [auto: cve already created]
+f505e6c91e7a filemap: avoid truncating 64-bit offset to 32 bits [auto: cve already created]
+9860370c2172 gpio: xilinx: Convert gpio_lock to raw spinlock
+726efa92e02b pmdomain: imx8mp-blk-ctrl: add missing loop break condition [auto: cve already created]
+35cb2c6ce7da irqchip/gic-v3-its: Don't enable interrupts in its_irq_set_vcpu_affinity()
+2f8dea1692ee hrtimers: Handle CPU state correctly on hotplug
