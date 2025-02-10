@@ -205,6 +205,7 @@ kernel[-\s_]*memory|memory|\
 oob|\
 oops|\
 panic|\
+permission|\
 possible recursive locking detected|\
 reboot|\
 refcount|\
