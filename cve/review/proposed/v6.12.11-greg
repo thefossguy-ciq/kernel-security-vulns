@@ -21,3 +21,8 @@ b3af60928ab9 bpf: Fix bpf_sk_select_reuseport() memory leak
 fe4de594f7a2 btrfs: add the missing error handling inside get_canonical_dev_path
 16ebb6f5b629 nfp: bpf: prevent integer overflow in nfp_bpf_event_output()
 001ba0902046 net: fec: handle page_pool_dev_alloc_pages error
+cbc5dde0a461 fs/proc: fix softlockup in __read_vmcore (part 2)
+2f8dea1692ee hrtimers: Handle CPU state correctly on hotplug
+1b2128aa2d45 platform/x86: dell-uart-backlight: fix serdev race
+0cef0bb836e3 mm: clear uffd-wp PTE/PMD state on mremap()
+e4b5ccd392b9 drm/v3d: Ensure job pointer is set to NULL after job completion
