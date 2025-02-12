@@ -1,0 +1,3 @@
+This . file is here to keep the directory around for when we move all the "real"
+files out of it as it seems to confuse some people when the directory goes away
+with a 'git pull'
