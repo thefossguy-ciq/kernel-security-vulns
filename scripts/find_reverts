@@ -70,8 +70,11 @@ update_cve()
 
 	revert=$(${ID_IS_REVERTED} "${sha}")
 	if [[ "${revert}" != "" ]]; then
-		#echo "${id} with sha ${sha} has been reverted!"
-		echo "${txtcyn}${cve}${txtrst} with sha ${txtcyn}${sha}${txtrst} has been reverted, check to see if this is still a valid CVE"
+		# test to see if we "know" this is a safe commit
+		ok=$(grep ${sha} ${DIR}/not_reverts)
+		if [[ "${ok}" == "" ]]; then
+			echo "${txtcyn}${cve}${txtrst} with sha ${txtcyn}${sha}${txtrst} has been reverted, check to see if this is still a valid CVE"
+		fi
 	fi
 }
 

@@ -1,0 +1,9 @@
+# Used by "fix_reverts" to see if this really is something that needs to be
+# looked at.
+# List commit ids here that you KNOW are ok to keep as a CVE as the revert
+# upstream was NOT done in a way that invalidates the original CVE.
+daaca3522a8e67c46e39ef09c1d542e866f85f3b
+ff91059932401894e6c86341915615c5eb0eca48
+6cd4a78d962bebbaf8beb7d2ead3f34120e3f7b2
+f8c989a0c89a75d30f899a7cabdc14d72522bb8d
+229e6ee43d2a160a1592b83aad620d6027084aad
