@@ -122,20 +122,18 @@ show_subsystem_stats() {
             echo "  Top authors for $subsystem:"
             # Create a temporary file to store CVE IDs for this subsystem
             local cve_list_file=$(mktemp)
+            local authors_file=$(mktemp)
             cat "$tmp_dir/$subsystem" > "$cve_list_file"
             
-            # Process each CVE and get its author
-            local authors_file=$(mktemp)
-            while read cve; do
-                # Find the .sha1 file for this CVE
-                local sha1_file=$(find cve/published -type f -name "${cve}.sha1" 2>/dev/null)
-                if [ -n "$sha1_file" ]; then
-                    local author=$(get_commit_author "$sha1_file")
-                    if [ -n "$author" ] && [ "$author" != "unknown" ]; then
-                        echo "$author" >> "$authors_file"
-                    fi
-                fi
-            done < "$cve_list_file"
+            # Process CVEs in parallel to get authors
+            cat "$cve_list_file" | parallel -j$(nproc) --keep-order \
+                'sha1_file=$(find cve/published -type f -name "{}.sha1" 2>/dev/null); \
+                 if [ -n "$sha1_file" ]; then \
+                     author=$(get_commit_author "$sha1_file"); \
+                     if [ -n "$author" ] && [ "$author" != "unknown" ]; then \
+                         echo "$author"; \
+                     fi; \
+                 fi' > "$authors_file"
             
             # Sort and count authors
             if [ -s "$authors_file" ]; then
