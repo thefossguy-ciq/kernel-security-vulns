@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#set -x
 # Function to count unique CVEs in a date range
 count_cves_in_range() {
     local start_date="$1"
@@ -155,12 +155,113 @@ print_header() {
     echo -e "\n=== $1 ==="
 }
 
+# Function to get kernel versions from CVE
+get_kernel_versions() {
+    local cve_file="$1"
+    local type="$2"  # "fixed" or "vulnerable"
+    local cve_base=$(basename "$cve_file" .sha1)
+    local dyad_file="$(dirname "$cve_file")/${cve_base}.dyad"
+    
+    if [ -f "$dyad_file" ]; then
+        # Get the version from the dyad file, skipping comments and empty lines
+        # Only take lines that have a real version (not 0:0)
+        # Only take mainline versions (no -rc versions)
+        # Extract only major.minor version (e.g., 6.1 from 6.1.120)
+        # For fixed versions, use field 3; for vulnerable versions, use field 1
+        local field=3
+        if [ "$type" = "vulnerable" ]; then
+            field=1
+        fi
+        
+        grep -v '^#' "$dyad_file" | \
+            grep -v '^$' | \
+            grep -v ':0:0$' | \
+            cut -d: -f$field | \
+            grep -v -- '-rc' | \
+            head -n1 | \
+            sed -E 's/^([0-9]+\.[0-9]+)\.[0-9]+$/\1/'
+    fi
+}
+export -f get_kernel_versions
+
+# Function to show version statistics
+show_version_stats() {
+    local num_versions="$1"
+    
+    print_header "Top $num_versions Major Kernel Versions with CVE Fixes"
+
+    # Create temporary directories for version processing
+    local fixed_dir=$(mktemp -d)
+    local vuln_dir=$(mktemp -d)
+    trap 'rm -rf "$fixed_dir" "$vuln_dir"' EXIT
+
+    # Process all sha1 files in parallel to get versions from dyad files
+    find cve/published -type f -name "*.sha1" | \
+        parallel -j$(nproc) get_kernel_versions {} fixed | \
+        sort | \
+        grep -v "^$" | \
+        while read version; do
+            echo "$version" >> "$fixed_dir/${version}"
+        done
+
+    find cve/published -type f -name "*.sha1" | \
+        parallel -j$(nproc) get_kernel_versions {} vulnerable | \
+        sort | \
+        grep -v "^$" | \
+        while read version; do
+            echo "$version" >> "$vuln_dir/${version}"
+        done
+
+    # Show fixed versions
+    echo -e "\nTop $num_versions Major Kernel Versions Where CVEs Were Fixed:"
+    for version_file in "$fixed_dir"/*; do
+        if [ -f "$version_file" ]; then
+            local version=$(basename "$version_file")
+            local count=$(wc -l < "$version_file")
+            if [ "$version" = "0" ]; then
+                echo "$count Unknown"
+            else
+                echo "$count $version"
+            fi
+        fi
+    done | sort -rn | head -n "$num_versions" | while read count version; do
+        if [ "$version" = "Unknown" ]; then
+            echo "$version: $count CVEs fixed"
+        else
+            echo "Linux $version: $count CVEs fixed"
+        fi
+    done
+
+    # Show vulnerable versions
+    echo -e "\nTop $num_versions Major Kernel Versions Where CVEs Were Introduced:"
+    for version_file in "$vuln_dir"/*; do
+        if [ -f "$version_file" ]; then
+            local version=$(basename "$version_file")
+            local count=$(wc -l < "$version_file")
+            if [ "$version" = "0" ]; then
+                echo "$count Unknown"
+            else
+                echo "$count $version"
+            fi
+        fi
+    done | sort -rn | head -n "$num_versions" | while read count version; do
+        if [ "$version" = "Unknown" ]; then
+            echo "$version: $count CVEs introduced"
+        else
+            echo "Linux $version: $count CVEs introduced"
+        fi
+    done
+}
+
 # Parse command line arguments
 show_authors=false
 show_subsystems=false
+show_versions=false
 num_authors=10
 num_subsystems=10
-num_sub_subsystems=3  # Default number of sub-subsystems to show
+num_sub_subsystems=3
+num_versions=10
+
 for arg in "$@"; do
     if [[ $arg =~ ^--authors(=([0-9]+))?$ ]]; then
         show_authors=true
@@ -176,6 +277,11 @@ for arg in "$@"; do
             else
                 num_subsystems="${BASH_REMATCH[2]}"
             fi
+        fi
+    elif [[ $arg =~ ^--version(=([0-9]+))?$ ]]; then
+        show_versions=true
+        if [[ -n "${BASH_REMATCH[2]}" ]]; then
+            num_versions="${BASH_REMATCH[2]}"
         fi
     fi
 done
@@ -247,7 +353,6 @@ fi
 # Show author stats if --authors flag is provided
 if [[ "$show_authors" = true ]]; then
     print_header "Top $num_authors CVE Commit Authors"
-    echo "Processing commit authors (this may take a while)..."
 
     # Find all sha1 files and process them in parallel
     find cve/published -type f -name "*.sha1" | \
@@ -268,12 +373,18 @@ if [[ "$show_subsystems" = true ]]; then
     show_subsystem_stats "$num_subsystems" "$num_sub_subsystems" "$show_authors"
 fi
 
+# Show version stats if --version flag is provided
+if [[ "$show_versions" = true ]]; then
+    show_version_stats "$num_versions"
+fi
+
 # Update help message
-if [[ ! " $* " =~ " --summary " ]] && [[ "$show_authors" = false ]] && [[ "$show_subsystems" = false ]]; then
-    echo "Usage: $0 [--summary] [--authors[=N]] [--subsystem[=M[,S]]]"
+if [[ ! " $* " =~ " --summary " ]] && [[ "$show_authors" = false ]] && [[ "$show_subsystems" = false ]] && [[ "$show_versions" = false ]]; then
+    echo "Usage: $0 [--summary] [--authors[=N]] [--subsystem[=M[,S]]] [--version[=N]]"
     echo "  --summary              Show general CVE statistics"
     echo "  --authors[=N]          Show top N CVE commit authors (default: 10)"
     echo "  --subsystem[=M[,S]]    Show top M subsystems with S sub-subsystems each (default: M=10,S=3)"
+    echo "  --version[=N]          Show top N kernel versions with CVE fixes (default: 10)"
 fi
 
 echo -e "\nStatistics calculated from $first_cve_date to $(date +%Y-%m-%d)" 
