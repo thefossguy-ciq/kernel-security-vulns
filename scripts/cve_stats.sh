@@ -1,5 +1,10 @@
 #!/bin/bash
 #set -x
+
+# Configuration
+: "${CVEKERNELTREE:=$HOME/linux}"
+export CVEKERNELTREE
+
 # Function to count unique CVEs in a date range
 count_cves_in_range() {
     local start_date="$1"
@@ -18,7 +23,7 @@ get_commit_author() {
     local sha1=$(cat "$sha1_file")
     if [ -n "$sha1" ]; then
         # Get author name from Linux repo
-        cd ~/linux && git log -1 --format="%aN" "$sha1" 2>/dev/null || echo "unknown"
+        git --git-dir="$CVEKERNELTREE/.git" log -1 --format="%aN" "$sha1" 2>/dev/null || echo "unknown"
     fi
 }
 export -f get_commit_author
@@ -29,7 +34,7 @@ get_commit_subsystem() {
     local sha1=$(cat "$sha1_file")
     if [ -n "$sha1" ]; then
         # Get the first changed file from the commit to determine subsystem and sub-subsystem
-        local path=$(cd ~/linux && git show --pretty=format: --name-only "$sha1" 2>/dev/null | head -n1)
+        local path=$(git --git-dir="$CVEKERNELTREE/.git" show --pretty=format: --name-only "$sha1" 2>/dev/null | head -n1)
         if [ -n "$path" ]; then
             local main_subsystem=$(echo "$path" | cut -d'/' -f1)
             local sub_subsystem=$(echo "$path" | cut -d'/' -f1,2)
@@ -267,8 +272,8 @@ process_cve_ttf() {
     if [ -n "$vuln_ver" ] && [ -n "$fixed_ver" ] && [ "$vuln_ver" != "0" ] && [ "$fixed_ver" != "0" ] && \
        [[ "$vuln_ver" =~ ^[0-9]+\.[0-9]+$ ]] && [[ "$fixed_ver" =~ ^[0-9]+\.[0-9]+$ ]]; then
         # Convert versions to release dates using Linux repo
-        local vuln_date=$(cd ~/linux && git tag -l "v${vuln_ver}*" --sort=v:refname | head -n1 | xargs git log -1 --format=%ai 2>/dev/null | cut -d' ' -f1)
-        local fixed_date=$(cd ~/linux && git tag -l "v${fixed_ver}*" --sort=v:refname | head -n1 | xargs git log -1 --format=%ai 2>/dev/null | cut -d' ' -f1)
+        local vuln_date=$(git --git-dir="$CVEKERNELTREE/.git" tag -l "v${vuln_ver}*" --sort=v:refname | head -n1 | xargs git --git-dir="$CVEKERNELTREE/.git" log -1 --format=%ai 2>/dev/null | cut -d' ' -f1)
+        local fixed_date=$(git --git-dir="$CVEKERNELTREE/.git" tag -l "v${fixed_ver}*" --sort=v:refname | head -n1 | xargs git --git-dir="$CVEKERNELTREE/.git" log -1 --format=%ai 2>/dev/null | cut -d' ' -f1)
         
         if [ -n "$vuln_date" ] && [ -n "$fixed_date" ]; then
             # Calculate days between dates
