@@ -407,7 +407,7 @@ if [[ " $* " =~ " --summary " ]]; then
     end_year=$(date +%Y)
     for year in $(seq 2019 $end_year); do
         count=$(count_cves_in_range "$year-01-01" "$((year+1))-01-01")
-        echo "$year: $count CVEs"
+        printf "$year: %4d CVEs\n" "$count"
     done
 
     # Calculate statistics for last 6 months
@@ -435,7 +435,7 @@ if [[ " $* " =~ " --summary " ]]; then
         start_date="$year-$month_padded-01"
         end_date="$next_year-$next_month_padded-01"
         count=$(count_cves_in_range "$start_date" "$end_date")
-        echo "$(date -d "$start_date" +"%B %Y"): $count CVEs"
+        printf "%15s: %4d CVEs\n" "$(date -d "$start_date" +"%B %Y")" "$count"
     done
 
     # Calculate overall averages
