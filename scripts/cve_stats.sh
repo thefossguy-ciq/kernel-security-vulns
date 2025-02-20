@@ -10,8 +10,11 @@ count_cves_in_range() {
     local start_date="$1"
     local end_date="$2"
 
-    # Get unique CVE IDs from filenames, ignoring extensions and duplicates
+    # Get unique CVE IDs from filenames, ignoring extensions and duplicates,
+    # count the .json file as that is created the first time around (a huge
+    # hunk of .dyad files were added all at once which could skew the results.
     git log --diff-filter=A --pretty=format: --name-only --after="$start_date" --before="$end_date" cve/published/ |
+        grep json$ |
         grep -o 'CVE-[0-9]\{4\}-[0-9]\{4,\}' |
         sort -u |
         wc -l
