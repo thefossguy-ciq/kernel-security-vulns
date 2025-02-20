@@ -1,4 +1,8 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
+
 #set -x
 # Directory paths
 REVIEW_DIR="cve/review/done"
