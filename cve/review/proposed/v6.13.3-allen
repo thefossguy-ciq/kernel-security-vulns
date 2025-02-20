@@ -1,0 +1,65 @@
+0d85f5c2dd91 btrfs: fix assertion failure when splitting ordered extent after transaction abort
+e2f0943cf373 btrfs: fix use-after-free when attempting to join an aborted transaction
+dc14ba10781b btrfs: don't use btrfs_set_item_key_safe on RAID stripe-extents
+8d9beb4aebc0 nvkm/gsp: correctly advance the read pointer of GSP message queue
+01ed662bdd6f nvkm: correctly calculate the available space of the GSP cmdq buffer
+3d6f83df8ff2 printk: Fix signed integer overflow when defining LOG_BUF_LEN_MAX
+f09ff307c729 safesetid: check size of policy writes
+eb8c05347138 wifi: ath12k: Fix for out-of bound access error
+3f4a0948c352 wifi: brcmsmac: add gain range check to wlc_phy_iqcal_gainparams_nphy()
+1ce840c7a659 net/mlx5: HWS, change error flow on matcher disconnect
+082d9e263af8 wifi: brcmfmac: Check the return value of of_property_read_string_index()
+80e96206a3ef wifi: iwlwifi: avoid memory leak
+26fbd3494a7d Bluetooth: MGMT: Fix slab-use-after-free Read in mgmt_remove_adv_monitor_sync
+cd2fd6eab480 platform/x86: int3472: Check for adev == NULL
+60f030f7418d iommu/vt-d: Avoid use of NULL after WARN_ON_ONCE
+b06f38899450 tty: xilinx_uartps: split sysrq handling
+58f5c8d5ca07 nvmet: fix a memory leak in controller identify
+3f1baa91a1fd vmxnet3: Fix tx queue race condition with XDP
+a1300691aed9 net: rose: lock the socket in rose_bind()
+98a5cfd23209 x86/xen: fix xen_hypercall_hvm() to not clobber %rbx
+647cef20e649 pfifo_tail_enqueue: Drop new packet when sch->limit == 0 [auto: cve already created]
+638ba5089324 netem: Update sch->q.qlen before qdisc_tree_reduce_backlog() [auto: cve already created]
+7c0be4ead1f8 block: mark GFP_NOIO around sysfs ->store()
+55cf2f4b945f binfmt_flat: Fix integer overflow bug on 32 bit systems
+1e7381f3617d KVM: Explicitly verify target vCPU is online in kvm_get_vcpu()
+aab98e2dbd64 ksmbd: fix integer overflows on 32 bit systems
+f245b400a223 Revert "drm/amd/display: Use HW lock mgr for PSR1"
+fd39c41bcd82 drm/ast: astdp: Fix timeout for enabling video signal
+5f397409f8ee Bluetooth: L2CAP: handle NULL sock pointer in l2cap_sock_alloc
+e8d9fab39d1f KEYS: trusted: dcp: fix improper sg use with CONFIG_VMAP_STACK=y
+08bd5b7c9a24 Input: synaptics - fix crash when enabling pass-through port
+e24b15d4704d clk: mmp2: call pm_genpd_init() only after genpd.name is set
+96fe1a7ee477 clk: qcom: gcc-sm6350: Add missing parent_map for two clocks
+d4cdb196f182 clk: qcom: dispcc-sm6350: Add missing parent_map for a clock
+89aa5925d201 clk: qcom: clk-rpmh: prevent integer overflow in recalc_rate
+d1248436cbef blk-cgroup: Fix class @block_class's subsystem refcount leakage
+68abd0c4ebf2 wifi: brcmfmac: fix NULL pointer dereference in brcmf_txfinalize()
+94d9bf671ae3 usb: gadget: f_tcm: Don't prepare BOT write request twice
+c219427ed296 usbnet: ipheth: fix possible overflow in DPE length check
+86586dcb75cb usbnet: ipheth: use static NDP16 location in URB
+ee591f2b2817 usbnet: ipheth: fix DPE OoB read
+22cf4fae6660 soc: qcom: socinfo: Avoid out of bounds read of serial number
+3708acbd5f16 PCI: dwc: ep: Prevent changing BAR size/flags in pci_epc_set_bar()
+43fb96ae7855 KVM: x86/mmu: Ensure NX huge page recovery thread is alive before waking
+f8fb2403ddeb scsi: ufs: core: Fix use-after free in init error and remove paths
+091ee63e36e8 pidfs: improve ioctl handling
+a3a860bc0fd6 tpm: Change to kvalloc() in eventlog/acpi.c
+c0eb059a4575 soc: mediatek: mtk-devapc: Fix leaking IO map on error paths
+facb541ff080 media: intel/ipu6: remove cpu latency qos request on error
+df4ff47448fe media: venus: destroy hfi session after m2m_ctx release
+60b45ece41c5 media: i2c: ds90ub9x3: Fix extra fwnode_handle_put()
+a9ea1a3d88b7 media: uvcvideo: Fix crash during unbind if gpio unit is in use
+1aaf8c122918 mm: gup: fix infinite loop within __get_longterm_locked
+6e74e53b34b6 ata: libata-sff: Ensure that we cannot write outside the allocated buffer
+3b7d93db450e ceph: fix memory leak in ceph_mds_auth_match()
+ce9ff21ea89d vfio/platform: check the bounds of read/write syscalls [auto: cve already created]
+f921da2c3469 ocfs2: fix incorrect CPU endianness conversion causing mount failure
+6438ef381c18 nilfs2: fix possible int overflows in nilfs_fiemap()
+110b43ef0534 NFC: nci: Add bounds checking in nci_hci_create_pipe()
+70a71f8151b9 mtd: onenand: Fix uninitialized retlen in do_otp_read()
+e966eae72762 misc: fastrpc: Fix copy buffer page size
+e3ff4245928f tracing/osnoise: Fix resetting of tracepoints
+abb604a1a9c8 RDMA/mlx5: Fix a race for an ODP MR which leads to CQE with error
+62d9921037ca fs/netfs/read_pgpriv2: skip folio queues without `marks3`
+c66c7920897b fs/netfs/read_collect: fix crash due to uninitialized `prev` variable
