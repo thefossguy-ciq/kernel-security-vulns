@@ -1,0 +1,109 @@
+200f091c95bb coredump: Do not lock during 'comm' reporting
+29b95ac91792 io_uring: prevent reg-wait speculations
+844b8cdc6816 nbd: don't allow reconnect after disconnect
+c99f66e4084a block: fix queue freeze vs limits lock order in sysfs store methods
+8f70caad82e9 powerpc/pseries/iommu: IOMMU incorrectly marks MMIO range in DDW
+789384eb1437 drm/msm/dpu: check dpu_plane_atomic_print_state() for valid sspp
+d659bc68ed48 OPP: add index check to assert to avoid buffer overflow in _read_freq()
+b44b9bc7cab2 OPP: fix dev_pm_opp_find_bw_*() when bandwidth table not initialized
+60a2c0c12b64 drm/amdgpu: tear down ttm range manager for doorbell in amdgpu_ttm_fini()
+8559a9e0c457 wifi: rtlwifi: rtl8192se: rise completion of firmware loading as last step
+b4b26642b31e wifi: rtlwifi: wait for firmware loading before releasing memory
+00260350aed8 wifi: rtlwifi: fix init_sw_vars leak when probe fails
+6200d947f050 wifi: wcn36xx: fix channel survey memory allocation size
+7def56f841af clk: mmp: pxa1908-mpmu: Fix a NULL vs IS_ERR() check
+3acea81be689 clk: mmp: pxa1908-apbcp: Fix a NULL vs IS_ERR() check
+e5ca5d7b4d7c clk: mmp: pxa1908-apbc: Fix NULL vs IS_ERR() check
+13c4f7714c6a wifi: cfg80211: tests: Fix potential NULL dereference in test_cfg80211_parse_colocated_ap()
+10685681bafc net_sched: sch_sfq: don't allow 1 packet limit
+2fdac64c3c35 wifi: rtlwifi: remove unused check_buddy_priv
+e7ceefbfd8d4 wifi: rtlwifi: fix memory leaks and invalid access at probe error path
+b59b86c5d08b wifi: rtlwifi: pci: wait for firmware loading before releasing memory
+5a10971c7645 wifi: ath12k: fix read pointer after free in ath12k_mac_assign_vif_to_vdev()
+c759bc8e9046 ACPI: fan: cleanup resources in the error path of .probe()
+a126061c80d5 ptr_ring: do not block hard interrupts in ptr_ring_resize_multiple()
+3fff5da4ca21 team: prevent adding a device which is already a team device lower
+95fc45d1dea8 ax25: rcu protect dev->ax25_ptr
+50420d7c79c3 HID: hid-thrustmaster: Fix warning in thrustmaster_probe by adding endpoint check
+80818fdc068e HID: fix generic desktop D-Pad controls
+89aca45f2687 wifi: mt76: mt7996: fix invalid interface combinations
+1be94490b6b8 wifi: wilc1000: unregister wiphy only if it has been registered
+e4790b3e314a wifi: rtw89: chan: fix soft lockup in rtw89_entity_recalc_mgnt_roles()
+2f7667675df1 wifi: rtw89: avoid to init mgnt_entry list twice when WoWLAN failed
+ba4bb0402c60 wifi: rtw89: fix race between cancel_hw_scan and hw_scan completion
+08fa656c91fd wifi: mt76: mt7925: fix off by one in mt7925_load_clc()
+cf704a7624f9 wifi: iwlwifi: mvm: avoid NULL pointer dereference
+7553477cbfd7 wifi: mac80211: prohibit deactivating all links
+aa3ce3f8fafa wifi: mac80211: don't flush non-uploaded STAs
+49440290a093 landlock: Handle weird files
+5cd0bd815c8a wifi: mt76: mt7925: fix NULL deref check in mt7925_change_vif_links
+b88655bc6593 Bluetooth: btbcm: Fix NULL deref in btbcm_get_board_name()
+3c15082f3567 Bluetooth: btrtl: check for NULL in btrtl_setup_realtek()
+208dea9107e8 wifi: wilc1000: unregister wiphy only after netdev registration
+d1f9f79fa2af net: let net.core.dev_weight always be non-zero
+12e070eb6964 net: avoid race between device unregistration and ethnl ops
+bc50835e83f6 net: sched: Disallow replacing of child qdisc from one parent to another
+8eef6ac4d70e bpf: bpf_local_storage: Always use bpf_mem_alloc in PREEMPT_RT
+472a989029aa crypto: ixp4xx - fix OF node reference leaks in init_ixp_crypto()
+96ea081ed52b bpf: Reject struct_ops registration that uses module ptr and the module btf_id is missing
+9ff6e943bce6 padata: fix sysfs store callback check
+73b9075f334f selftests/bpf: Avoid generating untracked files when running bpf selftests
+87c544108b61 bpf: Send signals asynchronously if !preemptible
+e01780ea4661 padata: fix UAF in padata_reorder
+dd7d37ccf6b1 padata: avoid UAF for reorder_work
+be7a6a776695 smb: client: fix oops due to unset link speed
+81468c4058a6 RDMA/rtrs: Add missing deinit() call
+64f2657b5793 HID: core: Fix assumption that Resolution Multipliers must be in Logical Collections
+1e76b546e6fc firmware: qcom: scm: Cleanup global '__scm' on probe failures
+b75439c945b9 i3c: dw: Fix use-after-free in dw_i3c_master driver due to race condition
+edc4ef0e0154 RDMA/rxe: Fix the warning "__rxe_cleanup+0x12c/0x170 [rdma_rxe]"
+e24c15510592 iommufd/iova_bitmap: Fix shift-out-of-bounds in iova_bitmap_offset_to_index()
+db049866943a mailbox: th1520: Fix memory corruption due to incorrect array size
+a67f75c2b5ec media: uvcvideo: Fix deadlock during uvc_probe
+2d2da5a4c1b4 PCI: rcar-ep: Fix incorrect variable used when calling devm_request_mem_region()
+295006f6e8c1 scsi: mpi3mr: Fix possible crash when setting up bsg fails
+276c61385f6b ocfs2: mark dquot as inactive if failed to start trans while releasing dquot
+ca76bb226bf4 nilfs2: do not force clear folio if buffer is referenced
+367a9bffabe0 nilfs2: protect access to buffers with no active references
+ee70999a988b nilfs2: handle errors that nilfs_prepare_chunk() may return
+e128f82f7006 driver core: class: Fix wild pointer dereferences in API class_dev_iter_next()
+26c0a2d93af5 LoongArch: Fix warnings during S3 suspend
+e952837f3ddb xfrm: state: fix out-of-bounds read during lookup
+600258d555f0 xfrm: delete intermediate secpath entry in packet offload mode
+3ab8c5ed4f84 rtc: pcf85063: fix potential OOB write in PCF85063 NVMEM read
+844c6fdc13cf ubi: Revert "ubi: wl: Close down wear-leveling before nand is suspended"
+bdb0ca39e0ac ubifs: skip dumping tnc tree when zroot is null
+92e599577377 net: hns3: fix oops when unload drivers paralleling
+15a901361ec3 ipmr: do not call mr_mfc_uses_dev() for unres entries
+6c9b7db96db6 xfrm: Don't disable preemption while looking up cache state.
+9a5b021cb818 idpf: convert workqueues to unbound
+5de7665e0a07 net: rose: fix timer races against user threads
+979284535aaf net/mlx5e: add missing cpu_to_node to kvzalloc_node in mlx5e_open_xdpredirect_sq
+79d458c13056 rxrpc, afs: Fix peer hash locking vs RCU callback
+5066293b9b70 vxlan: Fix uninit-value in vxlan_vnifilter_dump()
+19e65c45a150 net: davicom: fix UAF in dm9000_drv_remove
+bde4ccfd5ab5 perf annotate: Use an array for the disassembler preference
+4f5a52adeb1a ethtool: Fix set RXNFC command with symmetric RSS hash
+c7b87ce0dd10 perf trace: Fix runtime error of index out of bounds
+e9087e828827 Bluetooth: btusb: mediatek: Add locks for usb_driver_claim_interface()
+3595599fa836 net: xdp: Disallow attaching device-bound programs in generic mode
+45c9c4101d3d genksyms: fix memory leak when the same symbol is added from source
+be2fa44b5180 genksyms: fix memory leak when the same symbol is read from *.symref file
+3ff53862c322 ASoC: amd: acp: Fix possible deadlock
+a409fc1463d6 kconfig: fix memory leak in sym_warn_unmet_dep()
+03410e87563a hexagon: Fix unbalanced spinlock in die()
+07eae0fa67ca xfs: check for dead buffers in xfs_buf_find_insert
+1e0a19912adb usb: xhci: Fix NULL pointer dereference on certain command aborts
+d3d930411ce3 RDMA/mlx5: Fix implicit ODP use after free
+7378aeb664e5 remoteproc: core: Fix ida_free call while not allocated
+c6ef3a7fa97e media: uvcvideo: Fix double free in error path
+c79a39dc8d06 pps: Fix a use-after-free
+c225d006a319 usb: gadget: f_tcm: Don't free command immediately
+ee1b5046d5cd staging: media: max96712: fix kernel oops when removing module
+1378ffec3036 media: imx-jpeg: Fix potential error pointer dereference in detach_pm()
+17391cb2613b powerpc/pseries/iommu: Don't unset window if it was never set
+8d28d0ddb986 md/md-bitmap: Synchronize bitmap_get_stats() with bitmap lifetime
+4a32a38cb68f ASoC: da7213: Initialize the mutex
+ade81479c7dd memcg: fix soft lockup in the OOM process
+06f364284794 btrfs: do proper folio cleanup when cow_file_range() failed
+c2b47df81c8e btrfs: do proper folio cleanup when run_delalloc_nocow() failed
