@@ -1,0 +1,299 @@
+82e31755e55f ax25: Fix UAF bugs in ax25 timers
+08c1af8f1c13 dm integrity: fix memory corruption when tag_size is less than digest size
+2f7a26abb824 ALSA: pcm: Test for "silence" field in struct "pcm_format_data"
+993eb48fa199 i2c: dev: check return value when calling dev_set_name()
+83a1cde5c74b ARM: davinci: da850-evm: Avoid NULL pointer dereference
+3b68b0888521 ep93xx: clock: Fix UAF in ep93xx_clk_register_gate()
+e3fa461d8b0e ipv6: fix panic when forwarding a pkt with no in6 dev
+f9b141f93659 mm/secretmem: fix panic when growing a memfd_secret
+b452dbf24d7d memory: renesas-rpc-if: fix platform-device leak in error path
+afb8e2465275 net: usb: aqc111: Fix out-of-bounds accesses in RX fixup
+ec4eb8a86ade drivers: net: slip: fix NPD bug in sl_tx_timeout()
+e914d8f00391 mm: fix unexpected zeroed page mapping with zram swap
+a6968f7a367f scsi: target: tcmu: Fix possible page UAF
+9f8b577f7b43 Drivers: hv: vmbus: Deactivate sysctl_record_panic_msg by default in isolated guests
+ebbb7bb9e803 drm/amdkfd: Check for potential null return of kmalloc_array()
+701521403cfb io_uring: abort file assignment prior to assigning creds
+3e3876d322ae block: null_blk: end timed out poll request
+64c4a37ac04e cifs: potential buffer overflow in handling symlinks
+e16b859872b8 macvlan: Fix leaking skb in source mode with nodst option
+ef27324e2cb7 nfc: nci: add flush_workqueue to prevent uaf
+d22f4f977236 net/smc: Fix NULL pointer dereference in smc_pnet_find_ib()
+8a4465368964 net/smc: use memcpy instead of snprintf to avoid out of bounds read
+a6aaa0032424 net: ethernet: stmmac: fix altr_tse_pcs function when using a fixed-link
+7b2f6c306601 cachefiles: Fix KASAN slab-out-of-bounds in cachefiles_set_volume_xattr
+d7442f512b71 ice: arfs: fix use-after-free when freeing @rx_cpu_rmap
+ea5dc046127e cachefiles: unmark inode in use in error path
+4d5004451ab2 SUNRPC: Fix the svc_deferred_event trace class
+726e2c5929de veth: Ensure eth header is in skb's linear part
+ffa0b64e3be5 powerpc: Fix virt_addr_valid() for 64-bit Book3E & 32-bit
+6d82ad13c411 btrfs: release correct delalloc amount in direct IO write path
+ca1198849ab0 drm/amd/display: Fix by adding FPU protection for dcn30_internal_validate_bw
+5593473a1e6c KVM: avoid NULL pointer dereference in kvm_dirty_ring_push
+0f525289ff0d fbdev: Fix unregistering of framebuffers without device
+d14eb80e2779 drm/panel: ili9341: fix optional regulator handling
+5467801f1fcb gpio: Restrict usage of GPIO chip irq members before initialization
+7aa8104a5547 ata: sata_dwc_460ex: Fix crash due to OOB write
+0df6664531a1 irqchip/gic-v3: Fix GICR_CTLR.RWP polling
+b642b52d0b50 btrfs: fix qgroup reserve overflow the qgroup limit
+2bbac98d0930 RDMA/hfi1: Fix use-after-free bug for mm struct
+01e67e04c281 mmmremap.c: avoid pointless invalidate_range_start/end on mremap(old_size=0)
+eafc0a02391b lz4: fix LZ4_decompress_safe_partial read out of bound
+0b9e66762aa0 btrfs: zoned: traverse devices under chunk_mutex in btrfs_can_activate_zone
+4ad099559b00 mm/mempolicy: fix mpol_new leak in shared_policy_replace
+66f133ceab74 highmem: fix checks in __kmap_local_sched_{in,out}
+87d663d40801 scsi: mpt3sas: Fix use after free in _scsih_expander_node_remove()
+71ff461c3f41 iommu/omap: Fix regression in probe for NULL pointer dereference
+4e910dbe3650 qede: confirm skb is allocated before using
+aadb22ba2f65 drbd: Fix five use after free bugs in get_initial_state
+1f30fb9166d4 net: openvswitch: fix leak of nested actions
+1946014ca3b1 rxrpc: fix a race in rxrpc_exit_net()
+2b04bd4f03bb dpaa2-ptp: Fix refcount leak in dpaa2_ptp_probe
+4d809f69695d IB/rdmavt: add lock to call to rvt_error_qp to prevent a race condition
+5524cbb1bfcd arch/arm64: Fix topology initialization for core scheduling
+bce81feb03a2 drm/imx: Fix memory leak in imx_pd_connector_get_modes
+6bf92d70e690 net: ipv4: fix route with nexthop object delete warning
+1effe8ca4e34 skbuff: fix coalescing for page_pool fragment recycling
+9381fe8c849c net/tls: fix slab-out-of-bounds bug in decrypt_internal
+16ed828b872d scsi: zorro7xx: Fix a resource leak in zorro7xx_remove_one()
+059a47f1da93 net: sfc: add missing xdp queue reinitialization
+a53046291020 jfs: prevent NULL deref in diFree
+0bae835b63c5 NFS: Avoid writeback threads getting stuck in mempool_alloc()
+792f232d57ff Drivers: hv: vmbus: Fix potential crash on module unload
+3a5469582c24 Drivers: hv: vmbus: Fix initialization of device object in vmbus_device_register()
+fefb8a2a9413 virtio_console: eliminate anonymous module_init & module_exit
+eed05744322d xen: delay xen_hvm_init_time_ops() if kdump is boot on vcpu>=32
+eb85eec858c1 habanalabs: fix possible memory leak in MMU DR fini
+b7f114edd543 NFSv4.2: fix reference count leaks in _nfs42_proc_copy_notify()
+ca225857faf2 staging: vchiq_core: handle NULL result of find_service_by_handle
+60f1d3c92dc1 staging: wfx: fix an error handling in wfx_init_common()
+aa899e686d44 staging: vchiq_arm: Avoid NULL ptr deref in vchiq_dump_platform_instances
+f639d9867eea ceph: fix memory leak in ceph_readdir when note_last_dentry returns error
+7a688c91d3fd clk: mediatek: Fix memory leaks on probe
+322794d3355c ceph: fix inode reference leakage in ceph_get_snapdir()
+2cfadb761d3d netfilter: conntrack: revisit gc autotuning
+f63d24baff78 Bluetooth: Fix use after free in hci_send_acl
+123bc712b1de mt76: fix monitor mode crash with sdio driver
+d601fd24e696 powerpc/secvar: fix refcount leak in format_show()
+271add11994b scsi: libfc: Fix use after free in fc_exch_abts_resp()
+5578de4834fe netlabel: fix out-of-bounds memory accesses
+bf8d87c076f5 PCI: endpoint: Fix misused goto label
+d3715b2333e9 Bluetooth: use memset avoid memory leaks
+4a0a1436053b mips: ralink: fix a refcount leak in ill_acc_of_setup()
+554fb72ee34f scsi: hisi_sas: Free irq vectors in order for v3 HW
+f792a3629f4c scsi: pm8001: Fix memory leak in pm8001_chip_fw_flash_update_req()
+f90a74892f3a scsi: pm8001: Fix task leak in pm8001_send_abort_all()
+4c8f04b1905c scsi: pm8001: Fix tag leaks on error
+cd9c88da171a dm ioctl: prevent potential spectre v1 gadget
+261b07519518 ath11k: Fix frames flush failure caused by deadlock
+8ca97812c3c8 x86/mce: Work around an erratum on fast string copy instructions
+a4c182ecf335 powerpc/set_memory: Avoid spinlock recursion in change_page_attr()
+8668658aebb0 drm/sprd: fix potential NULL dereference
+d44b5fefb22e scsi: mpi3mr: Fix memory leaks
+e3ececfe668f ref_tracker: implement use-after-free detection
+46f478077384 drm/bridge: Add missing pm_runtime_put_sync
+827e7799c61b mt76: mt7921: fix crash when startup fails.
+3df6d74aedfd ath11k: mhi: use mhi_sync_power_up()
+22b59cb965f7 ath11k: fix kernel panic during unload/load ath11k modules
+b4f4c56459a5 ath11k: pci: fix crash on suspend if board file is not found
+6225bb3a88d2 drm/amdkfd: svm range restore work deadlock when process exit
+bcdfd615f83b mlxsw: spectrum: Guard against invalid local ports
+5d5c6dba2b43 drm/amd/display: Fix memory leak
+0b94f2651f56 Bluetooth: hci_sync: Fix queuing commands when HCI_UNREGISTER is set
+dfced44f122c drm/amd/amdgpu/amdgpu_cs: fix refcount leak of a dma_fence obj
+d5ebaa7c5f6f Bluetooth: hci_event: Ignore multiple conn complete events
+3afee2118132 Bluetooth: fix null ptr deref on hci_sync_conn_complete_evt
+564d4eceb97e ath5k: fix OOB in ath5k_eeprom_read_pcal_info_5111
+7198bfc20176 Revert "nbd: fix possible overflow on 'first_minor' in nbd_dev_add()"
+390031c94211 coredump: Use the vma snapshot in fill_files_note
+866b7a278cdb net: dsa: felix: fix possible NULL pointer dereference
+2b88cba55883 net: preserve skb_end_offset() in skb_unclone_keeptruesize()
+6d35d04a9e18 nbd: fix possible overflow on 'first_minor' in nbd_dev_add()
+5352a7613083 ax25: fix UAF bug in ax25_send_control()
+c86d18f4aa93 io_uring: fix memory leak of uid in files registration
+40d8abf364bc ACPI: CPPC: Avoid out of bounds access when parsing _CPC data
+8d65bc9a5be3 virtio: use virtio_device_ready() in virtio_device_restore()
+3cbf0e392f17 ubi: Fix race condition between ctrl_cdev_ioctl and ubi_cdev_ioctl
+d1868328dec5 block: Fix the maximum minor value is blk_alloc_ext_minor()
+b490207017ba watch_queue: Free the page array when watch_queue is dismantled
+ff8376ade4f6 rxrpc: fix some null-ptr-deref bugs in server_key.c
+4a7f62f91933 rxrpc: Fix call timer start racing with call destruction
+4b2dc39ca024 rtc: gamecube: Fix refcount leak in gamecube_rtc_read_offset_from_sram
+136bed0bfd3b can: mcba_usb: properly check endpoint type
+3e3c658055c0 XArray: Fix xas_create_range() when multi-order entry present
+bbbf962d9460 wireguard: socket: free skb in send6 when ipv6 is disabled
+3b67db8a6ca8 ubifs: Fix to add refcount once page is set private
+a80ced6ea514 KVM: SVM: fix panic on out-of-bounds guest IRQ
+4f2262a33464 ubifs: Fix read out-of-bounds in ubifs_wbuf_write_nolock()
+afd427048047 ubifs: Fix deadlock in concurrent rename whiteout and inode writeback
+40a8f0d5e7b3 ubifs: rename_whiteout: Fix double free for whiteout_ui->data
+a60447e7d451 scsi: qla2xxx: Suppress a kernel complaint in qla_create_qpair()
+afd438ff874c scsi: qla2xxx: Fix scheduling while atomic
+e35920ab7874 scsi: qla2xxx: Fix premature hw access after PCI error
+64f24af75b79 scsi: qla2xxx: Fix warning message due to adisc being flushed
+31e6cdbe0eae scsi: qla2xxx: Implement ref count for SRB
+0972252450f9 scsi: qla2xxx: Fix crash during module load unload test
+28a265a1ee11 ASoC: mediatek: Fix error handling in mt8183_da7219_max98357_dev_probe
+4f01d09b2bbf video: fbdev: sm712fb: Fix crash in smtcfb_write()
+97558d170a12 media: imx-jpeg: fix a bug of accessing array out of bounds
+d62007edf01f KVM: x86/mmu: Zap _all_ roots when unmapping gfn range in TDP MMU
+dd75080aa840 powerpc/kasan: Fix early region not updated correctly
+9d71165d3934 powerpc/tm: Fix more userspace r13 corruption
+5c6f402bdcf9 video: fbdev: cirrusfb: check pixclock to avoid divide by zero
+37a1a2e6eeeb video: fbdev: nvidiafb: Use strscpy() to prevent buffer overflow
+417591a766b3 media: imx-jpeg: Prevent decoding NV12M jpegs into single-planar buffers
+52cdb0130363 media: ir_toy: free before error exiting
+82e3a496eb56 media: staging: media: zoran: move videodev alloc
+e3b86f4e558c media: staging: media: zoran: calculate the right buffer number for zoran_reap_stat_com
+714fbf2647b1 ntfs: add sanity check on allocation size
+f9f15de85d74 btrfs: do not double complete bio on errors during compressed reads
+8cbc3001a326 btrfs: do not clean up repair bio if submit fails
+98237fcda4a2 f2fs: use spin_lock to avoid hang
+f41ee8b91c00 f2fs: fix to do sanity check on curseg->alloc_type
+cc5095747edf ext4: don't BUG if someone dirty pages without asking ext4 first
+f839e5f1cef3 parisc: Fix non-access data TLB cache flush faults
+89b35e3f2851 spi: fsi: Implement a timeout for polling status
+bfdc502a4a4c ext4: fix ext4_mb_mark_bb() with flex_bg with fast_commit
+524bb1da785a PM: core: keep irq flags in device_pm_check_callbacks()
+15729ff8143f Revert "Revert "block, bfq: honor already-setup queue merges""
+ab552fcb17cc bfq: fix use-after-free in bfq_dispatch_request
+e6205ad58a7a hwrng: cavium - fix NULL but dereferenced coccicheck error
+6dab421bfe06 memstick/mspro_block: fix handling of read-only devices
+8410f7097773 block, bfq: don't move oom_bfqq
+ecff30575b5a LSM: general protection fault in legacy_parse_param
+d888c83fcec7 fs: fix fd table size alignment properly
+de2ae403b4c0 xen: fix is_xen_pmu()
+1932a624ab88 net: hns3: add vlan list lock to protect vlan list
+bcb74e132a76 net/sched: act_ct: fix ref leak when switching zones
+7781607938c8 net/x25: Fix null-ptr-deref caused by x25_disconnect
+0906f3a3df07 net: sparx5: switchdev: fix possible NULL pointer dereference
+c09ac191b1f9 pinctrl: nomadik: Add missing of_node_put() in nmk_pinctrl_probe
+ecd1735f14d6 virt: acrn: fix a memory leak in acrn_dev_ioctl()
+c5601e0720ce clk: visconti: prevent array overflow in visconti_clk_register_gates()
+0c1b56df4517 clk: Fix clk_hw_get_clk() when dev is NULL
+07a5dcc4bed9 remoteproc: qcom_q6v5_mss: Fix some leaks in q6v5_alloc_memory_region
+58922910add1 clk: qcom: clk-rcg2: Update logic to calculate D value for RCG
+0cbcc92917c5 kernel/resource: fix kfree() of bootmem memory again
+cd3a4907ee33 mxser: fix xmit_buf leak in activate when LSR == 0xff
+bf8f5182b8f5 clk: qcom: ipq8074: fix PCI-E clock oops
+2844e2434385 drivers: ethernet: cpsw: fix panic when interrupt coaleceing is set via ethtool
+32d53c0aa3a7 ice: fix 'scheduling while atomic' on aux critical err interrupt
+8d3ea3d402db net: bcmgenet: Use stronger register read/writes to assure ordering
+8fd36358ce82 net: dsa: fix panic on shutdown if multi-chip tree failed to probe
+fc6d01ff9ef0 ax25: Fix NULL pointer dereferences in ax25 timers
+9fd75b66b8f6 ax25: Fix refcount leaks caused by ax25_cb_del()
+fe2640bd7a62 powerpc/pseries: Fix use after free in remove_phb_dynamic()
+0caf6d992219 af_netlink: Fix shift out of bounds in group mask calculation
+3ef3905aa3b5 mptcp: Fix crash due to tcp_tsorted_anchor was initialized before release skb
+87e0eacb176f RDMA/nldev: Prevent underflow in nldev_stat_set_counter_dynamic_doit()
+b062a0b9c1dc Bluetooth: btmtksdio: Fix kernel oops in btmtksdio_interrupt
+4219196d1f66 ibmvnic: fix race between xmit and reset
+32cb08e95869 Bluetooth: hci_uart: add missing NULL check in h5_enqueue
+32685b32d825 drm/amd/display: Fix double free during GPU reset on DC streams
+84472b436e76 bpf, sockmap: Fix more uncharged while msg has more_data
+7922d3de4d27 Revert "RDMA/core: Fix ib_qp_usecnt_dec() called when error"
+2486ab434b2c bpf, sockmap: Fix double uncharge the mem of sk_msg
+087f9c3f2309 RDMA/mlx5: Fix memory leak in error flow for subscribe event routine
+938d3480b92f bpf, sockmap: Fix memleak in sk_psock_queue_msg
+6f6dbb819dfc RDMA/irdma: Prevent some integer underflows
+9c34e38c4a87 bpf, sockmap: Fix memleak in tcp_bpf_sendmsg while sk msg is full
+2bc5bab9a763 MIPS: pgalloc: fix memory leak caused by pgd_free()
+4528668ca331 mips: cdmm: Fix refcount leak in mips_cdmm_phys_base
+fecbd4a317c9 mtd: rawnand: atmel: fix refcount issue in atmel_nand_controller_init
+9747a78d5f75 ath10k: Fix error handling in ath10k_setup_msa_resources
+d4679ac8ea2e powerpc/64s: Don't use DSISR for SLB faults
+025c6643a815 gpu: host1x: Fix a memory leak in 'host1x_remove()'
+18b1ab7aa76b xsk: Fix race at socket teardown
+6dee930f6f67 power: supply: wm8350-power: Add missing free in free_charger_irq
+221e3638feb8 drm/tegra: Fix reference leak in tegra_dsi_ganged_probe
+7f12845c8389 scsi: pm8001: Fix abort all task initialization
+a2151490cc6c drm/dp: Fix OOB read when handling Post Cursor2 register
+eadf88ecf6ac vfio/pci: fix memory leak during D3hot to D0 transition
+a7e8de822e0b dax: make sure inodes are flushed before destroy cache
+5e602f515691 drm/msm/dp: populate connector of struct dp_panel
+d5c6f647aec9 drm/bridge: anx7625: Fix overflow issue on reading EDID
+74be98774dfb cxl/port: Hold port reference until decoder release
+a954f29aea5d rtw88: fix use after free in rtw_hw_scan_update_probe_req()
+6a4760463dbc power: supply: ab8500: Fix memory leak in ab8500_fg_sysfs_init
+11005b18f453 mt76: mt7921s: fix a possible memory leak in mt7921_load_patch
+920a9fa27e78 net: asix: add proper error handling of usb read errors
+453307b569a0 igc: avoid kernel warning when changing RX ring parameters
+d7e7b42f4f95 bpf: Fix a btf decl_tag bug when tagging a function
+bfcbb76b0f59 ptp: unregister virtual clocks when unregistering physical clock.
+a43736cd12d8 mt76: mt7915: fix possible memory leak in mt7915_mcu_add_sta
+d95984b5580d rtw88: fix memory overrun and memory leak during hw_scan
+588a70177df3 drm/amd/display: Fix a NULL pointer dereference in amdgpu_dm_connector_add_common_modes()
+f2bde8349c35 drm/amd/display: Call dc_stream_release for remove link enc assignment
+108dc8741c20 net: dsa: Avoid cross-chip syncing of VLAN filtering
+d1e0df1c57bd ath9k_htc: fix uninit value bugs
+18688de203b4 bpf: Fix UAF due to race between btf_try_get_module and load_module
+3d38faef0de1 ath11k: add missing of_node_put() to avoid leak
+2b6dd600dd72 udmabuf: validate ubuf->pagecount
+212ad7cb7d75 ath11k: free peer for station when disconnect from AP for QCA6390/WCN6855
+9531a6313791 ASoC: codecs: wcd934x: Add missing of_node_put() in wcd934x_codec_parse_data
+c4b7174fe5bb ASoC: mediatek: mt8195: Fix error handling in mt8195_mt6359_rt1019_rt5682_dev_probe
+740dc3e84653 ASoC: atmel: Fix error handling in sam9x5_wm8731_driver_probe
+6ae0a4d8fec5 ASoC: mxs: Fix error handling in mxs_sgtl5000_probe
+f590797fa3c1 ASoC: atmel: Add missing of_node_put() in at91sam9g20ek_audio_probe
+e45ac7831ff3 ASoC: mediatek: mt8192-mt6359: Fix error handling in mt8192_mt6359_dev_probe
+cc5d8ac95663 ASoC: rockchip: Fix PM usage reference of rockchip_i2s_tdm_resume
+b0bfaf0544d0 ASoC: atmel: Fix error handling in snd_proto_probe
+fbe04b49a54e media: stk1160: If start stream fails, return buffers with VB2_BUF_STATE_QUEUED
+bf0cd60b7e33 ALSA: firewire-lib: fix uninitialized flag for AV/C deferred transaction
+cc587b7c8fbb ASoC: codecs: wc938x: fix accessing array out of bounds for enum type
+de2c6f98817f ASoC: soc-compress: prevent the potentially use of null pointer
+42c709c4e1ce ASoC: codecs: rx-macro: fix accessing compander for aux
+0ea5eff7c606 ASoC: codecs: va-macro: fix accessing array out of bounds for enum type
+bcfe5f76cc40 ASoC: codecs: rx-macro: fix accessing array out of bounds for enum type
+67e4550ecd61 media: usb: go7007: s2250-board: fix leak in probe()
+abd77889851d media: ti-vpe: cal: Fix a NULL pointer dereference in cal_ctx_v4l2_init_formats()
+5a811126d38f soc: qcom: rpmpd: Check for null return of devm_kcalloc
+1791f487f877 video: fbdev: smscufx: Fix null-ptr-deref in ufx_usb_probe()
+2fef99b8372c f2fs: fix missing free nid in f2fs_handle_failed_inode
+3d8dcf278b1e watch_queue: Actually free the watch
+a635415a064e watch_queue: Fix NULL dereference in error cleanup
+3d950c34074e crypto: ccree - Fix use after free in cc_cipher_exit()
+0f69288253e9 block: don't delete queue kobject before its children
+0a2a464f8631 crypto: hisilicon/sec - fix the aead software fallback for engine
+3886a86e7e6c drm/i915/gem: add missing boundary check in vm_access
+2d841af23ae8 crypto: octeontx2 - remove CONFIG_DM_CRYPT check
+5e90f0f3ead0 brcmfmac: pcie: Release firmwares in the brcmf_pcie_setup error path
+43acb728bbc4 media: davinci: vpif: fix use-after-free on driver unbind
+bd771cf5c425 video: fbdev: sm712fb: Fix crash in smtcfb_read()
+dcd46d897adb exec: Force single empty string when argv is empty
+66b513b7c64a samples/landlock: Fix path_list memory leak
+8403fdd77585 media: venus: vdec: fixed possible memory leak issue
+f6bfe8b5b2c2 PM: domains: Fix sleep-in-atomic bug caused by genpd_debug_remove()
+aa1b46dcdc7b block: fix rq-qos breakage from skipping rq_qos_done_bio()
+f5d8a5fe77ce mmc: core: use sysfs_emit() instead of sprintf()
+b7fb0ae09009 ASoC: SOF: Intel: Fix NULL ptr dereference when ENOMEM
+3ea566422cbd can: isotp: sanitize CAN ID checks in isotp_bind()
+588b7f5df0cb dm: fix use-after-free in dm_cleanup_zoned_dev()
+b92e358757b9 cifs: prevent bad output lengths in smb2_ioctl_query_info()
+d6f5e3584524 cifs: fix NULL ptr dereference in smb2_ioctl_query_info()
+bc55cfd5718c ALSA: pcm: Fix potential AB/BA lock with buffer_mutex and mmap_lock
+ea6af39f3da5 rtc: pl031: fix rtc features null pointer dereference
+de19433423c7 ocfs2: fix crash when mount with quota enabled
+2e8e79c416aa can: m_can: m_can_tx_handler(): fix use after free of skb
+9cdd3128874f jffs2: fix memory leak in jffs2_scan_medium
+4c7c44ee1650 jffs2: fix use-after-free in jffs2_clear_xattr_subsystem
+d051cef784de jffs2: fix memory leak in jffs2_do_mount_fs
+f89672cc3681 remoteproc: Fix count check in rproc_coredump_write()
+23a9dbbe0faf NFSD: prevent integer overflow on 32 bit systems
+184416d4b985 NFSD: prevent underflow in nfssvc_decode_writeargs()
+47178c7722ac cifs: fix handlecache and multiuser
+680af5b824a5 f2fs: quota: fix loop condition at f2fs_quota_sync()
+202c08914ba5 firmware: sysfb: fix platform-device leak in error path
+cfa5dbcdd7ae coresight: syscfg: Fix memleak on registration failure in cscfg_create_device
+c87b7b12f48d iio: accel: mma8452: use the correct logic to get mma8452_data
+fb5abce6b2bb tpm: use try_get_ops() in tpm-space.c
+2d327a79ee17 llc: only change llc->dev when bind() succeeds
+7e0438f83dc7 tpm: fix reference counting for struct tpm_chip
+69534c48ba8c ALSA: pcm: Fix races among concurrent prealloc proc writes
+222ca305c9fd uaccess: fix integer overflow on access_ok()
+4a2d4496e15e mac80211: fix potential double free on mesh join
+cc16eecae687 jbd2: fix use-after-free of transaction_t race
+92ee3c60ec9f ALSA: pcm: Fix races among concurrent hw_params and hw_free calls
+efb6402c3c4a ALSA: oss: Fix PCM OSS buffer allocation overflow
+4c905f6740a3 netfilter: nf_tables: initialize registers in nft_do_chain()
+6b79f96f4a23 drm/virtio: Ensure that objs is not NULL in virtio_gpu_array_put_free()
