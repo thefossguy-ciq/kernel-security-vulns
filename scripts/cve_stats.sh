@@ -239,7 +239,7 @@ show_version_stats() {
         if [ "$version" = "Unknown" ]; then
             echo "$version: $count CVEs fixed"
         else
-            echo "Linux $version: $count CVEs fixed"
+            printf "Linux $version:	%4d CVEs fixed\n" "$count"
         fi
     done
 
@@ -259,7 +259,7 @@ show_version_stats() {
         if [ "$version" = "Unknown" ]; then
             echo "$version: $count CVEs introduced"
         else
-            echo "Linux $version: $count CVEs introduced"
+            printf "Linux $version:	%4d CVEs introduced\n" "$count"
         fi
     done
 }
