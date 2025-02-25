@@ -1,0 +1,284 @@
+49947b906a6b drm/amd/display: Check if modulo is 0 before dividing.
+06c4da89c24e nbd: call genl_unregister_family() first in nbd_cleanup()
+825978fd6a0d ceph: fix possible deadlock when holding Fwb to get inline_data
+a2b28708b645 drm/radeon: fix a possible null pointer dereference
+09dadb598502 nbd: fix io hung while disconnecting device
+0458e5428e5e staging: rtl8712: fix uninit-value in r871xu_drv_init()
+3120aac6d0ec usb: dwc2: gadget: don't reset gadget's driver->bus
+c55b2b983b0f nbd: fix race between nbd_alloc_config() and module removal
+d1b57669732d staging: rtl8712: fix uninit-value in usb_read8() and friends
+134a3408c2d3 USB: host: isp116x: check return value after calling platform_get_resource()
+0fcddf9c7c10 drivers: staging: rtl8192eu: Fix deadlock in rtw_joinbss_event_prehandle
+62b2caef400c drivers: tty: serial: Fix deadlock in sa1100_set_termios()
+806c7b534149 drivers: staging: rtl8192u: Fix deadlock in ieee80211_beacons_stop()
+7fd069d65da2 usb: dwc3: host: Stop setting the ACPI companion
+689ca31c5426 tty: synclink_gt: Fix null-pointer-dereference in slgt_clean()
+5dcc2afe716d extcon: Modify extcon device to be created after driver data is set
+cc7ad0d77b51 drivers: staging: rtl8723bs: Fix deadlock in rtw_surveydone_event_callback()
+b67d19662fde char: xillybus: fix a refcount leak in cleanup_dev()
+041879b12ddb drivers: staging: rtl8192bs: Fix deadlock in rtw_joinbss_event_prehandle()
+7288ff561de6 staging: rtl8712: fix a potential memory leak in r871xu_drv_init()
+4d378f2ae581 drivers: usb: host: Fix deadlock in oxu_bus_suspend()
+ee157a79e7c8 tty: Fix a possible resource leak in icom_probe
+9b6bdbd9337d drivers: staging: rtl8192e: Fix deadlock in rtllib_beacons_stop()
+6949493884fe NFSv4: Don't hold the layoutget locks across multiple RPC calls
+a7b8618aa2f0 f2fs: avoid infinite loop to flush node pages
+dc2f78e2d4cc f2fs: remove WARN_ON in f2fs_is_valid_blkaddr
+b131fa8c1d2a iommu/arm-smmu-v3: check return value after calling platform_get_resource()
+f9a9f43a62a0 dmaengine: zynqmp_dma: In struct zynqmp_dma_chan fix desc_size data type
+11270e7ca268 xprtrdma: treat all calls not a bcall when bc_serv is NULL
+12025abdc853 tracing: Fix sleeping function called from invalid context on RT kernel
+d9ed8af1dee3 iommu/arm-smmu: fix possible null-ptr-deref in arm_smmu_device_probe()
+4107fa700f31 mips: cpc: Fix refcount leak in mips_cpc_default_phys_base
+40570375356c tcp: add accessors to read/set tp->snd_cwnd
+746285cf81dc rtl818x: Prevent using not initialized queues
+32feee36c30e bcache: avoid journal no-space deadlock by reserving 1 journal bucket
+51fb1278aa57 mt76: fix use-after-free by removing a non-RCU wcid pointer
+b27ee76c74dc vduse: Fix NULL pointer dereference on sysfs access
+11825765291a tcp: fix tcp_mtup_probe_success vs wrong snd_cwnd
+996419e0594a nfc: st21nfca: fix memory leaks in EVT_TRANSACTION handling
+6f808bd78e82 scsi: lpfc: Address NULL pointer dereference after starget_to_rport()
+3008e6a00493 net/mlx5: E-Switch, pair only capable devices
+69a37a8ba1b4 mm/huge_memory: Fix xarray node memory leak
+583637d66a70 drm/amd/pm: fix a potential gpu_metrics_table memory leak
+31ab27b14daa drm/amdgpu/cs: make commands with 0 chunks illegal behaviour.
+e168c25526cd drm/etnaviv: check for reaped mapping in etnaviv_iommu_unmap_gem
+863e0d81b668 ocfs2: dlmfs: fix error handling of user_dlm_destroy_lock
+15ef9efa855c net/mlx5e: CT: Fix cleanup of CT before cleanup of TC ct rules
+5801f064e351 net: ipv6: unexport __init-annotated seg6_hmac_init()
+8d21e9963bec ip_gre: test csum_start instead of transport header
+10f3b29c65bb bpf, arm64: Clear prog->jited_len along prog->jited
+b8d91399775c net: ethernet: bgmac: Fix refcount leak in bcma_mdio_mii_register
+3ba733f879c2 ext4: avoid cycles in directory h-tree
+662a80946ce1 af_unix: Fix a data-race in unix_dgram_peer_wake_me().
+4a388f08d878 net: xfrm: unexport __init-annotated xfrm4_protocol_init()
+0737e018a05e net: dsa: lantiq_gswip: Fix refcount leak in gswip_gphy_fw_list
+ef09ed5d37b8 ext4: fix bug_on in ext4_writepages
+c878bea3c9d7 ext4: filter out EXT4_FC_REPLAY from on-disk superblock field s_state
+0be698ecbe44 ext4: fix use-after-free in ext4_rename_dir_prepare
+35b42dce6197 net: mdio: unexport __init-annotated mdio_bus_init()
+11ec18b1d8d9 net: altera: Fix refcount leak in altera_tse_mdio_create
+d16207f92a4a amt: fix possible null-ptr-deref in amt_rcv()
+f4534c9fc94d ext4: fix warning in ext4_handle_inode_extension
+07bf9431b159 powerpc/papr_scm: don't requests stats with '0' sized stats buffer
+10d6bdf53290 ata: pata_octeon_cf: Fix refcount leak in octeon_cf_probe
+dbac14a5a05f xen: unexport __init-annotated xen_xlate_map_ballooned_pages()
+f012e95b377c SUNRPC: Trap RDMA segment overflows
+155ca952c7ca efi: Do not import certificates from UEFI Secure Boot for T2 Macs
+9dd732e0bdf5 netfilter: nf_tables: memleak flow rule from commit path
+6e516faf0431 drm/panfrost: Job should reference MMU not file_priv
+6b8beca0edd3 f2fs: fix to do sanity check on total_data_blocks
+677a82b44ebf f2fs: fix to do sanity check for inline inode
+b6c71c66b0ad NFSD: Fix potential use-after-free in nfsd_file_put()
+25f8236213a9 f2fs: fix to do sanity check on block address in f2fs_do_zero_range()
+f2db71053dc0 f2fs: fix to clear dirty inode in f2fs_evict_inode()
+a35faec3db0e drm/amdgpu: Off by one in dm_dmub_outbox1_low_irq()
+d21a580dafc6 ksmbd: fix reference count leak in smb_check_perm_dacl()
+02ded5a17361 net: dsa: mv88e6xxx: Fix refcount leak in mv88e6xxx_mdios_register
+e7e7104e2d5d net: ethernet: mtk_eth_soc: out of bounds read in mtk_hwlro_get_fdir_entry()
+1a1a0e80e005 amt: fix possible memory leak in amt_rcv()
+660ba678f999 firmware: dmi-sysfs: Fix memory leak in dmi_sysfs_register_handle
+b232b02bf3c2 driver core: fix deadlock in __device_attach
+0a375c822497 tcp: tcp_rtx_synack() can be called from process context
+5d24df3d6908 watchdog: ts4800_wdt: Fix refcount leak in ts4800_wdt_probe
+7f36f798f89b tipc: check attribute length for bearer name
+d3b43eb505bf rtc: mt6397: check return value after calling platform_get_resource()
+05fbde3a77a4 scsi: sd: Fix potential NULL pointer dereference
+5d05426e2d5f blk-mq: don't touch ->tagset in blk_mq_get_sq_hctx
+2e102b53f8a7 sfc: fix considering that all channels have TX queues
+5ee76c256e92 driver core: Fix wait_for_device_probe() & deferred_probe_timeout interaction
+4d17e6fe9293 f2fs: fix to avoid f2fs_bug_on() in dec_valid_node_count()
+c14adb1cf70a jffs2: fix memory leak in jffs2_do_fill_super
+9b59588d8be9 soc: rockchip: Fix refcount leak in rockchip_grf_init
+e4cf89596c1f watchdog: rzg2l_wdt: Fix 'BUG: Invalid wait context'
+42b805af1024 md: fix double free of io_acct_set bioset
+310862e57400 driver: base: fix UAF when driver_attach failed
+5dd89d2fc438 net: ethernet: ti: am65-cpsw-nuss: Fix some refcount leaks
+1680939e9ecf rpmsg: virtio: Fix possible double free in rpmsg_virtio_add_ctrl_dev()
+ea2949df22a5 watchdog: rzg2l_wdt: Fix 32bit overflow issue
+c2eecefec5df rpmsg: virtio: Fix possible double free in rpmsg_probe()
+8c03a1c21d72 ubi: ubi_create_volume: Fix use-after-free when volume creation failed
+6d35d04a9e18 nbd: fix possible overflow on 'first_minor' in nbd_dev_add()
+9ec4cbf1cc55 usb: usbip: fix a refcount leak in stub_probe()
+196a888ca657 macsec: fix UAF bug for real_dev
+eac3e5b1c12f remoteproc: mtk_scp: Fix a potential double free
+0e0fd55719fa serial: 8250_aspeed_vuart: Fix potential NULL dereference in aspeed_vuart_probe
+c5c07c5958cf misc: fastrpc: fix list iterator in fastrpc_req_mem_unmap_impl
+8a177a36da6c blk-iolatency: Fix inflight count imbalances and IO hangs on offline
+2a4a62a14be1 um: Fix out-of-bounds read in LDT setup
+4d2900f20edf phy: qcom-qmp: fix reset-controller leak on probe errors
+f0a4bc38a12f phy: qcom-qmp: fix struct clk leak on probe errors
+bf594d1d0c1d usb: dwc3: gadget: Replace list_for_each_entry_safe() if using giveback
+507b05063d1b tty: goldfish: Use tty_port_destroy() to destroy port
+0f2571ad7a30 md: Don't set mddev private to NULL in raid0 pers->free
+4a9800c81d2f lkdtm/bugs: Check for the NULL pointer after calling kmalloc
+cd8c1fd8cdd1 mm/page_owner: use strscpy() instead of strlcpy()
+7d54c15cb89a ftrace: Clean up hash direct_functions on register failures
+cd290a9839ce lib/string_helpers: fix not adding strarray to device's resource list
+f93e91a0372c RDMA/hfi1: Fix potential integer multiplication overflow errors
+bc10916e8909 staging: r8188eu: prevent ->Ssid overflow in rtw_wx_set_scan()
+41e46b3c2aa2 block: Fix potential deadlock in blk_ia_range_sysfs_show()
+42252d0d2aa9 dlm: fix plock invalid read
+c069db76ed7b ext4: fix memory leak in parse_apply_sb_mount_options()
+d36f6ed761b5 ext4: fix bug_on in __es_tree_search
+99696a2592bc tracing: Fix potential double free in create_var_ref()
+075a53b78b81 bfq: Make sure bfqg for which we are queueing requests is online
+c1cee4ab36ac bfq: Avoid merging queues with different parents
+ea591cd4eb27 bfq: Update cgroup information before merging bio
+f87c7a4b084a ext4: fix race condition between ext4_write and ext4_convert_inline_data
+a508e33956b5 ipmi:ipmb: Fix refcount leak in ipmi_ipmb_probe
+2965c4cdf7ad wifi: mac80211: fix use-after-free in chanctx code
+78488a64aea9 iwlwifi: mei: fix potential NULL-ptr deref
+c3ed222745d9 NFSv4: Fix free of uninitialized nfs4_label on referral lookup.
+acde4003efc1 video: fbdev: vesafb: Fix a use-after-free due early fb_info cleanup
+4c971d2f3548 net: annotate races around sk->sk_bound_dev_if
+b23789a59fa6 video: fbdev: clcdfb: Fix refcount leak in clcdfb_of_vram_setup
+aab08c1aac01 dmaengine: idxd: Fix the error handling path in idxd_cdev_register()
+2a6b52ed72c8 rtla: Avoid record NULL pointer dereference
+de78657e16f4 iommu/mediatek: Fix NULL pointer dereference when printing dev_name
+2aaf51dd39af f2fs: fix dereference of stale list iterator after loop body
+cbd23144f766 iommu/arm-smmu-v3-sva: Fix mm use-after-free
+98df772bdd1c iommu/mediatek: Remove clk_disable in mtk_iommu_remove
+12662d19467b f2fs: fix to do sanity check on inline_dots inode
+629e052d0c98 RDMA/hfi1: Prevent panic when SDMA is disabled
+cee409bbba0d Input: gpio-keys - cancel delayed work only in case of GPIO
+57b742a5b894 powerpc/iommu: Add missing of_node_put in iommu_init_early_dart
+5dd9e27ea4a3 powerpc/xics: fix refcount leak in icp_opal_init()
+05c03dfd09c0 RDMA/hfi1: Prevent use of lock before it is initialized
+a91ee0e9fca9 PCI: Avoid pci_dev_lock() AB/BA deadlock with sriov_numvfs_store()
+311242c7703d mfd: davinci_voicecodec: Fix possible null-ptr-deref davinci_vc_probe()
+0e0946e22f36 powerpc/papr_scm: Fix leaking nvdimm_events_map elements
+1d1fb9618bdd powerpc/xive: Fix refcount leak in xive_spapr_init
+c8994b30d71d Input: sparcspkr - fix refcount leak in bbc_beep_probe
+fcee96924ba1 powerpc/fsl_rio: Fix refcount leak in fsl_rio_setup
+b6b1c3ce06ca powerpc/rtas: Keep MSR[RI] set when calling RTAS
+6b9dbedbe349 tty: fix deadlock caused by calling printk() under tty_port->lock
+da63dc84befa drivers/base/node.c: fix compaction sysfs file leak
+d679ae94fdd5 list: fix a data-race around ep->rdllist
+391e982bfa63 module: fix [e_shstrndx].sh_size=0 OOB access
+5376e3d90453 pinctrl: renesas: core: Fix possible null-ptr-deref in sh_pfc_map_resources()
+e6829d1bd3c4 nvdimm: Fix firmware activation deadlock scenarios
+9bc72e47d463 ARM: hisi: Add missing of_node_put after of_find_compatible_node
+b4bd2aafacce soc: bcm: Check for NULL return of devm_kzalloc()
+2f661477c2bb pinctrl: renesas: rzn1: Fix possible null-ptr-deref in sh_pfc_map_resources()
+88e22159750b rxrpc: Fix listen() setting the bar too high for the prealloc rings
+8009120e0354 firmware: arm_scmi: Fix list protocols enumeration in the base protocol
+06d129946a71 dpaa2-eth: retrieve the virtual address before dma_unmap
+ba56291e297d soc: ti: ti_sci_pm_domains: Check for null return of devm_kcalloc
+214e0d8fe4a8 PCI: mediatek: Fix refcount leak in mtk_pcie_subsys_powerup()
+950cf957fe34 misc: ocxl: fix possible double free in ocxl_file_register_afu
+9b80ccda233f bonding: fix missed rcu protection
+23b44f9c649b ARM: versatile: Add missing of_node_put in dcscb_init
+0d4837fdb796 fs: jfs: fix possible NULL pointer dereference in dbFree()
+577e2a9dfc8f drm/msm: don't free the IRQ if it was not requested
+e20d136ec7d6 thermal/drivers/broadcom: Fix potential NULL dereference in sr_thermal_probe
+2fccf9e6050e PM / devfreq: rk3399_dmc: Disable edev on remove()
+fe29794c3585 amt: fix memory leak for advertisement message
+c56de483093d drm/msm/a6xx: Fix refcount leak in a6xx_gpu_init
+09700c504d8e thermal/drivers/imx_sc_thermal: Fix refcount leak in imx_sc_thermal_probe
+dcbe6803fffd erofs: fix buffer copy overflow of ztailpacking feature
+5a011f889b48 blk-throttle: Set BIO_THROTTLED when bio has been throttled
+68d6c8476fd4 regulator: scmi: Fix refcount leak in scmi_regulator_probe
+947a844bb3eb drm: msm: fix possible memory leak in mdp5_crtc_cursor_set()
+98a160e898c0 thermal/core: Fix memory leak in __thermal_cooling_device_register()
+2256e901f5bd btrfs: fix anon_dev leak in create_subvol()
+0fab6361c4ba Bluetooth: btmtksdio: fix use-after-free at btmtksdio_recv_event
+97df85871a5b rtw89: cfo: check mac_id to avoid out-of-bounds
+f2ef6f7539c6 net: phy: micrel: Allow probing without .driver_data
+a34840c4eb32 ASoC: ti: j721e-evm: Fix refcount leak in j721e_soc_probe_*
+7aa1e7d15f8a Bluetooth: fix dangling sco_conn and use-after-free in sco_sock_timeout
+a2b331ac11e1 spi: spi-fsl-qspi: check return value after calling platform_get_resource_byname()
+ad483ed9dd51 mt76: mt7921: fix kernel crash at mt7921_pci_remove
+bf4a9b2467b7 ASoC: samsung: Fix refcount leak in aries_audio_probe
+471bec68457a media: pvrusb2: fix array-index-out-of-bounds in pvr2_i2c_core_init
+fcfe1b5e162b mt76: fix tx status related use-after-free race on station removal
+ed46731d8e86 ASoC: imx-hdmi: Fix refcount leak in imx_hdmi_probe
+afaa7b933ef0 regulator: pfuze100: Fix refcount leak in pfuze_parse_regulators_dt
+2be84f73785f ASoC: mxs-saif: Fix refcount leak in mxs_saif_probe
+01013ba9bbdd drm/msm/disp/dpu1: avoid clearing hw interrupts if hw_intr is null during drm uninit
+62fdc974894e mt76: mt7915: fix possible NULL pointer dereference in mt7915_mac_fill_rx_vector
+ce7a1ecf3f9f drm/v3d: Fix null pointer dereference of pointer perfmon
+41cd312dfe98 ASoC: fsl: Fix refcount leak in imx_sgtl5000_probe
+ddf66aefd685 mtd: rawnand: intel: fix possible null-ptr-deref in ebu_nand_probe()
+ca75f6f7c6f8 drm/msm/mdp5: Return error code in mdp5_mixer_release when deadlock is detected
+fa5186b279ec drm/msm/disp/dpu1: set vbif hw config to NULL to avoid use after memory free during pm runtime resume
+d59be579fa93 drm/msm/mdp5: Return error code in mdp5_pipe_release when deadlock is detected
+f8c242908ad1 drm/rockchip: vop: fix possible null-ptr-deref in vop_bind()
+da4276118162 nvme-pci: fix a NULL pointer dereference in nvme_alloc_admin_tags
+2def44d3aec5 ASoC: rt5645: Fix errorenous cleanup order
+a28ed09dafee mtd: rawnand: cadence: fix possible null-ptr-deref in cadence_nand_dt_probe()
+a36e50671154 drm/msm/hdmi: check return value after calling platform_get_resource_byname()
+c10c0086db68 media: mediatek: vcodec: prevent kernel crash when rmmod mtk-vcodec-dec.ko
+d7ea0d9df2a6 net: remove two BUG() from skb_checksum_help()
+011b559be832 ALSA: pcm: Check for null pointer of pointer substream before dereferencing it
+36a1d1bda77e drm/msm: Fix null pointer dereferences without iommu
+454744754cbf wl1251: dynamically allocate memory used for DMA
+d1408f6b4dd7 usbnet: Run unregister_netdev() before unbind() again
+a71eb6025305 media: rga: fix possible memory leak in rga_probe
+2dc509305cf9 ath9k_htc: fix potential out of bounds access with invalid rxstatus->rs_keyix
+ead76d4c09b8 scsi: lpfc: Inhibit aborts if external loopback plug is inserted
+1b0e81416a24 NFC: NULL out the dev->rfkill to prevent UAF
+b74d921b900b drm/mediatek: Add vblank register/unregister callback functions
+bab76514aca3 regulator: da9121: Fix uninit-value in da9121_assign_chip_model()
+fc4ef9d57249 HID: bigben: fix slab-out-of-bounds Write in bigben_probe
+1af20714feda HID: elan: Fix potential double free in elan_input_configured
+365ab7ebc24e media: i2c: max9286: fix kernel oops when removing module
+8f2a3970c969 drm/omap: fix NULL but dereferenced coccicheck error
+856082f021a2 fbdev: defio: fix the pagelist corruption
+3a745b51cdda mtd: rawnand: denali: Use managed device resources
+a85ee6401a47 cpufreq: governor: Use kobject release() method to free dbs_data
+4f4e0454e226 ASoC: mediatek: Fix error handling in mt8173_max98090_dev_probe
+9f342904216f ASoC: cs35l41: Fix an out-of-bounds access in otp_packed_element_t
+baeb705fd6a7 ice: always check VF VSI pointer values
+05654431a18f ASoC: mediatek: Fix missing of_node_put in mt2701_wm8960_machine_probe
+a962890a5a3c ASoC: SOF: ipc3-topology: Correct get_control_data for non bytes payload
+b72a4aff947b ath10k: skip ath10k_halt during suspend for driver state RESTARTING
+3fed9e551417 arm64: compat: Do not treat syscall number as ESR_ELx for a bad syscall
+4b674dd69701 drm/plane: Move range check for format_count earlier
+646db1a560f4 scsi: lpfc: Fix resource leak in lpfc_sli4_send_seq_to_ulp()
+afadb04f1d6e mmc: jz4740: Apply DMA engine limits to maximum segment size
+161c64de239c ath11k: disable spectral scan during spectral deinit
+e8123311cf06 media: pci: cx23885: Fix the error handling in cx23885_initdev()
+2203436a4d24 media: cx25821: Fix the warning when removing the module
+e68cb83a57a4 md/bitmap: don't set sb values if can't pass sanity check
+86594f6af867 media: venus: hfi: avoid null dereference in deinit
+02276e18defa media: i2c: dw9714: Disable the regulator when the driver fails to probe
+eea5c7b3390c drm/amdgpu/pm: fix the null pointer while the smu is disabled
+f3fa2becf2fc drm/amd/pm: fix double free in si_parse_power_table()
+d2c7f56f8b52 loop: implement ->free_disk
+194d250cdc4a drm/virtio: fix NULL pointer dereference in virtio_gpu_conn_get_modes
+50dc9ce9f805 ath11k: Change max no of active probe SSID and BSSID to fw capability
+672d1cb40551 scsi: lpfc: Protect memory leak for NPIV ports sending PLOGI_RJT
+577a942df3de scsi: lpfc: Fix null pointer dereference after failing to issue FLOGI and PLOGI
+03cbbd7c2f5e scsi: lpfc: Fix SCSI I/O completion and abort handler deadlock
+d6d45f67a111 scsi: lpfc: Fix call trace observed during I/O with CMF enabled
+1b6a6fc5280e ALSA: jack: Access input_dev under mutex
+b169f877f001 rtw89: ser: fix CAM leaks occurring in L2 reset
+f75fd4b9221d rcu-tasks: Fix race in schedule and flush work
+8378a51e3f81 cifs: fix potential double free during failed mount
+e294647b1aed scsi: lpfc: Move cfg_log_verbose check before calling lpfc_dmp_dbg()
+0d7a8a6204ea ath11k: fix the warning of dev_wake in mhi_pm_disable_transition()
+e8366bbabe1d ipw2x00: Fix potential NULL dereference in libipw_xmit()
+0125de38122f ALSA: usb-audio: Cancel pending work at closing a MIDI substream
+b3e34a47f989 x86/kexec: fix memory leak of elf header buffer
+f5585f4f0ef5 btrfs: fix deadlock between concurrent dio writes when low on free data space
+a2aa95b71c9b bpf: Fix potential array overflow in bpf_trampoline_get_progs()
+e5f28623ceb1 x86/MCE/AMD: Fix memory leak when threshold_create_bank() fails
+e589f9b7078e fs/ntfs3: Fix some memory leaks in an error handling path of 'log_replay()'
+724bbe49c5e4 fs/ntfs3: provide block_invalidate_folio to fix memory leak
+26ae2c942b57 usb: isp1760: Fix out-of-bounds array access
+4b6313cf99b0 bpf: Fix combination of jit blinding and pointers to bpf subprogs.
+a3b774342fa7 fs/ntfs3: validate BOOT sectors_per_clusters
+2505a981114d zsmalloc: fix races between asynchronous zspage free and page migration
+72ef98445aca Bluetooth: hci_qca: Use del_timer_sync() before freeing
+d22d2474e395 KVM: SVM: Use kzalloc for sev ioctl interfaces to prevent kernel data leak
+d187ba531230 x86/fpu: KVM: Set the base guest FPU uABI size to sizeof(struct kvm_xsave)
+f9a43007d3f7 netfilter: nf_tables: double hook unregistration in netns path
+45846661d104 KVM: x86: Drop WARNs that assert a triple fault never "escapes" from L2
+64ba4b15e5c0 exfat: check if cluster num is valid
+56b14ecec97f netfilter: conntrack: re-fetch conntrack after insertion
+189b0ddc2451 pipe: Fix missing lock in pipe_resize_ring()
+f122dfe44768 KVM: x86: Use __try_cmpxchg_user() to update guest PTE A/D bits
+690b2549b195 i2c: ismt: prevent memory corruption in ismt_access()
+520778042ccc netfilter: nf_tables: disallow non-stateful expression in sets earlier
+aa464957f7e6 drm/amd/pm: fix a potential gpu_metrics_table memory leak
