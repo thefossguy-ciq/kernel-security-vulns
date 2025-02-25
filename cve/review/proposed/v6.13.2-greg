@@ -1,0 +1,121 @@
+b75439c945b9 i3c: dw: Fix use-after-free in dw_i3c_master driver due to race condition
+600258d555f0 xfrm: delete intermediate secpath entry in packet offload mode
+d3d930411ce3 RDMA/mlx5: Fix implicit ODP use after free
+7378aeb664e5 remoteproc: core: Fix ida_free call while not allocated
+c6ef3a7fa97e media: uvcvideo: Fix double free in error path
+c79a39dc8d06 pps: Fix a use-after-free
+c225d006a319 usb: gadget: f_tcm: Don't free command immediately
+c99f66e4084a block: fix queue freeze vs limits lock order in sysfs store methods
+5a10971c7645 wifi: ath12k: fix read pointer after free in ath12k_mac_assign_vif_to_vdev()
+4395a44acb15 net: ethernet: ti: am65-cpsw: fix freeing IRQ in am65_cpsw_nuss_remove_tx_chns()
+844b8cdc6816 nbd: don't allow reconnect after disconnect
+10685681bafc net_sched: sch_sfq: don't allow 1 packet limit
+a126061c80d5 ptr_ring: do not block hard interrupts in ptr_ring_resize_multiple()
+50420d7c79c3 HID: hid-thrustmaster: Fix warning in thrustmaster_probe by adding endpoint check
+7553477cbfd7 wifi: mac80211: prohibit deactivating all links
+49440290a093 landlock: Handle weird files
+87c544108b61 bpf: Send signals asynchronously if !preemptible
+64f2657b5793 HID: core: Fix assumption that Resolution Multipliers must be in Logical Collections
+d9df72c6acd6 iommu: iommufd: fix WARNING in iommufd_device_unbind
+e24c15510592 iommufd/iova_bitmap: Fix shift-out-of-bounds in iova_bitmap_offset_to_index()
+b98d5000c505 media: rc: iguanair: handle timeouts
+a67f75c2b5ec media: uvcvideo: Fix deadlock during uvc_probe
+ca76bb226bf4 nilfs2: do not force clear folio if buffer is referenced
+ee70999a988b nilfs2: handle errors that nilfs_prepare_chunk() may return
+e952837f3ddb xfrm: state: fix out-of-bounds read during lookup
+15a901361ec3 ipmr: do not call mr_mfc_uses_dev() for unres entries
+5de7665e0a07 net: rose: fix timer races against user threads
+50bf398e1cea net: netdevsim: try to close UDP port harness races
+64c37e134b12 kernel: be more careful about dup_mmap() failures and uprobe registering
+90b7f2961798 net: usb: rtl8150: enable basic endpoint checking
+c86b000782da mptcp: consolidate suboption status
+1bb0d1348546 mptcp: pm: only set fullmesh for subflow endp
+619af16b3b57 mptcp: handle fastopen disconnect correctly
+8f70caad82e9 powerpc/pseries/iommu: IOMMU incorrectly marks MMIO range in DDW
+e4790b3e314a wifi: rtw89: chan: fix soft lockup in rtw89_entity_recalc_mgnt_roles()
+e01780ea4661 padata: fix UAF in padata_reorder
+295006f6e8c1 scsi: mpi3mr: Fix possible crash when setting up bsg fails
+979284535aaf net/mlx5e: add missing cpu_to_node to kvzalloc_node in mlx5e_open_xdpredirect_sq
+5066293b9b70 vxlan: Fix uninit-value in vxlan_vnifilter_dump()
+17391cb2613b powerpc/pseries/iommu: Don't unset window if it was never set
+ade81479c7dd memcg: fix soft lockup in the OOM process
+06f364284794 btrfs: do proper folio cleanup when cow_file_range() failed
+c2b47df81c8e btrfs: do proper folio cleanup when run_delalloc_nocow() failed
+1be94490b6b8 wifi: wilc1000: unregister wiphy only if it has been registered
+3c15082f3567 Bluetooth: btrtl: check for NULL in btrtl_setup_realtek()
+be7a6a776695 smb: client: fix oops due to unset link speed
+ee1b5046d5cd staging: media: max96712: fix kernel oops when removing module
+1378ffec3036 media: imx-jpeg: Fix potential error pointer dereference in detach_pm()
+8d28d0ddb986 md/md-bitmap: Synchronize bitmap_get_stats() with bitmap lifetime
+92e599577377 net: hns3: fix oops when unload drivers paralleling
+0f5697f1a3f9 net: hsr: fix fill_frame_info() regression vs VLAN packets
+357445e28ff0 drm/amdgpu: Fix potential NULL pointer dereference in atomctrl_get_smc_sclk_range_table
+7def56f841af clk: mmp: pxa1908-mpmu: Fix a NULL vs IS_ERR() check
+3acea81be689 clk: mmp: pxa1908-apbcp: Fix a NULL vs IS_ERR() check
+e5ca5d7b4d7c clk: mmp: pxa1908-apbc: Fix NULL vs IS_ERR() check
+13c4f7714c6a wifi: cfg80211: tests: Fix potential NULL dereference in test_cfg80211_parse_colocated_ap()
+078bf9438a31 samples/landlock: Fix possible NULL dereference in parse_path()
+cf704a7624f9 wifi: iwlwifi: mvm: avoid NULL pointer dereference
+5cd0bd815c8a wifi: mt76: mt7925: fix NULL deref check in mt7925_change_vif_links
+b88655bc6593 Bluetooth: btbcm: Fix NULL deref in btbcm_get_board_name()
+d0f98e14c010 mailbox: th1520: Fix a NULL vs IS_ERR() bug
+1e0a19912adb usb: xhci: Fix NULL pointer dereference on certain command aborts
+08fa656c91fd wifi: mt76: mt7925: fix off by one in mt7925_load_clc()
+bd96a3935e89 rdma/cxgb4: Prevent potential integer overflow on 32bit
+09c4a6101532 rtc: tps6594: Fix integer overflow on 32bit systems
+91b587ba79e1 f2fs: Introduce linear search for dentries
+c0def46dec9c btrfs: improve the warning and error message for btrfs_remove_qgroup()
+208dea9107e8 wifi: wilc1000: unregister wiphy only after netdev registration
+d1f9f79fa2af net: let net.core.dev_weight always be non-zero
+12e070eb6964 net: avoid race between device unregistration and ethnl ops
+81468c4058a6 RDMA/rtrs: Add missing deinit() call
+26c0a2d93af5 LoongArch: Fix warnings during S3 suspend
+66e0ea341a2a usb: dwc3: core: Defer the probe until USB power supply ready
+34c4eb7d4e0c drm/amdgpu: Fix potential integer overflow in scheduler mask calculations
+29b95ac91792 io_uring: prevent reg-wait speculations
+352fafe97784 firewire: test: Fix potential null dereference in firewire kunit test
+6200d947f050 wifi: wcn36xx: fix channel survey memory allocation size
+ba4bb0402c60 wifi: rtw89: fix race between cancel_hw_scan and hw_scan completion
+e7ceefbfd8d4 wifi: rtlwifi: fix memory leaks and invalid access at probe error path
+2f7667675df1 wifi: rtw89: avoid to init mgnt_entry list twice when WoWLAN failed
+edc4ef0e0154 RDMA/rxe: Fix the warning "__rxe_cleanup+0x12c/0x170 [rdma_rxe]"
+5adbc8ce5bbe wifi: mt76: mt7996: fix overflows seen when writing limit attributes
+64d571742b0a wifi: mt76: mt7915: fix overflows seen when writing limit attributes
+96ea081ed52b bpf: Reject struct_ops registration that uses module ptr and the module btf_id is missing
+bc50835e83f6 net: sched: Disallow replacing of child qdisc from one parent to another
+19e65c45a150 net: davicom: fix UAF in dm9000_drv_remove
+dd7d37ccf6b1 padata: avoid UAF for reorder_work
+b44b9bc7cab2 OPP: fix dev_pm_opp_find_bw_*() when bandwidth table not initialized
+9a5b021cb818 idpf: convert workqueues to unbound
+2d2da5a4c1b4 PCI: rcar-ep: Fix incorrect variable used when calling devm_request_mem_region()
+cd5fc6533818 md/md-bitmap: move bitmap_{start, end}write to md upper layer
+da6b35378699 pwm: Ensure callbacks exist before calling them
+60a600243244 hostfs: fix string handling in __dentry_name()
+a502ea6fa94b udp: Deal with race between UDP socket address change and rehash
+db049866943a mailbox: th1520: Fix memory corruption due to incorrect array size
+bdb0ca39e0ac ubifs: skip dumping tnc tree when zroot is null
+c759bc8e9046 ACPI: fan: cleanup resources in the error path of .probe()
+0508316be63b leds: netxbig: Fix an OF node reference leak in netxbig_leds_get_of_pdata()
+dddca3b2fc67 regulator: of: Implement the unwind path of of_regulator_match()
+dddca3b2fc67 regulator: of: Implement the unwind path of of_regulator_match()
+1d38eb7f7b26 OPP: OF: Fix an OF node leak in _opp_add_static_v2()
+417cad5dc782 leds: cht-wcove: Use devm_led_classdev_register() to avoid memory leak
+472a989029aa crypto: ixp4xx - fix OF node reference leaks in init_ixp_crypto()
+b9784e5cde1f memory: tegra20-emc: fix an OF node reference bug in tegra_emc_find_node_by_ram_code()
+de124b61e179 fbdev: omapfb: Fix an OF node leak in dss_of_port_get_parent_device()
+bf5821909eb9 mtd: hyperbus: hbmc-am654: fix an OF node reference leak
+143981aa63f3 watchdog: rti_wdt: Fix an OF node leak in rti_wdt_probe()
+e883c64778e5 dmaengine: ti: edma: fix OF node reference leaks in edma_driver
+a6ca7e6240f0 clk: renesas: cpg-mssr: Fix 'soc' node handling in cpg_mssr_reserved_init()
+d3455ab79810 soc: atmel: fix device_node release in atmel_soc_device_init()
+170e086ad399 nvme: fix bogus kzalloc() return check in nvme_init_effects_log()
+d659bc68ed48 OPP: add index check to assert to avoid buffer overflow in _read_freq()
+2378bd0b264a ipmi: ipmb: Add check devm_kasprintf() returned value
+be482f1d10da net/mlx5: HWS, fix definer's HWS_SET32 macro for negative offset
+037705e94bf6 clk: thead: Add CLK_IGNORE_UNUSED to fix TH1520 boot
+d640627663bf net/rose: prevent integer overflows in rose_setsockopt()
+e1d3422c95f0 rhashtable: Fix potential deadlock by moving schedule_work outside lock
+1e76b546e6fc firmware: qcom: scm: Cleanup global '__scm' on probe failures
+db902986dee4 erofs: fix potential return value overflow of z_erofs_shrink_scan()
+e20a70c57253 PM: hibernate: Add error handling for syscore_suspend()
+8c670bdfa58e tcp: correct handling of extreme memory squeeze
