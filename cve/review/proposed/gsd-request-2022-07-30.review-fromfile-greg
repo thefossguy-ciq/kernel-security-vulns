@@ -94,7 +94,6 @@ d2ee2cfc4aa8 ima: Fix a potential integer overflow in ima_appraise_measurement
 c132fe78ad7b dmaengine: ti: Fix refcount leak in ti_dra7_xbar_route_allocate
 8ad59b397f86 i2c: piix4: Fix a memory leak in the EFCH MMIO support
 386228c694bf net: dsa: qca8k: reset cpu port on MTU change
-9827a0e6e23b netfilter: nft_set_pipapo: release elements in clone from abort path
 85e4ea1049c7 fscache: Fix invalidation/lookup race
 34d2cd3fccce ARM: meson: Fix refcount leak in meson_smp_prepare_cpus
 b55a21b764c1 usbnet: fix memory leak in error case
@@ -128,7 +127,6 @@ ada7b0c0deda iio: adc: adi-axi-adc: Fix refcount leak in adi_axi_adc_attach_clie
 8a2b6b568798 iio: adc: aspeed: Fix refcount leak in aspeed_adc_set_trim_data
 78601726d4a5 iio: trigger: sysfs: fix use-after-free on remove
 96163f835e65 usb: gadget: uvc: fix list double add in uvcg_video_pump
-a632b2a4c920 ice: ethtool: Prohibit improper channel config for DCB
 8af52fe9fd3b virtio_net: fix xdp_rxq_info bug after suspend/resume
 cb78d1b5efff afs: Fix dynamic root getattr
 f9710c357e5b xen-blkfront: Handle NULL gendisk

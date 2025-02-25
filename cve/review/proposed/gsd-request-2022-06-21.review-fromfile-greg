@@ -1,7 +1,6 @@
 49947b906a6b drm/amd/display: Check if modulo is 0 before dividing.
 06c4da89c24e nbd: call genl_unregister_family() first in nbd_cleanup()
 825978fd6a0d ceph: fix possible deadlock when holding Fwb to get inline_data
-a2b28708b645 drm/radeon: fix a possible null pointer dereference
 09dadb598502 nbd: fix io hung while disconnecting device
 0458e5428e5e staging: rtl8712: fix uninit-value in r871xu_drv_init()
 3120aac6d0ec usb: dwc2: gadget: don't reset gadget's driver->bus
@@ -94,9 +93,7 @@ e4cf89596c1f watchdog: rzg2l_wdt: Fix 'BUG: Invalid wait context'
 42b805af1024 md: fix double free of io_acct_set bioset
 310862e57400 driver: base: fix UAF when driver_attach failed
 5dd89d2fc438 net: ethernet: ti: am65-cpsw-nuss: Fix some refcount leaks
-1680939e9ecf rpmsg: virtio: Fix possible double free in rpmsg_virtio_add_ctrl_dev()
 ea2949df22a5 watchdog: rzg2l_wdt: Fix 32bit overflow issue
-c2eecefec5df rpmsg: virtio: Fix possible double free in rpmsg_probe()
 8c03a1c21d72 ubi: ubi_create_volume: Fix use-after-free when volume creation failed
 6d35d04a9e18 nbd: fix possible overflow on 'first_minor' in nbd_dev_add()
 9ec4cbf1cc55 usb: usbip: fix a refcount leak in stub_probe()
@@ -111,7 +108,6 @@ f0a4bc38a12f phy: qcom-qmp: fix struct clk leak on probe errors
 bf594d1d0c1d usb: dwc3: gadget: Replace list_for_each_entry_safe() if using giveback
 507b05063d1b tty: goldfish: Use tty_port_destroy() to destroy port
 0f2571ad7a30 md: Don't set mddev private to NULL in raid0 pers->free
-4a9800c81d2f lkdtm/bugs: Check for the NULL pointer after calling kmalloc
 cd8c1fd8cdd1 mm/page_owner: use strscpy() instead of strlcpy()
 7d54c15cb89a ftrace: Clean up hash direct_functions on register failures
 cd290a9839ce lib/string_helpers: fix not adding strarray to device's resource list
@@ -169,7 +165,6 @@ ba56291e297d soc: ti: ti_sci_pm_domains: Check for null return of devm_kcalloc
 950cf957fe34 misc: ocxl: fix possible double free in ocxl_file_register_afu
 9b80ccda233f bonding: fix missed rcu protection
 23b44f9c649b ARM: versatile: Add missing of_node_put in dcscb_init
-0d4837fdb796 fs: jfs: fix possible NULL pointer dereference in dbFree()
 577e2a9dfc8f drm/msm: don't free the IRQ if it was not requested
 e20d136ec7d6 thermal/drivers/broadcom: Fix potential NULL dereference in sr_thermal_probe
 2fccf9e6050e PM / devfreq: rk3399_dmc: Disable edev on remove()
@@ -220,7 +215,6 @@ ead76d4c09b8 scsi: lpfc: Inhibit aborts if external loopback plug is inserted
 1b0e81416a24 NFC: NULL out the dev->rfkill to prevent UAF
 b74d921b900b drm/mediatek: Add vblank register/unregister callback functions
 bab76514aca3 regulator: da9121: Fix uninit-value in da9121_assign_chip_model()
-fc4ef9d57249 HID: bigben: fix slab-out-of-bounds Write in bigben_probe
 1af20714feda HID: elan: Fix potential double free in elan_input_configured
 365ab7ebc24e media: i2c: max9286: fix kernel oops when removing module
 8f2a3970c969 drm/omap: fix NULL but dereferenced coccicheck error
@@ -277,8 +271,5 @@ f9a43007d3f7 netfilter: nf_tables: double hook unregistration in netns path
 45846661d104 KVM: x86: Drop WARNs that assert a triple fault never "escapes" from L2
 64ba4b15e5c0 exfat: check if cluster num is valid
 56b14ecec97f netfilter: conntrack: re-fetch conntrack after insertion
-189b0ddc2451 pipe: Fix missing lock in pipe_resize_ring()
 f122dfe44768 KVM: x86: Use __try_cmpxchg_user() to update guest PTE A/D bits
-690b2549b195 i2c: ismt: prevent memory corruption in ismt_access()
-520778042ccc netfilter: nf_tables: disallow non-stateful expression in sets earlier
 aa464957f7e6 drm/amd/pm: fix a potential gpu_metrics_table memory leak
