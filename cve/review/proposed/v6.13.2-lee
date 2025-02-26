@@ -1,0 +1,55 @@
+c99f66e4084a block: fix queue freeze vs limits lock order in sysfs store methods
+170e086ad399 nvme: fix bogus kzalloc() return check in nvme_init_effects_log()
+dc3806d9eb66 drm/i915: Grab intel_display from the encoder to avoid potential oopsies
+357445e28ff0 drm/amdgpu: Fix potential NULL pointer dereference in atomctrl_get_smc_sclk_range_table
+789384eb1437 drm/msm/dpu: check dpu_plane_atomic_print_state() for valid sspp
+b44b9bc7cab2 OPP: fix dev_pm_opp_find_bw_*() when bandwidth table not initialized
+2378bd0b264a ipmi: ipmb: Add check devm_kasprintf() returned value
+7def56f841af clk: mmp: pxa1908-mpmu: Fix a NULL vs IS_ERR() check
+3acea81be689 clk: mmp: pxa1908-apbcp: Fix a NULL vs IS_ERR() check
+e5ca5d7b4d7c clk: mmp: pxa1908-apbc: Fix NULL vs IS_ERR() check
+13c4f7714c6a wifi: cfg80211: tests: Fix potential NULL dereference in test_cfg80211_parse_colocated_ap()
+0e56ebde245e rxrpc: Fix handling of received connection abort
+2fdac64c3c35 wifi: rtlwifi: remove unused check_buddy_priv
+e7ceefbfd8d4 wifi: rtlwifi: fix memory leaks and invalid access at probe error path
+3fff5da4ca21 team: prevent adding a device which is already a team device lower
+95fc45d1dea8 ax25: rcu protect dev->ax25_ptr
+be482f1d10da net/mlx5: HWS, fix definer's HWS_SET32 macro for negative offset
+cf704a7624f9 wifi: iwlwifi: mvm: avoid NULL pointer dereference
+7553477cbfd7 wifi: mac80211: prohibit deactivating all links
+aa3ce3f8fafa wifi: mac80211: don't flush non-uploaded STAs
+208dea9107e8 wifi: wilc1000: unregister wiphy only after netdev registration
+d1f9f79fa2af net: let net.core.dev_weight always be non-zero
+12e070eb6964 net: avoid race between device unregistration and ethnl ops [auto: cve already created]
+bc50835e83f6 net: sched: Disallow replacing of child qdisc from one parent to another [auto: cve already created]
+4395a44acb15 net: ethernet: ti: am65-cpsw: fix freeing IRQ in am65_cpsw_nuss_remove_tx_chns()
+8eef6ac4d70e bpf: bpf_local_storage: Always use bpf_mem_alloc in PREEMPT_RT
+e1d3422c95f0 rhashtable: Fix potential deadlock by moving schedule_work outside lock
+96ea081ed52b bpf: Reject struct_ops registration that uses module ptr and the module btf_id is missing
+58f038e6d209 bpf: Cancel the running bpf_timer through kworker for PREEMPT_RT
+b9784e5cde1f memory: tegra20-emc: fix an OF node reference bug in tegra_emc_find_node_by_ram_code()
+81468c4058a6 RDMA/rtrs: Add missing deinit() call
+d0f98e14c010 mailbox: th1520: Fix a NULL vs IS_ERR() bug
+a67f75c2b5ec media: uvcvideo: Fix deadlock during uvc_probe
+2d2da5a4c1b4 PCI: rcar-ep: Fix incorrect variable used when calling devm_request_mem_region()
+352fafe97784 firewire: test: Fix potential null dereference in firewire kunit test
+367a9bffabe0 nilfs2: protect access to buffers with no active references
+e128f82f7006 driver core: class: Fix wild pointer dereferences in API class_dev_iter_next()
+26c0a2d93af5 LoongArch: Fix warnings during S3 suspend
+3ab8c5ed4f84 rtc: pcf85063: fix potential OOB write in PCF85063 NVMEM read
+bdb0ca39e0ac ubifs: skip dumping tnc tree when zroot is null
+92e599577377 net: hns3: fix oops when unload drivers paralleling
+9a5b021cb818 idpf: convert workqueues to unbound
+79d458c13056 rxrpc, afs: Fix peer hash locking vs RCU callback
+e9087e828827 Bluetooth: btusb: mediatek: Add locks for usb_driver_claim_interface()
+8c670bdfa58e tcp: correct handling of extreme memory squeeze
+3595599fa836 net: xdp: Disallow attaching device-bound programs in generic mode
+2c2ebb2b4957 net: ravb: Fix missing rtnl lock in suspend/resume path
+90b7f2961798 net: usb: rtl8150: enable basic endpoint checking
+c86b000782da mptcp: consolidate suboption status
+1bb0d1348546 mptcp: pm: only set fullmesh for subflow endp
+619af16b3b57 mptcp: handle fastopen disconnect correctly
+7378aeb664e5 remoteproc: core: Fix ida_free call while not allocated
+c225d006a319 usb: gadget: f_tcm: Don't free command immediately
+ee1b5046d5cd staging: media: max96712: fix kernel oops when removing module
+4a32a38cb68f ASoC: da7213: Initialize the mutex
