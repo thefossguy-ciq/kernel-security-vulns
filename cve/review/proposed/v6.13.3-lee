@@ -1,0 +1,28 @@
+569922b82ca6 ASoC: SOF: Intel: hda-dai: Ensure DAI widget is valid during params
+301c26a018ac ASoC: soc-pcm: don't use soc_pcm_ret() on .prepare callback
+60f030f7418d iommu/vt-d: Avoid use of NULL after WARN_ON_ONCE
+b06f38899450 tty: xilinx_uartps: split sysrq handling
+98a5cfd23209 x86/xen: fix xen_hypercall_hvm() to not clobber %rbx
+647cef20e649 pfifo_tail_enqueue: Drop new packet when sch->limit == 0 [auto: cve already created]
+638ba5089324 netem: Update sch->q.qlen before qdisc_tree_reduce_backlog() [auto: cve already created]
+7c0be4ead1f8 block: mark GFP_NOIO around sysfs ->store()
+1e7381f3617d KVM: Explicitly verify target vCPU is online in kvm_get_vcpu()
+a978864653e4 Revert "drm/amd/display: Use HW lock mgr for PSR1"
+e24b15d4704d clk: mmp2: call pm_genpd_init() only after genpd.name is set
+96fe1a7ee477 clk: qcom: gcc-sm6350: Add missing parent_map for two clocks
+d4cdb196f182 clk: qcom: dispcc-sm6350: Add missing parent_map for a clock
+b13ee668e828 block: don't revert iter for -EIOCBQUEUED
+b628510397b5 firmware: qcom: scm: Fix missing read barrier in qcom_scm_get_tzmem_pool()
+b1049f2d6869 PCI: Avoid putting some root ports into D3 on TUXEDO Sirius Gen1
+53dac345395c hrtimers: Force migrate away hrtimers queued after CPUHP_AP_HRTIMERS_DYING
+c4b7779abc66 media: nuvoton: Fix an error check in npcm_video_ece_init()
+a9ea1a3d88b7 media: uvcvideo: Fix crash during unbind if gpio unit is in use
+221cd51efe45 media: uvcvideo: Remove dangling pointers
+d1366e74342e mm/compaction: fix UBSAN shift-out-of-bounds warning
+ce9ff21ea89d vfio/platform: check the bounds of read/write syscalls [auto: cve already created]
+6d04d2b554b1 misc: misc_minor_alloc to use ida for all dynamic/misc dynamic minors
+fd53aa40e65f ptp: Ensure info->enable callback is always set
+868c9037df62 timers/migration: Fix off-by-one root mis-connection
+62c552070a98 md/md-linear: Fix a NULL vs IS_ERR() bug in linear_add()
+62d9921037ca fs/netfs/read_pgpriv2: skip folio queues without `marks3`
+c66c7920897b fs/netfs/read_collect: fix crash due to uninitialized `prev` variable
