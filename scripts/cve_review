@@ -183,25 +183,25 @@ for h in ${SHAS[@]}; do
     print_blue "Processing ${TAG} fix: ${count} of ${NOSHAS} (%${percentage})"
 
     BADMATCHES="\
-call[-\s_]*trace|\
-dead[-\s_]*lock|lock[-\s_]*up|\
-nul[l]*[-\s_]*p[a-z]*[-\s_]*deref[a-z]*|nul[l]*[-\s_]*p[a-z]*|null|deref[a-z]*|\
-div[-\s_a-z]*by[-\s_]*zero|divi[-\s_a-z]*by[-\s_]*0|\
-double[-\s_]*free|\
-kernel[-\s_]*bug|\
-buffer[-\s_]*overflow|over[-\s_]*run|over[-\s_]*flow|\
-out[-\s_]*of[-\s_]*bound[s]*|bound[s]*|\
-use[-\s_]*after[-\s_]*free|use[-\s_]*after|after[-\s_]*free|\
+call[-\s_\n]*trace|\
+dead[-\s_\n]*lock|lock[-\s_\n]*up|\
+nul[l]*[-\s_\n]*p[a-z]*[-\s_\n]*deref[a-z]*|nul[l]*[-\s_\n]*p[a-z]*|null|deref[a-z]*|\
+div[-\s_\na-z]*by[-\s_\n]*zero|divi[-\s_\na-z]*by[-\s_\n]*0|\
+double[-\s_\n]*free|\
+kernel[-\s_\n]*bug|\
+buffer[-\s_\n]*overflow|over[-\s_\n]*run|over[-\s_\n]*flow|\
+out[-\s_\n]*of[-\s_\n]*bound[s]*|bound[s]*|\
+use[-\s_\n]*after[-\s_\n]*free|use[-\s_\n]*after|after[-\s_\n]*free|\
 circular|\
 crash[a-z]*|\
 denial|\
 dos|\
 exploit|\
-[-\s_]fault|\
-kernel[-\s_]hang|system[-\s_]hang|[-\s_]hang[a-z]*|hung|\
-info[-\s_a-z].*leak|leak|\
+[-\s_\n]fault|\
+kernel[-\s_\n]hang|system[-\s_\n]hang|[-\s_\n]hang[a-z]*|hung|\
+info[-\s_\na-z].*leak|leak|\
 malicious[a-z]*|\
-kernel[-\s_]*memory|memory|\
+kernel[-\s_\n]*memory|memory|\
 oob|\
 oops|\
 panic|\
@@ -223,9 +223,9 @@ WARN[A-Z]*\
     GOODMATCHES="\
 Alex Hung|\
 bogus|\
-false[-\s_]*alarm|false[-\s_]*positive|\
+false[-\s_\n]*alarm|false[-\s_\n]*positive|\
 integer|\
-locking[-\s_]dependency[-\s_]detected\
+locking[-\s_\n]dependency[-\s_\n]detected\
 selftests|\
 theory[a-z]*|theoretical[a-z]*|\
 ^ tools/.*|\
@@ -238,12 +238,12 @@ theory[a-z]*|theoretical[a-z]*|\
 
     git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
 
-    cat ${commitmsgfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Pi "${GOODMATCHES}" > ${commitfile0} || true
+    cat ${commitmsgfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Piz "${GOODMATCHES}" > ${commitfile0} || true
     if [ ! -s ${commitfile0} ]; then
         cat ${commitmsgfile} > ${commitfile0}
     fi
 
-    cat ${commitfile0} | grep -C99999 --color=always -Pi "${BADMATCHES}" > ${commitfile} || true
+    cat ${commitfile0} | grep -C99999 --color=always -Piz "${BADMATCHES}" > ${commitfile} || true
     if [ ! -s ${commitfile} ]; then
         cat ${commitfile0} > ${commitfile}
     fi
