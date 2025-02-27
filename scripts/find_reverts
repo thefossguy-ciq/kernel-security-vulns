@@ -37,7 +37,7 @@ DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
 
 # FIXME: move to local directory, don't have it just be in Greg's
-ID_IS_REVERTED="${DIR}/../tools/verhaal/id_is_reverted"
+ID_IS_REVERTED="${DIR}/../tools/verhaal/scripts/id_is_reverted"
 if [[ ! -x "${ID_IS_REVERTED}" ]] ; then
 	echo "${txtred}Error:${txtrst} the program ${txtblu}${ID_IS_REVERTED}${txtrst} must be present and executable."
 	exit 1

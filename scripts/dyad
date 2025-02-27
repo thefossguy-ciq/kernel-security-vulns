@@ -503,6 +503,16 @@ else
 	exit 1
 fi
 
+if [[ -x "${DIR}/../tools/verhaal/scripts/id_is_revert" ]]; then
+	ID_IS_REVERT="${DIR}/../tools/verhaal/scripts/id_is_revert"
+elif [[ -x "${DIR}/tools/verhaal/scripts/id_is_revert" ]]; then
+	ID_IS_REVERT="${DIR}/tools/verhaal/scripts/id_is_revert"
+else
+	echo "${txtred}ERROR: no version of ${txtcyn}id_is_revert${txtrst} found"
+	echo "	Usually this is in the verhaal scripts directory, please be sure you have it somewhere for us to use"
+	exit 1
+fi
+
 git_cmd="git --git-dir=${KERNEL_TREE}/.git"
 
 if [[ ! -d "${KERNEL_TREE}" ]] || [[ ! -d "${COMMIT_TREE}" ]]; then
@@ -654,6 +664,18 @@ else
 			fi
 			v+=("${full_id}")
 		done <<<"${vuln_lines}"
+	else
+		# We do NOT have a fixes line, so let's try one last thing,
+		# let's ask the database if this is a revert, and if so, what
+		# commit it is reverting as we can imply that a revert is
+		# actually "fixing" the original commit.
+		#
+		temp=$(${ID_IS_REVERT} ${GIT_SHA_FULL})
+		if [[ "${temp}" != "" ]]; then
+			# Found a revert!
+			dbg "sha is a revert of ${temp}"
+			v+=("${temp}")
+		fi
 	fi
 fi
 
