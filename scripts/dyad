@@ -701,7 +701,7 @@ for fixed_entry in "${fixed_set[@]}" ; do
 		# it is needed for the git vulnerable information (small window
 		# of where things went wrong).
 		if [[ "${fixed_version}" == "${vuln_version}" ]]; then
-			dbg "${fixed_version} == ${vuln_version} save it"
+			dbg "		${fixed_version} == ${vuln_version} save it"
 			create_fixed_pair "${vuln_entry}" "${fixed_entry}"
 			create=1
 			break
@@ -713,6 +713,7 @@ for fixed_entry in "${fixed_set[@]}" ; do
 		# If these are both mainline commits then create a matching pair
 		if [[ "${vuln_version_mainline}" == "1" ]] ; then
 			if [[ "${fixed_version_mainline}" == "1" ]]; then
+				dbg "	${vuln_version} and ${fixed_version} are both mainline, save it"
 				create_fixed_pair "${vuln_entry}" "${fixed_entry}"
 				create=1
 				break
@@ -723,6 +724,7 @@ for fixed_entry in "${fixed_set[@]}" ; do
 		kernel_version_match "${vuln_version}" "${fixed_version}"
 		match=$?
 		if [[ "${match}" == "1" ]] ; then
+			dbg "		${vuln_version} and ${fixed_version} are same major release, save it"
 			create_fixed_pair "${vuln_entry}" "${fixed_entry}"
 			create=1
 			break
