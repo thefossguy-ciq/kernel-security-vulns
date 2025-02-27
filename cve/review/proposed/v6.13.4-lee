@@ -1,0 +1,7 @@
+02458fbfaa01 gpu: host1x: Fix a use of uninitialized mutex
+e4b6b665df81 fbdev: omap: use threaded IRQ for LCD DMA
+8c8ecc98f5c6 batman-adv: Drop unmanaged ELP metric worker
+da1668997052 usb: gadget: f_midi: fix MIDI Streaming descriptor lengths
+e563b01208f4 usb: cdc-acm: Check control transfer buffer size before access [auto: cve already created]
+f7d07cd4f77d ptp: vmclock: Set driver data before its usage
+21f1435b1e6b drm/v3d: Stop active perfmon if it is being destroyed
