@@ -194,7 +194,7 @@ out[-\s_\n]*of[-\s_\n]*bound[s]*|bound[s]*|\
 use[-\s_\n]*after[-\s_\n]*free|use[-\s_\n]*after|after[-\s_\n]*free|\
 circular|\
 crash[a-z]*|\
-denial|\
+denial[-\s_\n]*of[-\s_\n]*service|denial\
 dos|\
 exploit|\
 [-\s_\n]fault|\
@@ -222,13 +222,16 @@ WARN[A-Z]*\
 "
     GOODMATCHES="\
 Alex Hung|\
+bad unlock balance detected!|\
 bogus|\
 false[-\s_\n]*alarm|false[-\s_\n]*positive|\
 integer|\
-locking[-\s_\n]dependency[-\s_\n]detected\
-selftests|\
+locking dependency detected|\
+Nested lock was not taken|\
 theory[a-z]*|theoretical[a-z]*|\
-^ tools/.*|\
+ tools/.* \| .*|\
+selftests|\
+unmet direct dependencies detected|\
 "
 
     mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
