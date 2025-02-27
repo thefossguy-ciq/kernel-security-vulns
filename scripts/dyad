@@ -147,46 +147,6 @@ get_kernel_version_type() {
 }
 
 #############################
-# kernel_version_is_rc()
-#   Check if a kernel version is a release candidate
-#
-# Arguments:
-#   $1: Kernel version string to check
-#
-# Returns:
-#   1 if version is a release candidate, 0 otherwise
-#
-# Example:
-#   kernel_version_is_rc "6.7-rc1"  # Returns: 1
-#   kernel_version_is_rc "6.7"	  # Returns: 0
-#############################
-kernel_version_is_rc() {
-	local TYPE
-	TYPE=$(get_kernel_version_type "$1")
-	[[ "${TYPE}" == "rc" ]] && return 1 || return 0
-}
-
-#############################
-# kernel_version_is_queue()
-#   Check if a kernel version is a queue version
-#
-# Arguments:
-#   $1: Kernel version string to check
-#
-# Returns:
-#   1 if version is a queue version, 0 otherwise
-#
-# Example:
-#   kernel_version_is_queue "6.7-queue"  # Returns: 1
-#   kernel_version_is_queue "6.7"		# Returns: 0
-#############################
-kernel_version_is_queue() {
-	local TYPE
-	TYPE=$(get_kernel_version_type "$1")
-	[[ "${TYPE}" == "queue" ]] && return 1 || return 0
-}
-
-#############################
 # kernel_version_is_mainline()
 #   Check if a kernel version is mainline
 #   Note: Both pure mainline and rc versions are considered mainline
@@ -286,91 +246,6 @@ create_fixed_pair()
 }
 
 #############################
-# find_stable_git_id()
-#	Given a git id and a stable kernel version, find the git id in that
-#	stable kernel branch that corresponds with the commit that added the
-#	specific git id to that stable branch.
-# arguments:
-#	"git id"
-#	"stable kernel version"
-# returns:
-#	"git id of commit in the stable branch" or "" if not found
-# assumes:
-#	KERNEL_TREE points to a valid Linux stable git tree
-#############################
-find_stable_git_id()
-{
-	#>&2 echo "find_stable_git_id: \"${1}\" \"${2}\""
-	local og_git=${1}
-	local fixed_version=${2}
-
-	# shellcheck disable=SC2206
-	local fixed_array=(${fixed_version//./ })
-	local fixed_major=${fixed_array[0]}
-	local fixed_minor
-	if [[ "${fixed_major}" == "2" ]]; then
-		# Ugh, 2.6.x.y, let's move everything left by one
-		fixed_major="2.6"
-		fixed_minor=${fixed_array[2]}
-	else
-		fixed_minor=${fixed_array[1]}
-	fi
-
-	local stable_git
-	stable_git=$($git_cmd log -1 --abbrev=40 --oneline --grep="${og_git}" "v${fixed_major}.${fixed_minor}..v${fixed_version}" | awk '{print $1}')
-	#>&2 echo "find_stable_git_id: first try: stable_git=${stable_git}"
-
-	if [[ "${stable_git}" == "" ]]; then
-		# oh no, not found as part of a commit in this version!
-		# One case could be where the commit itself is in this
-		# branch/version, and if so, just return it, as it is a valid
-		# commit that we need to track.  This happens when commits are
-		# "only" in stable branches for whatever reason (i.e. no
-		# corresponding commit in a mainline branch.)
-		# Verify this by seeing if the commit is actually in this
-		# version by asking git for the information
-		local local_version
-		local_version=$($git_cmd describe --contains "${og_git}" | grep "${fixed_version}")
-		if [[ "${local_version}" != "" ]]; then
-			stable_git=${og_git}
-		fi
-		#>&2 echo "find_stable_git_id: second try: stable_git=${stable_git}"
-	fi
-
-	echo "${stable_git}"
-}
-
-#############################
-# find_git_id()
-#	Given a git id, and a kernel version, find the git id for that specific
-#	branch that corrisponds with it.  This is used to find where a commit
-#	is backported to, and find the actual commit.  It uses
-#	find_stable_git_id() to find it in a stable branch, but if this is a
-#	mainline branch, just return the kernel version passed to us.
-# arguments:
-#	"git id"
-#	"kernel version"
-# returns:
-#	"git id where the commit is in the kernel version"
-# assumes:
-#	KERNEL_TREE points to a valid Linux stable git tree
-#############################
-find_git_id()
-{
-	local id=${1}
-	local fixed_version=${2}
-
-	kernel_version_is_mainline "${fixed_version}"
-	local is_mainline=$?
-	local git_id=${id}
-
-	if [[ "${is_mainline}" == "0" ]]; then
-		git_id=$(find_stable_git_id "${id}" "${fixed_version}")
-	fi
-	echo "${git_id}"
-}
-
-#############################
 # git_full_id()
 #	returns the "FULL" sha1 of the short git id passed in
 # arguments
@@ -431,28 +306,6 @@ git_short_id()
 }
 
 #############################
-# kernel_id_info()
-#	prints a bunch of debugging information about the kernel version passed in.
-# arguments
-#	"kernel version"
-#############################
-kernel_id_info() {
-	local kernel=$1
-	local type
-	type=$(get_kernel_version_type "${kernel}")
-
-	local dbg_string="${kernel} is "
-	case "${type}" in
-		"queue")   dbg_string+="queue ";;
-		"rc")	  dbg_string+="-rc and mainline";;
-		"mainline") dbg_string+="mainline";;
-		"stable")   dbg_string+="not mainline";;
-	esac
-
-	dbg "${dbg_string}"
-}
-
-#############################
 # kernel_greater_than()
 #	if kernel 1 is greater than kernel 2, then 1 is returned, otherwise 0
 # arguments
@@ -503,15 +356,17 @@ else
 	exit 1
 fi
 
-if [[ -x "${DIR}/../tools/verhaal/scripts/id_is_revert" ]]; then
-	ID_IS_REVERT="${DIR}/../tools/verhaal/scripts/id_is_revert"
-elif [[ -x "${DIR}/tools/verhaal/scripts/id_is_revert" ]]; then
-	ID_IS_REVERT="${DIR}/tools/verhaal/scripts/id_is_revert"
+# Find our verhaal database
+if [[ -f "${DIR}/../tools/verhaal/verhaal.db" ]]; then
+	DB="${DIR}/../tools/verhaal/verhaal.db"
+elif [[ -f "${DIR}/tools/verhaal/verhaal.db" ]]; then
+	DB="${DIR}/tools/verhaal/verhaal.db"
 else
-	echo "${txtred}ERROR: no version of ${txtcyn}id_is_revert${txtrst} found"
-	echo "	Usually this is in the verhaal scripts directory, please be sure you have it somewhere for us to use"
+	echo "${txtred}ERROR: no verhaal database file called ${txtcyn}id_is_revert${txtrst} found"
+	echo "	Usually this is in the verhaal directory, please be sure you have it somewhere for us to use"
 	exit 1
 fi
+SQL="sqlite3 ${DB}"
 
 git_cmd="git --git-dir=${KERNEL_TREE}/.git"
 
@@ -632,7 +487,7 @@ if [[ "${GIT_VULNERABLE}" != "" ]]; then
 		exit 2
 	fi
 
-	kernel=$($git_cmd describe --contains "${full_id}" | cut -f 1 -d '-' | cut -f 1 -d '~' | sed -e 's/v//g')
+	kernel=$(${SQL} "SELECT release FROM commits WHERE id='${full_id}';")
 	if [[ "${kernel}" == "" ]]; then
 		echo "ERROR: Vulnerable git id ${txtcyn}${full_id}${txtrst} is not found in any version!"
 		exit 2
@@ -640,41 +495,31 @@ if [[ "${GIT_VULNERABLE}" != "" ]]; then
 	info "	Setting original vulnerable kernel to be kernel ${txtcyn}${kernel}${txtrst} and git id ${txtcyn}${full_id}${txtrst}"
 	v+=("${full_id}")
 else
-	# Grab the full commit text, we need that to figure out what ids this commit
-	# actually fixes (if any)
-	commit_text=$($git_cmd show --no-patch --pretty=format:"%B" "${GIT_SHA_FULL}")
-
-	#dbg "commit_text=${commit_text}"
-
-	# Look in the commit text to see if there is any "Fixes:" lines
-	# if so, look them up to see what kernels they were released in.  Need to do
-	# this with the "expanded" SHA value, the short one will give us too many
-	# false-positives when it shows up in other Fixes: tags
-	vuln_lines=$(echo "${commit_text}" | grep -i "fixes:" | sed -e 's/^[ \t]*//' | sed -e 's/.*[F|f]ixes:/:/' | cut -f 2- -d ':' | sed -e 's/^[ \t]*//')
-	temp="${vuln_lines}"
-	dbg "vuln_lines=${temp}"
+	# rely on verhaal to have already parsed and fixed up the "Fixes:" lines for us
+	vuln_lines=$(${SQL} "SELECT fixes FROM commits where id='${GIT_SHA_FULL}'")
+	dbg "vuln_lines=${vuln_lines}"
 	if [[ "${vuln_lines}" != "" ]] ; then
-		# get a list of vulnerable kernels, sort them by the order in
-		# which they are in the tree, oldest first.
-		while read line; do
-			full_id=$(git_full_id "${line}")
+		# Break up our list of vulnerable kernels into an array, we
+		# will sort them later
+		for id in ${vuln_lines}; do
+			full_id=$(git_full_id "${id}")
 			if [[ "${full_id}" == "" ]]; then
-				dbg "invalid fix entry of '${line}', skipping"
+				dbg "invalid fix entry of '${id}', skipping"
 				continue
 			fi
 			v+=("${full_id}")
-		done <<<"${vuln_lines}"
+		done
 	else
 		# We do NOT have a fixes line, so let's try one last thing,
 		# let's ask the database if this is a revert, and if so, what
 		# commit it is reverting as we can imply that a revert is
 		# actually "fixing" the original commit.
 		#
-		temp=$(${ID_IS_REVERT} ${GIT_SHA_FULL})
-		if [[ "${temp}" != "" ]]; then
+		reverts=$(${SQL} "SELECT reverts FROM commits WHERE id='${GIT_SHA_FULL}';")
+		if [[ "${reverts}" != "" ]]; then
 			# Found a revert!
-			dbg "sha is a revert of ${temp}"
-			v+=("${temp}")
+			dbg "sha is a revert of ${reverts}"
+			v+=("${reverts}")
 		fi
 	fi
 fi
@@ -688,6 +533,7 @@ else
 	# We have some vulnerable kernels, let's figure out where they are
 	v_file=$(mktemp -t "${SCRIPT}".XXXX || exit 1)
 	for id in "${v[@]}"; do
+		dbg "		${id}"
 		echo "${id}" >> "${v_file}"
 	done
 	# use 'tac' as it's faster than having git do --reverse for 'git rev-list'
