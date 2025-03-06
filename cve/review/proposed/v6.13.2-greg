@@ -119,3 +119,9 @@ e1d3422c95f0 rhashtable: Fix potential deadlock by moving schedule_work outside 
 db902986dee4 erofs: fix potential return value overflow of z_erofs_shrink_scan()
 e20a70c57253 PM: hibernate: Add error handling for syscore_suspend()
 8c670bdfa58e tcp: correct handling of extreme memory squeeze
+58f038e6d209 bpf: Cancel the running bpf_timer through kworker for PREEMPT_RT
+dc3806d9eb66 drm/i915: Grab intel_display from the encoder to avoid potential oopsies
+1b9335a8000f netfilter: nf_tables: reject mismatching sum of field_len with set key length
+15589bda4683 crypto: tegra - do not transfer req when tegra init fails
+e9087e828827 Bluetooth: btusb: mediatek: Add locks for usb_driver_claim_interface()
+aa3ce3f8fafa wifi: mac80211: don't flush non-uploaded STAs
