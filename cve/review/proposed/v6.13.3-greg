@@ -65,3 +65,7 @@ e721f619e3ec iommufd: Fix struct iommu_hwpt_pgfault init and padding
 6e74e53b34b6 ata: libata-sff: Ensure that we cannot write outside the allocated buffer
 2b4c2094da6d ocfs2: handle a symlink read error correctly
 6438ef381c18 nilfs2: fix possible int overflows in nilfs_fiemap()
+b1049f2d6869 PCI: Avoid putting some root ports into D3 on TUXEDO Sirius Gen1
+b628510397b5 firmware: qcom: scm: Fix missing read barrier in qcom_scm_get_tzmem_pool()
+b13ee668e828 block: don't revert iter for -EIOCBQUEUED
+60f030f7418d iommu/vt-d: Avoid use of NULL after WARN_ON_ONCE
