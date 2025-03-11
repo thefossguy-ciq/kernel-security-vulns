@@ -8,18 +8,16 @@
 # Usage
 #   voting_results [ v6.7.1..v6.7.2 ]
 #
-# * Conducts 3 way voting system between the present reviewers
-#   - If reviewers change, future work will involve making this more generic
-#
-# Requires:
-#  * Remember to change the user-specific variables a few lines down
-#  * Expected to be executed from inside a kernel Git repository
+# * Conducts voting system between the present reviewers
 
 # set -x                       # Uncomment to enable debugging
 
 # -------   ACTION REQUIRED   -------
 # Change these to suit your own setup
 STABLEREMOTE=stable     # Whatever you called your Stable remote
+
+# Define primary reviewers - other reviewers are determined dynamically
+declare -a PRIMARY_REVIEWERS=("greg" "lee" "sasha")
 
 # Define colors if we're in a terminal
 if [[ -t 1 ]]; then
@@ -34,6 +32,20 @@ fi
 
 print_red() { echo -e "${RED}$*${RESET}"; }
 print_blue() { echo -e "${BLUE}$*${RESET}"; }
+
+function usage() {
+    echo "Usage: $(basename $0) [RANGE]"
+    echo
+    echo "Conducts voting system between reviewers for the specified Git range"
+    echo
+    echo "Arguments:"
+    echo "  RANGE           Git range in the format 'v6.7.1..v6.7.2'"
+    echo "  --help, -h      Display this help message and exit"
+    echo
+    echo "Example:"
+    echo "  $(basename $0) v6.7.1..v6.7.2"
+    exit 0
+}
 
 function print_annotations()
 {
@@ -53,6 +65,9 @@ while [ $# -gt 0 ]; do
         *..*)
             RANGE=${1}
             ;;
+        --help|-h)
+            usage
+            ;;
         *)
             print_red "Unrecognised argument: ${1}"
             usage
@@ -63,7 +78,7 @@ done
 
 if [ "${RANGE}" == "" ]; then
     print_red "Please supply a Git range (e.g v6.7.1..v6.7.2)"
-    exit
+    usage
 fi
 
 if [ ! -e .git ] || [ ! -f MAINTAINERS ]; then
@@ -78,28 +93,84 @@ TOP=${RANGE#*..}
 BOTTOM=${RANGE%..*}
 SCRIPTDIR=$(dirname ${0})
 PROPOSED=${SCRIPTDIR}/../cve/review/proposed
-REVIEWFILES=$(ls ${PROPOSED} | grep -E "${TOP}-(lee|sasha|greg|ruiqi)$")
-ANNOTATEDFILES=$(ls ${PROPOSED} | grep -E "${TOP}.*-annotated-(lee|sasha|greg|ruiqi)$")
 
-CVE=()
-ALL=()
+# Determine all reviewers dynamically by looking at review files
+declare -a REVIEWERS=()
+if [ -d "${PROPOSED}" ]; then
+    # Extract reviewer names from review filenames
+    for file in $(ls ${PROPOSED} | grep -E "${TOP}-[a-z]+$"); do
+        reviewer=${file#*-}
+        # Check if reviewer is not already in array
+        if [[ ! " ${REVIEWERS[*]} " =~ " ${reviewer} " ]]; then
+            REVIEWERS+=("$reviewer")
+        fi
+    done
+else
+    print_red "Cannot find review directory: ${PROPOSED}"
+    exit 1
+fi
 
-GREGLEESASHA=()
-GREGLEEGUEST=()
-GREGSASHAGUEST=()
-LEESASHAGUEST=()
+# If no reviewers found, use primary reviewers as fallback
+if [ ${#REVIEWERS[@]} -eq 0 ]; then
+    print_red "No reviewers found in review files, using only primary reviewers"
+    REVIEWERS=("${PRIMARY_REVIEWERS[@]}")
+fi
 
-GREGLEE=()
-GREGSASHA=()
-GREGGUEST=()
-LEESASHA=()
-LEEGUEST=()
-SASHAGUEST=()
+# Create reviewer pattern for grep
+REVIEWER_PATTERN=$(IFS="|"; echo "${REVIEWERS[*]}")
+REVIEWFILES=$(ls ${PROPOSED} | grep -E "${TOP}-(${REVIEWER_PATTERN})$")
+ANNOTATEDFILES=$(ls ${PROPOSED} | grep -E "${TOP}.*-annotated-(${REVIEWER_PATTERN})$")
 
-GREG=()
-LEE=()
-SASHA=()
-GUEST=()
+# Identify guest reviewers - anyone who is not a primary reviewer
+declare -a GUEST_REVIEWERS=()
+for reviewer in "${REVIEWERS[@]}"; do
+    is_primary=0
+    for primary in "${PRIMARY_REVIEWERS[@]}"; do
+        if [ "$reviewer" = "$primary" ]; then
+            is_primary=1
+            break
+        fi
+    done
+
+    if [ $is_primary -eq 0 ]; then
+        GUEST_REVIEWERS+=("$reviewer")
+    fi
+done
+
+# Display found reviewers for debugging
+print_blue "Primary reviewers: ${PRIMARY_REVIEWERS[*]}"
+print_blue "All reviewers found: ${REVIEWERS[*]}"
+if [ ${#GUEST_REVIEWERS[@]} -gt 0 ]; then
+    print_blue "Guest reviewers: ${GUEST_REVIEWERS[*]}"
+else
+    print_blue "No guest reviewers found"
+fi
+
+# Initialize arrays for storing commits by vote pattern
+declare -A commits_by_pattern
+commits_by_pattern["cve"]=""
+commits_by_pattern["all"]=""
+
+# Initialize vote patterns
+for reviewer in "${REVIEWERS[@]}"; do
+    commits_by_pattern["$reviewer"]=""
+done
+
+# Two-reviewer combinations for primary reviewers
+for ((i=0; i<${#PRIMARY_REVIEWERS[@]}; i++)); do
+    for ((j=i+1; j<${#PRIMARY_REVIEWERS[@]}; j++)); do
+        pattern="${PRIMARY_REVIEWERS[i]},${PRIMARY_REVIEWERS[j]}"
+        commits_by_pattern["$pattern"]=""
+    done
+done
+
+# Combinations with guest reviewers
+for reviewer in "${PRIMARY_REVIEWERS[@]}"; do
+    for guest in "${GUEST_REVIEWERS[@]}"; do
+        pattern="${reviewer},${guest}"
+        commits_by_pattern["$pattern"]=""
+    done
+done
 
 for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     mainlinelongsha=$(git --no-pager log -n1 ${stablesha} | grep -i upstream | grep -oE "[a-f0-9]{40,}") || true
@@ -112,175 +183,149 @@ for stablesha in $(git log --format=%h ${BOTTOM}..${TOP}); do
     oneline=$(git --no-pager log --format="%h %s" -n1 ${mainlinelongsha})
     subject=$(echo ${oneline} | cut -d' ' -f 2-)
     mainlinesha=$(echo ${oneline} | cut -d' ' -f 1)
-    cve=0; greg=0; lee=0; sasha=0; guest=0; votes=0
 
+    # Track votes using associative array
+    declare -A reviewer_votes
+    total_votes=0
+
+    for reviewer in "${REVIEWERS[@]}"; do
+        reviewer_votes["$reviewer"]=0
+    done
+
+    # Count votes
     for f in ${REVIEWFILES}; do
-        USER=${f#*-}
-
+        reviewer=${f#*-}
         if grep -qF "${subject}" ${PROPOSED}/${f}; then
-            case ${USER} in
-                greg)
-                    greg=1
-                    ;;
-                lee)
-                    lee=1
-                    ;;
-                sasha)
-                    sasha=1
-                    ;;
-                ruiqi)
-                    guest=1
-                    ;;
-                *)
-                    echo "Unexpected user '${USER}' - exiting"
-                    exit 1
-            esac
-            votes=$((votes + 1))
+            reviewer_votes["$reviewer"]=1
+            total_votes=$((total_votes + 1))
         fi
     done
 
-    if [ ${votes} == 0 ]; then
+    # Skip if no votes
+    if [ ${total_votes} -eq 0 ]; then
         continue
     fi
 
+    # Check for CVE
     found=$(${SCRIPTDIR}/cve_search ${mainlinesha})
     found_result=$?
     if [ "${found_result}" == "0" ]; then
-        cve=1
+        commits_by_pattern["cve"]="${commits_by_pattern["cve"]}
+${oneline}"
+        continue
     fi
 
-    if [ ${cve} == 1 ]; then
-         CVE+=("${oneline}")
-    elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
-        ALL+=("${oneline}")
-    elif [ ${greg} == 1 -a ${lee} == 1 -a ${sasha} == 1 ]; then
-        GREGLEESASHA+=("${oneline}")
-    elif [ ${greg} == 1 -a ${lee} == 1 -a ${guest} == 1 ]; then
-        GREGLEEGUEST+=("${oneline}")
-    elif [ ${greg} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
-        GREGSASHAGUEST+=("${oneline}")
-    elif [ ${lee} == 1 -a ${sasha} == 1 -a ${guest} == 1 ]; then
-        LEESASHAGUEST+=("${oneline}")
-    elif [ ${greg} == 1 -a ${lee} == 1 ]; then
-        GREGLEE+=("${oneline}")
-    elif [ ${greg} == 1 -a ${sasha} == 1 ]; then
-        GREGSASHA+=("${oneline}")
-    elif [ ${greg} == 1 -a ${guest} == 1 ]; then
-        GREGGUEST+=("${oneline}")
-    elif [ ${lee} == 1 -a ${sasha} == 1 ]; then
-        LEESASHA+=("${oneline}")
-    elif [ ${lee} == 1 -a ${guest} == 1 ]; then
-        LEEGUEST+=("${oneline}")
-    elif [ ${sasha} == 1 -a ${guest} == 1 ]; then
-        SASHAGUEST+=("${oneline}")
-    elif [ ${greg} == 1 ]; then
-        GREG+=("${oneline}")
-    elif [ ${lee} == 1 ]; then
-        LEE+=("${oneline}")
-    elif [ ${sasha} == 1 ]; then
-        SASHA+=("${oneline}")
-    elif [ ${guest} == 1 ]; then
-        GUEST+=("${oneline}")
+    # Check for all reviewers agreeing
+    all_agreed=1
+    for reviewer in "${REVIEWERS[@]}"; do
+        if [ ${reviewer_votes["$reviewer"]} -eq 0 ]; then
+            all_agreed=0
+            break
+        fi
+    done
+
+    if [ ${all_agreed} -eq 1 ]; then
+        commits_by_pattern["all"]="${commits_by_pattern["all"]}
+${oneline}"
+        continue
+    fi
+
+    # Generate vote pattern string and store commit
+    if [ ${total_votes} -eq 1 ]; then
+        # Single reviewer
+        for reviewer in "${REVIEWERS[@]}"; do
+            if [ ${reviewer_votes["$reviewer"]} -eq 1 ]; then
+                commits_by_pattern["$reviewer"]="${commits_by_pattern["$reviewer"]}
+${oneline}"
+            fi
+        done
+    else
+        # Check two-reviewer combinations
+        for ((i=0; i<${#REVIEWERS[@]}; i++)); do
+            for ((j=i+1; j<${#REVIEWERS[@]}; j++)); do
+                if [ ${reviewer_votes[${REVIEWERS[i]}]} -eq 1 ] && [ ${reviewer_votes[${REVIEWERS[j]}]} -eq 1 ]; then
+                    pattern="${REVIEWERS[i]},${REVIEWERS[j]}"
+                    commits_by_pattern["$pattern"]="${commits_by_pattern["$pattern"]}
+${oneline}"
+                fi
+            done
+        done
     fi
 
     echo "${oneline}"
-    echo -e "\tCVE:\t${cve}\tGreg:\t${greg}\tLee:\t${lee}\tSasha:\t${sasha}\tGuest:\t${guest}"
+    echo -ne "\tCVE:\t${found_result}\t"
+    for reviewer in "${REVIEWERS[@]}"; do
+        echo -ne "${reviewer^}:\t${reviewer_votes[$reviewer]}\t"
+    done
+    echo
 done
 
+# Print results
 print_blue "\nAlready assigned a CVE"
-for c in "${CVE[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
+echo "${commits_by_pattern["cve"]}" | while read -r commit; do
+    if [ ! -z "$commit" ]; then
+        echo "  $commit"
+        print_annotations "$commit"
+    fi
 done
 
 print_blue "\nEveryone agrees"
-for c in "${ALL[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
+echo "${commits_by_pattern["all"]}" | while read -r commit; do
+    if [ ! -z "$commit" ]; then
+        echo "  $commit"
+        print_annotations "$commit"
+    fi
 done
 
-print_blue "\nGreg, Lee and Sasha agree"
-for c in "${GREGLEESASHA[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
+# Print primary reviewer combinations
+for ((i=0; i<${#PRIMARY_REVIEWERS[@]}; i++)); do
+    for ((j=i+1; j<${#PRIMARY_REVIEWERS[@]}; j++)); do
+        pattern="${PRIMARY_REVIEWERS[i]},${PRIMARY_REVIEWERS[j]}"
+        print_blue "\n${PRIMARY_REVIEWERS[i]^} and ${PRIMARY_REVIEWERS[j]^} agree"
+        echo "${commits_by_pattern["$pattern"]}" | while read -r commit; do
+            if [ ! -z "$commit" ]; then
+                echo "  $commit"
+                print_annotations "$commit"
+            fi
+        done
+    done
 done
 
-print_blue "\nGreg and Lee agree"
-for c in "${GREGLEE[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nGreg and Sasha agree"
-for c in "${GREGSASHA[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nLee and Sasha agree"
-for c in "${LEESASHA[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nGreg, Lee and Guest agree"
-for c in "${GREGLEEGUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nGreg, Sasha and Guest agree"
-for c in "${GREGSASHAGUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nLee, Sasha and Guest agree"
-for c in "${LEESASHAGUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nGreg only"
-for c in "${GREG[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nLee only"
-for c in "${LEE[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nSasha only"
-for c in "${SASHA[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
+# Print single primary reviewer results
+for reviewer in "${PRIMARY_REVIEWERS[@]}"; do
+    print_blue "\n${reviewer^} only"
+    echo "${commits_by_pattern["$reviewer"]}" | while read -r commit; do
+        if [ ! -z "$commit" ]; then
+            echo "  $commit"
+            print_annotations "$commit"
+        fi
+    done
 done
 
 print_blue "\n------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------"
 
-print_blue "\nGreg and Guest agree"
-for c in "${GREGGUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
+# Print combinations with guest reviewers
+for reviewer in "${PRIMARY_REVIEWERS[@]}"; do
+    for guest in "${GUEST_REVIEWERS[@]}"; do
+        pattern="${reviewer},${guest}"
+        print_blue "\n${reviewer^} and guest (${guest^}) agree"
+        echo "${commits_by_pattern["$pattern"]}" | while read -r commit; do
+            if [ ! -z "$commit" ]; then
+                echo "  $commit"
+                print_annotations "$commit"
+            fi
+        done
+    done
 done
 
-print_blue "\nLee and Guest agree"
-for c in "${LEEGUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nSasha and Guest agree"
-for c in "${SASHAGUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
-done
-
-print_blue "\nGuest only"
-for c in "${GUEST[@]}"; do
-    echo "  ${c}"
-    print_annotations "${c}"
+# Print guest-only results - consolidated into a single section
+print_blue "\nGuest-only results"
+for guest in "${GUEST_REVIEWERS[@]}"; do
+    print_blue "  ${guest^}:"
+    echo "${commits_by_pattern["$guest"]}" | while read -r commit; do
+        if [ ! -z "$commit" ]; then
+            echo "    $commit"
+            print_annotations "$commit"
+        fi
+    done
 done
