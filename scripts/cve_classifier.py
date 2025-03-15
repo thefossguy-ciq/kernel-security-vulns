@@ -24,6 +24,14 @@ import sys
 from openai import OpenAI
 import hashlib
 import re
+import time
+
+# Try to import Anthropic SDK - will be used if available
+try:
+    import anthropic
+except ImportError:
+    anthropic = None
+    logging.warning("Anthropic SDK not found. Will use LangChain wrapper for Claude API.")
 
 class BaseLLM(ABC):
     @abstractmethod
@@ -31,16 +39,139 @@ class BaseLLM(ABC):
         pass
 
 class ClaudeLLM(BaseLLM):
-    def __init__(self, model: str = "claude-3-sonnet-20240229", temperature: float = 0):
+    def __init__(self, model: str = "claude-3-7-sonnet-20250219", temperature: float = 0, thinking_enabled: bool = False, thinking_budget: int = 0, max_tokens: int = 4000, debug_logging: bool = False):
+        """Initialize Claude LLM
+
+        Args:
+            model: The Claude model to use
+            temperature: Controls randomness in responses
+            thinking_enabled: Not currently supported for Claude 3.7
+            thinking_budget: Not currently supported for Claude 3.7
+            max_tokens: Maximum tokens for the response
+            debug_logging: Enable detailed debug logging
+        """
+        # Store the user's desired temperature
+        self.user_temperature = temperature
+        self.debug_logging = debug_logging
+
+        # Note: Claude 3.7 does not support the thinking feature in the way we previously handled it
+        # We keep these parameters for backward compatibility with existing code
+        self.thinking_enabled = False  # Force to False as it's not supported
+        self.thinking_budget = 0  # Not used
+
         self.llm = ChatAnthropic(
             model=model,
             temperature=temperature,
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
         )
+        self.model = model
+        # Set max_tokens
+        self.max_tokens = max_tokens
+
+        # Create direct client for more controlled access
+        try:
+            from anthropic import Anthropic
+            self.direct_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        except ImportError:
+            self.direct_client = None
+            if self.debug_logging:
+                logging.warning("Could not import Anthropic SDK. Will use langchain wrapper only.")
 
     def invoke(self, prompt: str) -> str:
-        response = self.llm.invoke(prompt)
-        return response.content
+        """Invoke Claude with extended thinking if enabled"""
+        try:
+            # If thinking is enabled and direct client is available, use it
+            if self.thinking_enabled and self.direct_client:
+                try:
+                    # Use direct Anthropic client for more control
+                    message = self.direct_client.messages.create(
+                        model=self.model,
+                        max_tokens=self.max_tokens,
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=1.0,  # Must be 1.0 with thinking
+                        system="You are a security expert analyzing kernel commits to detect security vulnerabilities.",
+                    )
+
+                    # Extract the response content text
+                    response_text = ""
+
+                    # Process the content blocks
+                    for block in message.content:
+                        if block.type == "text":
+                            response_text += block.text
+
+                    return response_text
+
+                except Exception as e:
+                    if self.debug_logging:
+                        logging.warning(f"Direct client failed, falling back to langchain: {e}")
+                    # Fall back to langchain wrapper
+
+            # If direct client failed or not available, use langchain wrapper
+            if self.thinking_enabled:
+                # Use a try-except block to handle potential serialization issues
+                try:
+                    response = self.llm.invoke(
+                        prompt,
+                        max_tokens=self.max_tokens,
+                        # Claude 3.7 doesn't support thinking in the extra_body format,
+                        # but we keep the temperature at 1 as required when thinking would be enabled
+                    )
+
+                    # Handle the structured content format from Claude 3.7
+                    if hasattr(response, 'content') and isinstance(response.content, list):
+                        # Extract text from content blocks
+                        text_content = ""
+                        for block in response.content:
+                            # Handle both dictionary and object formats
+                            if isinstance(block, dict):
+                                block_type = block.get('type')
+                                if block_type == 'text':
+                                    text_content += block.get('text', '')
+                            elif hasattr(block, 'type') and hasattr(block, 'text'):
+                                if block.type == 'text':
+                                    text_content += block.text
+                        return text_content
+                    else:
+                        # Fallback to string representation if not structured
+                        return str(response.content)
+                except Exception as e:
+                    if self.debug_logging:
+                        logging.warning(f"Error in structured content handling: {e}")
+                    # If we hit an error in structured content handling, return raw content as string
+                    if hasattr(response, 'content'):
+                        if isinstance(response.content, str):
+                            return response.content
+                        else:
+                            return str(response.content)
+                    else:
+                        raise  # Re-raise if we can't extract content
+            else:
+                # Standard invocation without extended thinking, use the user's desired temperature
+                response = self.llm.invoke(prompt, temperature=self.user_temperature)
+
+                # Similar handling for non-thinking mode
+                if hasattr(response, 'content'):
+                    if isinstance(response.content, list):
+                        text_content = ""
+                        for block in response.content:
+                            if isinstance(block, dict):
+                                block_type = block.get('type')
+                                if block_type == 'text':
+                                    text_content += block.get('text', '')
+                            elif hasattr(block, 'type') and hasattr(block, 'text') and block.type == 'text':
+                                text_content += block.text
+                        return text_content
+                    elif isinstance(response.content, str):
+                        return response.content
+                    else:
+                        return str(response.content)
+                else:
+                    return str(response)
+        except Exception as e:
+            # Don't log the error here - let the calling code handle it
+            # The error will be handled by the retry logic in the predict method
+            raise
 
 class HuggingFaceLLM(BaseLLM):
     MODELS = {
@@ -140,10 +271,37 @@ class CommitDataCollector:
     def get_commit_features(self, commit_sha: str) -> dict:
         """Extract relevant features from a commit"""
         commit = self.repo.commit(commit_sha)
+
+        # Convert diff objects to string representation
+        diff_text = ""
+        if commit.parents:
+            parent = commit.parents[0]
+            diffs = parent.diff(commit, create_patch=True)
+            for diff in diffs:
+                try:
+                    # Get the actual diff text
+                    if diff.a_path and diff.b_path:
+                        diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
+                    elif diff.a_path:
+                        diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
+                    elif diff.b_path:
+                        diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
+
+                    # Add the diff content
+                    if hasattr(diff, 'diff'):
+                        try:
+                            diff_content = diff.diff.decode('utf-8', errors='replace')
+                            diff_text += diff_content + "\n\n"
+                        except (UnicodeDecodeError, AttributeError):
+                            diff_text += "[Binary diff not shown]\n\n"
+                except Exception as e:
+                    logging.warning(f"Error processing diff: {e}")
+                    diff_text += f"[Error processing diff: {e}]\n\n"
+
         return {
             'sha': commit.hexsha,
             'message': commit.message,
-            'diff': commit.parents[0].diff(commit, create_patch=True) if commit.parents else "",
+            'diff': diff_text,  # Use the converted text instead of diff objects
             'author': commit.author.name,
             'date': commit.authored_datetime,
             'files_changed': list(commit.stats.files.keys())
@@ -160,13 +318,63 @@ class CommitDataCollector:
             if commit.parents:
                 parent = commit.parents[0]
                 features['parent_message'] = parent.message
-                features['parent_diff'] = parent.diff(commit, create_patch=True)
+
+                # Convert parent diff to text representation
+                parent_diff_text = ""
+                parent_diffs = parent.diff(commit, create_patch=True)
+                for diff in parent_diffs:
+                    try:
+                        # Get the diff text
+                        if diff.a_path and diff.b_path:
+                            parent_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
+                        elif diff.a_path:
+                            parent_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
+                        elif diff.b_path:
+                            parent_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
+
+                        # Add diff content
+                        if hasattr(diff, 'diff'):
+                            try:
+                                diff_content = diff.diff.decode('utf-8', errors='replace')
+                                parent_diff_text += diff_content + "\n\n"
+                            except (UnicodeDecodeError, AttributeError):
+                                parent_diff_text += "[Binary diff not shown]\n\n"
+                    except Exception as e:
+                        logging.warning(f"Error processing parent diff: {e}")
+                        parent_diff_text += f"[Error processing diff: {e}]\n\n"
+
+                features['parent_diff'] = parent_diff_text
 
                 # Get grandparent for more history
                 if parent.parents:
                     grandparent = parent.parents[0]
                     features['grandparent_message'] = grandparent.message
-                    features['grandparent_diff'] = grandparent.diff(parent, create_patch=True)
+
+                    # Convert grandparent diff to text representation
+                    grandparent_diff_text = ""
+                    grandparent_diffs = grandparent.diff(parent, create_patch=True)
+                    for diff in grandparent_diffs:
+                        try:
+                            # Get the diff text
+                            if diff.a_path and diff.b_path:
+                                grandparent_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
+                            elif diff.a_path:
+                                grandparent_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
+                            elif diff.b_path:
+                                grandparent_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
+
+                            # Add diff content
+                            if hasattr(diff, 'diff'):
+                                try:
+                                    diff_content = diff.diff.decode('utf-8', errors='replace')
+                                    grandparent_diff_text += diff_content + "\n\n"
+                                except (UnicodeDecodeError, AttributeError):
+                                    grandparent_diff_text += "[Binary diff not shown]\n\n"
+                        except Exception as e:
+                            logging.warning(f"Error processing grandparent diff: {e}")
+                            grandparent_diff_text += f"[Error processing diff: {e}]\n\n"
+
+                    features['grandparent_diff'] = grandparent_diff_text
 
             # Look for related commits (both before and after)
             related_commits = []
@@ -174,18 +382,68 @@ class CommitDataCollector:
             # Look back for related changes
             for related in self.repo.iter_commits(f'{sha}^..HEAD', max_count=10):
                 if any(word in related.message.lower() for word in ['cve', 'fix', 'security', 'vuln']):
+                    # Convert related diff to text
+                    related_diff_text = ""
+                    if related.parents:
+                        related_diffs = related.parents[0].diff(related, create_patch=True)
+                        for diff in related_diffs:
+                            try:
+                                # Get diff text
+                                if diff.a_path and diff.b_path:
+                                    related_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
+                                elif diff.a_path:
+                                    related_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
+                                elif diff.b_path:
+                                    related_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
+
+                                # Add diff content
+                                if hasattr(diff, 'diff'):
+                                    try:
+                                        diff_content = diff.diff.decode('utf-8', errors='replace')
+                                        related_diff_text += diff_content + "\n\n"
+                                    except (UnicodeDecodeError, AttributeError):
+                                        related_diff_text += "[Binary diff not shown]\n\n"
+                            except Exception as e:
+                                logging.warning(f"Error processing related diff: {e}")
+                                related_diff_text += f"[Error processing diff: {e}]\n\n"
+
                     related_commits.append({
                         'message': related.message,
-                        'diff': related.parents[0].diff(related, create_patch=True) if related.parents else "",
+                        'diff': related_diff_text,
                         'relation': 'after'
                     })
 
             # Look forward for follow-up fixes
             for related in self.repo.iter_commits(f'HEAD..{sha}', max_count=10):
                 if any(word in related.message.lower() for word in ['cve', 'fix', 'security', 'vuln']):
+                    # Convert related diff to text
+                    related_diff_text = ""
+                    if related.parents:
+                        related_diffs = related.parents[0].diff(related, create_patch=True)
+                        for diff in related_diffs:
+                            try:
+                                # Get diff text
+                                if diff.a_path and diff.b_path:
+                                    related_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
+                                elif diff.a_path:
+                                    related_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
+                                elif diff.b_path:
+                                    related_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
+
+                                # Add diff content
+                                if hasattr(diff, 'diff'):
+                                    try:
+                                        diff_content = diff.diff.decode('utf-8', errors='replace')
+                                        related_diff_text += diff_content + "\n\n"
+                                    except (UnicodeDecodeError, AttributeError):
+                                        related_diff_text += "[Binary diff not shown]\n\n"
+                            except Exception as e:
+                                logging.warning(f"Error processing related diff: {e}")
+                                related_diff_text += f"[Error processing diff: {e}]\n\n"
+
                     related_commits.append({
                         'message': related.message,
-                        'diff': related.parents[0].diff(related, create_patch=True) if related.parents else "",
+                        'diff': related_diff_text,
                         'relation': 'before'
                     })
 
@@ -260,7 +518,32 @@ class CommitDataCollector:
             if commit.parents:
                 parent = commit.parents[0]
                 features['parent_message'] = parent.message
-                features['parent_diff'] = parent.diff(commit, create_patch=True)
+
+                # Convert parent diff to text
+                parent_diff_text = ""
+                parent_diffs = parent.diff(commit, create_patch=True)
+                for diff in parent_diffs:
+                    try:
+                        # Get the diff text
+                        if diff.a_path and diff.b_path:
+                            parent_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
+                        elif diff.a_path:
+                            parent_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
+                        elif diff.b_path:
+                            parent_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
+
+                        # Add diff content
+                        if hasattr(diff, 'diff'):
+                            try:
+                                diff_content = diff.diff.decode('utf-8', errors='replace')
+                                parent_diff_text += diff_content + "\n\n"
+                            except (UnicodeDecodeError, AttributeError):
+                                parent_diff_text += "[Binary diff not shown]\n\n"
+                    except Exception as e:
+                        logging.warning(f"Error processing parent diff: {e}")
+                        parent_diff_text += f"[Error processing diff: {e}]\n\n"
+
+                features['parent_diff'] = parent_diff_text
 
             return features
 
@@ -518,8 +801,12 @@ class CVEClassifier:
         # Default configurations
         self.default_configs = {
             "claude": {
-                "model": "claude-3-sonnet-20240229",
-                "temperature": 0
+                "model": "claude-3-7-sonnet-20250219",
+                "temperature": 0,
+                "thinking_enabled": False,  # Not supported for Claude 3.7
+                "thinking_budget": 0,       # Not used
+                "max_tokens": 4000,
+                "debug_logging": False      # Disable detailed debug logging by default
             },
             "llama": {
                 "model_type": "llama",
@@ -596,105 +883,237 @@ class CVEClassifier:
         texts = []
         metadatas = []
 
+        # Set a maximum size limit for text chunks to prevent memory issues
+        MAX_CHUNK_LENGTH = 5000  # Characters
+        MAX_CHUNKS_PER_BATCH = 1000  # Maximum number of chunks to process at once
+
         for _, row in tqdm(commit_dataset.iterrows(), desc="Processing commits", total=len(commit_dataset)):
-            # Extract the subject line (first line of the commit message)
-            message_lines = row['message'].strip().split('\n')
-            subject = message_lines[0].strip()
-            message_body = '\n'.join(message_lines[1:]).strip() if len(message_lines) > 1 else ""
+            try:
+                # Extract the subject line (first line of the commit message)
+                message_lines = row['message'].strip().split('\n')
+                subject = message_lines[0].strip()
+                message_body = '\n'.join(message_lines[1:]).strip() if len(message_lines) > 1 else ""
 
-            # Build rich context for each commit
-            commit_context = [
-                f"Subject: {subject}",
-                f"Commit Message:\n{message_body}",
-                f"Changes:\n{str(row['diff'])}",
-            ]
+                # Build rich context for each commit
+                commit_context = [
+                    f"Subject: {subject}",
+                    f"Commit Message:\n{message_body}",
+                ]
 
-            # Add historical context
-            if 'parent_message' in row and isinstance(row['parent_message'], str):
-                # Extract subject from parent commit message
-                parent_message_lines = row['parent_message'].strip().split('\n')
-                parent_subject = parent_message_lines[0].strip()
-                parent_message_body = '\n'.join(parent_message_lines[1:]).strip() if len(parent_message_lines) > 1 else ""
+                # Add code changes with encoding safety and size limitation
+                try:
+                    # Ensure diff is a string and handle encoding issues
+                    if isinstance(row['diff'], str):
+                        diff_text = row['diff']
+                    else:
+                        diff_text = str(row['diff'])
 
-                commit_context.append(f"Parent Commit:\nSubject: {parent_subject}")
-                if parent_message_body:
-                    commit_context.append(f"Parent Commit Body:\n{parent_message_body}")
+                    # If diff is too large, truncate it
+                    if len(diff_text) > MAX_CHUNK_LENGTH:
+                        logging.warning(f"Truncating large diff for commit {row['sha']} (size: {len(diff_text)})")
+                        diff_text = diff_text[:MAX_CHUNK_LENGTH] + "\n[... truncated due to size ...]"
 
-                if 'parent_diff' in row:
-                    commit_context.append(f"Parent Changes:\n{str(row['parent_diff'])}")
+                    # Clean the diff text to avoid encoding problems
+                    diff_text = diff_text.encode('ascii', 'replace').decode('ascii')
+                    commit_context.append(f"Changes:\n{diff_text}")
+                except Exception as e:
+                    logging.warning(f"Error processing diff for embedding: {e}")
+                    commit_context.append("Changes: [Error processing diff]")
 
-            if 'grandparent_message' in row and isinstance(row['grandparent_message'], str):
-                # Extract subject from grandparent commit message
-                grandparent_message_lines = row['grandparent_message'].strip().split('\n')
-                grandparent_subject = grandparent_message_lines[0].strip()
-                grandparent_message_body = '\n'.join(grandparent_message_lines[1:]).strip() if len(grandparent_message_lines) > 1 else ""
+                # Add historical context with size checks
+                if 'parent_message' in row and isinstance(row['parent_message'], str):
+                    # Extract subject from parent commit message
+                    parent_message_lines = row['parent_message'].strip().split('\n')
+                    parent_subject = parent_message_lines[0].strip()
+                    parent_message_body = '\n'.join(parent_message_lines[1:]).strip() if len(parent_message_lines) > 1 else ""
 
-                commit_context.append(f"Grandparent Commit:\nSubject: {grandparent_subject}")
-                if grandparent_message_body:
-                    commit_context.append(f"Grandparent Commit Body:\n{grandparent_message_body}")
+                    commit_context.append(f"Parent Commit:\nSubject: {parent_subject}")
+                    if parent_message_body:
+                        if len(parent_message_body) > MAX_CHUNK_LENGTH:
+                            parent_message_body = parent_message_body[:MAX_CHUNK_LENGTH] + "\n[... truncated ...]"
+                        commit_context.append(f"Parent Commit Body:\n{parent_message_body}")
 
-                if 'grandparent_diff' in row:
-                    commit_context.append(f"Grandparent Changes:\n{str(row['grandparent_diff'])}")
+                    if 'parent_diff' in row:
+                        try:
+                            # Ensure parent diff is a string and handle encoding issues
+                            if isinstance(row['parent_diff'], str):
+                                parent_diff_text = row['parent_diff']
+                            else:
+                                parent_diff_text = str(row['parent_diff'])
 
-            # Add related commits
-            if 'related_commits' in row and isinstance(row['related_commits'], list):
-                for related in row['related_commits']:
-                    relation_type = related.get('relation', 'unknown')
+                            # Truncate if needed
+                            if len(parent_diff_text) > MAX_CHUNK_LENGTH:
+                                parent_diff_text = parent_diff_text[:MAX_CHUNK_LENGTH] + "\n[... truncated ...]"
 
-                    # Extract subject from related commit messages
-                    related_message_lines = related['message'].strip().split('\n')
-                    related_subject = related_message_lines[0].strip()
-                    related_message_body = '\n'.join(related_message_lines[1:]).strip() if len(related_message_lines) > 1 else ""
+                            # Clean the parent diff text
+                            parent_diff_text = parent_diff_text.encode('ascii', 'replace').decode('ascii')
+                            commit_context.append(f"Parent Changes:\n{parent_diff_text}")
+                        except Exception as e:
+                            logging.warning(f"Error processing parent diff for embedding: {e}")
+                            commit_context.append("Parent Changes: [Error processing diff]")
 
-                    commit_context.append(f"Related Commit ({relation_type}):\nSubject: {related_subject}")
-                    if related_message_body:
-                        commit_context.append(f"Related Commit Body:\n{related_message_body}")
+                # Similarly limit grandparent info
+                if 'grandparent_message' in row and isinstance(row['grandparent_message'], str):
+                    # Skip grandparent info to reduce memory usage
+                    commit_context.append("Grandparent Commit: [Skipped to conserve memory]")
 
-                    commit_context.append(f"Related Changes:\n{str(related['diff'])}")
+                # Limit related commits to reduce memory usage
+                if 'related_commits' in row and isinstance(row['related_commits'], list):
+                    # Only include a limited number of related commits
+                    num_related = min(3, len(row['related_commits']))
+                    for i, related in enumerate(row['related_commits'][:num_related]):
+                        relation_type = related.get('relation', 'unknown')
+                        commit_context.append(f"Related Commit {i+1} ({relation_type}):\nSubject: {related['message'].split('\\n')[0]}")
+                        # Skip diff to save memory
+                        commit_context.append("Related Changes: [Skipped to conserve memory]")
 
-            # Add file-level analysis
-            if 'file_analysis' in row and isinstance(row['file_analysis'], dict):
-                for file_path, analysis in row['file_analysis'].items():
-                    file_context = [f"\nFile: {file_path}"]
+                # Simplify file analysis to reduce memory usage
+                if 'file_analysis' in row and isinstance(row['file_analysis'], dict):
+                    num_files = len(row['file_analysis'])
+                    commit_context.append(f"File Analysis: [Summary of {num_files} files]")
+                    # Only list file names without details
+                    file_names = list(row['file_analysis'].keys())
+                    if file_names:
+                        commit_context.append(f"Files: {', '.join(file_names[:5])}" +
+                                            (f" and {len(file_names) - 5} more" if len(file_names) > 5 else ""))
 
-                    # Add file history
-                    if analysis.get('history'):
-                        history_context = ["Recent changes:"]
-                        for change in analysis['history']:
-                            history_context.append(f"- {change['date']}: {change['message']}")
-                        file_context.extend(history_context)
+                # Make CVE status more prominent by adding it at the beginning and end
+                cve_status_text = f"CVE Status: {'YES' if row['has_cve'] else 'NO'}"
+                text = f"[{cve_status_text}]\n\n" + "\n\n".join(commit_context) + f"\n\n[{cve_status_text}]"
 
-                    # Add blame information
-                    if analysis.get('blame'):
-                        blame_context = ["Code ownership:"]
-                        for blame in analysis['blame'][:5]:  # Limit to 5 most recent
-                            blame_context.append(f"- {blame['author']} ({blame['date']}): {blame['message']}")
-                        file_context.extend(blame_context)
+                # Ensure the text is ASCII-encodable and not too long
+                text = text.encode('ascii', 'replace').decode('ascii')
+                if len(text) > MAX_CHUNK_LENGTH * 3:  # Allow a reasonable multiplier
+                    text = text[:MAX_CHUNK_LENGTH * 3] + "\n[... remainder truncated ...]"
 
-                    commit_context.extend(file_context)
+                # Create chunks with the text splitter
+                self.text_splitter.chunk_size = min(1000, MAX_CHUNK_LENGTH)  # Ensure chunks aren't too large
+                chunks = self.text_splitter.split_text(text)
 
-            # Make CVE status more prominent by adding it at the beginning and end
-            cve_status_text = f"CVE Status: {'YES' if row['has_cve'] else 'NO'}"
-            text = f"[{cve_status_text}]\n\n" + "\n\n".join(commit_context) + f"\n\n[{cve_status_text}]"
+                # Add each chunk with its metadata, but limit number of chunks per commit
+                for chunk in chunks[:10]:  # Limit to 10 chunks per commit maximum
+                    # Additional safety to ensure text is clean for embedding
+                    clean_chunk = chunk.encode('ascii', 'replace').decode('ascii')
+                    texts.append(clean_chunk)
+                    metadatas.append({
+                        "has_cve": row["has_cve"],
+                        "sha": row["sha"],
+                        "date": str(row["date"]),
+                        "files": ",".join(row["files_changed"][:10])  # Limit number of files
+                    })
 
-            # Create chunks with the text splitter
-            chunks = self.text_splitter.split_text(text)
+                # Process in batches to prevent memory buildup
+                if len(texts) >= MAX_CHUNKS_PER_BATCH:
+                    self._create_partial_vectorstore(texts, metadatas)
+                    texts = []
+                    metadatas = []
+                    # Force garbage collection to free memory
+                    import gc
+                    gc.collect()
 
-            # Add each chunk with its metadata
-            for chunk in chunks:
-                texts.append(chunk)
-                metadatas.append({
-                    "has_cve": row["has_cve"],
-                    "sha": row["sha"],
-                    "date": str(row["date"]),
-                    "files": ",".join(row["files_changed"])
-                })
+            except Exception as e:
+                logging.error(f"Error processing commit for embeddings: {e}")
+                continue
 
-        self.vectorstore = FAISS.from_texts(
-            texts,
-            self.embeddings,
-            metadatas=metadatas
-        )
+        # Process any remaining texts
+        if texts:
+            self._create_partial_vectorstore(texts, metadatas)
+
+        logging.info("Vector store creation complete")
+
+    def _create_partial_vectorstore(self, texts, metadatas):
+        """Helper method to create/update vector store with a batch of texts"""
+        logging.info(f"Creating/updating vectorstore with {len(texts)} text chunks")
+
+        try:
+            # If vectorstore doesn't exist yet, create it
+            if self.vectorstore is None:
+                self.vectorstore = FAISS.from_texts(
+                    texts,
+                    self.embeddings,
+                    metadatas=metadatas
+                )
+                logging.info("Initial vectorstore created successfully")
+            else:
+                # Add to existing vectorstore
+                self.vectorstore.add_texts(texts, metadatas=metadatas)
+                logging.info("Added batch to existing vectorstore")
+
+        except Exception as e:
+            logging.error(f"Error updating vectorstore: {e}")
+            # Try with a simpler approach for this batch
+            try:
+                logging.info("Trying with a simpler approach for this batch...")
+                # Create a simpler set of texts
+                simple_texts = []
+                simple_metadatas = []
+                for i, (text, metadata) in enumerate(zip(texts, metadatas)):
+                    try:
+                        # More aggressive text cleaning
+                        simple_text = ''.join(c if c.isascii() and c.isprintable() else ' ' for c in text)
+                        simple_text = ' '.join(simple_text.split())  # Normalize whitespace
+                        # Further limit length
+                        if len(simple_text) > 2000:
+                            simple_text = simple_text[:2000]
+                        simple_texts.append(simple_text)
+                        simple_metadatas.append(metadata)
+                    except:
+                        logging.warning(f"Skipping text chunk {i} due to encoding issues")
+
+                if self.vectorstore is None:
+                    logging.info(f"Creating simplified initial vectorstore with {len(simple_texts)} cleaned text chunks")
+                    self.vectorstore = FAISS.from_texts(
+                        simple_texts,
+                        self.embeddings,
+                        metadatas=simple_metadatas
+                    )
+                else:
+                    logging.info(f"Adding {len(simple_texts)} simplified chunks to vectorstore")
+                    self.vectorstore.add_texts(simple_texts, metadatas=simple_metadatas)
+
+                logging.info("Simplified vectorstore update successful")
+            except Exception as e2:
+                logging.error(f"Error with simplified vectorstore update: {e2}")
+                # Continue anyway - we'll just miss this batch
+
+    def _parse_llm_response(self, response: str) -> tuple[bool, str]:
+        """Parse LLM response to extract the prediction and explanation.
+
+        Args:
+            response: Raw response from the LLM
+
+        Returns:
+            tuple: (prediction boolean, full response text)
+        """
+        # Convert to uppercase for case-insensitive matching
+        response_upper = response.upper()
+
+        # First try to find an explicit "Answer: YES/NO" pattern
+        answer_match = re.search(r"ANSWER:\s*(YES|NO)", response_upper)
+        if answer_match:
+            return answer_match.group(1) == "YES", response
+
+        # If no explicit answer, look for the last YES/NO in the text
+        # This handles cases where the LLM might discuss multiple possibilities
+        # but makes a final determination
+        yes_pos = response_upper.rfind("YES")
+        no_pos = response_upper.rfind("NO")
+
+        # If we found both YES and NO
+        if yes_pos != -1 and no_pos != -1:
+            # Return based on which comes last (is the final answer)
+            return yes_pos > no_pos, response
+        # If we only found YES
+        elif yes_pos != -1:
+            return True, response
+        # If we only found NO
+        elif no_pos != -1:
+            return False, response
+
+        # If we can't find a clear YES/NO, default to NO
+        # This is safer from a security perspective
+        logging.warning("Could not find clear YES/NO in LLM response. Defaulting to NO.")
+        return False, response
 
     def predict(self, commit_info: dict, verbose: bool = False, batch_mode: bool = False, commit_sha: str = None) -> dict:
         """Predict if a commit should be assigned a CVE using all configured LLMs"""
@@ -770,32 +1189,138 @@ class CVEClassifier:
             print(f"{commit_sha}", end='', flush=True)
 
         for name, llm in sorted(self.llms.items()):  # Sort to ensure consistent order
-            try:
-                response = llm.invoke(full_prompt)
-                prediction = "YES" in response.upper()
+            # Add retry logic
+            max_retries = 5  # Maximum number of retries
+            retry_count = 0
+            retry_delay = 5  # Seconds between retries
 
-                if verbose and not batch_mode:
-                    logging.info(f"\n{'='*80}")
-                    logging.info(f"{name.upper()} response:")
-                    logging.info("-"*80)
-                    logging.info(response)
-                    logging.info("="*80 + "\n")
+            while retry_count <= max_retries:  # Try until successful or max retries reached
+                try:
+                    # For Claude, get the raw response first to check for thinking
+                    if name == "claude" and verbose and not batch_mode and isinstance(llm, ClaudeLLM) and llm.thinking_enabled:
+                        # For Claude with thinking enabled, we need to access the raw response
+                        try:
+                            # Use direct client if available
+                            if hasattr(llm, 'direct_client') and llm.direct_client:
+                                message = llm.direct_client.messages.create(
+                                    model=llm.model,
+                                    max_tokens=llm.max_tokens,
+                                    messages=[{"role": "user", "content": full_prompt}],
+                                    temperature=1.0,  # Must be 1.0 with thinking
+                                    system="You are a security expert analyzing kernel commits to detect security vulnerabilities.",
+                                )
 
-                if batch_mode and commit_sha:
-                    # Print result immediately
-                    print(f" {'yes' if prediction else 'no'}", end='', flush=True)
+                                # Extract the response content text
+                                response_content = ""
 
-                results[name] = {
-                    "prediction": prediction,
-                    "explanation": response
-                }
-            except Exception as e:
-                logging.error(f"Error with {name} LLM: {e}")
-                if batch_mode and commit_sha:
-                    print(" error", end='', flush=True)
-                results[name] = {
-                    "error": str(e)
-                }
+                                # Process the content blocks
+                                for block in message.content:
+                                    if block.type == "text":
+                                        response_content += block.text
+                            else:
+                                # Fall back to langchain wrapper
+                                raw_response = llm.llm.invoke(
+                                    full_prompt,
+                                    max_tokens=llm.max_tokens,
+                                    temperature=1,  # Must be 1 when thinking is enabled
+                                )
+
+                                # Extract thinking if available
+                                thinking = None
+                                response_content = ""
+
+                                # Process the structured response content from Claude 3.7
+                                if hasattr(raw_response, 'content') and isinstance(raw_response.content, list):
+                                    for block in raw_response.content:
+                                        # Handle each content block based on its type
+                                        if isinstance(block, dict):
+                                            block_type = block.get('type')
+                                            # Only process text blocks
+                                            if block_type == 'text':
+                                                response_content += block.get('text', '')
+                                        # If it's an object, access properties differently
+                                        elif hasattr(block, 'type'):
+                                            # Only process text blocks
+                                            if block.type == 'text':
+                                                response_content += getattr(block, 'text', '')
+                                else:
+                                    # Fallback for older response format
+                                    response_content = str(raw_response.content)
+
+                            # Parse the response using the new helper function
+                            prediction, response_content = self._parse_llm_response(response_content)
+
+                            # Normal verbose logging for the response
+                            logging.info(f"\n{'='*80}")
+                            logging.info(f"{name.upper()} response:")
+                            logging.info("-"*80)
+                            logging.info(response_content)
+                            logging.info("="*80 + "\n")
+
+                            results[name] = {
+                                "prediction": prediction,
+                                "explanation": response_content
+                            }
+                            # If we got here without error, break the retry loop
+                            break
+                        except Exception as e:
+                            # Increment retry count
+                            retry_count += 1
+
+                            if retry_count > max_retries:
+                                # Only log the full error when we've exhausted all retries
+                                logging.error(f"Error with {name} LLM after {max_retries} attempts: {e}")
+                                if batch_mode and commit_sha:
+                                    print(" error", end='', flush=True)
+                                results[name] = {
+                                    "error": f"Failed after {max_retries} retries: {str(e)}"
+                                }
+                            else:
+                                # Just log that we're retrying without detailed error info
+                                logging.info(f"Retrying {name} LLM (attempt {retry_count}/{max_retries}) in {retry_delay} seconds...")
+                                # Don't print anything during retries in batch mode
+                                time.sleep(retry_delay)
+                    else:
+                        # For other LLMs or when not in verbose mode
+                        response = llm.invoke(full_prompt)
+                        # Parse the response using the new helper function
+                        prediction, response = self._parse_llm_response(response)
+
+                        if verbose and not batch_mode:
+                            logging.info(f"\n{'='*80}")
+                            logging.info(f"{name.upper()} response:")
+                            logging.info("-"*80)
+                            logging.info(response)
+                            logging.info("="*80 + "\n")
+
+                        if batch_mode and commit_sha:
+                            # Print result immediately
+                            print(f" {'yes' if prediction else 'no'}", end='', flush=True)
+
+                        results[name] = {
+                            "prediction": prediction,
+                            "explanation": response
+                        }
+                        # If we got here without error, break the retry loop
+                        break
+
+                except Exception as e:
+                    # Increment retry count
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        # Only log the full error when we've exhausted all retries
+                        logging.error(f"Error with {name} LLM after {max_retries} attempts: {e}")
+                        if batch_mode and commit_sha:
+                            print(" error", end='', flush=True)
+                        results[name] = {
+                            "error": f"Failed after {max_retries} retries: {str(e)}"
+                        }
+                    else:
+                        # Just log that we're retrying without detailed error info
+                        logging.info(f"Retrying {name} LLM (attempt {retry_count}/{max_retries}) in {retry_delay} seconds...")
+                        # Don't print anything during retries in batch mode
+                        time.sleep(retry_delay)
 
         if batch_mode and commit_sha:
             print()  # New line after all results
@@ -850,6 +1375,8 @@ def main():
                         help='Single commit SHA to analyze')
     parser.add_argument('--commits', nargs='+',
                         help='List of commit SHAs to analyze')
+    parser.add_argument('--models', type=str,
+                        help='Comma-separated list of models to use (e.g., claude,llama,qwen,gpt4)')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug output')
     parser.add_argument('--verbose', action='store_true',
@@ -897,9 +1424,15 @@ def main():
         logging.info(f"  - {cve_count} CVE commits")
         logging.info(f"  - {len(dataset) - cve_count} non-CVE commits")
 
+        # Parse models list if provided
+        llm_providers = None
+        if args.models:
+            llm_providers = [m.strip() for m in args.models.split(',')]
+            logging.info(f"Using specified models: {', '.join(llm_providers)}")
+
         # Initialize and train classifier
         logging.info("Training classifier...")
-        classifier = CVEClassifier()
+        classifier = CVEClassifier(llm_providers=llm_providers) if llm_providers else CVEClassifier()
         classifier.train(dataset)
 
         # Save the trained model
@@ -919,6 +1452,14 @@ def main():
             logging.info(f"Loading model from {model_path}")
         with open(model_path, 'rb') as f:
             classifier = pickle.load(f)
+
+        # Update the model's LLM providers if specified
+        if args.models:
+            llm_providers = [m.strip() for m in args.models.split(',')]
+            if not args.batch:
+                logging.info(f"Using specified models: {', '.join(llm_providers)}")
+            classifier.llm_providers = llm_providers
+            classifier.llms = None  # Reset LLMs to force reinitialization with new providers
 
         # Initialize data collector for feature extraction
         if not args.batch:
