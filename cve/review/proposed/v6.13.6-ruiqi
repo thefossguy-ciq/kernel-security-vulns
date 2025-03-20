@@ -1,0 +1,28 @@
+d97505baea64 RDMA/mlx5: Fix the recovery flow of the UMR QP
+abc7b3f1f056 RDMA/mlx5: Fix a WARN during dereg_mr for DM type
+f0df225d12fc RDMA/bnxt_re: Add sanity checks on rdev validity
+c84e125fff26 ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up
+3d8c6f26893d RDMA/mlx5: Fix implicit ODP hang on parent deregistration
+b66535356a48 RDMA/bnxt_re: Fix the page details for the srq created by kernel consumers
+5c70eb5c593d net: better track kernel sockets lifetime
+79990cf5e7ad ice: Fix deinitializing VF in error path
+7f3528f7d2f9 net/mlx5: Fix vport QoS cleanup on error
+bddf10d26e6e uprobes: Reject the shared zeropage in uprobe_write_opcode()
+6f86bdeab633 tracing: Fix bad hist from corrupting named_triggers list
+a1a7eb89ca0b ftrace: Avoid potential division by zero in function_stat_show()
+fa808ed4e199 KVM: arm64: Ensure a VMID is allocated before programming VTTBR_EL2
+a9f4fa3a7efa drm/xe/userptr: fix EFAULT handling
+360399643299 drm/fbdev-dma: Add shadow buffering for deferred I/O
+59f37036bb7a btrfs: fix use-after-free on inode when scanning root during em shrinking
+dd1998e243f5 i2c: npcm: disable interrupt enable bit before devm_request_irq
+1cf9631d836b usbnet: gl620a: fix endpoint checking in genelink_bind()
+a562d0c4a893 net: enetc: VFs do not support HWTSTAMP_TX_ONESTEP_SYNC
+de70981f295e gve: unlink old napi when stopping a queue using queue API
+b150654f74bf iommu/vt-d: Fix suspicious RCU usage
+f865c24bc551 mptcp: always handle address removal under msk socket lock
+82c387ef7568 sched/core: Prevent rescheduling when interrupts are disabled
+8fef0a3b17bb sched_ext: Fix pick_task_scx() picking non-queued tasks when it's called without balance()
+0c67c37e1710 fuse: revert back to __readahead_folio() for readahead
+7fb39882b20c dm-integrity: Avoid divide by zero in table status in Inline mode
+f27a95845b01 scsi: ufs: core: bsg: Fix crash when arpmb command fails
+2b90e7ace797 efi: Don't map the entire mokvar table to determine its size
