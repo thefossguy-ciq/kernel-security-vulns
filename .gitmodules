@@ -4,3 +4,6 @@
 [submodule "tools/verhaal"]
 	path = tools/verhaal
 	url = https://git.sr.ht/~gregkh/verhaal
+[submodule "tools/dyad"]
+	path = tools/dyad
+	url = https://git.sr.ht/~gregkh/dyad
