@@ -7,3 +7,7 @@
 [submodule "tools/dyad"]
 	path = tools/dyad
 	url = https://git.sr.ht/~gregkh/dyad
+[submodule "tools/bippy"]
+	path = tools/bippy
+	url = https://git.sr.ht/~sashal/bippy
+	branch = main
