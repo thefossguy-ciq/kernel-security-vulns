@@ -11,3 +11,7 @@
 	path = tools/bippy
 	url = https://git.sr.ht/~sashal/bippy
 	branch = main
+[submodule "tools/voting_results"]
+	path = tools/voting_results
+	url = https://git.sr.ht/~sashal/voting_results
+	branch = main
