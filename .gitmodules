@@ -15,3 +15,7 @@
 	path = tools/voting_results
 	url = https://git.sr.ht/~sashal/voting_results
 	branch = main
+[submodule "tools/cve_utils"]
+	path = tools/cve_utils
+	url = https://git.sr.ht/~sashal/cve_utils
+	branch = main
