@@ -1,0 +1,58 @@
+c9ce148ea753 ALSA: seq: Avoid module auto-load handling at event delivery
+59b348be7597 wifi: cfg80211: regulatory: improve invalid hints checking
+49f27f29446a wifi: nl80211: reject cooked mode if it is set along with other flags
+8fe9ed44dc29 mm/page_alloc: fix uninitialized variable
+47b16d0462a4 mm: abort vma_modify() on merge out of memory failure
+64e6a754d33d llc: do not use skb_get() before dev_queue_xmit()
+e53fc232a65f HID: hid-steam: Fix use-after-free when detaching device
+4c2d14c40a68 ppp: Fix KMSAN uninit-value warning with bpf
+b33a53461006 vlan: enforce underlying device type
+c90aad369899 usb: atm: cxacru: fix a flaw in existing endpoint checks
+3109d5ff484b LoongArch: Set hugetlb mmap base address aligned with pmd size
+af288a426c3e hwpoison, memory_hotplug: lock folio before unmap hwpoisoned folio
+dcb0d43ba8eb slimbus: messaging: Free transaction ID in delayed interrupt scenario
+12f65d120350 gpio: aggregator: protect driver attr handlers against module unload
+df1a1ed5e1bd drm/imagination: avoid deadlock on fence release
+b81679b1633a mm: memory-failure: update ttu flag inside unmap_poisoned_folio
+d73d2c6e3313 wifi: iwlwifi: mvm: don't try to talk to a dead firmware
+976e7e9bdc77 acpi: typec: ucsi: Introduce a ->poll_cci method
+2ff5baa9b527 HID: appleir: Fix potential NULL dereference at raw event handle
+f02c41f87cfe gpio: rcar: Use raw_spinlock to protect register access
+022bfe24aad8 mptcp: fix 'scheduling while atomic' in mptcp_pm_nl_append_new_local_addr
+84d2d1641b71 ksmbd: fix use-after-free in smb2_lock
+3b08e608d50c wifi: iwlwifi: Free pages allocated when failing to build A-MSDU
+823987841424 HID: intel-ish-hid: Fix use-after-free issue in hid_ishtp_cl_remove()
+07583a001069 HID: intel-ish-hid: Fix use-after-free issue in ishtp_hid_remove()
+b7365eab3983 net: hns3: make sure ptp clock is unregister and freed if hclge_ptp_get_cycle returns an error
+cf7ee25e70c6 mctp i3c: handle NULL header address
+637399bf7e77 net: ethtool: netlink: Allow NULL nlattrs when getting a phy_device
+c00b413a9626 x86/boot: Sanitize boot params before parsing command line
+e842f9a1edf3 rapidio: add check for rio_add_net() in rio_scan_alloc_net()
+b2ef51c74b01 rapidio: fix an API misues when rio_add_net() fails
+3b4035ddbfc8 sched/fair: Fix potential memory corruption in child_cfs_rq_on_list
+552ca6b87e37 usb: renesas_usbhs: Flush the notify_hotplug_work
+91d44c1afc61 cdx: Fix possible UAF error in driver_override_show()
+14cb5d83068e x86/amd_nb: Use rdmsr_safe() in amd_get_mmconfig_range()
+f2176a07e7b1 Bluetooth: Add check for mgmt_alloc_skb() in mgmt_remote_name()
+d8df010f72b8 Bluetooth: Add check for mgmt_alloc_skb() in mgmt_device_connected()
+374c9faac5a7 drm/amd/display: Fix null check for pipe_ctx->plane_state in resource_build_scaling_params
+0a98219bcc96 drm/xe/hmm: Don't dereference struct page pointers without notifier lock
+a564ccfe300f arm: pgtable: fix NULL pointer dereference issue
+ee01b2f2d7d0 net: gso: fix ownership in __udp_gso_segment
+a466fd7e9faf caif_virtio: fix wrong pointer check in cfv_probe()
+c783e1258f29 usb: gadget: Fix setting self-powered state on suspend
+f9751163bffd wifi: iwlwifi: mvm: clean up ROC on failure
+e0dc2c1bef72 wifi: iwlwifi: limit printed string from FW file
+fd617ea3b79d drm/amdkfd: Fix NULL Pointer Dereference in KFD queue
+e775e2a060d9 drm/xe/vm: Validate userptr during gpu vma prefetching
+78eb41f518f4 drivers: core: fix device leak in __fw_devlink_relax_cycles()
+e2ff19f0b7a3 ksmbd: fix type confusion via race condition when using ipc_msg_send_request
+d6e13e19063d ksmbd: fix out-of-bounds in parse_sec_desc()
+e26e2d2e15da ksmbd: fix bug on trap in smb2_lock
+5a4041f2c472 btrfs: zoned: fix extent range end unlock in cow_file_range()
+ce6d9c1c2b5c NFS: fix nfs_release_folio() to not deadlock via kcompactd writeback
+00817f0f1c45 nvme-ioctl: fix leaked requests on mapping error
+ad95bab0cd28 nvme-tcp: fix potential memory corruption in nvme_tcp_recv_pdu()
+2397d61ee45c Revert "drivers/card_reader/rtsx_usb: Restore interrupt based detection"
+b13abcb7ddd8 usb: typec: ucsi: Fix NULL pointer access
+8e812e9355a6 usb: gadget: Check bmAttributes only if configuration is valid
