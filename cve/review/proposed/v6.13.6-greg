@@ -1,0 +1,25 @@
+2b90e7ace797 efi: Don't map the entire mokvar table to determine its size
+59f37036bb7a btrfs: fix use-after-free on inode when scanning root during em shrinking
+c84e125fff26 ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up
+5c70eb5c593d net: better track kernel sockets lifetime
+27843ce6ba3d ipvlan: ensure network headers are in skb linear part
+1cf9631d836b usbnet: gl620a: fix endpoint checking in genelink_bind()
+f865c24bc551 mptcp: always handle address removal under msk socket lock
+b66535356a48 RDMA/bnxt_re: Fix the page details for the srq created by kernel consumers
+7fb39882b20c dm-integrity: Avoid divide by zero in table status in Inline mode
+79990cf5e7ad ice: Fix deinitializing VF in error path
+674fcb4f4a7e idpf: fix checksums set in idpf_rx_rsc()
+bddf10d26e6e uprobes: Reject the shared zeropage in uprobe_write_opcode()
+dd1998e243f5 i2c: npcm: disable interrupt enable bit before devm_request_irq
+abc7b3f1f056 RDMA/mlx5: Fix a WARN during dereg_mr for DM type
+0fe8813baf4b perf/core: Add RCU read lock protection to perf_iterate_ctx()
+a9f4fa3a7efa drm/xe/userptr: fix EFAULT handling
+b150654f74bf iommu/vt-d: Fix suspicious RCU usage
+82c387ef7568 sched/core: Prevent rescheduling when interrupts are disabled
+d97505baea64 RDMA/mlx5: Fix the recovery flow of the UMR QP
+3d8c6f26893d RDMA/mlx5: Fix implicit ODP hang on parent deregistration
+7f3528f7d2f9 net/mlx5: Fix vport QoS cleanup on error
+a562d0c4a893 net: enetc: VFs do not support HWTSTAMP_TX_ONESTEP_SYNC
+360399643299 drm/fbdev-dma: Add shadow buffering for deferred I/O
+f27a95845b01 scsi: ufs: core: bsg: Fix crash when arpmb command fails
+2016066c6619 perf/core: Order the PMU list to fix warning about unordered pmu_ctx_list
