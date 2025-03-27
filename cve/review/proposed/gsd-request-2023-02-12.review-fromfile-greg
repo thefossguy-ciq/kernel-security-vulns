@@ -20,10 +20,8 @@ d83d7ed26028 kernel/irq/irqdomain.c: fix memory leak with using debugfs_lookup()
 f82060da749c usb: typec: ucsi: Don't attempt to resume the ports before they exist
 ac86f547ca10 mm: memcg: fix NULL pointer in mem_cgroup_track_foreign_dirty_slowpath()
 de08eaa61564 mm: multi-gen LRU: fix crash during cgroup migration
-b0576ade3aaf nvmem: brcm_nvram: Add check for kzalloc
 4f027cba8216 can: isotp: split tx timer into transmission and timeout
 e5ae8803847b cgroup/cpuset: Fix wrong check in update_parent_subparts_cpumask()
-2b09d5d36498 fbcon: Check font dimension limits
 226fae124b2d vc_screen: move load of struct vc_data pointer in vcs_read() to avoid UAF
 f484a794e4ee scsi: iscsi_tcp: Fix UAF during login when accessing the shost ipaddress
 6f1d64b13097 scsi: iscsi_tcp: Fix UAF during logout when accessing the shost ipaddress
@@ -52,7 +50,6 @@ a3d81bc1eaef bpf: Skip task with pid=1 in send_signal_common()
 fe0ba8c23f9a acpi: Fix suspend with Xen PV
 ca0254998be4 riscv/kprobe: Fix instruction simulation of JALR
 ea4fdbaa2f77 net/sched: sch_taprio: do not schedule in taprio_reset()
-409db27e3a2e netrom: Fix use-after-free of a listening socket.
 5e9398a26a92 ipv4: prevent potential spectre v1 gadget in fib_metrics_match()
 1d1d63b61280 ipv4: prevent potential spectre v1 gadget in ip_metrics_convert()
 e38553bdc377 net: fec: Use page_pool_put_full_page when freeing rx buffers
@@ -88,7 +85,6 @@ f3dc1b3b4750 dmaengine: Fix double increment of client_count in dma_chan_get()
 867dbe784c50 net: mdio: validate parameter addr in mdiobus_get_phy()
 0b2c59720e65 l2tp: close all race conditions in l2tp_tunnel_register()
 3a415d59c1db net/sched: sch_taprio: fix possible use-after-free
-b870e73a56c4 wifi: rndis_wlan: Prevent buffer overflow in rndis_query_oid
 3c463721a73b net: enetc: avoid deadlock in enetc_tx_onestep_tstamp()
 4bb4db7f3187 net: nfc: Fix use-after-free in local_cleanup()
 e4f4db47794c bpf: Fix pointer-leak due to insufficient speculative store bypass mitigation
@@ -98,7 +94,6 @@ e6cf91b7b47f NFSD: fix use-after-free in nfsd4_ssc_setup_dul()
 12724ba38992 erofs: fix kvcalloc() misuse with __GFP_NOFAIL
 e7a293658c20 EDAC/highbank: Fix memory leak in highbank_mc_probe()
 3a2390c6777e reset: uniphier-glue: Fix possible null-ptr-deref
-b3d40c3ec3dc HID: intel_ish-hid: Add check for ishtp_dma_tx_map
 80f8a66dede0 Revert "wifi: mac80211: fix memory leak in ieee80211_if_add()"
 55ba18dc62de octeontx2-pf: Fix the use of GFP_KERNEL in atomic context on rt
 87b93b678e95 octeontx2-pf: Avoid use of GFP_KERNEL in atomic context
@@ -148,8 +143,6 @@ f58985620f55 ice: Fix potential memory leak in ice_gnss_tty_write()
 02228f6aa6a6 regulator: da9211: Use irq handler when ready
 76d588dddc45 powerpc/imc-pmu: Fix use of mutex in IRQs disabled section
 9ea4b476cea1 netfilter: ipset: Fix overflow before widen in the bitmap_ip_create() function.
-87ca4f9efbd7 sched/core: Fix use-after-free bug in dup_user_cpus_ptr()
-dcdb3ba7e2a8 iommu/iova: Fix alloc iova overflows issue
 b93fb4405fcb ixgbe: fix pci device refcount leak
 99f1a36c90a7 drm/amdgpu: Fixed bug on error when unloading amdgpu
 74c2f8105451 arm64/mm: fix incorrect file_map_count for invalid pmd
