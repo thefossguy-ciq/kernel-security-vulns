@@ -1,0 +1,37 @@
+b4f82f9ed43a Bluetooth: L2CAP: Fix slab-use-after-free Read in l2cap_send_cmd
+dfd3df31c9db mm/slab/kvfree_rcu: Switch to WQ_MEM_RECLAIM wq
+e65e7bea220c drm/amd/display: Fix slab-use-after-free on hdcp_work
+bb39ed470654 ksmbd: fix use-after-free in ksmbd_free_work_struct
+72d520476a2f wifi: cfg80211: cancel wiphy_work before freeing wiphy
+ab4eedb790ca Bluetooth: L2CAP: Fix corrupted list in hci_chan_del
+fb8286562ecf netfilter: nf_tables: make destruction work queue pernet
+d653bfeb07eb netfilter: nf_conncount: Fully initialize struct nf_conncount_tuple in insert_tree()
+c50f8e6053b0 mm: fix kernel BUG when userfaultfd_move encounters swapcache
+ca2456e07395 eth: bnxt: return fail if interface is down in bnxt_queue_mem_alloc()
+f09af5fdfbd9 eth: bnxt: fix kernel panic in the bnxt_get_queue_stats{rx | tx}
+4b8eeed4fb10 net/mlx5: Bridge, fix the crash caused by LAG state check
+3e64bb2ae7d9 net: mana: cleanup mana struct after debugfs_remove()
+5233e3235dec scsi: qla1280: Fix kernel oops when debug level > 2
+aed709355fd0 drm/hyperv: Fix address space leak when Hyper-V DRM device is removed
+79e31396fdd7 drm/amd/display: Assign normalized_pix_clk when color depth = 14
+ea2f45ab0e53 fbdev: hyperv_fb: Allow graceful removal of framebuffer
+3aa660c05924 ksmbd: prevent connection release during oplock break notification
+9f7b2aa5034e eth: bnxt: fix truesize for mb-xdp-pass case
+c03e7d05aa0e eth: bnxt: do not update checksum in bnxt_xdp_build_skb()
+7489161b1852 cifs: Fix integer overflow while processing acregmax mount option
+5b29891f91df cifs: Fix integer overflow while processing acdirmax mount option
+64f690ee22c9 cifs: Fix integer overflow while processing actimeo mount option
+d5a30fddfe2f cifs: Fix integer overflow while processing closetimeo mount option
+57e9417f6983 dm-flakey: Fix memory corruption in optional corrupt_bio_byte feature
+1063ae07383c Revert "openvswitch: switch to per-action label counting in conntrack"
+7241c886a717 fbdev: hyperv_fb: iounmap() the correct memory when removing a device
+304386373007 fbdev: hyperv_fb: Fix hang in kdump kernel when on Hyper-V Gen 2 VMs
+9360dfe4cbd6 sched_ext: Validate prev_cpu in scx_bpf_select_cpu_dfl()
+115ef44a9822 sched: address a potential NULL pointer dereference in the GRED scheduler.
+0c3057a5a04d net_sched: Prevent creation of classes with TC_H_ROOT
+f5d83cf0eeb9 net: mctp: unshare packets when reassembling
+f3600c867c99 netmem: prevent TX of unreadable skbs
+d2b9d97e89c7 qlcnic: fix memory leak issues in qlcnic_sriov_common.c
+23d97f18901e ice: fix memory leak in aRFS after reset
+acf40ab42799 pinctrl: nuvoton: npcm8xx: Add NULL check in npcm8xx_gpio_fw
+eab0396353be net/mlx5: handle errors in mlx5_chains_create_table()
