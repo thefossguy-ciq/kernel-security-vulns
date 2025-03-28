@@ -1,7 +1,7 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0
 #
-# Copyright (c) 2024 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+# Copyright (c) 2024,2025 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 #
 # cve_search - Search the published CVE records for the specified git id, or
 # for the git id of a specified CVE
@@ -61,21 +61,29 @@ fi
 
 CVE_ROOT="${DIR}/../cve/"
 
+# if we have ripgrep installed, use that as it's orders of magnitude faster than grep
+RG=$(which rg 2> /dev/null)
+if [[ "${RG}" == "" ]] ; then
+	GREP="grep -r"
+else
+	GREP="${RG}"
+fi
+
 # Treat the string as a SHA1 first:
 
 # See if the SHA given to us is a valid SHA in the git repo
 # and turning the sha into a "full" one so that we don't get this wrong.
-GIT_SHA_FULL=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${STRING}" 2> /dev/null)
+GIT_SHA_FULL=$(git --git-dir="${KERNEL_TREE}/.git" rev-parse --disambiguate="${STRING}" 2> /dev/null)
 if [[ "${GIT_SHA_FULL}" != "" ]] ; then
 	# it's a sha, let's search for that!
-	found=$(grep -r -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
+	found=$(${GREP} -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
 	if [[ "${found}" != "" ]]; then
 		cve=$(basename "${found}" | cut -f 1 -d '.')
 		echo "${txtcyn}${cve}${txtrst} is assigned to git id ${txtgrn}${STRING}${txtrst}"
 		exit 0
 	fi
 	# sha not found, so error out
-	echo "git sha1 ${STRING} not found in any CVE record, sorry."
+	echo "git sha1 ${txtcyn}${STRING}${txtrst} not found in any CVE record, sorry."
 	exit 1
 fi
 
@@ -91,5 +99,5 @@ if [[ "${found}" != "" ]]; then
         exit 0
 fi
 
-echo "${STRING} not found in any CVE record, sorry."
+echo "${txtcyn}${STRING}${txtrst} not found in any CVE record, sorry."
 exit 1
