@@ -694,5 +694,20 @@ mod tests {
         assert_eq!(kernels[2].version, "6.7.12");
         assert_eq!(kernels[3].version, "6.8.3");
         assert_eq!(kernels[4].version, "6.9");
+
+        // Now a harder test, only look at git commit ids
+        kernels = Vec::new();
+        let v = "6.11".to_string();
+        kernels.push(Kernel::new(v.clone(), "538fd3921afac97158d4177139a0ad39f056dbb2".to_string()));
+        kernels.push(Kernel::new(v.clone(), "28cd47f75185c4818b0fb1b46f2f02faaba96376".to_string()));
+        kernels.push(Kernel::new(v.clone(), "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e".to_string()));
+        kernels.push(Kernel::new(v.clone(), "4e9903b0861c9df3464b82db4a7025863bac1897".to_string()));
+        kernels.push(Kernel::new(v.clone(), "4f336dc07eceb77d2164bc1121a5ae6003b19f55".to_string()));
+        kernels.sort_by(|a, b| a.cmp(b));
+        assert_eq!(kernels[0].git_id, "28cd47f75185c4818b0fb1b46f2f02faaba96376");
+        assert_eq!(kernels[1].git_id, "538fd3921afac97158d4177139a0ad39f056dbb2");
+        assert_eq!(kernels[2].git_id, "4e9903b0861c9df3464b82db4a7025863bac1897");
+        assert_eq!(kernels[3].git_id, "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e");
+        assert_eq!(kernels[4].git_id, "4f336dc07eceb77d2164bc1121a5ae6003b19f55");
     }
 }
