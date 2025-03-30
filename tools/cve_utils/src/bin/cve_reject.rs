@@ -12,6 +12,7 @@ use cve_utils::print_git_error_details;
 use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
+use cve_utils::cve_utils::extract_cve_id_from_path;
 
 /// Reject a reserved or published CVE entry
 #[derive(Parser, Debug)]
@@ -230,8 +231,13 @@ fn find_cve_files(dir: &Path, cve_entry: &str) -> Result<Vec<PathBuf>> {
     if dir.exists() {
         for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
             let path = entry.path();
-            if path.is_file() && path.file_name().unwrap().to_string_lossy().contains(cve_entry) {
-                files.push(path.to_path_buf());
+            if path.is_file() {
+                // Try the consolidated extraction function
+                if let Ok(id) = extract_cve_id_from_path(path) {
+                    if id == cve_entry {
+                        files.push(path.to_path_buf());
+                    }
+                }
             }
         }
     }

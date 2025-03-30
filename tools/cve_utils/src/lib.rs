@@ -493,46 +493,78 @@ pub mod cve_utils {
     ///
     /// This function attempts to extract a CVE ID from a file path by examining
     /// the file name and, if necessary, its parent directory.
-    pub fn extract_cve_id_from_path(file_path: &Path) -> Result<String> {
-        let file_name = file_path.file_name()
-            .ok_or_else(|| anyhow!("Invalid file path: {}", file_path.display()))?
-            .to_string_lossy();
+    ///
+    /// This is a generalized version that handles:
+    /// - File paths with CVE ID as the filename (with or without extension)
+    /// - Paths with CVE ID in the parent directory
+    /// - Paths in various formats (absolute, relative, string slices)
+    /// - Support for both Path and String/&str inputs via AsRef<Path>
+    pub fn extract_cve_id_from_path<P: AsRef<Path>>(file_path: P) -> Result<String> {
+        let path = file_path.as_ref();
 
-        // Extract potential CVE ID based on file naming patterns
-        let cve_id = if file_name.contains('.') {
-            // Handle filenames with extensions (e.g., CVE-2023-12345.mbox)
-            if let Some(name_part) = file_name.split('.').next() {
-                if name_part.starts_with("CVE-") {
-                    name_part.to_string()
+        // First try getting a CVE ID from the filename
+        if let Some(file_name) = path.file_name() {
+            let file_name_str = file_name.to_string_lossy();
+
+            // Check if the filename itself is a CVE ID
+            if file_name_str.starts_with("CVE-") {
+                // Handle filenames with extensions (e.g., CVE-2023-12345.mbox)
+                if file_name_str.contains('.') {
+                    if let Some(name_part) = file_name_str.split('.').next() {
+                        if name_part.starts_with("CVE-") {
+                            return Ok(name_part.to_string());
+                        }
+                    }
                 } else {
-                    // Check parent directory if file doesn't start with CVE-
-                    let parent = file_path.parent()
-                        .ok_or_else(|| anyhow!("Invalid file path: {}", file_path.display()))?;
+                    return Ok(file_name_str.to_string());
+                }
+            }
 
-                    let cve_dir_name = parent.file_name()
-                        .ok_or_else(|| anyhow!("Invalid parent directory: {}", parent.display()))?
-                        .to_string_lossy();
+            // If filename is file stem without the "CVE-" prefix, try the parent directory
+            if let Some(parent) = path.parent() {
+                if let Some(parent_name) = parent.file_name() {
+                    let parent_str = parent_name.to_string_lossy();
+                    if parent_str.starts_with("CVE-") {
+                        return Ok(parent_str.to_string());
+                    }
 
-                    if cve_dir_name.starts_with("CVE-") {
-                        cve_dir_name.to_string()
-                    } else {
-                        name_part.to_string()
+                    // Try to find CVE pattern in path components
+                    for component in path.components() {
+                        let comp_str = component.as_os_str().to_string_lossy();
+                        if comp_str.starts_with("CVE-") {
+                            return Ok(comp_str.to_string());
+                        }
                     }
                 }
-            } else {
-                file_name.to_string()
             }
-        } else {
-            // No extension, use the whole filename
-            file_name.to_string()
-        };
-
-        // Validate it looks like a CVE ID
-        if !cve_id.starts_with("CVE-") {
-            return Err(anyhow!("Invalid CVE ID format: {}", cve_id));
         }
 
-        Ok(cve_id)
+        // If we got to this point, try to find CVE pattern in the entire path string
+        let path_str = path.to_string_lossy();
+        for part in path_str.split(std::path::MAIN_SEPARATOR) {
+            if part.starts_with("CVE-") {
+                return Ok(part.to_string());
+            }
+        }
+
+        // Last resort: check if any part of the path contains "CVE-YYYY-NNNNN"
+        let path_str = path.to_string_lossy();
+        if let Some(start) = path_str.find("CVE-") {
+            let cve_part = &path_str[start..];
+            if let Some(end) = cve_part.find(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
+                let candidate = &cve_part[..end];
+                if candidate.len() >= 13 && candidate.starts_with("CVE-") &&
+                   candidate[4..8].chars().all(|c| c.is_ascii_digit()) &&
+                   candidate[8..9] == *"-" &&
+                   candidate[9..].chars().all(|c| c.is_ascii_digit()) {
+                    return Ok(candidate.to_string());
+                }
+            } else {
+                return Ok(cve_part.to_string());
+            }
+        }
+
+        Err(anyhow!("Could not extract CVE ID from path: {}", path.display()))
     }
 
     /// Finds the next free CVE ID in a reserved directory

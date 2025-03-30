@@ -12,11 +12,13 @@ use rayon::prelude::*;
 use std::env;
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tempfile::NamedTempFile;
+use walkdir::WalkDir;
+use cve_utils::cve_utils::extract_cve_id_from_path;
 
 /// Update all .dyad files in the tree.
 ///
@@ -113,64 +115,48 @@ fn main() -> Result<()> {
 
 /// Process a single CVE
 fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> Result<bool> {
-    let cve_search_path = vulns_dir.join("scripts").join("cve_search");
-
-    // First try to find the CVE
-    let search_output = Command::new(&cve_search_path)
-        .arg(cve_id)
-        .output()
-        .context("Failed to execute cve_search")?;
-
-    if !search_output.status.success() {
-        return Ok(false);
-    }
-
-    // Find the SHA file for this CVE
     let cve_root = vulns_dir.join("cve");
-    let mut sha_file_path = None;
+    if !cve_root.exists() {
+        return Err(anyhow!("CVE directory not found: {}", cve_root.display()));
+    }
 
-    for entry in walkdir::WalkDir::new(&cve_root)
-        .into_iter()
-        .filter_entry(|e| !e.path().to_string_lossy().contains("testing"))
-        .filter_map(|e| e.ok())
-    {
+    // Look for the CVE ID in the published directory
+    let mut cve_file = None;
+    for entry in WalkDir::new(cve_root.join("published")).into_iter().filter_map(Result::ok) {
         let path = entry.path();
-        if path.is_file() &&
-           path.file_name().is_some_and(|n| n.to_string_lossy().contains(".sha1")) &&
-           path.to_string_lossy().contains(cve_id)
-        {
-            sha_file_path = Some(path.to_path_buf());
-            break;
+        // Skip directories and non-sha1 files
+        if !path.is_file() || !path.to_string_lossy().ends_with(".sha1") {
+            continue;
         }
-    }
 
-    // Process the file if found
-    if let Some(path) = sha_file_path {
-        let relative_path = path.strip_prefix(vulns_dir)?.to_string_lossy().to_string();
-
-        // Create a single-item progress bar for visual feedback
-        let progress_bar = ProgressBar::new(1);
-        progress_bar.set_style(
-            ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] {bar:50.cyan/blue} {pos:>}/{len} {percent}% {msg}")
-                .unwrap()
-                .progress_chars("█▉▊▋▌▍▎▏ ")
-        );
-        progress_bar.set_message(format!("Processing {}", cve_id));
-
-        match process_single_file(&relative_path, vulns_dir, dyad_path, debug) {
-            Ok(_) => {
-                progress_bar.finish_with_message(format!("Processed {}", cve_id.green()));
-                Ok(true)
+        // Extract CVE ID from path
+        match extract_cve_id_from_path(path) {
+            Ok(id) if id == cve_id => {
+                cve_file = Some(path.to_path_buf());
+                break;
             },
-            Err(e) => {
-                progress_bar.finish_with_message(format!("Failed to process {}: {}", cve_id.red(), e));
-                Err(e)
-            }
+            _ => continue,
         }
-    } else {
-        Ok(false)
     }
+
+    // If the file wasn't found, report it but don't error out
+    let cve_path = match cve_file {
+        Some(path) => path,
+        None => {
+            println!("CVE {} not found in published directory", cve_id);
+            return Ok(false);
+        }
+    };
+
+    // Generate dyad file
+    process_single_file(
+        &cve_path.to_string_lossy(),
+        vulns_dir,
+        dyad_path,
+        debug
+    )?;
+
+    Ok(true)
 }
 
 /// Process all CVEs for a specific year
@@ -326,23 +312,24 @@ fn process_single_file(
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use super::*;
     use tempfile::tempdir;
+    use cve_utils::cve_utils::extract_cve_id_from_path;
 
     #[test]
     fn test_extract_cve_id_from_path() {
-        // Test parsing of CVE ID from file paths
-        let test_cases = [
+        let test_cases = vec![
             ("cve/published/2023/CVE-2023-12345.sha1", "CVE-2023-12345"),
-            ("cve/published/2022/CVE-2022-9876.sha1", "CVE-2022-9876"),
-            ("cve/rejected/2021/CVE-2021-5432.sha1", "CVE-2021-5432"),
+            ("cve/published/2023/CVE-2023-12345.json", "CVE-2023-12345"),
+            ("cve/published/2023/CVE-2023-12345", "CVE-2023-12345"),
+            ("/absolute/path/to/cve/published/2023/CVE-2023-12345.sha1", "CVE-2023-12345"),
+            ("relative/path/to/CVE-2023-12345.sha1", "CVE-2023-12345"),
         ];
 
         for (path, expected) in test_cases {
-            let parts: Vec<&str> = path.split('.').collect();
-            let root = parts[0];
-            let cve_id = root.split('/').nth(3).unwrap();
-            assert_eq!(cve_id, expected);
+            let result = extract_cve_id_from_path(path);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), expected);
         }
     }
 

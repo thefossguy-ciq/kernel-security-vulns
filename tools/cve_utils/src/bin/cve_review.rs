@@ -8,6 +8,7 @@ use colored::Colorize;
 use cve_utils::common;
 use cve_utils::print_git_error_details;
 use dialoguer::Input;
+use regex::Regex;
 use std::cmp::min;
 use std::collections::HashSet;
 use std::env;
@@ -15,7 +16,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use regex::Regex;
+use cve_utils::cve_utils::extract_cve_id_from_path;
 
 /// Review commits to determine if they should be assigned a CVE
 #[derive(Parser, Debug)]
@@ -579,53 +580,59 @@ fn target_as_tag(target: &str) -> String {
 
 /// Check if a commit has already been published as a CVE
 ///
-/// This function:
-/// 1. Gets the mainline SHA for the commit
-/// 2. Searches through the published CVE directory for files containing the commit subject
-/// 3. Checks if any of those files also contain the mainline SHA
-/// 4. Returns the CVE ID if a match is found
+/// Searches through the CVE database to see if this commit has already been
+/// assigned a CVE ID.
 ///
-/// This prevents duplicate CVEs for the same issue.
+/// Returns the CVE ID if found, or None if not found.
 fn check_already_published(commit: &Commit) -> Result<Option<String>> {
-    // Get the mainline SHA
+    // Get the CVE root directory
+    let cve_root = match std::env::var("CVE_ROOT") {
+        Ok(dir) => PathBuf::from(dir),
+        Err(_) => {
+            // Default to the parent directory of current directory
+            let current_dir = std::env::current_dir()?;
+            current_dir.join("cve")
+        }
+    };
+
+    // Get the mainline SHA (if this is a backport)
     let mainline_sha = get_mainline_sha(&commit.sha)?;
 
-    // Skip if no mainline SHA found
-    if mainline_sha.is_empty() {
-        return Ok(None);
-    }
-
-    // Look for the commit subject in the published directory
-    let cve_root = common::get_cve_root()?;
+    // Search published CVEs for this SHA
     let published_dir = cve_root.join("published");
+    if published_dir.exists() {
+        let output = Command::new("find")
+            .args([
+                published_dir.to_str().unwrap(),
+                "-name", "*.sha1",
+                "-type", "f"
+            ])
+            .output()?;
 
-    // Use grep to find files that contain the commit subject
-    let grep_output = Command::new("grep")
-        .args(["-r", "-l", "-F", &commit.subject, &published_dir.to_string_lossy()])
-        .output()
-        .context("Failed to execute grep command")?;
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            for sha_file in stdout.lines() {
+                // Read SHA from file
+                let content = match fs::read_to_string(sha_file) {
+                    Ok(content) => content.trim().to_string(),
+                    Err(_) => continue,
+                };
 
-    if !grep_output.status.success() || grep_output.stdout.is_empty() {
-        return Ok(None);
-    }
+                // Check if this file contains our SHA
+                if content == commit.sha || content == mainline_sha {
+                    let path = Path::new(sha_file);
+                    // Extract CVE ID from the filename
+                    if let Some(file_stem) = path.file_stem() {
+                        let file_stem_str = file_stem.to_string_lossy();
+                        if file_stem_str.starts_with("CVE-") {
+                            return Ok(Some(file_stem_str.to_string()));
+                        }
+                    }
 
-    // Check through the found files
-    for file_path in String::from_utf8_lossy(&grep_output.stdout).lines() {
-        // Only consider JSON files
-        if !file_path.ends_with(".json") {
-            continue;
-        }
-
-        // Check if this file contains our mainline SHA
-        let file_content = fs::read_to_string(file_path)?;
-        if file_content.contains(&mainline_sha) {
-            // Extract CVE ID from filename
-            let path = PathBuf::from(file_path);
-            let cve_id = path.file_stem()
-                .and_then(|stem| stem.to_str())
-                .ok_or_else(|| anyhow!("Invalid CVE file name"))?;
-
-            return Ok(Some(cve_id.to_string()));
+                    // If file stem doesn't directly provide a CVE ID, use the consolidated function
+                    return extract_cve_id_from_path(path).map(Some);
+                }
+            }
         }
     }
 

@@ -12,7 +12,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str;
 use walkdir::WalkDir;
-use git2::{Repository, Oid, Sort, Delta};
+use git2::{Repository, Oid};
+use cve_utils::{
+    git_utils::{self, resolve_reference},
+    cve_utils::extract_cve_id_from_path,
+};
 
 #[derive(Parser)]
 #[command(author, version, about = "CVE statistics utility")]
@@ -278,98 +282,62 @@ fn get_first_cve_date(vulns_dir: &Path) -> Result<String> {
     }
 }
 
-/// Count unique CVEs in a date range by analyzing git commits
+/// Count CVEs created in a specific time period
 ///
 /// This function:
-/// 1. Parses the start and end dates into timestamps
-/// 2. Walks through the git commit history of the CVE repository
-/// 3. Identifies commits that fall within the specified date range
-/// 4. Extracts unique CVE IDs from files added in the cve/published directory
+/// 1. Finds all commits in the given date range
+/// 2. Examines which files were added in each commit
+/// 3. Identifies files in the cve/published directory
+/// 4. Counts unique CVE IDs from those files
 /// 5. Returns the count of unique CVEs found
 fn count_cves_in_range(vulns_dir: &Path, start_date: &str, end_date: &str) -> Result<usize> {
-    // Parse the start and end dates
-    let start = NaiveDate::parse_from_str(start_date, "%Y-%m-%d")
-        .with_context(|| format!("Failed to parse start date: {}", start_date))?;
-    let end = NaiveDate::parse_from_str(end_date, "%Y-%m-%d")
-        .with_context(|| format!("Failed to parse end date: {}", end_date))?;
-
-    // Convert dates to timestamps for comparison
-    let start_time = start.and_hms_opt(0, 0, 0)
-        .ok_or_else(|| anyhow!("Failed to create datetime from start date"))?
-        .and_utc().timestamp();
-    let end_time = end.and_hms_opt(23, 59, 59)
-        .ok_or_else(|| anyhow!("Failed to create datetime from end date"))?
-        .and_utc().timestamp();
+    let git_dir = vulns_dir;
 
     // Open the repository
-    let repo = Repository::open(vulns_dir)
-        .context("Failed to open git repository")?;
+    let repo = git2::Repository::open(git_dir)
+        .context(format!("Failed to open repository at {}", git_dir.display()))?;
 
-    // Set up revwalk to iterate through commits
-    let mut revwalk = repo.revwalk()?;
-    revwalk.set_sorting(Sort::TIME)?;
-    revwalk.push_head()?;
-
-    // Keep track of unique CVEs
     let mut unique_cves = HashSet::new();
 
-    // Iterate through all commits
-    for oid_result in revwalk {
-        let oid = oid_result?;
-        let commit = repo.find_commit(oid)?;
+    // Get commit range
+    let range = format!("--after={} --before={}", start_date, end_date);
 
-        // Check if the commit is within the date range
-        let commit_time = commit.time().seconds();
-        if commit_time < start_time || commit_time > end_time {
+    // Use git rev-list to get commits in the range
+    let output = std::process::Command::new("git")
+        .args(["rev-list", "--all", &range])
+        .current_dir(git_dir)
+        .output()
+        .context("Failed to run git rev-list")?;
+
+    let commits = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(|s| s.trim().to_string())
+        .collect::<Vec<_>>();
+
+    // Process each commit to find CVEs
+    for commit_sha in &commits {
+        // Skip empty commit hashes
+        if commit_sha.is_empty() {
             continue;
         }
 
-        // Get the parent commit to compare with
-        let parent = match commit.parent(0) {
-            Ok(parent) => parent,
-            Err(_) => continue, // Skip first commit or ones without parents
-        };
-
-        // Get the trees for the commit and its parent
-        let commit_tree = commit.tree()?;
-        let parent_tree = parent.tree()?;
-
-        // Get the diff between the trees
-        let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)?;
-
-        // Look through the diffs to find added files in cve/published directory
-        diff.foreach(
-            &mut |delta, _| {
-                if delta.status() == Delta::Added {
-                    if let Some(new_file) = delta.new_file().path() {
-                        let path_str = new_file.to_string_lossy();
-                        if path_str.starts_with("cve/published/") {
-                            if let Some(cve_id) = extract_cve_id_from_path(&path_str) {
-                                unique_cves.insert(cve_id);
-                            }
+        // Resolve the reference to a git object
+        if let Ok(obj) = resolve_reference(&repo, commit_sha) {
+            // Get affected files using the git_utils module
+            if let Ok(affected_files) = git_utils::get_affected_files(&repo, &obj) {
+                for file_path in affected_files {
+                    if file_path.starts_with("cve/published/") {
+                        // Use the consolidated function from cve_utils
+                        if let Ok(cve_id) = extract_cve_id_from_path(&file_path) {
+                            unique_cves.insert(cve_id);
                         }
                     }
                 }
-                true
-            },
-            None,
-            None,
-            None,
-        )?;
+            }
+        }
     }
 
     Ok(unique_cves.len())
-}
-
-fn extract_cve_id_from_path(path: &str) -> Option<String> {
-    let parts: Vec<&str> = path.split('/').collect();
-    if parts.len() >= 3 {
-        let filename = parts[parts.len() - 1];
-        if filename.starts_with("CVE-") {
-            return Some(filename.to_string());
-        }
-    }
-    None
 }
 
 /// Show summary statistics
