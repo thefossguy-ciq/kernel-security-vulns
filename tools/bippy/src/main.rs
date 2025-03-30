@@ -10,6 +10,7 @@ use thiserror::Error;
 use std::env;
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
+use cve_utils::version_utils::version_is_mainline;
 
 /// Error types for the bippy tool
 #[derive(Error, Debug)]
@@ -438,72 +439,6 @@ struct Args {
     /// Verbose output
     #[clap(short, long)]
     verbose: bool,
-}
-
-/// Determines if a kernel version is a "-rc" release or not.
-///
-/// # Arguments
-///
-/// * `version` - A string containing the kernel version
-///
-/// # Returns
-///
-/// * `true` if this is a release candidate (-rc) version
-/// * `false` otherwise
-fn version_is_rc(version: &str) -> bool {
-    version.contains("rc")
-}
-
-/// Determines if a kernel version is a "queue" version.
-///
-/// # Arguments
-///
-/// * `version` - A string containing the kernel version
-///
-/// # Returns
-///
-/// * `true` if this is a queue version
-/// * `false` otherwise
-fn version_is_queue(version: &str) -> bool {
-    version.contains("queue")
-}
-
-/// Determines if a kernel version is a "mainline" one, or if it is a stable kernel release.
-///
-/// # Arguments
-///
-/// * `version` - A string containing the kernel version
-///
-/// # Returns
-///
-/// * `true` if this is a mainline version
-/// * `false` if this is a stable release
-fn version_is_mainline(version: &str) -> bool {
-    // If version is 2.6.X, we don't care about them anymore
-    if version.starts_with("2.") {
-        return true;
-    }
-
-    // If this is a -rc release, it's a mainline release
-    if version_is_rc(version) {
-        return true;
-    }
-
-    // If this is in a queue, it's not a mainline release
-    if version_is_queue(version) {
-        return false;
-    }
-
-    // Parse the version string into components
-    let parts: Vec<&str> = version.split('.').collect();
-
-    // If the array only has 2 elements in it, it's a mainline release (X.Y, not X.Y.Z)
-    if parts.len() == 2 {
-        return true;
-    }
-
-    // Must be a stable release
-    false
 }
 
 /// Resolve a Git reference (SHA, tag, branch, etc.) to an object
@@ -1318,6 +1253,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use cve_utils::version_utils::{version_is_rc, version_is_queue};
     use std::fs::File;
     use std::io::Write;
     use tempfile::tempdir;

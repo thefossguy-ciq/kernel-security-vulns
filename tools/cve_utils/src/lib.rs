@@ -756,22 +756,36 @@ pub mod version_utils {
             return false;
         }
 
+        // Special case: 2.x kernels are always considered mainline
+        if version.starts_with("2.") {
+            return true;
+        }
+
+        // If this is a -rc release, it's a mainline release
+        if version_is_rc(version) {
+            return true;
+        }
+
+        // If this is in a queue, it's not a mainline release
+        if version_is_queue(version) {
+            return false;
+        }
+
         // Get the first parts of the version, separated by dots
         let parts: Vec<&str> = version.split('.').collect();
 
         // A mainline version typically has the format X.Y
-        if parts.len() != 2 {
-            return false;
+        if parts.len() == 2 {
+            // Both parts should be numeric
+            if !parts[0].chars().all(char::is_numeric) ||
+               !parts[1].chars().all(char::is_numeric) {
+                return false;
+            }
+            return true;
         }
 
-        // Both parts should be numeric
-        if !parts[0].chars().all(char::is_numeric) ||
-           !parts[1].chars().all(char::is_numeric) {
-            return false;
-        }
-
-        // Check for additional indicators of non-mainline versions
-        !version_is_rc(version) && !version_is_queue(version)
+        // Must be a stable release
+        false
     }
 }
 
@@ -804,8 +818,9 @@ mod tests {
     fn test_version_is_mainline() {
         assert!(version_utils::version_is_mainline("5.4"));
         assert!(version_utils::version_is_mainline("4.19"));
+        assert!(version_utils::version_is_mainline("2.6.39"));
+        assert!(version_utils::version_is_mainline("5.4-rc1"));
         assert!(!version_utils::version_is_mainline("5.4.123"));
-        assert!(!version_utils::version_is_mainline("5.4-rc1"));
         assert!(!version_utils::version_is_mainline("5.4-queue"));
         assert!(!version_utils::version_is_mainline("next"));
         assert!(!version_utils::version_is_mainline("0"));
