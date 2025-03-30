@@ -758,7 +758,6 @@ fn sort_releases_properly() -> Result<(), Box<dyn std::error::Error>> {
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 22207fd5c80177b860279653d017474b2812af5e\n\
-         0:0:6.1.132:2e13f88e01ae7e28a7e831bf5c2409c4748e0a60\n\
          0:0:6.6.24:e87e08c94c9541b4e18c4c13f2f605935f512605\n\
          0:0:6.7.12:af054a5fb24a144f99895afce9519d709891894c\n\
          0:0:6.8.3:22f665ecfd1225afa1309ace623157d12bb9bb0c\n\
