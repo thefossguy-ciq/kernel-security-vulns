@@ -790,5 +790,19 @@ fn vulnerable_in_mainline_and_stable_same_branch() -> Result<(), Box<dyn std::er
     Ok(())
 }
 
+#[test]
+fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("dyad")?;
 
+    let output =
+        "# 	getting vulnerable:fixed pairs for git id 4e32c25b58b945f976435bbe51f39b32d714052e\n\
+         6.9:07fd7c329839cf0b8c7766883d830a1a0d12d1dd:6.10.10:03e2a1209a83a380df34a72f7d6d1bc6c74132c7\n\
+         6.9:07fd7c329839cf0b8c7766883d830a1a0d12d1dd:6.11:4e32c25b58b945f976435bbe51f39b32d714052e\n";
 
+    cmd.arg("4e32c25b58b945f976435bbe51f39b32d714052e");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::ends_with(output));
+
+    Ok(())
+}
