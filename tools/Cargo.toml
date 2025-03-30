@@ -38,61 +38,61 @@ predicates = "3.1"
 
 [[bin]]
 name = "dyad"
-path = "tools/dyad/src/main.rs"
+path = "dyad/src/main.rs"
 
 [[bin]]
 name = "voting_results"
-path = "tools/voting_results/src/main.rs"
+path = "voting_results/src/main.rs"
 
 [[bin]]
 name = "bippy"
-path = "tools/bippy/src/main.rs"
+path = "bippy/src/main.rs"
 
 # CVE Utils binaries
 [[bin]]
 name = "cve_search"
-path = "tools/cve_utils/src/bin/cve_search.rs"
+path = "cve_utils/src/bin/cve_search.rs"
 
 [[bin]]
 name = "cve_reject"
-path = "tools/cve_utils/src/bin/cve_reject.rs"
+path = "cve_utils/src/bin/cve_reject.rs"
 
 [[bin]]
 name = "cve_update"
-path = "tools/cve_utils/src/bin/cve_update.rs"
+path = "cve_utils/src/bin/cve_update.rs"
 
 [[bin]]
 name = "cve_publish"
-path = "tools/cve_utils/src/bin/cve_publish.rs"
+path = "cve_utils/src/bin/cve_publish.rs"
 
 [[bin]]
 name = "cve_create"
-path = "tools/cve_utils/src/bin/cve_create.rs"
+path = "cve_utils/src/bin/cve_create.rs"
 
 [[bin]]
 name = "cve_review"
-path = "tools/cve_utils/src/bin/cve_review.rs"
+path = "cve_utils/src/bin/cve_review.rs"
 
 [[bin]]
 name = "update_dyad"
-path = "tools/cve_utils/src/bin/update_dyad.rs"
+path = "cve_utils/src/bin/update_dyad.rs"
 
 [[bin]]
 name = "strak"
-path = "tools/cve_utils/src/bin/strak.rs"
+path = "cve_utils/src/bin/strak.rs"
 
 [[bin]]
 name = "score"
-path = "tools/cve_utils/src/bin/score.rs"
+path = "cve_utils/src/bin/score.rs"
 
 [[bin]]
 name = "cve_stats"
-path = "tools/cve_utils/src/bin/cve_stats.rs"
+path = "cve_utils/src/bin/cve_stats.rs"
 
 [[test]]
 name = "dyad"
-path = "tools/dyad/tests/dyad.rs"
+path = "dyad/tests/dyad.rs"
 
 [lib]
 name = "cve_utils"
-path = "tools/cve_utils/src/lib.rs"
+path = "cve_utils/src/lib.rs"
