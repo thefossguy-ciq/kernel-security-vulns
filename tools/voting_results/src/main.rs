@@ -910,8 +910,21 @@ mod tests {
         let proposed_dir = temp_dir.path().to_path_buf();
         let script_dir = temp_dir.path().to_path_buf();
 
+        // Get kernel tree path from the CVEKERNELTREE environment variable
+        let kernel_tree = match env::var("CVEKERNELTREE") {
+            Ok(path) => PathBuf::from(path),
+            Err(_) => {
+                panic!("CVEKERNELTREE environment variable not set. It needs to be set to the stable repo directory");
+            }
+        };
+
+        // Validate kernel tree path
+        if !kernel_tree.is_dir() {
+            panic!("CVEKERNELTREE directory does not exist: {}", kernel_tree.display());
+        }
+
         VotingResults {
-            repo: Repository::open(".").expect("Failed to open test repository"),
+            repo: Repository::open(&kernel_tree).expect("Failed to open kernel repository"),
             range: "v6.7.1..v6.7.2".to_string(),
             top: "v6.7.2".to_string(),
             proposed_dir,
