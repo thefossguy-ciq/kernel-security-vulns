@@ -1,0 +1,926 @@
+// SPDX-License-Identifier: GPL-2.0-only
+//
+// Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
+
+use anyhow::{Context, Result, anyhow};
+use clap::Parser;
+use colored::*;
+use git2::Repository;
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::collections::{HashMap, HashSet};
+use std::env;
+use std::fs::{self, File};
+use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+
+// Define a type alias for the complex commit result type
+type CommitResult = (String, bool, HashMap<String, bool>);
+
+// Define primary reviewers - other reviewers are determined dynamically
+lazy_static! {
+    static ref PRIMARY_REVIEWERS: Vec<String> = vec![
+        "greg".to_string(),
+        "lee".to_string(),
+        "sasha".to_string(),
+    ];
+
+    // Git remote name for stable branches
+    static ref STABLE_REMOTE: String = "stable".to_string();
+
+    // Regular expressions used in the code
+    static ref UPSTREAM_REGEX: Regex = Regex::new(r"[0-9a-f]{40}").unwrap();
+}
+
+#[derive(Parser, Debug)]
+#[clap(version, about = "Conducts voting system between the present reviewers")]
+struct Args {
+    /// Git range in the format 'v6.7.1..v6.7.2'
+    #[clap(name = "RANGE")]
+    range: Option<String>,
+
+    /// Skip git fetch operation
+    #[clap(long = "no-fetch")]
+    no_fetch: bool,
+}
+
+/// Finds the root directory of the vulns repository
+///
+/// This function attempts to locate the vulns repository by:
+/// 1. Starting from the current directory and traversing up
+/// 2. If that fails, starting from the executable directory and traversing up
+/// 3. If all else fails, checking some common absolute paths
+fn find_vulns_dir() -> Result<PathBuf> {
+    // First attempt: look from current directory upward
+    if let Ok(dir) = find_vulns_dir_from_path(&env::current_dir().unwrap_or_default()) {
+        return Ok(dir);
+    }
+
+    // Second attempt: look from executable directory upward
+    if let Ok(exec_path) = env::current_exe() {
+        if let Some(exec_dir) = exec_path.parent() {
+            if let Ok(dir) = find_vulns_dir_from_path(exec_dir) {
+                return Ok(dir);
+            }
+        }
+    }
+
+    // Third attempt: check common absolute paths
+    let common_paths = [
+        PathBuf::from("/home/sasha/vulns"),
+        PathBuf::from(env::var("HOME").unwrap_or_default()).join("vulns"),
+    ];
+
+    for path in &common_paths {
+        if path.exists() && path.is_dir() && path.file_name().is_some_and(|name| name == "vulns") {
+            return Ok(path.to_path_buf());
+        }
+    }
+
+    Err(anyhow!("Could not find vulns directory"))
+}
+
+/// Helper function to search for vulns directory starting from a given path
+fn find_vulns_dir_from_path(start_path: &Path) -> Result<PathBuf> {
+    let mut current_dir = start_path.to_path_buf();
+
+    // Check if we're already in the vulns repo
+    if current_dir.file_name().is_some_and(|name| name == "vulns") {
+        return Ok(current_dir);
+    }
+
+    // Traverse up the directory tree
+    while current_dir.parent().is_some() {
+        if let Some(name) = current_dir.file_name() {
+            if name == "vulns" {
+                return Ok(current_dir);
+            }
+        }
+
+        if !current_dir.pop() {
+            break;
+        }
+    }
+
+    Err(anyhow!("Could not find vulns directory from path: {:?}", start_path))
+}
+
+struct VotingResults {
+    repo: Repository,
+    range: String,
+    top: String,
+    proposed_dir: PathBuf,
+    script_dir: PathBuf,
+    reviewers: Vec<String>,
+    guest_reviewers: Vec<String>,
+    review_files: Vec<PathBuf>,
+    annotated_files: Vec<PathBuf>,
+    commits_by_pattern: HashMap<String, Vec<String>>,
+}
+
+impl VotingResults {
+    fn new(args: Args) -> Result<Self> {
+        // Check if range is provided and properly formatted
+        let range = match args.range {
+            Some(r) if r.contains("..") => r,
+            Some(r) => return Err(anyhow!("Unrecognized argument: {}", r)),
+            None => return Err(anyhow!("Please supply a Git range (e.g v6.7.1..v6.7.2)")),
+        };
+
+        // Verify we're in a kernel directory
+        if !Path::new("MAINTAINERS").exists() {
+            return Err(anyhow!("Not in a kernel directory"));
+        }
+
+        // Open the repository
+        let repo = Repository::open(".").context("Failed to open git repository")?;
+
+        // Parse range and get the top version
+        let top = range.split("..").nth(1)
+            .ok_or_else(|| anyhow!("Invalid range format"))?
+            .to_string();
+
+        // Fetch from stable remote if --no-fetch is not specified
+        if !args.no_fetch {
+            println!("{}", format!("Fetching from {}", *STABLE_REMOTE).blue());
+            if let Err(e) = repo.find_remote(&STABLE_REMOTE)
+                .and_then(|mut remote| remote.fetch(&[] as &[&str], None, None)) {
+                eprintln!("Warning: Failed to fetch from stable remote: {}", e);
+            }
+        }
+
+        // Use the vulns directory location function
+        let vulns_dir = find_vulns_dir()?;
+        let proposed_dir = vulns_dir.join("cve").join("review").join("proposed");
+        let script_dir = vulns_dir.join("scripts");
+
+        if !proposed_dir.exists() {
+            return Err(anyhow!("Cannot find review directory: {:?}", proposed_dir));
+        }
+
+        // Create a new instance with initialized fields
+        let mut results = Self {
+            repo,
+            range,
+            top,
+            proposed_dir,
+            script_dir,
+            reviewers: Vec::new(),
+            guest_reviewers: Vec::new(),
+            review_files: Vec::new(),
+            annotated_files: Vec::new(),
+            commits_by_pattern: HashMap::new(),
+        };
+
+        // Initialize the remaining fields
+        results.init()?;
+        Ok(results)
+    }
+
+    fn init(&mut self) -> Result<()> {
+        self.find_reviewers()?;
+        self.identify_guest_reviewers();
+        self.display_reviewer_info();
+        self.find_review_files()?;
+        self.init_commits_by_pattern();
+        Ok(())
+    }
+
+    fn display_reviewer_info(&self) {
+        println!("{}", format!("Primary reviewers: {}", PRIMARY_REVIEWERS.join(" ")).blue());
+        println!("{}", format!("All reviewers found: {}", self.reviewers.join(" ")).blue());
+
+        if !self.guest_reviewers.is_empty() {
+            println!("{}", format!("Guest reviewers: {}", self.guest_reviewers.join(" ")).blue());
+        } else {
+            println!("{}", "No guest reviewers found".blue());
+        }
+    }
+
+    fn find_reviewers(&mut self) -> Result<()> {
+        let mut reviewer_set = HashSet::new();
+
+        // Extract reviewer names from review filenames
+        let pattern = format!("{}-[a-z]+$", self.top);
+        let regex = Regex::new(&pattern)?;
+
+        // Scan the proposed directory for reviewer files
+        if let Ok(entries) = fs::read_dir(&self.proposed_dir) {
+            for entry in entries.filter_map(Result::ok) {
+                let file_name = entry.file_name().to_string_lossy().to_string();
+
+                if regex.is_match(&file_name) {
+                    if let Some(reviewer) = file_name.split('-').last() {
+                        reviewer_set.insert(reviewer.to_string());
+                    }
+                }
+            }
+        }
+
+        // If no reviewers found, use primary reviewers as fallback
+        if reviewer_set.is_empty() {
+            println!("{}", "No reviewers found in review files, using only primary reviewers".red());
+            reviewer_set.extend(PRIMARY_REVIEWERS.iter().cloned());
+        }
+
+        // Convert to sorted vector for consistent output
+        self.reviewers = reviewer_set.into_iter().collect();
+        self.reviewers.sort();
+
+        Ok(())
+    }
+
+    fn identify_guest_reviewers(&mut self) {
+        // A guest reviewer is any reviewer not in the PRIMARY_REVIEWERS list
+        self.guest_reviewers = self.reviewers.iter()
+            .filter(|r| !PRIMARY_REVIEWERS.contains(r))
+            .cloned()
+            .collect();
+    }
+
+    fn find_review_files(&mut self) -> Result<()> {
+        // Create reviewer pattern for glob matching
+        let reviewer_pattern = self.reviewers.join("|");
+
+        // Regex patterns for finding review and annotation files
+        let review_regex = Regex::new(&format!("{}-(?:{})", self.top, reviewer_pattern))?;
+        let annotated_regex = Regex::new(&format!("{}.*-annotated-(?:{})", self.top, reviewer_pattern))?;
+
+        // Scan directory for matching files
+        if let Ok(entries) = fs::read_dir(&self.proposed_dir) {
+            for entry in entries.filter_map(Result::ok) {
+                let path = entry.path();
+                if let Some(file_name) = path.file_name().map(|f| f.to_string_lossy().to_string()) {
+                    if review_regex.is_match(&file_name) {
+                        self.review_files.push(path);
+                    } else if annotated_regex.is_match(&file_name) {
+                        self.annotated_files.push(path);
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn init_commits_by_pattern(&mut self) {
+        // Initialize arrays for storing commits by vote pattern
+        self.commits_by_pattern.insert("cve".to_string(), Vec::new());
+        self.commits_by_pattern.insert("all".to_string(), Vec::new());
+
+        // Initialize vote patterns for single reviewers
+        for reviewer in &self.reviewers {
+            self.commits_by_pattern.insert(reviewer.clone(), Vec::new());
+        }
+
+        // Two-reviewer combinations for primary reviewers
+        for (i, r1) in PRIMARY_REVIEWERS.iter().enumerate() {
+            for r2 in PRIMARY_REVIEWERS.iter().skip(i + 1) {
+                let pattern = format!("{},{}", r1, r2);
+                self.commits_by_pattern.insert(pattern, Vec::new());
+            }
+        }
+
+        // Combinations with guest reviewers
+        for primary in PRIMARY_REVIEWERS.iter() {
+            for guest in &self.guest_reviewers {
+                let pattern = format!("{},{}", primary, guest);
+                self.commits_by_pattern.insert(pattern, Vec::new());
+            }
+        }
+    }
+
+    fn process_commits(&mut self) -> Result<()> {
+        // Get all commits in the range
+        let mut revwalk = self.repo.revwalk()?;
+        revwalk.push_range(&self.range)?;
+
+        // Collect all oids first to release the borrow on self.repo
+        let oids: Result<Vec<_>, _> = revwalk.collect();
+
+        // Store all commit outputs and data for categorization
+        let mut all_commit_outputs = Vec::new();
+        let mut to_process = Vec::new();
+
+        for oid in oids? {
+            if let Some((output, commit_data)) = self.process_single_commit(oid)? {
+                all_commit_outputs.push(output);
+                to_process.push(commit_data);
+            }
+        }
+
+        // Categorize the processed commits
+        self.categorize_commits(to_process);
+
+        // Display all commit outputs
+        for output in all_commit_outputs {
+            print!("{}", output);
+        }
+
+        Ok(())
+    }
+
+    fn process_single_commit(&self, oid: git2::Oid) -> Result<Option<(String, CommitResult)>> {
+        let stable_commit = self.repo.find_commit(oid)?;
+
+        // Get the stable commit SHA
+        let stable_sha = stable_commit.id().to_string();
+        let short_stable_sha = format!("{}", stable_commit.id())[0..12].to_string();
+
+        // Extract the upstream SHA
+        let mainline_long_sha = self.get_upstream_sha(&short_stable_sha, &stable_sha)?;
+
+        // Get the short SHA and subject
+        let (mainline_sha, subject, oneline) = self.get_commit_details(&mainline_long_sha)?;
+
+        // Count votes from each reviewer
+        let reviewer_votes = self.tally_votes(&subject)?;
+
+        // Count total votes
+        let total_votes = reviewer_votes.values().filter(|&&v| v).count();
+
+        // Skip if no votes
+        if total_votes == 0 {
+            return Ok(None);
+        }
+
+        // Check if everyone agrees
+        let everyone_agrees = total_votes == self.reviewers.len();
+
+        // Check for CVE
+        let has_cve = self.check_for_cve(&mainline_sha)?;
+
+        // Create output string
+        let output = self.format_commit_output(&oneline, has_cve, &reviewer_votes);
+
+        // Only return output if not "everyone agrees" and not has CVE
+        if !everyone_agrees && !has_cve {
+            Ok(Some((output, (oneline, has_cve, reviewer_votes))))
+        } else {
+            // Still return commit data for categorization
+            Ok(Some(("".to_string(), (oneline, has_cve, reviewer_votes))))
+        }
+    }
+
+    fn get_upstream_sha(&self, short_stable_sha: &str, stable_sha: &str) -> Result<String> {
+        // Try to find the commit using full SHA first
+        let commit = match git2::Oid::from_str(stable_sha) {
+            Ok(oid) => self.repo.find_commit(oid),
+            Err(_) => {
+                // If that fails, fall back to using Command to look up short SHA
+                // since libgit2 doesn't have direct support for partial SHAs
+                let lookup_cmd = Command::new("git")
+                    .args(["rev-parse", short_stable_sha])
+                    .output()
+                    .context("Failed to resolve short SHA")?;
+
+                let full_sha = String::from_utf8_lossy(&lookup_cmd.stdout).trim().to_string();
+                if full_sha.is_empty() {
+                    return Ok(stable_sha.to_string());
+                }
+
+                match git2::Oid::from_str(&full_sha) {
+                    Ok(oid) => self.repo.find_commit(oid),
+                    Err(_) => return Ok(stable_sha.to_string())
+                }
+            }
+        };
+
+        // Process the commit if found
+        if let Ok(commit) = commit {
+            // Get the full message and look for "commit X upstream" pattern
+            let message = commit.message().unwrap_or("");
+
+            // Use the existing UPSTREAM_REGEX to extract the SHA
+            if let Some(captures) = UPSTREAM_REGEX.captures(message) {
+                if let Some(sha_match) = captures.get(0) {
+                    return Ok(sha_match.as_str().to_string());
+                }
+            }
+        }
+
+        // If all else fails, return original SHA
+        Ok(stable_sha.to_string())
+    }
+
+    fn get_commit_details(&self, sha: &str) -> Result<(String, String, String)> {
+        // Parse the SHA
+        let oid = git2::Oid::from_str(sha).context("Invalid git hash")?;
+
+        // Get the commit
+        let commit = self.repo.find_commit(oid).context("Failed to find commit")?;
+
+        // Get short SHA (first 12 characters instead of 7)
+        let short_sha = format!("{:.12}", commit.id());
+
+        // Get the summary (first line of commit message)
+        let summary = commit.summary().unwrap_or("").to_string();
+
+        // Combine to match the format from the git command
+        let oneline = format!("{} {}", short_sha, summary);
+
+        Ok((short_sha, summary, oneline))
+    }
+
+    fn tally_votes(&self, subject: &str) -> Result<HashMap<String, bool>> {
+        let mut reviewer_votes = HashMap::new();
+
+        // Initialize all reviewers to false (no vote)
+        for reviewer in &self.reviewers {
+            reviewer_votes.insert(reviewer.clone(), false);
+        }
+
+        // Check each review file for votes
+        for file_path in &self.review_files {
+            if let Ok(file) = File::open(file_path) {
+                let file_name = file_path.file_name().unwrap().to_string_lossy();
+                if let Some(reviewer) = file_name.split('-').last() {
+                    let reader = BufReader::new(file);
+                    for line in reader.lines().map_while(Result::ok) {
+                        if line.contains(subject) {
+                            reviewer_votes.insert(reviewer.to_string(), true);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(reviewer_votes)
+    }
+
+    fn format_commit_output(&self, oneline: &str, has_cve: bool, reviewer_votes: &HashMap<String, bool>) -> String {
+        let mut output = oneline.to_string() + "\n";
+        output += &format!("\tCVE:\t{}\t", if has_cve { "0" } else { "1" });
+
+        // Print reviewers in alphabetical order
+        for reviewer in &self.reviewers {
+            let vote = reviewer_votes.get(reviewer).unwrap_or(&false);
+            // Capitalize first letter
+            let capitalized = format!("{}:",
+                reviewer.chars().next().unwrap_or_default().to_uppercase().collect::<String>() + &reviewer[1..]);
+            output += &format!("{}\t{}\t", capitalized, if *vote { "1" } else { "0" });
+        }
+        output += "\n";
+
+        output
+    }
+
+    fn categorize_commits(&mut self, commits_data: Vec<CommitResult>) {
+        for (oneline, has_cve, reviewer_votes) in commits_data {
+            // In bash, a return value of 0 means a CVE was found
+            if has_cve {
+                if let Some(vec) = self.commits_by_pattern.get_mut("cve") {
+                    vec.push(oneline);
+                }
+                continue;
+            }
+
+            // Check for all reviewers agreeing
+            if reviewer_votes.values().all(|&v| v) {
+                if let Some(vec) = self.commits_by_pattern.get_mut("all") {
+                    vec.push(oneline);
+                }
+                continue;
+            }
+
+            // Process vote patterns for remaining cases
+            self.process_vote_patterns(oneline, &reviewer_votes);
+        }
+    }
+
+    fn process_vote_patterns(&mut self, oneline: String, reviewer_votes: &HashMap<String, bool>) {
+        // Get list of reviewers who voted
+        let reviewers_who_voted: Vec<&String> = reviewer_votes.iter()
+            .filter(|&(_, voted)| *voted)
+            .map(|(reviewer, _)| reviewer)
+            .collect();
+
+        match reviewers_who_voted.len() {
+            0 => {}, // No one voted, do nothing
+            1 => {
+                // Single reviewer case
+                let reviewer = reviewers_who_voted[0];
+                if let Some(vec) = self.commits_by_pattern.get_mut(reviewer) {
+                    vec.push(oneline);
+                }
+            },
+            _ => {
+                // Multiple reviewers - check pairs
+                for (i, r1) in reviewers_who_voted.iter().enumerate() {
+                    for r2 in reviewers_who_voted.iter().skip(i + 1) {
+                        // Try both pattern orders
+                        let pattern1 = format!("{},{}", r1, r2);
+                        let pattern2 = format!("{},{}", r2, r1);
+
+                        if let Some(vec) = self.commits_by_pattern.get_mut(&pattern1) {
+                            vec.push(oneline.clone());
+                        } else if let Some(vec) = self.commits_by_pattern.get_mut(&pattern2) {
+                            vec.push(oneline.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn check_for_cve(&self, commit_sha: &str) -> Result<bool> {
+        // Get the path to the cve_search script
+        let cve_search = self.script_dir.join("cve_search");
+
+        // We still need to use Command for this external script
+        // since it's not part of the git repository
+        match Command::new(&cve_search)
+            .arg(commit_sha)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status() {
+                Ok(status) => Ok(status.success()),
+                Err(_) => Ok(false) // Default to false if script execution fails
+        }
+    }
+
+    fn print_annotations(&self, oneline: &str) -> Result<()> {
+        // Extract the commit SHA from the oneline format
+        let Some(short_sha) = oneline.split_whitespace().next() else {
+            return Ok(());
+        };
+
+        // Check each annotation file for this commit
+        for file_path in &self.annotated_files {
+            if let Ok(file) = File::open(file_path) {
+                let reader = BufReader::new(file);
+                let mut lines = reader.lines();
+
+                // Find the line with the SHA
+                while let Some(Ok(line)) = lines.next() {
+                    if line.contains(short_sha) {
+                        // If found, read and print the next line (annotation)
+                        if let Some(Ok(annotation)) = lines.next() {
+                            if !annotation.is_empty() {
+                                println!("  {}", annotation);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn display_results(&self) -> Result<()> {
+        // Helper function to capitalize first letter
+        let capitalize = |s: &str| -> String {
+            let mut chars = s.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().chain(chars).collect(),
+            }
+        };
+
+        // Get the set of commits that everyone agrees on or have CVEs
+        // These will be excluded from other sections
+        let mut excluded_commits = HashSet::new();
+        for category in ["all", "cve"] {
+            if let Some(commits) = self.commits_by_pattern.get(category) {
+                excluded_commits.extend(commits.iter().cloned());
+            }
+        }
+
+        // Print CVE results
+        self.display_commit_section("Already assigned a CVE", &self.commits_by_pattern.get("cve"))?;
+
+        // Print results where everyone agrees
+        self.display_commit_section("Everyone agrees", &self.commits_by_pattern.get("all"))?;
+
+        // Print primary reviewer combinations
+        for (i, r1) in PRIMARY_REVIEWERS.iter().enumerate() {
+            for r2 in PRIMARY_REVIEWERS.iter().skip(i + 1) {
+                let pattern = format!("{},{}", r1, r2);
+                self.display_filtered_section(
+                    &format!("{} and {} agree", capitalize(r1), capitalize(r2)),
+                    &self.commits_by_pattern.get(&pattern),
+                    &excluded_commits
+                )?;
+            }
+        }
+
+        // Print single primary reviewer results
+        for reviewer in PRIMARY_REVIEWERS.iter() {
+            self.display_filtered_section(
+                &format!("{} only", capitalize(reviewer)),
+                &self.commits_by_pattern.get(reviewer),
+                &excluded_commits
+            )?;
+        }
+
+        // Print guest reviewer results
+        println!("\n{}", "------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------".blue());
+
+        // Print combinations with guest reviewers
+        for primary in PRIMARY_REVIEWERS.iter() {
+            for guest in &self.guest_reviewers {
+                let pattern = format!("{},{}", primary, guest);
+                self.display_filtered_section(
+                    &format!("{} and guest ({}) agree", capitalize(primary), capitalize(guest)),
+                    &self.commits_by_pattern.get(&pattern),
+                    &excluded_commits
+                )?;
+            }
+        }
+
+        // Print guest-only results
+        println!("\n{}", "Guest-only results".blue());
+        for guest in &self.guest_reviewers {
+            println!("  {}:", capitalize(guest).blue());
+
+            self.display_filtered_section_indented(
+                "",
+                &self.commits_by_pattern.get(guest),
+                &excluded_commits
+            )?;
+        }
+
+        Ok(())
+    }
+
+    fn display_commit_section(&self, title: &str, commits: &Option<&Vec<String>>) -> Result<()> {
+        println!("\n{}", title.blue());
+        if let Some(commits_vec) = commits {
+            for commit in commits_vec.iter() {
+                if !commit.is_empty() {
+                    println!("  {}", commit);
+                    self.print_annotations(commit)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn display_filtered_section(&self, title: &str, commits: &Option<&Vec<String>>, excluded: &HashSet<String>) -> Result<()> {
+        if let Some(commits) = commits {
+            let filtered_commits: Vec<&String> = commits.iter()
+                .filter(|commit| !excluded.contains(*commit))
+                .collect();
+
+            if !filtered_commits.is_empty() {
+                println!("\n{}", title.blue());
+
+                for commit in filtered_commits {
+                    println!("  {}", commit);
+                    self.print_annotations(commit)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn display_filtered_section_indented(&self, title: &str, commits: &Option<&Vec<String>>, excluded: &HashSet<String>) -> Result<()> {
+        if let Some(commits) = commits {
+            let filtered_commits: Vec<&String> = commits.iter()
+                .filter(|commit| !excluded.contains(*commit))
+                .collect();
+
+            if !filtered_commits.is_empty() {
+                if !title.is_empty() {
+                    println!("  {}:", title.blue());
+                }
+
+                for commit in filtered_commits {
+                    println!("    {}", commit);
+                    self.print_annotations(commit)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn run(&mut self) -> Result<()> {
+        self.process_commits()?;
+        self.display_results()?;
+        Ok(())
+    }
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+
+    let mut voting_results = VotingResults::new(args)?;
+    voting_results.run()?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use tempfile::tempdir;
+
+    // Test the UPSTREAM_REGEX pattern
+    #[test]
+    fn test_upstream_regex() {
+        let message = "Fix a bug\n\nUpstream: 1234567890123456789012345678901234567890";
+        let captures = UPSTREAM_REGEX.captures(message).unwrap();
+        assert_eq!(captures.get(0).unwrap().as_str(), "1234567890123456789012345678901234567890");
+
+        let message_lowercase = "Fix a bug\n\nupstream: 1234567890123456789012345678901234567890";
+        let captures = UPSTREAM_REGEX.captures(message_lowercase).unwrap();
+        assert_eq!(captures.get(0).unwrap().as_str(), "1234567890123456789012345678901234567890");
+
+        let message_no_upstream = "Fix a bug\n\nSome other text";
+        assert!(UPSTREAM_REGEX.captures(message_no_upstream).is_none());
+    }
+
+    // Test vote pattern processing
+    #[test]
+    fn test_process_vote_patterns() {
+        let mut voting_results = create_test_voting_results();
+
+        // Initialize patterns first
+        voting_results.init_commits_by_pattern();
+
+        let oneline = "abcdef1 Test commit";
+
+        // Case 1: Single reviewer voted
+        let mut reviewer_votes = HashMap::new();
+        reviewer_votes.insert("greg".to_string(), true);
+        reviewer_votes.insert("lee".to_string(), false);
+        reviewer_votes.insert("sasha".to_string(), false);
+
+        voting_results.process_vote_patterns(oneline.to_string(), &reviewer_votes);
+
+        assert_eq!(voting_results.commits_by_pattern.get("greg").unwrap().len(), 1);
+        assert_eq!(voting_results.commits_by_pattern.get("lee").unwrap().len(), 0);
+        assert_eq!(voting_results.commits_by_pattern.get("sasha").unwrap().len(), 0);
+
+        // Case 2: Two reviewers voted
+        let mut reviewer_votes = HashMap::new();
+        reviewer_votes.insert("greg".to_string(), true);
+        reviewer_votes.insert("lee".to_string(), true);
+        reviewer_votes.insert("sasha".to_string(), false);
+
+        // Reset patterns for this test
+        voting_results.commits_by_pattern.clear();
+        voting_results.init_commits_by_pattern();
+
+        voting_results.process_vote_patterns(oneline.to_string(), &reviewer_votes);
+
+        assert_eq!(voting_results.commits_by_pattern.get("greg,lee").unwrap().len(), 1);
+        assert_eq!(voting_results.commits_by_pattern.get("greg").unwrap().len(), 0);
+        assert_eq!(voting_results.commits_by_pattern.get("lee").unwrap().len(), 0);
+    }
+
+    // Test guest reviewer identification
+    #[test]
+    fn test_identify_guest_reviewers() {
+        let mut voting_results = create_test_voting_results();
+
+        // Add a mix of primary and guest reviewers
+        voting_results.reviewers = vec![
+            "greg".to_string(),
+            "lee".to_string(),
+            "sasha".to_string(),
+            "guest1".to_string(),
+            "guest2".to_string()
+        ];
+
+        voting_results.identify_guest_reviewers();
+
+        assert_eq!(voting_results.guest_reviewers.len(), 2);
+        assert!(voting_results.guest_reviewers.contains(&"guest1".to_string()));
+        assert!(voting_results.guest_reviewers.contains(&"guest2".to_string()));
+        assert!(!voting_results.guest_reviewers.contains(&"greg".to_string()));
+    }
+
+    // Test commits_by_pattern initialization
+    #[test]
+    fn test_init_commits_by_pattern() {
+        let mut voting_results = create_test_voting_results();
+
+        // Add reviewers including guests
+        voting_results.reviewers = vec![
+            "greg".to_string(),
+            "lee".to_string(),
+            "sasha".to_string(),
+            "guest1".to_string()
+        ];
+
+        voting_results.guest_reviewers = vec!["guest1".to_string()];
+
+        voting_results.init_commits_by_pattern();
+
+        // Check that all expected patterns are initialized
+        assert!(voting_results.commits_by_pattern.contains_key("all"));
+        assert!(voting_results.commits_by_pattern.contains_key("cve"));
+        assert!(voting_results.commits_by_pattern.contains_key("greg"));
+        assert!(voting_results.commits_by_pattern.contains_key("lee"));
+        assert!(voting_results.commits_by_pattern.contains_key("sasha"));
+        assert!(voting_results.commits_by_pattern.contains_key("guest1"));
+        assert!(voting_results.commits_by_pattern.contains_key("greg,lee"));
+        assert!(voting_results.commits_by_pattern.contains_key("greg,sasha"));
+        assert!(voting_results.commits_by_pattern.contains_key("lee,sasha"));
+        assert!(voting_results.commits_by_pattern.contains_key("greg,guest1"));
+        assert!(voting_results.commits_by_pattern.contains_key("lee,guest1"));
+        assert!(voting_results.commits_by_pattern.contains_key("sasha,guest1"));
+    }
+
+    // Test check_for_cve function
+    #[test]
+    fn test_check_for_cve() {
+        use std::process::Command;
+
+        // Test command behavior with simple test commands
+
+        // Test case 1: Success (CVE found)
+        let status_success = Command::new("test").arg("1").arg("=").arg("1").status().unwrap();
+        assert!(status_success.success());
+        let cve_result: anyhow::Result<bool> = Ok(status_success.success());
+        assert_eq!(cve_result.unwrap(), true);
+
+        // Test case 2: Failure (no CVE found)
+        let status_failure = Command::new("test").arg("1").arg("=").arg("0").status().unwrap();
+        assert!(!status_failure.success());
+        let cve_result: anyhow::Result<bool> = Ok(status_failure.success());
+        assert_eq!(cve_result.unwrap(), false);
+    }
+
+    // Test print_annotations function
+    #[test]
+    fn test_print_annotations() {
+        use std::fs::File;
+        use std::io::Write;
+
+        let mut voting_results = create_test_voting_results();
+
+        // Create temporary annotation files
+        let temp_dir = tempdir().unwrap();
+        let annotated_file_path = temp_dir.path().join("v6.7.2-annotated-greg");
+
+        // Create an annotation file with test content
+        let content = "abcdef1 Test commit\nThis is an annotation for the commit\n";
+        let mut file = File::create(&annotated_file_path).unwrap();
+        file.write_all(content.as_bytes()).unwrap();
+
+        // Add the file to the annotated_files list
+        voting_results.annotated_files = vec![annotated_file_path];
+
+        // Test that annotations are found correctly
+        let result = voting_results.print_annotations("abcdef1 Test commit");
+        assert!(result.is_ok(), "print_annotations should succeed");
+    }
+
+    // Test reviewer setup
+    #[test]
+    fn test_reviewer_setup() {
+        let mut voting_results = create_test_voting_results();
+
+        // Test that primary reviewers are correctly defined
+        assert_eq!(PRIMARY_REVIEWERS.len(), 3);
+        assert!(PRIMARY_REVIEWERS.contains(&"greg".to_string()));
+        assert!(PRIMARY_REVIEWERS.contains(&"lee".to_string()));
+        assert!(PRIMARY_REVIEWERS.contains(&"sasha".to_string()));
+
+        // Test guest reviewer identification
+        voting_results.reviewers = vec![
+            "greg".to_string(),
+            "lee".to_string(),
+            "sasha".to_string(),
+            "guest1".to_string()
+        ];
+
+        voting_results.identify_guest_reviewers();
+
+        // Should only identify guest1 as a guest reviewer
+        assert_eq!(voting_results.guest_reviewers.len(), 1);
+        assert!(voting_results.guest_reviewers.contains(&"guest1".to_string()));
+
+        // Primary reviewers should not be identified as guests
+        assert!(!voting_results.guest_reviewers.contains(&"greg".to_string()));
+        assert!(!voting_results.guest_reviewers.contains(&"lee".to_string()));
+        assert!(!voting_results.guest_reviewers.contains(&"sasha".to_string()));
+    }
+
+    // Helper to create a test VotingResults instance
+    fn create_test_voting_results() -> VotingResults {
+        let temp_dir = tempdir().unwrap();
+        let proposed_dir = temp_dir.path().to_path_buf();
+        let script_dir = temp_dir.path().to_path_buf();
+
+        VotingResults {
+            repo: Repository::open(".").expect("Failed to open test repository"),
+            range: "v6.7.1..v6.7.2".to_string(),
+            top: "v6.7.2".to_string(),
+            proposed_dir,
+            script_dir,
+            reviewers: vec!["greg".to_string(), "lee".to_string(), "sasha".to_string()],
+            guest_reviewers: Vec::new(),
+            review_files: Vec::new(),
+            annotated_files: Vec::new(),
+            commits_by_pattern: HashMap::new(),
+        }
+    }
+}

@@ -1,0 +1,16 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Debug symbols
+**/*.rs.bk
+
+# JSON and mbox output files
+*.json
+*.mbox

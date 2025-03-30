@@ -1,0 +1,98 @@
+[package]
+name = "dyad"
+version = "0.1.0"
+authors = ["Greg Kroah-Hartman <gregkh@linuxfoundation.org>", "Sasha Levin <sashal@kernel.org>" ]
+license = "GPL-2.0"
+edition = "2024"
+
+[dependencies]
+env_logger = "0.11.6"
+gumdrop = { version = "0.8.1" }
+log = "0.4.26"
+rusqlite = "0.34.0"
+colored = "3"
+git2 = "0.20"
+# Voting results dependencies
+clap = { version = "4.4", features = ["derive"] }
+anyhow = "1.0"
+regex = "1.9"
+lazy_static = "1.4"
+glob = "0.3"
+tempfile = "3.8"
+# Bippy dependencies
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+chrono = "0.4"
+# CVE Utils dependencies
+walkdir = "2.4"
+num_cpus = "1.16"
+dialoguer = "0.10"
+rayon = "1.8"
+indicatif = "0.17.7"
+rand = "0.8.5"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+
+[[bin]]
+name = "dyad"
+path = "tools/dyad/src/main.rs"
+
+[[bin]]
+name = "voting_results"
+path = "tools/voting_results/src/main.rs"
+
+[[bin]]
+name = "bippy"
+path = "tools/bippy/src/main.rs"
+
+# CVE Utils binaries
+[[bin]]
+name = "cve_search"
+path = "tools/cve_utils/src/bin/cve_search.rs"
+
+[[bin]]
+name = "cve_reject"
+path = "tools/cve_utils/src/bin/cve_reject.rs"
+
+[[bin]]
+name = "cve_update"
+path = "tools/cve_utils/src/bin/cve_update.rs"
+
+[[bin]]
+name = "cve_publish"
+path = "tools/cve_utils/src/bin/cve_publish.rs"
+
+[[bin]]
+name = "cve_create"
+path = "tools/cve_utils/src/bin/cve_create.rs"
+
+[[bin]]
+name = "cve_review"
+path = "tools/cve_utils/src/bin/cve_review.rs"
+
+[[bin]]
+name = "update_dyad"
+path = "tools/cve_utils/src/bin/update_dyad.rs"
+
+[[bin]]
+name = "strak"
+path = "tools/cve_utils/src/bin/strak.rs"
+
+[[bin]]
+name = "score"
+path = "tools/cve_utils/src/bin/score.rs"
+
+[[bin]]
+name = "cve_stats"
+path = "tools/cve_utils/src/bin/cve_stats.rs"
+
+[[test]]
+name = "dyad"
+path = "tools/dyad/tests/dyad.rs"
+
+[lib]
+name = "cve_utils"
+path = "tools/cve_utils/src/lib.rs"

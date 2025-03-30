@@ -1,1 +1,3 @@
 /tmp/cve-review
+Cargo.lock
+target/

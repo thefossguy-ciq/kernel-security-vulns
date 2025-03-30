@@ -1,0 +1,12 @@
+# Generated binary files and build directory
+/target/
+Cargo.lock
+
+# Backup files from text editors
+*~
+*.swp
+*.swo
+.*.sw*
+
+# rustfmt backup files
+**/*.rs.bk
