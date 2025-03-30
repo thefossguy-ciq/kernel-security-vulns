@@ -1,7 +1,7 @@
 [package]
 name = "dyad"
 version = "0.1.0"
-authors = ["Greg Kroah-Hartman <gregkh@linuxfoundation.org>"]
+authors = ["Greg Kroah-Hartman <gregkh@linuxfoundation.org>", "Sasha Levin <sashal@kernel.org>" ]
 license = "GPL-2.0"
 edition = "2024"
 
