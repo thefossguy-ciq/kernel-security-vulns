@@ -356,7 +356,7 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
     // Sort the kernels to keep things sane and deterministic (the database does not always have
     // kernel ids sorted in order as we add new releases to the end from older kernel trees (i.e. a
     // new 6.1.y kernel is released every week.)
-    found_in.sort_by(|a, b| a.cmp(b));
+    found_in.sort();
 
     debug!("\t\tfound_in: {:?}", found_in);
     found_in
