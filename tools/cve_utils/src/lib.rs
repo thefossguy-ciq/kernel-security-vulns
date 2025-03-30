@@ -15,7 +15,9 @@ pub use self::common::{get_kernel_tree, get_cve_root, find_vulns_dir,
                       find_cve_by_sha, find_sha_by_cve, verify_commit};
 // Git repository operations using the git2 library
 pub use self::git_utils::{get_full_sha, get_commit_details, get_commit_year,
-                         get_modified_files, match_pattern, print_git_error_details};
+                         get_modified_files, match_pattern, print_git_error_details,
+                         get_commit_message, get_commit_oneline, get_short_sha,
+                         resolve_reference, get_affected_files};
 // CVE file operations
 pub use self::cve_utils::{extract_cve_id_from_path, find_next_free_cve_id};
 // Git configuration utilities
@@ -23,9 +25,11 @@ pub use self::git_config::{get_git_config, set_git_config};
 // CVE validation and processing
 pub use self::cve_validation::{is_valid_cve, year_from_cve, extract_year_from_cve, find_cve_id};
 // Command execution utilities and git commit information
-pub use self::cmd_utils::{run_command, get_commit_message, get_commit_oneline};
+pub use self::cmd_utils::{run_command};
 // Year-based utilities
 pub use self::year_utils::{is_valid_year, is_year_dir_exists};
+// Version utilities
+pub use self::version_utils::{version_is_rc, version_is_queue, version_is_mainline};
 
 /// Common functionality shared across all CVE utilities
 pub mod common {
@@ -51,7 +55,9 @@ pub mod common {
     ///
     /// This function attempts to locate the vulns repository by traversing up from
     /// the current directory until it finds a directory named "vulns".
+    /// Additional fallback methods implemented for robust directory discovery.
     pub fn find_vulns_dir() -> Result<PathBuf> {
+        // First attempt: Check current directory and its parents
         let mut current_dir = env::current_dir().context("Failed to get current directory")?;
 
         // Check if we're already in the vulns repo
@@ -70,7 +76,30 @@ pub mod common {
             }
         }
 
-        Err(anyhow!("Could not find vulns directory"))
+        // Second attempt: look from executable directory
+        if let Ok(exec_path) = env::current_exe() {
+            if let Some(exec_dir) = exec_path.parent() {
+                let mut current_dir = exec_dir.to_path_buf();
+
+                // Check if we're already in the vulns repo
+                if current_dir.file_name().is_some_and(|name| name == "vulns") {
+                    return Ok(current_dir);
+                }
+
+                // Traverse up the directory tree
+                while current_dir.parent().is_some() {
+                    if current_dir.file_name().is_some_and(|name| name == "vulns") {
+                        return Ok(current_dir);
+                    }
+
+                    if !current_dir.pop() {
+                        break;
+                    }
+                }
+            }
+        }
+
+        Err(anyhow!("Could not find vulns directory. Please run from within the vulns directory."))
     }
 
     /// Gets the root CVE directory path
@@ -189,8 +218,8 @@ pub mod common {
 /// Git repository operations commonly used across CVE tools
 pub mod git_utils {
     use std::path::{Path, PathBuf};
-    use git2::{Repository, StatusOptions, Status};
-    use anyhow::{Context, Result};
+    use git2::{Repository, StatusOptions, Status, Object, ObjectType};
+    use anyhow::{Context, Result, anyhow};
     use chrono::DateTime;
 
     /// Gets the full SHA from a partial SHA
@@ -209,6 +238,69 @@ pub mod git_utils {
             .context("Found object is not a commit")?;
 
         Ok(commit.id().to_string())
+    }
+
+    /// Gets the short SHA (7 characters) from an Object
+    ///
+    /// Standardized implementation used by both dyad and bippy
+    pub fn get_short_sha(_repo: &Repository, obj: &Object) -> Result<String> {
+        let id = obj.id().to_string();
+        Ok(id[0..7].to_string())
+    }
+
+    /// Resolves a reference (SHA, branch, etc.) to a git Object
+    ///
+    /// Standardized implementation used across utilities
+    pub fn resolve_reference<'a>(repo: &'a Repository, reference: &str) -> Result<Object<'a>> {
+        // Try to resolve as a direct reference first
+        let object = match repo.revparse_single(reference) {
+            Ok(obj) => obj,
+            Err(e) => {
+                return Err(anyhow!("Failed to resolve reference '{}': {}", reference, e));
+            }
+        };
+
+        // Ensure it's a commit object
+        if object.kind() != Some(ObjectType::Commit) {
+            return Err(anyhow!("Reference '{}' is not a commit", reference));
+        }
+
+        Ok(object)
+    }
+
+    /// Gets a list of files changed in a commit
+    ///
+    /// Used by bippy and other tools to find affected files
+    pub fn get_affected_files<'a>(repo: &'a Repository, obj: &Object<'a>) -> Result<Vec<String>> {
+        let commit = repo.find_commit(obj.id())
+            .context("Failed to find commit")?;
+
+        // If it's the first commit, we can't get a diff with its parent
+        if commit.parent_count() == 0 {
+            return Ok(Vec::new());
+        }
+
+        let parent = commit.parent(0).context("Failed to get parent commit")?;
+        let parent_tree = parent.tree().context("Failed to get parent tree")?;
+        let commit_tree = commit.tree().context("Failed to get commit tree")?;
+
+        let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)
+            .context("Failed to get diff")?;
+
+        let mut affected_files = Vec::new();
+        diff.foreach(
+            &mut |file, _progress| {
+                if let Some(path) = file.new_file().path() {
+                    affected_files.push(path.to_string_lossy().to_string());
+                }
+                true
+            },
+            None,
+            None,
+            None,
+        ).context("Failed to process diff")?;
+
+        Ok(affected_files)
     }
 
     /// Gets commit details as a formatted string (short SHA and subject)
@@ -327,6 +419,59 @@ pub mod git_utils {
             // Exact match
             path == pattern
         }
+    }
+
+    /// Gets the full commit message for a git SHA
+    ///
+    /// Uses git2 to retrieve the complete commit message for a given SHA.
+    /// This is equivalent to 'git show --no-patch --format=%B'.
+    ///
+    /// # Arguments
+    /// * `sha` - The SHA of the commit to retrieve the message for
+    ///
+    /// # Returns
+    /// The full commit message as a string
+    pub fn get_commit_message(sha: &str) -> Result<String> {
+        let repo = Repository::open(".")
+            .context("Failed to open git repository")?;
+
+        let oid = git2::Oid::from_str(sha)
+            .context(format!("Invalid Git SHA format: {}", sha))?;
+
+        let commit = repo.find_commit(oid)
+            .context(format!("Commit not found: {}", sha))?;
+
+        // Get the full commit message
+        let message = commit.message().unwrap_or("").to_string();
+
+        Ok(message)
+    }
+
+    /// Gets a one-line commit summary for a git SHA
+    ///
+    /// Uses git2 to retrieve a one-line summary of a commit, formatted in
+    /// the style of 'git show --no-patch --oneline'.
+    ///
+    /// # Arguments
+    /// * `sha` - The SHA of the commit to retrieve the summary for
+    ///
+    /// # Returns
+    /// A one-line summary in the format "short_sha summary"
+    pub fn get_commit_oneline(sha: &str) -> Result<String> {
+        let repo = Repository::open(".")
+            .context("Failed to open git repository")?;
+
+        let oid = git2::Oid::from_str(sha)
+            .context(format!("Invalid Git SHA format: {}", sha))?;
+
+        let commit = repo.find_commit(oid)
+            .context(format!("Commit not found: {}", sha))?;
+
+        // Format similar to `git show --no-patch --oneline`
+        let short_id = commit.id().to_string()[0..7].to_string();
+        let summary = commit.summary().unwrap_or("").to_string();
+
+        Ok(format!("{} {}", short_id, summary))
     }
 }
 
@@ -528,7 +673,6 @@ pub mod cve_validation {
 pub mod cmd_utils {
     use std::process::Command;
     use anyhow::{anyhow, Context, Result};
-    use git2::Repository;
 
     /// Runs a command and returns its output as a string
     ///
@@ -556,59 +700,6 @@ pub mod cmd_utils {
         }
 
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-    }
-
-    /// Gets the full commit message for a git SHA
-    ///
-    /// Uses git2 to retrieve the complete commit message for a given SHA.
-    /// This is equivalent to 'git show --no-patch --format=%B'.
-    ///
-    /// # Arguments
-    /// * `sha` - The SHA of the commit to retrieve the message for
-    ///
-    /// # Returns
-    /// The full commit message as a string
-    pub fn get_commit_message(sha: &str) -> Result<String> {
-        let repo = Repository::open(".")
-            .context("Failed to open git repository")?;
-
-        let oid = git2::Oid::from_str(sha)
-            .context(format!("Invalid Git SHA format: {}", sha))?;
-
-        let commit = repo.find_commit(oid)
-            .context(format!("Commit not found: {}", sha))?;
-
-        // Get the full commit message
-        let message = commit.message().unwrap_or("").to_string();
-
-        Ok(message)
-    }
-
-    /// Gets a one-line commit summary for a git SHA
-    ///
-    /// Uses git2 to retrieve a one-line summary of a commit, formatted in
-    /// the style of 'git show --no-patch --oneline'.
-    ///
-    /// # Arguments
-    /// * `sha` - The SHA of the commit to retrieve the summary for
-    ///
-    /// # Returns
-    /// A one-line summary in the format "short_sha summary"
-    pub fn get_commit_oneline(sha: &str) -> Result<String> {
-        let repo = Repository::open(".")
-            .context("Failed to open git repository")?;
-
-        let oid = git2::Oid::from_str(sha)
-            .context(format!("Invalid Git SHA format: {}", sha))?;
-
-        let commit = repo.find_commit(oid)
-            .context(format!("Commit not found: {}", sha))?;
-
-        // Format similar to `git show --no-patch --oneline`
-        let short_id = commit.id().to_string()[0..7].to_string();
-        let summary = commit.summary().unwrap_or("").to_string();
-
-        Ok(format!("{} {}", short_id, summary))
     }
 }
 
@@ -641,6 +732,49 @@ pub mod year_utils {
     }
 }
 
+/// Version utilities for kernel version management
+pub mod version_utils {
+    /// Check if a kernel version is a release candidate (ends with -rc)
+    pub fn version_is_rc(version: &str) -> bool {
+        version.trim().ends_with("-rc") ||
+        version.trim().contains("-rc")
+    }
+
+    /// Check if a kernel version is a queue (ends with -queue)
+    pub fn version_is_queue(version: &str) -> bool {
+        version.trim().ends_with("-queue") ||
+        version.trim().contains("-queue")
+    }
+
+    /// Check if a version is a mainline kernel version
+    ///
+    /// Mainline versions are typically in the format "5.4" or "4.19"
+    /// This functions returns true if the version follows this pattern
+    pub fn version_is_mainline(version: &str) -> bool {
+        // Skip non-version strings
+        if version == "0" {
+            return false;
+        }
+
+        // Get the first parts of the version, separated by dots
+        let parts: Vec<&str> = version.split('.').collect();
+
+        // A mainline version typically has the format X.Y
+        if parts.len() != 2 {
+            return false;
+        }
+
+        // Both parts should be numeric
+        if !parts[0].chars().all(char::is_numeric) ||
+           !parts[1].chars().all(char::is_numeric) {
+            return false;
+        }
+
+        // Check for additional indicators of non-mainline versions
+        !version_is_rc(version) && !version_is_queue(version)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -664,5 +798,32 @@ mod tests {
         let cve_root = result.unwrap();
         assert!(cve_root.ends_with("cve"), "Path should end with 'cve'");
         assert!(cve_root.join("published").exists(), "published directory should exist in CVE root");
+    }
+
+    #[test]
+    fn test_version_is_mainline() {
+        assert!(version_utils::version_is_mainline("5.4"));
+        assert!(version_utils::version_is_mainline("4.19"));
+        assert!(!version_utils::version_is_mainline("5.4.123"));
+        assert!(!version_utils::version_is_mainline("5.4-rc1"));
+        assert!(!version_utils::version_is_mainline("5.4-queue"));
+        assert!(!version_utils::version_is_mainline("next"));
+        assert!(!version_utils::version_is_mainline("0"));
+    }
+
+    #[test]
+    fn test_version_is_rc() {
+        assert!(version_utils::version_is_rc("5.4-rc1"));
+        assert!(version_utils::version_is_rc("6.5-rc"));
+        assert!(!version_utils::version_is_rc("5.4"));
+        assert!(!version_utils::version_is_rc("5.4.123"));
+    }
+
+    #[test]
+    fn test_version_is_queue() {
+        assert!(version_utils::version_is_queue("5.4-queue"));
+        assert!(version_utils::version_is_queue("6.5-queue"));
+        assert!(!version_utils::version_is_queue("5.4"));
+        assert!(!version_utils::version_is_queue("5.4.123"));
     }
 }

@@ -223,16 +223,23 @@ mod tests {
         // Test with various file formats
         let cve_id = "CVE-2023-12345";
 
+        // Create a temp directory
+        let temp_dir = TempDir::new().unwrap();
+        let temp_path = temp_dir.path();
+
         // Test with a JSON file
-        let json_path = PathBuf::from(format!("/path/to/{}.json", cve_id));
+        let json_path = temp_path.join(format!("{}.json", cve_id));
+        fs::write(&json_path, "test content").unwrap();
         assert_eq!(cve_utils::extract_cve_id_from_path(&json_path).unwrap(), cve_id);
 
         // Test with a mbox file
-        let mbox_path = PathBuf::from(format!("/path/to/{}.mbox", cve_id));
+        let mbox_path = temp_path.join(format!("{}.mbox", cve_id));
+        fs::write(&mbox_path, "test content").unwrap();
         assert_eq!(cve_utils::extract_cve_id_from_path(&mbox_path).unwrap(), cve_id);
 
         // Test with a rejected mbox file
-        let rejected_path = PathBuf::from(format!("/path/to/{}.mbox.rejected", cve_id));
+        let rejected_path = temp_path.join(format!("{}.mbox.rejected", cve_id));
+        fs::write(&rejected_path, "test content").unwrap();
         assert_eq!(cve_utils::extract_cve_id_from_path(&rejected_path).unwrap(), cve_id);
     }
 

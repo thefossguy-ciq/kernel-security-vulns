@@ -81,7 +81,6 @@ fn find_vulns_dir() -> Result<PathBuf> {
 
     // Third attempt: check common absolute paths
     let common_paths = [
-        PathBuf::from("/home/sasha/vulns"),
         PathBuf::from(env::var("HOME").unwrap_or_default()).join("vulns"),
     ];
 
