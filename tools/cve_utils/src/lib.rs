@@ -17,7 +17,7 @@ pub use self::common::{get_kernel_tree, get_cve_root, find_vulns_dir,
 pub use self::git_utils::{get_full_sha, get_commit_details, get_commit_year,
                          get_modified_files, match_pattern, print_git_error_details,
                          get_commit_message, get_commit_oneline, get_short_sha,
-                         resolve_reference, get_affected_files};
+                         resolve_reference, get_affected_files, get_object_full_sha};
 // CVE file operations
 pub use self::cve_utils::{extract_cve_id_from_path, find_next_free_cve_id};
 // Git configuration utilities
@@ -238,6 +238,14 @@ pub mod git_utils {
             .context("Found object is not a commit")?;
 
         Ok(commit.id().to_string())
+    }
+
+    /// Gets the full SHA from a git Object
+    ///
+    /// Simple utility to get the full SHA string from a git Object.
+    /// Unlike get_full_sha, this doesn't require resolving a reference first.
+    pub fn get_object_full_sha(_repo: &Repository, obj: &Object) -> Result<String> {
+        Ok(obj.id().to_string())
     }
 
     /// Gets the short SHA (7 characters) from an Object

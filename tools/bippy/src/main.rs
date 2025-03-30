@@ -3,7 +3,7 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
 use std::path::{Path, PathBuf};
-use git2::{Repository, Object, ObjectType};
+use git2::{Repository, Object};
 use clap::Parser;
 use anyhow::{Context, Result};
 use thiserror::Error;
@@ -11,6 +11,7 @@ use std::env;
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
 use cve_utils::version_utils::version_is_mainline;
+use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
 
 /// Error types for the bippy tool
 #[derive(Error, Debug)]
@@ -441,39 +442,6 @@ struct Args {
     verbose: bool,
 }
 
-/// Resolve a Git reference (SHA, tag, branch, etc.) to an object
-fn resolve_reference<'a>(repo: &'a Repository, reference: &str) -> Result<Object<'a>> {
-    // Try to resolve as a direct object ID first
-    if let Ok(oid) = git2::Oid::from_str(reference) {
-        if let Ok(obj) = repo.find_object(oid, None) {
-            return Ok(obj);
-        }
-    }
-
-    // Try to resolve as a reference name
-    if let Ok(reference) = repo.resolve_reference_from_short_name(reference) {
-        return Ok(reference.peel(ObjectType::Any)?);
-    }
-
-    // If all else fails, try to find it as a partial commit
-    let oid = repo.find_commit_by_prefix(reference)?
-        .id();
-
-    repo.find_object(oid, None)
-        .map_err(|e| anyhow::anyhow!("Failed to resolve reference '{}': {}", reference, e))
-}
-
-/// Get the full SHA for a git reference
-fn get_full_sha(_repo: &Repository, obj: &Object) -> Result<String> {
-    Ok(obj.id().to_string())
-}
-
-/// Get the short SHA for a git reference (first 12 characters)
-fn get_short_sha(_repo: &Repository, obj: &Object) -> Result<String> {
-    let full_sha = obj.id().to_string();
-    Ok(full_sha[..12].to_string())
-}
-
 /// Get the commit subject for a git reference
 fn get_commit_subject(_repo: &Repository, obj: &Object) -> Result<String> {
     let commit = obj.as_commit()
@@ -491,43 +459,6 @@ fn get_commit_text(_repo: &Repository, obj: &Object) -> Result<String> {
     let message = commit.message().unwrap_or("").to_string();
 
     Ok(message)
-}
-
-/// Get a list of files affected by a commit
-fn get_affected_files<'a>(repo: &'a Repository, obj: &Object<'a>) -> Result<Vec<String>> {
-    let commit = obj.as_commit()
-        .ok_or_else(|| anyhow::anyhow!("Object is not a commit"))?;
-
-    // Get parent commit
-    let parent = match commit.parent(0) {
-        Ok(parent) => parent,
-        Err(_) => {
-            // First commit has no parent
-            return Ok(Vec::new());
-        }
-    };
-
-    // Get the diff between parent and commit
-    let parent_tree = parent.tree()?;
-    let commit_tree = commit.tree()?;
-
-    let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)?;
-
-    // Collect affected files
-    let mut files = Vec::new();
-    diff.foreach(
-        &mut |delta, _| {
-            if let Some(path) = delta.new_file().path() {
-                files.push(path.to_string_lossy().to_string());
-            }
-            true
-        },
-        None,
-        None,
-        None,
-    )?;
-
-    Ok(files)
 }
 
 /// Apply a diff to text and return the result
@@ -1141,7 +1072,7 @@ fn main() -> Result<()> {
     };
 
     // Get SHA information
-    let git_sha_full = get_full_sha(&repo, &git_ref)
+    let git_sha_full = get_object_full_sha(&repo, &git_ref)
         .with_context(|| "Failed to get full SHA")?;
     let git_sha_short = get_short_sha(&repo, &git_ref)
         .with_context(|| "Failed to get short SHA")?;
