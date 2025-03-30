@@ -665,5 +665,34 @@ mod tests {
         k2.version = "6.9".to_string();
         k2.git_id = "0327ca9d53bfbb0918867313049bba7046900f73".to_string();
         assert_eq!(k1.compare(&k2), Ordering::Greater);
+
+        // Test sorting of lists of kernels, first the easy one with versions being the sort order
+        let mut kernels: Vec<Kernel> = vec![];
+        kernels.push(Kernel::new("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
+        kernels.push(Kernel::new("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
+        kernels.push(Kernel::new("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
+        kernels.push(Kernel::new("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
+        kernels.push(Kernel::new("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
+        kernels.sort_by(|a, b| a.cmp(b));
+
+        assert_eq!(kernels[0].version, "6.1.132");
+        assert_eq!(kernels[1].version, "6.6.24");
+        assert_eq!(kernels[2].version, "6.7.12");
+        assert_eq!(kernels[3].version, "6.8.3");
+        assert_eq!(kernels[4].version, "6.9");
+
+        kernels = Vec::new();
+        kernels.push(Kernel::new("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
+        kernels.push(Kernel::new("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
+        kernels.push(Kernel::new("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
+        kernels.push(Kernel::new("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
+        kernels.push(Kernel::new("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
+        kernels.sort_by(|a, b| a.cmp(b));
+
+        assert_eq!(kernels[0].version, "6.1.132");
+        assert_eq!(kernels[1].version, "6.6.24");
+        assert_eq!(kernels[2].version, "6.7.12");
+        assert_eq!(kernels[3].version, "6.8.3");
+        assert_eq!(kernels[4].version, "6.9");
     }
 }
