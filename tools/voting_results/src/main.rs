@@ -48,20 +48,33 @@ struct Args {
 /// Finds the root directory of the vulns repository
 ///
 /// This function attempts to locate the vulns repository by:
-/// 1. Starting from the current directory and traversing up
-/// 2. If that fails, starting from the executable directory and traversing up
-/// 3. If all else fails, checking some common absolute paths
+/// 1. Using the standard cve_utils implementation
+/// 2. If that fails, checking some common absolute paths
 fn find_vulns_dir() -> Result<PathBuf> {
-    // First attempt: look from current directory upward
-    if let Ok(dir) = find_vulns_dir_from_path(&env::current_dir().unwrap_or_default()) {
+    // First attempt to use the standard implementation from cve_utils
+    if let Ok(dir) = cve_utils::find_vulns_dir() {
         return Ok(dir);
     }
 
-    // Second attempt: look from executable directory upward
+    // Second attempt: look from executable directory
     if let Ok(exec_path) = env::current_exe() {
         if let Some(exec_dir) = exec_path.parent() {
-            if let Ok(dir) = find_vulns_dir_from_path(exec_dir) {
-                return Ok(dir);
+            let mut current_dir = exec_dir.to_path_buf();
+
+            // Check if we're already in the vulns repo
+            if current_dir.file_name().is_some_and(|name| name == "vulns") {
+                return Ok(current_dir);
+            }
+
+            // Traverse up the directory tree
+            while current_dir.parent().is_some() {
+                if current_dir.file_name().is_some_and(|name| name == "vulns") {
+                    return Ok(current_dir);
+                }
+
+                if !current_dir.pop() {
+                    break;
+                }
             }
         }
     }
@@ -79,31 +92,6 @@ fn find_vulns_dir() -> Result<PathBuf> {
     }
 
     Err(anyhow!("Could not find vulns directory"))
-}
-
-/// Helper function to search for vulns directory starting from a given path
-fn find_vulns_dir_from_path(start_path: &Path) -> Result<PathBuf> {
-    let mut current_dir = start_path.to_path_buf();
-
-    // Check if we're already in the vulns repo
-    if current_dir.file_name().is_some_and(|name| name == "vulns") {
-        return Ok(current_dir);
-    }
-
-    // Traverse up the directory tree
-    while current_dir.parent().is_some() {
-        if let Some(name) = current_dir.file_name() {
-            if name == "vulns" {
-                return Ok(current_dir);
-            }
-        }
-
-        if !current_dir.pop() {
-            break;
-        }
-    }
-
-    Err(anyhow!("Could not find vulns directory from path: {:?}", start_path))
 }
 
 struct VotingResults {

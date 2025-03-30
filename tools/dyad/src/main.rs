@@ -29,6 +29,9 @@ use std::path::PathBuf;
 use std::process;
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering as AtomicOrdering};
+extern crate cve_utils;
+// Remove the specific import to avoid the conflict
+// use cve_utils::find_vulns_dir;
 
 // Static counter for generating unique IDs for temp files
 static TEMP_FILE_COUNTER: AtomicUsize = AtomicUsize::new(1);
@@ -102,29 +105,12 @@ impl DyadState {
     }
 }
 
+// Replace the custom find_vulns_dir function with a wrapper that uses the standard implementation
 // Find the vulns repository root directory by traversing up from current directory
 fn find_vulns_dir() -> std::io::Result<PathBuf> {
-    let mut current_dir = env::current_dir()?;
-
-    // Check if we're already in the vulns repo
-    if current_dir.file_name().is_some_and(|name| name == "vulns") {
-        return Ok(current_dir);
-    }
-
-    // Traverse up the directory tree
-    while current_dir.parent().is_some() {
-        if current_dir.file_name().is_some_and(|name| name == "vulns") {
-            return Ok(current_dir);
-        }
-
-        if !current_dir.pop() {
-            break;
-        }
-    }
-
-    Err(std::io::Error::new(
+    cve_utils::find_vulns_dir().map_err(|e| std::io::Error::new(
         std::io::ErrorKind::NotFound,
-        "Could not find vulns directory",
+        format!("Could not find vulns directory: {}", e),
     ))
 }
 
