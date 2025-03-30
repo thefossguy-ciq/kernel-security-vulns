@@ -25,10 +25,10 @@ use std::fs::File;
 use std::io;
 use std::io::Write;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process;
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering as AtomicOrdering};
-use std::path::PathBuf;
 
 // Static counter for generating unique IDs for temp files
 static TEMP_FILE_COUNTER: AtomicUsize = AtomicUsize::new(1);
@@ -122,7 +122,10 @@ fn find_vulns_dir() -> std::io::Result<PathBuf> {
         }
     }
 
-    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Could not find vulns directory"))
+    Err(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "Could not find vulns directory",
+    ))
 }
 
 fn validate_env_vars(state: &mut DyadState) {
@@ -160,9 +163,9 @@ fn validate_env_vars(state: &mut DyadState) {
             "The verhaal database 'verhaal.db' is not found at expected path: {}",
             verhaal_db_path.display()
         ),
-        Err(e) => panic!(
-            "Error {e}: Something went wrong trying to lookup the path for 'verhaal.db'"
-        ),
+        Err(e) => {
+            panic!("Error {e}: Something went wrong trying to lookup the path for 'verhaal.db'")
+        }
     }
     debug!("verhaal.db = {}", state.verhaal_db);
 }
@@ -387,39 +390,46 @@ fn get_version(state: &DyadState, git_sha: &String) -> Result<String> {
     Err(rusqlite::Error::QueryReturnedNoRows)
 }
 
-//
-// Returns a ' ' separated list of Fixes
-// If no fix is found "" is returned, NOT an error, to make code flow easier.
-// Errors are only returned if something went wrong with the sql stuff
-fn get_fixes(state: &DyadState, git_sha: &String) -> Result<String> {
+/// Returns a vector of kernels that are fixes for this specific git id as listed in the database.
+/// All kernels returned are actual commits, they are validated before returned as the database can
+/// contain "bad" data for fixes lines.
+/// If an error happened, or there are no fixes, an "empty" vector is returned.
+fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
+    let mut fixed_kernels: Vec<Kernel> = vec![];
     let verhaal_db = &state.verhaal_db;
 
     // Open db connection
-    let conn = Connection::open(verhaal_db)?;
-    let mut sql = conn.prepare("SELECT fixes FROM commits WHERE id=?1")?;
-    let mut rows = sql.query(rusqlite::params![git_sha])?;
+    let conn = match Connection::open(verhaal_db) {
+        Ok(c) => c,
+        Err(_) => return vec![],
+    };
 
-    // Check if we have a row and return it
-    if let Some(row) = rows.next()? {
-        let r: Result<String> = row.get(0);
-        match r {
-            Ok(r) => {
-                debug!(
-                    "\t\tverhaal_db: {}\tget_fixes: '{}' => '{}",
-                    verhaal_db, git_sha, r
-                );
-                return Ok(r);
-            }
-            Err(_error) => {
-                debug!("\t\tNo fixes found for {}", git_sha);
-                return Ok("".to_string());
+    // Ask the db for the fixes for this commit
+    let fixes = sql_wrap(
+        &conn,
+        "SELECT fixes FROM commits WHERE id=?1;".to_string(),
+        git_sha,
+    );
+    debug!("\t\tget_fixes: fixes: {:?}", fixes);
+    for fix in fixes {
+        // Fixes lines can have multiple ones, so split this into another list
+        let fix_ids: Vec<String> = fix.split_whitespace().map(|s| s.to_string()).collect();
+        debug!("\t\tget_fixes: fix_ids: {:?}", fix_ids);
+
+        // Sometimes fixes lines lie, so verify that this REALLY is an actual commit in the kernel
+        // tree before we add it to our list
+        for id in fix_ids {
+            if let Ok(version) = get_version(state, &id) {
+                fixed_kernels.push(Kernel::new(version, id.to_string()));
+            } else {
+                debug!("Could not get version for commit {}", id);
             }
         }
     }
 
-    // If no rows found, return empty string instead of error
-    debug!("\t\tNo row found for {} in fixes query", git_sha);
-    Ok("".to_string())
+    // Sort the list to be deterministic
+    fixed_kernels.sort();
+    fixed_kernels
 }
 
 //
@@ -704,8 +714,6 @@ fn main() {
     // Print fixed kernels like the bash script does
     // This goes before the pairs output to match the bash script formatting
     let mut vulnerable_kernels: Vec<Kernel> = vec![];
-    // Track all fix entries across the function
-    let fix_entries: Vec<String>;
 
     if state.has_vulnerable {
         // We are asked to set the original vulnerable kernel to be a specific
@@ -724,120 +732,82 @@ fn main() {
         // Save off this commit
         vulnerable_kernels.push(Kernel::new(version.clone(), state.vulnerable_sha.clone()));
     } else {
-        // In case we have multiple fix entries from things like "Fixes:" lines, use the one
-        // that the bash script would use after sorting.
-        let fixes_result = get_fixes(&state, &state.git_sha_full);
-        match fixes_result {
-            Ok(fixes) => {
-                debug!("\tFixes vector: {:?}", fixes.split_whitespace().collect::<Vec<&str>>());
+        // Get the list of all valid "Fixes:" entries for this commit
+        let fix_ids = get_fixes(&state, &state.git_sha_full);
+        if !fix_ids.is_empty() {
+            for fix_id in fix_ids {
+                // Find all places this fix commit was backported to
+                let backports = found_in(&state, &fix_id.git_id);
 
-                // Process all fix entries similar to how the bash script does
-                let fix_ids: Vec<String> = fixes.split_whitespace().map(|s| s.to_string()).collect();
+                for kernel in backports {
+                    let kernel_is_mainline = kernel.is_mainline();
 
-                // If we have at least one fix, then sort them topologically
-                if !fix_ids.is_empty() {
-                    // Create a temp file with all fix_ids for the git command to use
-                    let pid = process::id();
-                    let unique_id = TEMP_FILE_COUNTER.fetch_add(1, AtomicOrdering::SeqCst);
-                    let temp_filename = format!("dyad_fixes_tmp_{}_{}", pid, unique_id);
-                    let mut temp_path = temp_dir();
-                    temp_path.push(temp_filename);
-                    let temp_file_path = temp_path.to_str().unwrap();
-
-                    let mut temp_file = File::create(&temp_path).unwrap();
-                    for id in &fix_ids {
-                        writeln!(temp_file, "{}", id).unwrap();
-                    }
-
-                    // Run the git command to sort the fixes topologically
-                    let git_cmd = format!(
-                        "git --git-dir={}/.git rev-list --topo-order $(cat {}) | grep --file={} --max-count={} | tac",
-                        state.kernel_tree,
-                        temp_file_path,
-                        temp_file_path,
-                        fix_ids.len()
-                    );
-                    debug!("Running git command for fixes: {}", git_cmd);
-
-                    let output = Command::new("sh").arg("-c").arg(&git_cmd).output().unwrap();
-
-                    // Clean up the temp file
-                    if Path::new(&temp_path).exists() {
-                        std::fs::remove_file(&temp_path).unwrap_or_else(|e| {
-                            debug!("Warning: Could not remove temp file: {}", e);
-                        });
-                    }
-
-                    // Parse the output
-                    let sorted_fixes: Vec<String> = String::from_utf8_lossy(&output.stdout)
-                        .split_whitespace()
-                        .map(|s| s.to_string())
-                        .collect();
-
-                    debug!("Sorted fixes: {:?}", sorted_fixes);
-
-                    // Store all fix entries for later processing
-                    fix_entries = sorted_fixes.clone();
-
-                    // Directly emulate the bash script's handling of fixes
-                    for fix_id in &fix_entries {
-                        // Find all places this fix commit was backported to
-                        let backports = found_in(&state, fix_id);
-
-                        for kernel in backports {
-                            let kernel_is_mainline = kernel.is_mainline();
-
-                            if !kernel_is_mainline {
-                                // For non-mainline kernels, use the backported ID
-                                debug!("Creating vulnerable set (stable): {}:{}", kernel.version, kernel.git_id);
-                                create_vulnerable_set(&mut state, kernel.version, kernel.git_id);
-                            } else {
-                                // For mainline kernels, use the original fix ID
-                                debug!("Creating vulnerable set (mainline): {}:{}", kernel.version, fix_id);
-                                create_vulnerable_set(&mut state, kernel.version, fix_id.clone());
-                            }
-                        }
-                    }
-                } else {
-                    // No fixes found, check if this is a revert commit
-                    let revert_result = get_revert(&state, &state.git_sha_full);
-                    match revert_result {
-                        Ok(revert) => {
-                            debug!("Revert: '{}'", revert);
-                            if !revert.is_empty() {
-                                debug!("{} is a revert of {}", &state.git_sha_full, revert.clone());
-                                if let Ok(version) = get_version(&state, &revert) {
-                                    let mainline = Kernel::version_is_mainline(&version);
-                                    debug!("R\t{:<12}{}\t{}", version, revert, mainline);
-
-                                    // Save off this commit
-                                    vulnerable_kernels.push(Kernel::new(version.clone(), revert.clone()));
-
-                                    // Find all backports of this revert
-                                    let backports = found_in(&state, &revert);
-                                    for kernel in backports {
-                                        let kernel_is_mainline = kernel.is_mainline();
-                                        if !kernel_is_mainline {
-                                            // For non-mainline kernels, use the backported ID
-                                            debug!("Creating vulnerable set for revert (stable): {}:{}", kernel.version, kernel.git_id);
-                                            create_vulnerable_set(&mut state, kernel.version, kernel.git_id);
-                                        } else {
-                                            // For mainline kernels, use the original revert ID
-                                            debug!("Creating vulnerable set for revert (mainline): {}:{}", kernel.version, revert);
-                                            create_vulnerable_set(&mut state, kernel.version, revert.clone());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            debug!("Error getting revert info: {:?}", e);
-                        }
+                    if !kernel_is_mainline {
+                        // For non-mainline kernels, use the backported ID
+                        debug!(
+                            "Creating vulnerable set (stable): {}:{}",
+                            kernel.version, kernel.git_id
+                        );
+                        create_vulnerable_set(&mut state, kernel.version, kernel.git_id);
+                    } else {
+                        // For mainline kernels, use the original fix ID
+                        debug!(
+                            "Creating vulnerable set (mainline): {}:{}",
+                            kernel.version, fix_id.git_id
+                        );
+                        create_vulnerable_set(&mut state, kernel.version, fix_id.git_id.clone());
                     }
                 }
             }
-            Err(e) => {
-                debug!("No fixes found, error: {:?}", e);
+        } else {
+            // No fixes found, check if this is a revert commit
+            let revert_result = get_revert(&state, &state.git_sha_full);
+            match revert_result {
+                Ok(revert) => {
+                    debug!("Revert: '{}'", revert);
+                    if !revert.is_empty() {
+                        debug!("{} is a revert of {}", &state.git_sha_full, revert.clone());
+                        if let Ok(version) = get_version(&state, &revert) {
+                            let mainline = Kernel::version_is_mainline(&version);
+                            debug!("R\t{:<12}{}\t{}", version, revert, mainline);
+
+                            // Save off this commit
+                            vulnerable_kernels.push(Kernel::new(version.clone(), revert.clone()));
+
+                            // Find all backports of this revert
+                            let backports = found_in(&state, &revert);
+                            for kernel in backports {
+                                let kernel_is_mainline = kernel.is_mainline();
+                                if !kernel_is_mainline {
+                                    // For non-mainline kernels, use the backported ID
+                                    debug!(
+                                        "Creating vulnerable set for revert (stable): {}:{}",
+                                        kernel.version, kernel.git_id
+                                    );
+                                    create_vulnerable_set(
+                                        &mut state,
+                                        kernel.version,
+                                        kernel.git_id,
+                                    );
+                                } else {
+                                    // For mainline kernels, use the original revert ID
+                                    debug!(
+                                        "Creating vulnerable set for revert (mainline): {}:{}",
+                                        kernel.version, revert
+                                    );
+                                    create_vulnerable_set(
+                                        &mut state,
+                                        kernel.version,
+                                        revert.clone(),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    debug!("Error getting revert info: {:?}", e);
+                }
             }
         }
     }
@@ -952,8 +922,12 @@ fn main() {
             if parts.len() >= 2 {
                 let selected_version = parts[0];
                 let selected_id = parts[1];
-                oldest_mainline_kernel = Kernel::new(selected_version.to_string(), selected_id.to_string());
-                debug!("Using vulnerable kernel from sort -V: {}:{}", selected_version, selected_id);
+                oldest_mainline_kernel =
+                    Kernel::new(selected_version.to_string(), selected_id.to_string());
+                debug!(
+                    "Using vulnerable kernel from sort -V: {}:{}",
+                    selected_version, selected_id
+                );
             }
         } else {
             // Fallback to original sort
