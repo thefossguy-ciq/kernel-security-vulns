@@ -12,7 +12,7 @@ use git2::{Repository, Oid};
 // Re-export specific functions from submodules for easier access
 // Common utilities for finding and working with CVE data
 pub use self::common::{get_kernel_tree, get_cve_root, find_vulns_dir,
-                      find_cve_by_sha, find_sha_by_cve, verify_commit};
+                      find_cve_by_sha, find_sha_by_cve, verify_commit, get_full_git_sha};
 // Git repository operations using the git2 library
 pub use self::git_utils::{get_full_sha, get_commit_details, get_commit_year,
                          get_modified_files, match_pattern, print_git_error_details,
@@ -24,7 +24,7 @@ pub use self::cve_utils::{extract_cve_id_from_path, find_next_free_cve_id};
 pub use self::git_config::{get_git_config, set_git_config};
 // CVE validation and processing
 pub use self::cve_validation::{is_valid_cve, year_from_cve, extract_year_from_cve, find_cve_id};
-// Command execution utilities and git commit information
+// Command execution utilities
 pub use self::cmd_utils::{run_command};
 // Year-based utilities
 pub use self::year_utils::{is_valid_year, is_year_dir_exists};
