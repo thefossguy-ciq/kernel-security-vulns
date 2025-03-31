@@ -73,10 +73,14 @@ fi
 
 # See if the SHA given to us is a valid SHA in the git repo
 # and turning the sha into a "full" one so that we don't get this wrong.
-GIT_SHA_FULL=$(git --git-dir="${KERNEL_TREE}/.git" rev-parse --disambiguate="${STRING}" 2> /dev/null)
+
+# do NOT use 'git rev-parse --disambiguate' here as that will find us all
+# sorts of odd ids if you pass in a year, which is what we do NOT want to
+# have happen.
+GIT_SHA_FULL=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${STRING}" 2> /dev/null)
 if [[ "${GIT_SHA_FULL}" != "" ]] ; then
 	# it's a sha, let's search for that!
-	found=$(${GREP} -l "${STRING}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
+	found=$(${GREP} -l "${GIT_SHA_FULL}" "${CVE_ROOT}"/published/ "${CVE_ROOT}"/rejected/ | grep "sha1")
 	if [[ "${found}" != "" ]]; then
 		cve=$(basename "${found}" | cut -f 1 -d '.')
 		echo "${txtcyn}${cve}${txtrst} is assigned to git id ${txtgrn}${STRING}${txtrst}"
@@ -87,17 +91,30 @@ if [[ "${GIT_SHA_FULL}" != "" ]] ; then
 	exit 1
 fi
 
-# Treat the string as a CVE id
-# NOTE, not the best search, we can have false-positives here, like searching
-# just for "25162" or "2019-25162" or the like.  We should really parse this
-# out to verify it is in CVE-YYYY-ID format, but oh well, that's for
-# tomorrow...
-found=$(find "${CVE_ROOT}/" -type f | grep -v testing | grep -v reserved | grep "${STRING}\$")
-if [[ "${found}" != "" ]]; then
-	sha=$(cat "${found}.sha1")
-	echo "${txtcyn}${STRING}${txtrst} is assigned to git id ${txtgrn}${sha}${txtrst}"
-        exit 0
+# Treat the string as a CVE id and attempt to parse it in "CVE-YYYY-ID" format
+CVE_SPLIT=(${STRING//-/ })
+if [[ "${#CVE_SPLIT[@]}" == "3" ]] ; then
+	# First part must be "CVE"
+	if [[ "${CVE_SPLIT[0]}" != "CVE" ]]; then
+		echo "${txtcyn}${STRING}${txtrst} is not a valid CVE id or a git id."
+		exit 1
+	fi
+	# Second part must be a year that we know about
+	valid_year=$(ls ${CVE_ROOT}/published/ | grep "${CVE_SPLIT[1]}")
+	if [[ "${valid_year}" == "" ]]; then
+		echo "${txtcyn}${STRING}${txtrst} is for a year that we do not have any ids assigned."
+		exit 1
+	fi
+	# Third part better be a valid id
+	valid_id=$(find "${CVE_ROOT}/" -type f | grep "${valid_year}" | grep -v testing | grep -v reserved | grep "${STRING}\$")
+	if [[ "${valid_id}" != "" ]] ; then
+		sha=$(cat "${valid_id}.sha1")
+		echo "${txtcyn}${STRING}${txtrst} is assigned to git id ${txtgrn}${sha}${txtrst}"
+		exit 0
+	fi
+	echo "${txtcyn}${STRING}${txtrst} is not a CVE record published by us, sorry."
+	exit 1
 fi
 
-echo "${txtcyn}${STRING}${txtrst} not found in any CVE record, sorry."
+echo "${txtcyn}${STRING}${txtrst} is not either a git sha, or a valid CVE id."
 exit 1
