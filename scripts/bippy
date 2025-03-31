@@ -229,7 +229,7 @@ dbg "orig_id=${orig_id}"
 # many of the searches we do later on.  If we stuck with a short one, some of
 # the searches would give us false-positives as people use short shas in commit
 # messages.
-GIT_SHA_FULL=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${GIT_SHA}")
+GIT_SHA_FULL=$(cd "${KERNEL_TREE}" && git log -1 --format="%H" "${GIT_SHA}" 2> /dev/null)
 if [[ "${GIT_SHA_FULL}" == "" ]] ; then
 	echo "error: git id ${GIT_SHA} is not found in the tree at ${KERNEL_TREE}"
 	exit 1
