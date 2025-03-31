@@ -17,12 +17,10 @@
 //! of the git tree must be in the CVEKERNELTREE environment variable.
 //!
 
-//use log::debug;
+use cve_utils::version_utils;
 use git2::{Oid, Repository};
 use log::{debug, error};
 use std::cmp::Ordering;
-use std::env;
-use std::fs;
 use std::path::Path;
 use std::sync::OnceLock;
 
@@ -42,8 +40,8 @@ impl Kernel {
     /// Create a new Kernel object
     /// `mainline` and `rc` attributes will be determined when created
     pub fn new(v: String, g: String) -> Self {
-        let mainline = Self::version_is_mainline(&v);
-        let rc = Self::version_is_rc(&v);
+        let mainline = version_utils::version_is_mainline(&v);
+        let rc = version_utils::version_is_rc(&v);
         Self {
             version: v,
             git_id: g,
@@ -80,24 +78,11 @@ impl Kernel {
 
     fn git_dir() -> &'static String {
         GIT_DIR.get_or_init(|| {
-            let dir = match env::var("CVEKERNELTREE") {
-                Ok(val) => val,
-                Err(_error) => panic!("Environment variable CVEKERNELTREE not found, please set!"),
-            };
-            // Validate that this really is a git directory by looking for .git/
-            let dot_git = dir.clone() + "/.git";
-            match fs::exists(dot_git.clone()) {
-                Ok(true) => debug!("\tgit_dir: {} path found", dot_git),
-                Ok(false) => panic!(
-                    "CVEKERNELTREE value of {} is not found, please set to valid git directory",
-                    dot_git
-                ),
-                Err(e) => panic!(
-                    "Error {e}: Something went wrong trying to lookup the path for '{}'",
-                    dot_git
-                ),
+            // Use cve_utils to get and validate the kernel tree path
+            match cve_utils::common::get_kernel_tree() {
+                Ok(path) => path.to_string_lossy().into_owned(),
+                Err(e) => panic!("Failed to get kernel tree: {}", e),
             }
-            dir
         })
     }
 
@@ -212,17 +197,26 @@ impl Kernel {
             }
         };
 
+        // Reuse the sorting logic from cve_utils::git_utils
         // Convert string IDs to Oid objects for lookup
-        let mut oid_map = std::collections::HashMap::new();
-        let mut valid_oids = Vec::new();
+        let mut valid_ids = Vec::new();
 
         for id_str in ids {
             match Oid::from_str(id_str) {
                 Ok(oid) => {
                     // Check if the object exists in the repository
                     if repo.find_commit(oid).is_ok() {
-                        oid_map.insert(oid, id_str);
-                        valid_oids.push(oid);
+                        // Resolve the reference and get full SHA
+                        match cve_utils::git_utils::resolve_reference(&repo, id_str) {
+                            Ok(obj) => {
+                                if let Ok(full_sha) = cve_utils::git_utils::get_object_full_sha(&repo, &obj) {
+                                    valid_ids.push(full_sha);
+                                }
+                            },
+                            Err(_) => {
+                                debug!("Warning: git id {} not found in repository", id_str);
+                            }
+                        }
                     } else {
                         debug!("Warning: git id {} not found in repository", id_str);
                     }
@@ -234,7 +228,7 @@ impl Kernel {
         }
 
         // If no valid IDs were found, return original order
-        if valid_oids.is_empty() {
+        if valid_ids.is_empty() {
             debug!("No valid git IDs found, returning original order");
             return ids.clone();
         }
@@ -242,21 +236,25 @@ impl Kernel {
         // Determine the relationship between commits directly rather than using revwalk
         // This creates a directed graph of "is ancestor of" relationships
         let mut result_order = Vec::new();
-        let mut remaining_oids = valid_oids.clone();
+        let mut remaining_ids = valid_ids.clone();
 
-        while !remaining_oids.is_empty() {
+        while !remaining_ids.is_empty() {
             // Find a commit that is not an ancestor of any other remaining commit
             // This will be the newest commit among the remaining ones
             let mut newest_idx = 0;
 
-            'outer: for i in 0..remaining_oids.len() {
+            'outer: for i in 0..remaining_ids.len() {
                 let mut is_newest = true;
-                for j in 0..remaining_oids.len() {
+                for j in 0..remaining_ids.len() {
                     if i == j {
                         continue;
                     }
 
-                    match repo.graph_descendant_of(remaining_oids[j], remaining_oids[i]) {
+                    // Use the Oid objects for comparison
+                    let oid_i = Oid::from_str(&remaining_ids[i]).unwrap();
+                    let oid_j = Oid::from_str(&remaining_ids[j]).unwrap();
+
+                    match repo.graph_descendant_of(oid_j, oid_i) {
                         Ok(true) => {
                             // Found a descendant, so this one isn't the newest
                             is_newest = false;
@@ -280,24 +278,18 @@ impl Kernel {
 
             // If no clear newest was found (possible with unrelated history),
             // just take the first one
-            result_order.push(remaining_oids.remove(newest_idx));
+            result_order.push(remaining_ids.remove(newest_idx));
         }
-
-        // Convert back to original string IDs
-        let mut sorted_ids: Vec<String> = result_order
-            .iter()
-            .filter_map(|oid| oid_map.get(oid).map(|&s| s.clone()))
-            .collect();
 
         // Add any missing IDs that we couldn't find in the repo
         for id in ids {
-            if !sorted_ids.contains(id) {
-                sorted_ids.push(id.clone());
+            if !result_order.contains(id) && !id.is_empty() {
+                result_order.push(id.clone());
             }
         }
 
-        debug!("git_sort_ids: sorted_ids = {:?}", sorted_ids);
-        sorted_ids
+        debug!("git_sort_ids: sorted_ids = {:?}", result_order);
+        result_order
     }
 
     /// Compare the version numbers of a kernel.
@@ -394,43 +386,6 @@ impl Kernel {
         }
     }
 
-    /// Takes a kernel release version, in string form, and figures out if it is a "mainline"
-    /// release or not, based on the kernel release numbering system.
-    pub fn version_is_mainline(version: &String) -> bool {
-        //println!("git_dir: {}", Self::git_dir());
-
-        // Check for -rc version first
-        if version.contains("-rc") {
-            return true;
-        }
-
-        // Split the version number up into pieces
-        let v: Vec<&str> = version.split('.').collect();
-        if v.len() == 1 {
-            debug!("Version split of {} did not work", version);
-            return false;
-        }
-
-        // 2.6.X is just one more level "deep"
-        if v[0] == "2" && v.len() == 3 {
-            return true;
-        }
-
-        // If version only has X.Y format (no .Z), it's mainline
-        if v.len() == 2 {
-            return true;
-        }
-
-        // Otherwise this is a stable release
-        false
-    }
-
-    /// Takes a kernel release version, in string form, and figures out if it is a "-rc" release or
-    /// not, based on the kernel release numbering system.
-    fn version_is_rc(version: &str) -> bool {
-        version.contains("-rc")
-    }
-
     /// Get the RC number if this is an RC version
     pub fn rc_number(&self) -> Option<u32> {
         if let Some(rc_index) = self.version.find("-rc") {
@@ -472,6 +427,7 @@ pub struct KernelPair {
 mod tests {
     use crate::Kernel;
     use std::cmp::Ordering;
+    use cve_utils::version_utils;
 
     #[test]
     fn empty_kernel() {
@@ -553,11 +509,16 @@ mod tests {
 
     #[test]
     fn version_is_mainline() {
-        assert!(Kernel::version_is_mainline(&"6.9".to_string()));
-        assert!(!Kernel::version_is_mainline(&"6.9.1".to_string()));
-        assert!(Kernel::version_is_mainline(&"2.6.14".to_string()));
-        assert!(!Kernel::version_is_mainline(&"2.6.32.12".to_string()));
-        assert!(Kernel::version_is_mainline(&"6.16-rc1".to_string()));
+        // Modern kernels
+        assert!(version_utils::version_is_mainline("6.9"));
+        assert!(!version_utils::version_is_mainline("6.9.1"));
+        assert!(version_utils::version_is_mainline("6.16-rc1"));
+
+        // 2.* kernels
+        assert!(version_utils::version_is_mainline("2.6.14"));       // 2.X.Y is mainline
+        assert!(version_utils::version_is_mainline("2.6.32.12"));
+        assert!(version_utils::version_is_mainline("2.4.20"));
+        assert!(version_utils::version_is_mainline("2.4.20.1"));
     }
 
     #[test]

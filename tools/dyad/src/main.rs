@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
 // Copyright (c) 2025 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+// Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 // dyad - create a listing of "pairs" of vulnerable:fixed kernels based on a
 //        specific git SHA that purports to fix an issue.  Used in combination
@@ -12,45 +13,21 @@ use gumdrop::Options;
 use log::{debug, error};
 use rusqlite::fallible_iterator::FallibleIterator;
 use rusqlite::{Connection, Result};
-//use rusqlite::{params, Connection, Result};
-//use std::collections::HashMap;
 use colored::Colorize;
-use git2::Repository;
-use rusqlite::Error as SqliteError;
 use std::cmp::Ordering;
 use std::env;
-use std::env::temp_dir;
 use std::fs;
-use std::fs::File;
-use std::io;
-use std::io::Write;
 use std::path::Path;
-use std::path::PathBuf;
-use std::process;
 use std::process::Command;
-use std::sync::atomic::{AtomicUsize, Ordering as AtomicOrdering};
 extern crate cve_utils;
-// Remove the specific import to avoid the conflict
-// use cve_utils::find_vulns_dir;
-
-// Static counter for generating unique IDs for temp files
-static TEMP_FILE_COUNTER: AtomicUsize = AtomicUsize::new(1);
+use cve_utils::version_utils;
+use git2::Repository;
 
 pub mod kernel;
 use kernel::Kernel;
 use kernel::KernelPair;
 
-// Custom error type for standardized error handling
-#[derive(Debug)]
-pub enum DyadError {
-    Io(io::Error),
-    Sqlite(SqliteError),
-    Git(git2::Error),
-    EnvVar(String),
-    GitCommand(String),
-    ParseError(String),
-    NotFound(String),
-}
+// Using more specific error types directly instead of a custom error enum
 
 #[derive(Debug, Options)]
 struct DyadArgs {
@@ -83,7 +60,6 @@ struct DyadState {
     git_sha_short: String,
     fixed_set: Vec<Kernel>,
     vulnerable_set: Vec<Kernel>,
-    //    fixed_pairs: Vec<KernelPair>,
 }
 
 impl DyadState {
@@ -100,46 +76,22 @@ impl DyadState {
             git_sha_short: String::new(),
             fixed_set: vec![],
             vulnerable_set: vec![],
-            //fixed_pairs: vec![],
         }
     }
 }
 
-// Replace the custom find_vulns_dir function with a wrapper that uses the standard implementation
-// Find the vulns repository root directory by traversing up from current directory
-fn find_vulns_dir() -> std::io::Result<PathBuf> {
-    cve_utils::find_vulns_dir().map_err(|e| std::io::Error::new(
-        std::io::ErrorKind::NotFound,
-        format!("Could not find vulns directory: {}", e),
-    ))
-}
-
 fn validate_env_vars(state: &mut DyadState) {
-    // CVEKERNELTREE environment variable must be set
-    match env::var("CVEKERNELTREE") {
-        Ok(val) => state.kernel_tree = val,
-        Err(_error) => panic!("Environment variable CVEKERNELTREE not found, please set!"),
+    // Use cve_utils to get kernel tree path
+    match cve_utils::common::get_kernel_tree() {
+        Ok(path) => state.kernel_tree = path.to_string_lossy().into_owned(),
+        Err(e) => panic!("Failed to get kernel tree: {}", e),
     };
     debug!("kernel_tree = {}", state.kernel_tree);
 
-    // Validate that this really is a git directory by looking for .git/
-    let git_dir = state.kernel_tree.clone() + "/.git";
-    match fs::exists(git_dir.clone()) {
-        Ok(true) => debug!("{} path found", git_dir),
-        Ok(false) => panic!(
-            "CVEKERNELTREE value of {} is not found, please set to valid git directory",
-            git_dir
-        ),
-        Err(e) => panic!(
-            "Error {e}: Something went wrong trying to lookup the path for '{}'",
-            git_dir
-        ),
-    }
-
     // Find the path to the verhaal.db database file using vulns dir
-    let vulns_dir = match find_vulns_dir() {
+    let vulns_dir = match cve_utils::common::find_vulns_dir() {
         Ok(dir) => dir,
-        Err(_) => panic!("Could not find vulns directory"),
+        Err(e) => panic!("Could not find vulns directory: {}", e),
     };
 
     let verhaal_db_path = vulns_dir.join("tools").join("verhaal").join("verhaal.db");
@@ -156,15 +108,8 @@ fn validate_env_vars(state: &mut DyadState) {
     debug!("verhaal.db = {}", state.verhaal_db);
 }
 
-/*
-fn create_fix_set(state: &mut DyadState, version: String, git_id: String) {
-    state.fixed_set.push(Kernel::new(version, git_id));
-    //debug!("create_fix_set: version: {}\tgit_id: {}\tmainline: {}", version, git_id, mainline);
-}
-*/
-
 fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String) {
-    let mainline = Kernel::version_is_mainline(&version);
+    let mainline = version_utils::version_is_mainline(&version);
 
     state
         .vulnerable_set
@@ -186,25 +131,13 @@ fn git_full_id(state: &DyadState, git_sha: &String) -> Option<String> {
         return None;
     }
 
-    let repo_path = &state.kernel_tree;
+    let repo_path = Path::new(&state.kernel_tree);
 
-    // Try to open the git repository
-    let repo = match Repository::open(repo_path) {
-        Ok(repo) => repo,
-        Err(e) => {
-            error!("Error opening repository {}: {}", repo_path, e);
-            std::process::exit(1);
-        }
-    };
-
-    // Try to resolve the object ID (similar to git rev-parse)
-    match repo.revparse_single(git_sha) {
-        Ok(object) => {
-            let full_id = object.id().to_string();
-            Some(full_id)
-        }
-        Err(e) => {
-            debug!("Notice: git SHA1 {} not found: {}", git_sha, e);
+    // Use the cve_utils function to get the full SHA
+    match cve_utils::common::get_full_git_sha(repo_path, git_sha) {
+        Some(full_id) => Some(full_id),
+        None => {
+            debug!("Notice: git SHA1 {} not found", git_sha);
             None
         }
     }
@@ -466,51 +399,40 @@ fn sort_commits_topologically(state: &DyadState, commits: &Vec<Kernel>) -> Vec<K
         kernel_map.insert(kernel.git_id.clone(), kernel.clone());
     }
 
-    // Instead of using libgit2's revwalk, use a direct call to git
-    // This is much faster as it's similar to what the bash script does
+    // Use cve_utils::git_utils from the common library
+    // First, open the repo
+    let repo_path = Path::new(&state.kernel_tree);
+    let repo = match Repository::open(repo_path) {
+        Ok(repo) => repo,
+        Err(e) => {
+            error!("Error opening repository: {}", e);
+            // Return original commits in case of error
+            return commits.clone();
+        }
+    };
 
-    // Create a unique identifier for the temp file using PID and atomic counter
-    let pid = process::id();
-    let unique_id = TEMP_FILE_COUNTER.fetch_add(1, AtomicOrdering::SeqCst);
-    let temp_filename = format!("dyad_sort_tmp_{}_{}", pid, unique_id);
-
-    let mut temp_path = temp_dir();
-    temp_path.push(temp_filename);
-    let temp_file_path = temp_path.to_str().unwrap();
-
-    let mut temp_file = File::create(&temp_path).unwrap();
+    // Resolve all references and sort them
+    let mut valid_ids = Vec::new();
     for id in &git_ids {
-        writeln!(temp_file, "{}", id).unwrap();
+        match cve_utils::git_utils::resolve_reference(&repo, id) {
+            Ok(obj) => {
+                if let Ok(full_sha) = cve_utils::git_utils::get_object_full_sha(&repo, &obj) {
+                    valid_ids.push(full_sha);
+                }
+            },
+            Err(e) => {
+                debug!("Warning: Could not resolve git id {}: {}", id, e);
+            }
+        }
     }
 
-    // Execute the git command directly, like the bash script does
-    // This exactly matches the bash implementation:
-    // sort_order=$($git_cmd rev-list --topo-order $(cat "${v_file}") | grep --file="${v_file}" --max-count=${#v[@]} | tac)
-    let git_cmd = format!(
-        "git --git-dir={}/.git rev-list --topo-order $(cat {}) | grep --file={} --max-count={} | tac",
-        state.kernel_tree,
-        temp_file_path,
-        temp_file_path,
-        git_ids.len()
-    );
-
-    debug!("Running git command: {}", git_cmd);
-
-    let output = Command::new("sh").arg("-c").arg(&git_cmd).output().unwrap();
-
-    // Clean up the temp file
-    if Path::new(&temp_path).exists() {
-        std::fs::remove_file(&temp_path).unwrap_or_else(|e| {
-            debug!("Warning: Could not remove temp file: {}", e);
-        });
+    if valid_ids.is_empty() {
+        debug!("No valid git IDs found, returning original order");
+        return commits.clone();
     }
 
-    // Parse the output into a list of sorted IDs
-    let sorted_ids: Vec<String> = String::from_utf8_lossy(&output.stdout)
-        .split_whitespace()
-        .map(|s| s.to_string())
-        .collect();
-
+    // Use Kernel::git_sort_ids to sort the valid IDs
+    let sorted_ids = Kernel::git_sort_ids(&valid_ids);
     debug!("Topological sort_order={:?}", sorted_ids);
 
     // For each sorted commit, get its version and form version:id pairs
@@ -692,7 +614,6 @@ fn main() {
         );
         std::process::exit(1);
     }
-    //debug!("fixed= {:?}", state.fixed_set);
     for k in &state.fixed_set {
         debug!("\t{:<12}{}\t{}", k.version, k.git_id, k.is_mainline());
     }
@@ -754,7 +675,7 @@ fn main() {
                     if !revert.is_empty() {
                         debug!("{} is a revert of {}", &state.git_sha_full, revert.clone());
                         if let Ok(version) = get_version(&state, &revert) {
-                            let mainline = Kernel::version_is_mainline(&version);
+                            let mainline = version_utils::version_is_mainline(&version);
                             debug!("R\t{:<12}{}\t{}", version, revert, mainline);
 
                             // Save off this commit
