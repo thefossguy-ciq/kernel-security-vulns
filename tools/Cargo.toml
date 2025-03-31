@@ -93,6 +93,12 @@ path = "cve_utils/src/bin/cve_stats.rs"
 name = "dyad"
 path = "dyad/tests/dyad.rs"
 
+[[test]]
+name = "integration"
+path = "dyad/tests/integration.rs"
+harness = true
+required-features = []
+
 [lib]
 name = "cve_utils"
 path = "cve_utils/src/lib.rs"
