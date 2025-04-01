@@ -1,0 +1,31 @@
+d97505baea64 RDMA/mlx5: Fix the recovery flow of the UMR QP [auto: cve already created]
+abc7b3f1f056 RDMA/mlx5: Fix a WARN during dereg_mr for DM type [auto: cve already created]
+f0df225d12fc RDMA/bnxt_re: Add sanity checks on rdev validity
+c84e125fff26 ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up [auto: cve already created]
+8f8df955f078 NFSv4: Fix a deadlock when recovering state on a sillyrenamed file
+3d8c6f26893d RDMA/mlx5: Fix implicit ODP hang on parent deregistration [auto: cve already created]
+b66535356a48 RDMA/bnxt_re: Fix the page details for the srq created by kernel consumers [auto: cve already created]
+5c70eb5c593d net: better track kernel sockets lifetime [auto: cve already created]
+27843ce6ba3d ipvlan: ensure network headers are in skb linear part [auto: cve already created]
+79990cf5e7ad ice: Fix deinitializing VF in error path [auto: cve already created]
+7f3528f7d2f9 net/mlx5: Fix vport QoS cleanup on error [auto: cve already created]
+674fcb4f4a7e idpf: fix checksums set in idpf_rx_rsc() [auto: cve already created]
+2016066c6619 perf/core: Order the PMU list to fix warning about unordered pmu_ctx_list
+bddf10d26e6e uprobes: Reject the shared zeropage in uprobe_write_opcode() [auto: cve already created]
+6f86bdeab633 tracing: Fix bad hist from corrupting named_triggers list
+a1a7eb89ca0b ftrace: Avoid potential division by zero in function_stat_show()
+0fe8813baf4b perf/core: Add RCU read lock protection to perf_iterate_ctx() [auto: cve already created]
+a9f4fa3a7efa drm/xe/userptr: fix EFAULT handling [auto: cve already created]
+360399643299 drm/fbdev-dma: Add shadow buffering for deferred I/O [auto: cve already created]
+59f37036bb7a btrfs: fix use-after-free on inode when scanning root during em shrinking [auto: cve already created]
+dd1998e243f5 i2c: npcm: disable interrupt enable bit before devm_request_irq [auto: cve already created]
+1cf9631d836b usbnet: gl620a: fix endpoint checking in genelink_bind() [auto: cve already created]
+a562d0c4a893 net: enetc: VFs do not support HWTSTAMP_TX_ONESTEP_SYNC
+b150654f74bf iommu/vt-d: Fix suspicious RCU usage [auto: cve already created]
+f865c24bc551 mptcp: always handle address removal under msk socket lock [auto: cve already created]
+82c387ef7568 sched/core: Prevent rescheduling when interrupts are disabled [auto: cve already created]
+8fef0a3b17bb sched_ext: Fix pick_task_scx() picking non-queued tasks when it's called without balance()
+0c67c37e1710 fuse: revert back to __readahead_folio() for readahead
+7fb39882b20c dm-integrity: Avoid divide by zero in table status in Inline mode [auto: cve already created]
+f27a95845b01 scsi: ufs: core: bsg: Fix crash when arpmb command fails [auto: cve already created]
+2b90e7ace797 efi: Don't map the entire mokvar table to determine its size [auto: cve already created]
