@@ -1,0 +1,17 @@
+9f7b2aa5034e eth: bnxt: fix truesize for mb-xdp-pass case
+c03e7d05aa0e eth: bnxt: do not update checksum in bnxt_xdp_build_skb()
+62531a1effa8 net: switchdev: Convert blocking notification chain to a raw one
+d653bfeb07eb netfilter: nf_conncount: Fully initialize struct nf_conncount_tuple in insert_tree()
+1063ae07383c Revert "openvswitch: switch to per-action label counting in conntrack"
+07e0d99a2f70 iscsi_ibft: Fix UBSAN shift-out-of-bounds warning in ibft_attr_show_nic()
+8adbb2a98b00 drm/amd/display: Fix out-of-bound accesses
+5233e3235dec scsi: qla1280: Fix kernel oops when debug level > 2
+363236d709e7 HID: ignore non-functional sensor in HP 5MP Camera
+e3e89178a9f4 x86/microcode/AMD: Fix out-of-bounds on systems with CPU-less NUMA nodes
+6cc30748e17e drm/amdgpu: NULL-check BO's backing store when determining GFX12 PTE flags
+e204aab79e01 drm/amd/display: fix missing .is_two_pixels_per_container
+79e31396fdd7 drm/amd/display: Assign normalized_pix_clk when color depth = 14
+3aa660c05924 ksmbd: prevent connection release during oplock break notification
+f3600c867c99 netmem: prevent TX of unreadable skbs
+3e64bb2ae7d9 net: mana: cleanup mana struct after debugfs_remove()
+e25cec3b76ab fs/netfs/read_collect: add to next->prev_donated
