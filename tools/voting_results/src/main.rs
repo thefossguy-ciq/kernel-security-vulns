@@ -332,8 +332,10 @@ impl VotingResults {
             return Ok(None);
         }
 
-        // Check if everyone agrees
-        let everyone_agrees = total_votes == self.reviewers.len();
+        // Check if all PRIMARY reviewers agree, not necessarily all reviewers
+        let everyone_agrees = PRIMARY_REVIEWERS.iter().all(|reviewer| {
+            reviewer_votes.get(reviewer).unwrap_or(&false) == &true
+        });
 
         // Check for CVE
         let has_cve = self.check_for_cve(&mainline_sha)?;
@@ -425,7 +427,14 @@ impl VotingResults {
                 if let Some(reviewer) = file_name.split('-').last() {
                     let reader = BufReader::new(file);
                     for line in reader.lines().map_while(Result::ok) {
-                        if line.contains(subject) {
+                        // Check for subject in various formats:
+                        // 1. Direct string match
+                        // 2. Subject in parentheses
+                        // 3. Subject in quotes or other common delimiters
+                        if line.contains(subject) ||
+                           line.contains(&format!("(\"{}\")", subject)) ||
+                           line.contains(&format!("({})", subject)) ||
+                           line.contains(&format!("\"{}\"", subject)) {
                             reviewer_votes.insert(reviewer.to_string(), true);
                             break;
                         }
@@ -465,7 +474,11 @@ impl VotingResults {
             }
 
             // Check for all reviewers agreeing
-            if reviewer_votes.values().all(|&v| v) {
+            let all_agree = PRIMARY_REVIEWERS.iter().all(|reviewer| {
+                reviewer_votes.get(reviewer).unwrap_or(&false) == &true
+            });
+
+            if all_agree {
                 if let Some(vec) = self.commits_by_pattern.get_mut("all") {
                     vec.push(oneline);
                 }
