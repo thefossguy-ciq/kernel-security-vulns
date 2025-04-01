@@ -653,13 +653,11 @@ impl VotingResults {
                 .filter(|commit| !excluded.contains(*commit))
                 .collect();
 
-            if !filtered_commits.is_empty() {
-                println!("\n{}", title.blue());
+            println!("\n{}", title.blue());
 
-                for commit in filtered_commits {
-                    println!("  {}", commit);
-                    self.print_annotations(commit)?;
-                }
+            for commit in filtered_commits {
+                println!("  {}", commit);
+                self.print_annotations(commit)?;
             }
         }
         Ok(())
