@@ -1,0 +1,15 @@
+14cb5d83068e x86/amd_nb: Use rdmsr_safe() in amd_get_mmconfig_range()
+0c28e4d1e10d HID: corsair-void: Update power supply values with a unified work handler
+f02c41f87cfe gpio: rcar: Use raw_spinlock to protect register access
+df1a1ed5e1bd drm/imagination: avoid deadlock on fence release
+59b348be7597 wifi: cfg80211: regulatory: improve invalid hints checking
+49f27f29446a wifi: nl80211: reject cooked mode if it is set along with other flags
+ce6d9c1c2b5c NFS: fix nfs_release_folio() to not deadlock via kcompactd writeback
+b81679b1633a mm: memory-failure: update ttu flag inside unmap_poisoned_folio
+f9751163bffd wifi: iwlwifi: mvm: clean up ROC on failure
+e0dc2c1bef72 wifi: iwlwifi: limit printed string from FW file
+a466fd7e9faf caif_virtio: fix wrong pointer check in cfv_probe()
+cf7ee25e70c6 mctp i3c: handle NULL header address
+976e7e9bdc77 acpi: typec: ucsi: Introduce a ->poll_cci method
+a321d163de3d bus: mhi: host: pci_generic: Use pci_try_reset_function() to avoid deadlock
+819cec1dc47c drivers: virt: acrn: hsm: Use kzalloc to avoid info leak in pmcmd_ioctl
