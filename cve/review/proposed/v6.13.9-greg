@@ -1,0 +1,23 @@
+1d22a122ffb1 can: ucan: fix out of bound read in strscpy() source
+75845c6c1a64 keys: Fix UAF in key_put()
+67c007d6c12d io_uring/net: fix sendzc double notif flush
+25655580136d RDMA/hns: Fix soft lockup during bt pages loop
+344b7ef248f4 netfs: Call `invalidate_cache` only if implemented
+654b33ada4ab proc: fix UAF in proc_get_inode()
+f3009d0d6ab7 net: atm: fix use after free in lec_send()
+f00db31d2359 Revert "arm64: dts: qcom: sdm845: Affirm IDR0.CCTW on apps_smmu"
+f44fa354a071 ARM: dts: bcm2711: Fix xHCI power-domain
+dd8689b52a24 drm/radeon: fix uninitialized size issue in radeon_vce_cs_parse()
+a952f1ab6968 drm/sched: Fix fence reference count leak
+1b8b67f3c5e5 ksmbd: fix incorrect validation for num_aces field of smb_acl
+da8d493a8099 firmware: qcom: uefisecapp: fix efivars registration race
+fbf10b86f605 firmware: imx-scu: fix OF node leak in .probe()
+14efb4793519 mm/huge_memory: drop beyond-EOF folios with the right number of refs
+72d061ee630d Bluetooth: Fix error code in chan_alloc_skb_cb()
+8619909b38ee regulator: dummy: force synchronous probing
+2c7a50bec495 regulator: check that dummy regulator has been probed before using it
+67d15c7aa086 accel/qaic: Fix integer overflow in qaic_validate_req()
+800f1059c99e mm/page_alloc: fix memory accept before watermarks gets initialized
+559847f56769 xsk: fix an integer overflow in xp_create_and_assign_umem()
+5f079290e591 net: ethernet: ti: am65-cpsw: Fix NAPI registration sequence
+9740890ee20e ipv6: Fix memleak of nhc_pcpu_rth_output in fib_check_nh_v6_gw().
