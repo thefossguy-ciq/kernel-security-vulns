@@ -23,3 +23,4 @@ a562d0c4a893 net: enetc: VFs do not support HWTSTAMP_TX_ONESTEP_SYNC
 360399643299 drm/fbdev-dma: Add shadow buffering for deferred I/O
 f27a95845b01 scsi: ufs: core: bsg: Fix crash when arpmb command fails
 2016066c6619 perf/core: Order the PMU list to fix warning about unordered pmu_ctx_list
+d3c7059b6a86 drm/amdgpu: init return value in amdgpu_ttm_clear_buffer
