@@ -35,3 +35,10 @@ d2b9d97e89c7 qlcnic: fix memory leak issues in qlcnic_sriov_common.c
 23d97f18901e ice: fix memory leak in aRFS after reset
 acf40ab42799 pinctrl: nuvoton: npcm8xx: Add NULL check in npcm8xx_gpio_fw
 eab0396353be net/mlx5: handle errors in mlx5_chains_create_table()
+e25cec3b76ab fs/netfs/read_collect: add to next->prev_donated
+e204aab79e01 drm/amd/display: fix missing .is_two_pixels_per_container
+6cc30748e17e drm/amdgpu: NULL-check BO's backing store when determining GFX12 PTE flags
+e3e89178a9f4 x86/microcode/AMD: Fix out-of-bounds on systems with CPU-less NUMA nodes
+363236d709e7 HID: ignore non-functional sensor in HP 5MP Camera
+07e0d99a2f70 iscsi_ibft: Fix UBSAN shift-out-of-bounds warning in ibft_attr_show_nic()
+ab4eedb790ca Bluetooth: L2CAP: Fix corrupted list in hci_chan_del
