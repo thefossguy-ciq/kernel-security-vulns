@@ -17,7 +17,7 @@ from langchain.prompts import PromptTemplate
 from langchain_anthropic import ChatAnthropic
 from abc import ABC, abstractmethod
 from huggingface_hub import InferenceClient
-from typing import Union, List
+from typing import Union, List, Dict, Any, Optional
 import concurrent.futures
 from tqdm import tqdm  # For progress bars
 import sys
@@ -25,6 +25,15 @@ from openai import OpenAI
 import hashlib
 import re
 import time
+import json
+import random
+import string
+import tempfile
+import math
+import shlex
+import shutil
+import subprocess
+import asyncio  # Add asyncio for async/await support
 
 # Try to import Anthropic SDK - will be used if available
 try:
@@ -195,22 +204,52 @@ class HuggingFaceLLM(BaseLLM):
         else:
             formatted_prompt = prompt
 
-        response = self.client.text_generation(
-            formatted_prompt,
-            model=self.model,
-            temperature=self.temperature,
-            max_new_tokens=512,
-            return_full_text=False,
-            stop=["<|im_end|>"] if self.model_type == "qwen" else None
-        )
-        return response
+        try:
+            response = self.client.text_generation(
+                formatted_prompt,
+                model=self.model,
+                temperature=self.temperature,
+                max_new_tokens=1024,  # Increased token limit to ensure complete responses
+                return_full_text=False,
+                stop=["<|im_end|>"] if self.model_type == "qwen" else None
+            )
+
+            # Process the response - this applies to all model types
+            if response:
+                # Check if the response has YES/NO but no explanation
+                if ("YES" in response.upper() or "NO" in response.upper()) and "EXPLANATION:" not in response.upper():
+                    # Extract the yes/no part and any explanation if it exists
+                    if ":" in response:
+                        # If there's a colon, split at the first one
+                        answer_part = response.split(":", 1)[0].strip()
+                        explanation_part = response.split(":", 1)[1].strip()
+                        if explanation_part:
+                            return f"{answer_part}\nExplanation: {explanation_part}"
+                        else:
+                            # Add a default explanation if none provided
+                            return f"{answer_part}\nExplanation: No further details provided by the model."
+                    else:
+                        # Just has YES/NO with no explanation
+                        answer = "YES" if "YES" in response.upper() else "NO"
+                        return f"{answer}\nExplanation: No further details provided by the model."
+            elif response == "" or response is None:
+                # Handle completely empty responses
+                logging.warning(f"Empty response received from model")
+                return "NO\nExplanation: The model returned an empty response. Defaulting to NO for security reasons."
+
+            return response
+        except Exception as e:
+            logging.error(f"Error invoking model: {e}")
+            # Return a formatted error response that can still be parsed
+            return f"NO\nExplanation: Error occurred while generating response: {str(e)}"
 
 class OpenAILLM(BaseLLM):
     MODELS = {
-        "gpt4": "gpt-4-0125-preview",  # GPT-4 Turbo
+        "gpt4": "gpt-4-turbo-2024-04-09",  # GPT-4 Turbo (April 2024)
+        "gpt4o": "gpt-4o-2024-05-13"       # GPT-4o (May 2024)
     }
 
-    def __init__(self, model_type: str = "gpt4", temperature: float = 0):
+    def __init__(self, model_type: str = "gpt4o", temperature: float = 0):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.model = self.MODELS.get(model_type, model_type)
         self.temperature = temperature
@@ -307,195 +346,78 @@ class CommitDataCollector:
             'files_changed': list(commit.stats.files.keys())
         }
 
+    def _safe_git_command(self, cmd, timeout=30):
+        """Run a git command with a timeout to prevent hanging"""
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=self.kernel_repo_path
+            )
+            stdout, stderr = process.communicate(timeout=timeout)
+            if process.returncode != 0:
+                logging.warning(f"Git command failed: {' '.join(cmd)}")
+                return None
+            return stdout.decode('utf-8', errors='replace')
+        except subprocess.TimeoutExpired:
+            process.kill()
+            logging.warning(f"Git command timed out after {timeout}s: {' '.join(cmd)}")
+            return None
+        except Exception as e:
+            logging.error(f"Error executing git command {' '.join(cmd)}: {e}")
+            return None
+
     def process_cve_commit(self, sha: str) -> dict:
-        """Process a single CVE commit with extended context"""
+        """Process a single CVE commit
+
+        Extracts basic commit information and file-level analysis.
+        Does not track related commits (commits that come after this one)
+        as they could bias the security assessment.
+        """
         try:
             features = self.get_commit_features(sha)
             features['has_cve'] = True
-            commit = self.repo.commit(sha)
 
-            # Get parent commit context
-            if commit.parents:
-                parent = commit.parents[0]
-                features['parent_message'] = parent.message
-
-                # Convert parent diff to text representation
-                parent_diff_text = ""
-                parent_diffs = parent.diff(commit, create_patch=True)
-                for diff in parent_diffs:
-                    try:
-                        # Get the diff text
-                        if diff.a_path and diff.b_path:
-                            parent_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
-                        elif diff.a_path:
-                            parent_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
-                        elif diff.b_path:
-                            parent_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
-
-                        # Add diff content
-                        if hasattr(diff, 'diff'):
-                            try:
-                                diff_content = diff.diff.decode('utf-8', errors='replace')
-                                parent_diff_text += diff_content + "\n\n"
-                            except (UnicodeDecodeError, AttributeError):
-                                parent_diff_text += "[Binary diff not shown]\n\n"
-                    except Exception as e:
-                        logging.warning(f"Error processing parent diff: {e}")
-                        parent_diff_text += f"[Error processing diff: {e}]\n\n"
-
-                features['parent_diff'] = parent_diff_text
-
-                # Get grandparent for more history
-                if parent.parents:
-                    grandparent = parent.parents[0]
-                    features['grandparent_message'] = grandparent.message
-
-                    # Convert grandparent diff to text representation
-                    grandparent_diff_text = ""
-                    grandparent_diffs = grandparent.diff(parent, create_patch=True)
-                    for diff in grandparent_diffs:
-                        try:
-                            # Get the diff text
-                            if diff.a_path and diff.b_path:
-                                grandparent_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
-                            elif diff.a_path:
-                                grandparent_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
-                            elif diff.b_path:
-                                grandparent_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
-
-                            # Add diff content
-                            if hasattr(diff, 'diff'):
-                                try:
-                                    diff_content = diff.diff.decode('utf-8', errors='replace')
-                                    grandparent_diff_text += diff_content + "\n\n"
-                                except (UnicodeDecodeError, AttributeError):
-                                    grandparent_diff_text += "[Binary diff not shown]\n\n"
-                        except Exception as e:
-                            logging.warning(f"Error processing grandparent diff: {e}")
-                            grandparent_diff_text += f"[Error processing diff: {e}]\n\n"
-
-                    features['grandparent_diff'] = grandparent_diff_text
-
-            # Look for related commits (both before and after)
-            related_commits = []
-
-            # Look back for related changes
-            for related in self.repo.iter_commits(f'{sha}^..HEAD', max_count=10):
-                if any(word in related.message.lower() for word in ['cve', 'fix', 'security', 'vuln']):
-                    # Convert related diff to text
-                    related_diff_text = ""
-                    if related.parents:
-                        related_diffs = related.parents[0].diff(related, create_patch=True)
-                        for diff in related_diffs:
-                            try:
-                                # Get diff text
-                                if diff.a_path and diff.b_path:
-                                    related_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
-                                elif diff.a_path:
-                                    related_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
-                                elif diff.b_path:
-                                    related_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
-
-                                # Add diff content
-                                if hasattr(diff, 'diff'):
-                                    try:
-                                        diff_content = diff.diff.decode('utf-8', errors='replace')
-                                        related_diff_text += diff_content + "\n\n"
-                                    except (UnicodeDecodeError, AttributeError):
-                                        related_diff_text += "[Binary diff not shown]\n\n"
-                            except Exception as e:
-                                logging.warning(f"Error processing related diff: {e}")
-                                related_diff_text += f"[Error processing diff: {e}]\n\n"
-
-                    related_commits.append({
-                        'message': related.message,
-                        'diff': related_diff_text,
-                        'relation': 'after'
-                    })
-
-            # Look forward for follow-up fixes
-            for related in self.repo.iter_commits(f'HEAD..{sha}', max_count=10):
-                if any(word in related.message.lower() for word in ['cve', 'fix', 'security', 'vuln']):
-                    # Convert related diff to text
-                    related_diff_text = ""
-                    if related.parents:
-                        related_diffs = related.parents[0].diff(related, create_patch=True)
-                        for diff in related_diffs:
-                            try:
-                                # Get diff text
-                                if diff.a_path and diff.b_path:
-                                    related_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
-                                elif diff.a_path:
-                                    related_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
-                                elif diff.b_path:
-                                    related_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
-
-                                # Add diff content
-                                if hasattr(diff, 'diff'):
-                                    try:
-                                        diff_content = diff.diff.decode('utf-8', errors='replace')
-                                        related_diff_text += diff_content + "\n\n"
-                                    except (UnicodeDecodeError, AttributeError):
-                                        related_diff_text += "[Binary diff not shown]\n\n"
-                            except Exception as e:
-                                logging.warning(f"Error processing related diff: {e}")
-                                related_diff_text += f"[Error processing diff: {e}]\n\n"
-
-                    related_commits.append({
-                        'message': related.message,
-                        'diff': related_diff_text,
-                        'relation': 'before'
-                    })
-
-            features['related_commits'] = related_commits
+            # Skip collecting related commits as requested
 
             # Add file-level analysis
             file_analysis = {}
             for file_path in features['files_changed']:
                 try:
-                    # Get file history only if the file exists in the parent commit
-                    if commit.parents:
-                        parent = commit.parents[0]
-                        try:
-                            # Check if file exists in parent
-                            parent.tree[file_path]
+                    # Use safe git command with timeout instead of iter_commits
+                    cmd = ['git', 'rev-list', '--max-count=5', sha, '--', file_path]
+                    output = self._safe_git_command(cmd, timeout=30)
 
-                            # Get file history with better error handling
-                            try:
-                                file_history = list(self.repo.iter_commits(
-                                    f'{parent.hexsha}',
-                                    paths=file_path,
-                                    max_count=5
-                                ))
-                            except git.exc.GitCommandError:
-                                file_history = []
+                    if output:
+                        commit_shas = output.strip().split('\n')
+                        file_history = []
 
-                            # Get blame info for changed lines
-                            blame_info = []
-                            for old_path, new_path, flag in commit.diff(parent):
-                                if new_path and new_path.path == file_path:
+                        for commit_sha in commit_shas:
+                            if not commit_sha:
+                                continue
+
+                            # Get commit info safely
+                            commit_info_cmd = ['git', 'show', '--no-patch', '--format=%H%n%s%n%at', commit_sha]
+                            commit_info = self._safe_git_command(commit_info_cmd, timeout=10)
+
+                            if commit_info:
+                                lines = commit_info.strip().split('\n')
+                                if len(lines) >= 3:
+                                    c_sha = lines[0]
+                                    c_message = lines[1]
                                     try:
-                                        for blame_entry in self.repo.blame(parent, file_path):
-                                            blame_commit, lines = blame_entry
-                                            blame_info.append({
-                                                'author': blame_commit.author.name,
-                                                'date': blame_commit.authored_datetime,
-                                                'message': blame_commit.message
-                                            })
-                                    except git.exc.GitCommandError:
+                                        c_date = datetime.fromtimestamp(int(lines[2]), tz=timezone.utc)
+                                        file_history.append({
+                                            'sha': c_sha,
+                                            'message': c_message,
+                                            'date': c_date
+                                        })
+                                    except (ValueError, IndexError):
                                         continue
 
-                            file_analysis[file_path] = {
-                                'history': [{
-                                    'sha': c.hexsha,
-                                    'message': c.message,
-                                    'date': c.authored_datetime
-                                } for c in file_history],
-                                'blame': blame_info
-                            }
-                        except KeyError:
-                            # File doesn't exist in parent commit
-                            continue
+                        if file_history:
+                            file_analysis[file_path] = {'history': file_history}
                 except Exception as e:
                     logging.debug(f"Error analyzing file {file_path}: {e}")
                     continue
@@ -512,39 +434,6 @@ class CommitDataCollector:
         try:
             features = self.get_commit_features(sha)
             features['has_cve'] = False
-
-            # Add parent commit context
-            commit = self.repo.commit(sha)
-            if commit.parents:
-                parent = commit.parents[0]
-                features['parent_message'] = parent.message
-
-                # Convert parent diff to text
-                parent_diff_text = ""
-                parent_diffs = parent.diff(commit, create_patch=True)
-                for diff in parent_diffs:
-                    try:
-                        # Get the diff text
-                        if diff.a_path and diff.b_path:
-                            parent_diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
-                        elif diff.a_path:
-                            parent_diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
-                        elif diff.b_path:
-                            parent_diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
-
-                        # Add diff content
-                        if hasattr(diff, 'diff'):
-                            try:
-                                diff_content = diff.diff.decode('utf-8', errors='replace')
-                                parent_diff_text += diff_content + "\n\n"
-                            except (UnicodeDecodeError, AttributeError):
-                                parent_diff_text += "[Binary diff not shown]\n\n"
-                    except Exception as e:
-                        logging.warning(f"Error processing parent diff: {e}")
-                        parent_diff_text += f"[Error processing diff: {e}]\n\n"
-
-                features['parent_diff'] = parent_diff_text
-
             return features
 
         except (git.exc.GitCommandError, KeyError) as e:
@@ -613,8 +502,22 @@ class CommitDataCollector:
         self.seen_subject_lines.add(subject)
         return False
 
+    def process_commit_with_timeout(self, process_func, sha, timeout=120):
+        """Process a commit with a timeout limit"""
+        try:
+            # Use the function_timeout decorator for the processing function
+            start_time = time.time()
+            result = process_func(sha)
+            elapsed = time.time() - start_time
+            if elapsed > timeout:
+                logging.warning(f"Commit processing took {elapsed:.1f}s (exceeded timeout) for SHA: {sha}")
+            return result
+        except Exception as e:
+            logging.error(f"Error processing commit {sha}: {e}")
+            return None
+
     def build_dataset(self, min_months: int = 1, max_months: int = 12, chunk_size: int = 1000, max_workers: int = 24,
-                     max_cve: int = None, max_non_cve: int = None) -> pd.DataFrame:
+                     max_cve: int = None, max_non_cve: int = None, commit_timeout: int = 120) -> pd.DataFrame:
         """Build a dataset of CVE and non-CVE commits using parallel processing"""
         logging.info("Getting CVE commits...")
         cve_commits = self.get_cve_commits()
@@ -627,34 +530,55 @@ class CommitDataCollector:
 
         # If in test mode, limit CVE commits
         if max_cve is not None:
-            cve_commits = {k: set(list(v)[:max_cve]) for k, v in cve_commits.items()}
-            logging.info(f"Limited to {sum(len(v) for v in cve_commits.values())} CVE commits for testing")
+            # Since max_cve is applied per dictionary entry (for both cve_fixes and cve_vulns),
+            # we need to calculate how many to take from each to get max_cve total
+            total_cve_count = sum(len(v) for v in cve_commits.values())
+            if total_cve_count > 0:
+                # Calculate proportion for each key to maintain original ratio but limit total to max_cve
+                cve_per_key = {k: int(max_cve * len(v) / total_cve_count) for k, v in cve_commits.items()}
+                # Ensure we get exactly max_cve by adding any remainder to the largest set
+                remainder = max_cve - sum(cve_per_key.values())
+                if remainder > 0:
+                    max_key = max(cve_per_key.keys(), key=lambda k: cve_per_key[k])
+                    cve_per_key[max_key] += remainder
+                # Apply the calculated limits
+                cve_commits = {k: set(list(v)[:cve_per_key[k]]) for k, v in cve_commits.items()}
+                logging.info(f"Limited to {sum(len(v) for v in cve_commits.values())} CVE commits for testing")
 
         # Process CVE commits in parallel, filtering duplicates
         all_commits = []
         duplicates_found = 0
+        timeouts_count = 0
+
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             # Process in smaller chunks to show progress
-            chunk_size = 100
+            shas_to_process = []
             for k, shas in cve_commits.items():
                 for sha in shas:
                     if not self._is_duplicate_commit(sha):
-                        futures.append(executor.submit(self.process_cve_commit, sha))
+                        shas_to_process.append(sha)
                     else:
                         duplicates_found += 1
 
-            with tqdm(total=len(futures), desc="Processing unique CVE commits") as pbar:
-                for future in concurrent.futures.as_completed(futures):
+            # Submit all tasks to the executor
+            sha_to_future = {sha: executor.submit(self.process_cve_commit, sha) for sha in shas_to_process}
+
+            with tqdm(total=len(sha_to_future), desc="Processing unique CVE commits") as pbar:
+                for sha, future in sha_to_future.items():
                     try:
-                        result = future.result()
+                        # Wait for the result with a timeout
+                        result = future.result(timeout=commit_timeout)
                         if result is not None:
                             all_commits.append(result)
+                    except concurrent.futures.TimeoutError:
+                        logging.warning(f"Commit processing timed out after {commit_timeout} seconds for SHA: {sha}")
+                        timeouts_count += 1
                     except Exception as e:
-                        logging.error(f"Error processing commit: {e}")
+                        logging.error(f"Error processing commit {sha}: {e}")
                     pbar.update(1)
 
-        logging.info(f"Processed {len(all_commits)} unique CVE commits (skipped {duplicates_found} duplicates)")
+        logging.info(f"Processed {len(all_commits)} unique CVE commits (skipped {duplicates_found} duplicates, {timeouts_count} timeouts)")
 
         # Get non-CVE commits from linux- branches
         logging.info(f"Getting non-CVE commits between {min_months} and {max_months} months old from linux- branches...")
@@ -671,6 +595,7 @@ class CommitDataCollector:
         non_cve_commits = []
         processed_count = 0
         branch_duplicates = 0
+        non_cve_timeouts = 0
 
         for branch in branches:
             try:
@@ -737,22 +662,27 @@ class CommitDataCollector:
 
                     # Process chunk in parallel
                     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-                        futures = []
+                        # Submit all tasks to the executor
+                        sha_to_future = {}
                         for sha in current_chunk:
-                            if max_non_cve is not None and len(non_cve_commits) >= max_non_cve:
+                            if max_non_cve is not None and len(non_cve_commits) + len(sha_to_future) >= max_non_cve:
                                 break
-                            futures.append(executor.submit(self.process_non_cve_commit, sha))
+                            sha_to_future[sha] = executor.submit(self.process_non_cve_commit, sha)
 
-                        if futures:
+                        if sha_to_future:
                             processed_results = []
-                            for future in concurrent.futures.as_completed(futures):
+                            for sha, future in sha_to_future.items():
                                 try:
-                                    result = future.result()
+                                    # Wait for the result with a timeout
+                                    result = future.result(timeout=commit_timeout)
                                     if result is not None:
                                         non_cve_commits.append(result)
                                         processed_results.append(result)
+                                except concurrent.futures.TimeoutError:
+                                    logging.warning(f"Non-CVE commit processing timed out after {commit_timeout} seconds for SHA: {sha}")
+                                    non_cve_timeouts += 1
                                 except Exception as e:
-                                    logging.error(f"Error processing commit: {e}")
+                                    logging.error(f"Error processing commit {sha}: {e}")
 
                     processed_count += len(current_chunk)
                     branch_processed_commits += len(processed_results) if 'processed_results' in locals() else 0
@@ -774,8 +704,8 @@ class CommitDataCollector:
         df = pd.DataFrame(all_commits)
 
         logging.info(f"Final dataset: {len(df)} total unique commits")
-        logging.info(f"  - CVE commits: {sum(df.has_cve)} (skipped {duplicates_found} duplicates)")
-        logging.info(f"  - Non-CVE commits: {sum(~df.has_cve)} (skipped {branch_duplicates} duplicates)")
+        logging.info(f"  - CVE commits: {sum(df.has_cve)} (skipped {duplicates_found} duplicates, {timeouts_count} timeouts)")
+        logging.info(f"  - Non-CVE commits: {sum(~df.has_cve)} (skipped {branch_duplicates} duplicates, {non_cve_timeouts} timeouts)")
 
         return df
 
@@ -783,7 +713,8 @@ class CVEClassifier:
     def __init__(self,
                  embedding_model: str = "all-MiniLM-L6-v2",
                  llm_providers: Union[str, List[str]] = ["claude", "llama", "qwen", "gpt4"],
-                 llm_configs: dict = None):
+                 llm_configs: dict = None,
+                 repo: git.Repo = None):
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
@@ -791,6 +722,7 @@ class CVEClassifier:
             separators=["\n\n", "\n", " ", ""]
         )
         self.vectorstore = None
+        self.repo = repo  # Store repo for retrieving missing commit info
 
         # Store configurations for later LLM initialization
         if isinstance(llm_providers, str):
@@ -819,6 +751,10 @@ class CVEClassifier:
             "gpt4": {
                 "model_type": "gpt4",
                 "temperature": 0
+            },
+            "gpt4o": {
+                "model_type": "gpt4o",
+                "temperature": 0
             }
         }
 
@@ -834,33 +770,33 @@ class CVEClassifier:
         self.prompt_template = PromptTemplate(
             input_variables=["context", "commit_info"],
             template="""You are a security expert analyzing kernel commits to determine if they should be assigned a CVE.
-            Analyze both the commit message and the code changes carefully to identify security implications.
+Analyze both the commit message and the code changes carefully to identify security implications.
 
-            Consider:
-            1. Does the commit fix a security vulnerability?
-            2. What is the potential impact of the issue being fixed?
-            3. Are there any sensitive components affected (memory management, access control, etc.)?
-            4. Does the commit message mention security concerns?
-            5. Do the code changes show:
-               - Buffer overflow fixes
-               - Memory leak fixes
-               - Access control changes
-               - Input validation improvements
-               - Race condition fixes
-               - Privilege escalation fixes
-               - Other security-relevant patterns
+Consider:
+1. Does the commit fix a security vulnerability?
+2. What is the potential impact of the issue being fixed?
+3. Are there any sensitive components affected (memory management, access control, etc.)?
+4. Does the commit message mention security concerns?
+5. Do the code changes show:
+   - Buffer overflow fixes
+   - Memory leak fixes
+   - Access control changes
+   - Input validation improvements
+   - Race condition fixes
+   - Privilege escalation fixes
+   - Other security-relevant patterns
 
-            Historical similar commits and their CVE status for reference:
-            {context}
+Historical similar commits and their CVE status for reference:
+{context}
 
-            IMPORTANT: Pay close attention to the CVE Status (YES/NO) of similar commits as they provide valuable reference points.
-            Commits with similar characteristics to those marked with "CVE Status: YES" are more likely to need a CVE.
+IMPORTANT: Pay close attention to the CVE Status (YES/NO) of similar commits as they provide valuable reference points.
+Commits with similar characteristics to those marked with "CVE Status: YES" are more likely to need a CVE.
 
-            New Commit to analyze:
-            {commit_info}
+New Commit to analyze:
+{commit_info}
 
-            Based on your analysis of both the commit message AND code changes, should this commit be assigned a CVE?
-            Provide your answer as YES or NO, followed by a brief explanation that references specific parts of the code changes."""
+Based on your analysis of both the commit message AND code changes, should this commit be assigned a CVE?
+Provide your answer as YES or NO, followed by a brief explanation that references specific parts of the code changes."""
         )
 
     def _initialize_llms(self):
@@ -872,8 +808,8 @@ class CVEClassifier:
                     self.llms["claude"] = ClaudeLLM(**self.llm_configs["claude"])
                 elif provider in ["llama", "qwen"]:
                     self.llms[provider] = HuggingFaceLLM(**self.llm_configs[provider])
-                elif provider == "gpt4":
-                    self.llms["gpt4"] = OpenAILLM(**self.llm_configs["gpt4"])
+                elif provider in ["gpt4", "gpt4o"]:
+                    self.llms[provider] = OpenAILLM(**self.llm_configs.get(provider, {"model_type": provider}))
 
             if not self.llms:
                 raise ValueError("No valid LLM providers specified")
@@ -920,52 +856,8 @@ class CVEClassifier:
                     logging.warning(f"Error processing diff for embedding: {e}")
                     commit_context.append("Changes: [Error processing diff]")
 
-                # Add historical context with size checks
-                if 'parent_message' in row and isinstance(row['parent_message'], str):
-                    # Extract subject from parent commit message
-                    parent_message_lines = row['parent_message'].strip().split('\n')
-                    parent_subject = parent_message_lines[0].strip()
-                    parent_message_body = '\n'.join(parent_message_lines[1:]).strip() if len(parent_message_lines) > 1 else ""
-
-                    commit_context.append(f"Parent Commit:\nSubject: {parent_subject}")
-                    if parent_message_body:
-                        if len(parent_message_body) > MAX_CHUNK_LENGTH:
-                            parent_message_body = parent_message_body[:MAX_CHUNK_LENGTH] + "\n[... truncated ...]"
-                        commit_context.append(f"Parent Commit Body:\n{parent_message_body}")
-
-                    if 'parent_diff' in row:
-                        try:
-                            # Ensure parent diff is a string and handle encoding issues
-                            if isinstance(row['parent_diff'], str):
-                                parent_diff_text = row['parent_diff']
-                            else:
-                                parent_diff_text = str(row['parent_diff'])
-
-                            # Truncate if needed
-                            if len(parent_diff_text) > MAX_CHUNK_LENGTH:
-                                parent_diff_text = parent_diff_text[:MAX_CHUNK_LENGTH] + "\n[... truncated ...]"
-
-                            # Clean the parent diff text
-                            parent_diff_text = parent_diff_text.encode('ascii', 'replace').decode('ascii')
-                            commit_context.append(f"Parent Changes:\n{parent_diff_text}")
-                        except Exception as e:
-                            logging.warning(f"Error processing parent diff for embedding: {e}")
-                            commit_context.append("Parent Changes: [Error processing diff]")
-
-                # Similarly limit grandparent info
-                if 'grandparent_message' in row and isinstance(row['grandparent_message'], str):
-                    # Skip grandparent info to reduce memory usage
-                    commit_context.append("Grandparent Commit: [Skipped to conserve memory]")
-
-                # Limit related commits to reduce memory usage
-                if 'related_commits' in row and isinstance(row['related_commits'], list):
-                    # Only include a limited number of related commits
-                    num_related = min(3, len(row['related_commits']))
-                    for i, related in enumerate(row['related_commits'][:num_related]):
-                        relation_type = related.get('relation', 'unknown')
-                        commit_context.append(f"Related Commit {i+1} ({relation_type}):\nSubject: {related['message'].split('\\n')[0]}")
-                        # Skip diff to save memory
-                        commit_context.append("Related Changes: [Skipped to conserve memory]")
+                # Remove related commits processing as requested
+                # No processing of related commits
 
                 # Simplify file analysis to reduce memory usage
                 if 'file_analysis' in row and isinstance(row['file_analysis'], dict):
@@ -977,30 +869,29 @@ class CVEClassifier:
                         commit_context.append(f"Files: {', '.join(file_names[:5])}" +
                                             (f" and {len(file_names) - 5} more" if len(file_names) > 5 else ""))
 
-                # Make CVE status more prominent by adding it at the beginning and end
+                # Make CVE status more prominent by adding it at the beginning only
                 cve_status_text = f"CVE Status: {'YES' if row['has_cve'] else 'NO'}"
-                text = f"[{cve_status_text}]\n\n" + "\n\n".join(commit_context) + f"\n\n[{cve_status_text}]"
+                text = f"[{cve_status_text}]\n\n" + "\n\n".join(commit_context)
 
                 # Ensure the text is ASCII-encodable and not too long
                 text = text.encode('ascii', 'replace').decode('ascii')
                 if len(text) > MAX_CHUNK_LENGTH * 3:  # Allow a reasonable multiplier
                     text = text[:MAX_CHUNK_LENGTH * 3] + "\n[... remainder truncated ...]"
 
-                # Create chunks with the text splitter
-                self.text_splitter.chunk_size = min(1000, MAX_CHUNK_LENGTH)  # Ensure chunks aren't too large
-                chunks = self.text_splitter.split_text(text)
+                # Create a single chunk per commit to keep metadata and diff together
+                # Skip chunking for now since it's causing diff information to be separated from metadata
+                clean_text = text.encode('ascii', 'replace').decode('ascii')
+                if len(clean_text) > MAX_CHUNK_LENGTH * 3:  # If text is too large, truncate
+                    clean_text = clean_text[:MAX_CHUNK_LENGTH * 3] + "\n[... remainder truncated ...]"
 
-                # Add each chunk with its metadata, but limit number of chunks per commit
-                for chunk in chunks[:10]:  # Limit to 10 chunks per commit maximum
-                    # Additional safety to ensure text is clean for embedding
-                    clean_chunk = chunk.encode('ascii', 'replace').decode('ascii')
-                    texts.append(clean_chunk)
-                    metadatas.append({
-                        "has_cve": row["has_cve"],
-                        "sha": row["sha"],
-                        "date": str(row["date"]),
-                        "files": ",".join(row["files_changed"][:10])  # Limit number of files
-                    })
+                # Add single chunk with metadata
+                texts.append(clean_text)
+                metadatas.append({
+                    "has_cve": row["has_cve"],
+                    "sha": row["sha"],
+                    "date": str(row["date"]),
+                    "files": ",".join(row["files_changed"][:10])  # Limit number of files
+                })
 
                 # Process in batches to prevent memory buildup
                 if len(texts) >= MAX_CHUNKS_PER_BATCH:
@@ -1088,21 +979,31 @@ class CVEClassifier:
         # Convert to uppercase for case-insensitive matching
         response_upper = response.upper()
 
-        # First try to find an explicit "Answer: YES/NO" pattern
-        answer_match = re.search(r"ANSWER:\s*(YES|NO)", response_upper)
-        if answer_match:
-            return answer_match.group(1) == "YES", response
+        # Try different patterns to extract the YES/NO response
+        patterns = [
+            # Look for "ANSWER: YES/NO"
+            r"ANSWER:\s*(YES|NO)",
+            # Look for YES/NO at the beginning of the text
+            r"^\s*(YES|NO)\b",
+            # Look for patterns like "Answer is YES/NO" or "Answer: YES/NO"
+            r"ANSWER\s+(?:IS|:)\s*(YES|NO)",
+            # Check for GPT-4 style response with YES/NO at the beginning
+            r"(YES|NO)\s*(?:\n|$|Explanation|:)",
+        ]
 
-        # If no explicit answer, look for the last YES/NO in the text
-        # This handles cases where the LLM might discuss multiple possibilities
-        # but makes a final determination
-        yes_pos = response_upper.rfind("YES")
-        no_pos = response_upper.rfind("NO")
+        for pattern in patterns:
+            match = re.search(pattern, response_upper)
+            if match:
+                return match.group(1) == "YES", response
+
+        # If no pattern matches, look for the first YES/NO in the text
+        yes_pos = response_upper.find("YES")
+        no_pos = response_upper.find("NO")
 
         # If we found both YES and NO
         if yes_pos != -1 and no_pos != -1:
-            # Return based on which comes last (is the final answer)
-            return yes_pos > no_pos, response
+            # Return based on which comes first
+            return yes_pos < no_pos, response
         # If we only found YES
         elif yes_pos != -1:
             return True, response
@@ -1114,6 +1015,848 @@ class CVEClassifier:
         # This is safer from a security perspective
         logging.warning("Could not find clear YES/NO in LLM response. Defaulting to NO.")
         return False, response
+
+    async def _async_batch_process_claude(self, commit_infos: Dict[str, dict]) -> Dict[str, Dict[str, Any]]:
+        """
+        Process multiple commits using Claude's batch API with async/await pattern.
+
+        Args:
+            commit_infos: Dictionary mapping commit SHAs to commit info dictionaries
+
+        Returns:
+            Dictionary mapping commit SHAs to prediction results
+        """
+        if not self.vectorstore:
+            raise ValueError("Model not trained. Call train() first.")
+
+        try:
+            # Import Anthropic direct client
+            import anthropic
+            client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        except ImportError:
+            raise ImportError("Anthropic SDK not found. Please install with 'pip install anthropic'")
+
+        # Prepare batch requests
+        batch_requests = []
+        prompts = {}
+
+        logging.info(f"Preparing batch requests for {len(commit_infos)} commits")
+
+        for commit_sha, commit_info in commit_infos.items():
+            # Extract subject from commit message
+            message_lines = commit_info['message'].strip().split('\n')
+            subject = message_lines[0].strip()
+            message_body = '\n'.join(message_lines[1:]).strip() if len(message_lines) > 1 else ""
+
+            # Format commit info for better readability
+            commit_text = f"""
+            Subject: {subject}
+
+            Commit Message:
+            {message_body}
+
+            Files Changed:
+            {', '.join(commit_info['files_changed'])}
+
+            Code Changes:
+            {commit_info['diff']}
+            """
+
+            # Get similar commits for context
+            query = f"Commit: {commit_info['message']}\nDiff: {commit_info['diff']}"
+            # Use fetch_k=20 to search through more documents, and k=10 to return the most similar
+            docs = self.vectorstore.similarity_search(
+                query,
+                k=10,
+                fetch_k=20  # Search through more documents first
+            )
+
+            # Extract and highlight the CVE status from each similar commit
+            formatted_contexts = []
+            for i, doc in enumerate(docs):
+                if not doc.page_content:
+                    continue  # Skip empty content
+                content = doc.page_content
+
+                # Extract CVE status if present
+                cve_status = "UNKNOWN"
+                if "CVE Status: YES" in content:
+                    cve_status = "YES"
+                elif "CVE Status: NO" in content:
+                    cve_status = "NO"
+
+                # Get metadata for additional information
+                has_cve_metadata = doc.metadata.get('has_cve', None) if hasattr(doc, 'metadata') else None
+                if has_cve_metadata is not None:
+                    cve_status = "YES" if has_cve_metadata else "NO"
+
+                # Remove CVE status from beginning of content if present
+                content = re.sub(r'^\[CVE Status: (YES|NO)\]\s*\n+', '', content, flags=re.MULTILINE)
+
+                # Make sure commit displays have a consistent structure
+                if "Subject:" not in content:
+                    # Extract subject if possible from metadata
+                    sha = doc.metadata.get('sha', 'unknown') if hasattr(doc, 'metadata') else 'unknown'
+                    try:
+                        # Try to get commit info from the repository to ensure we have complete data
+                        if sha != 'unknown' and hasattr(self, 'repo'):
+                            content_parts = []
+                            commit = self.repo.commit(sha)
+                            message_lines = commit.message.strip().split('\n')
+                            subject = message_lines[0].strip()
+                            content_parts.append(f"Subject: {subject}")
+                            content_parts.append(f"Commit Message:\n{commit.message}")
+                            content = "\n\n".join(content_parts)
+                    except:
+                        # If we can't get the commit info, just note that
+                        content = f"Subject: [Missing subject for commit {sha}]\n\nCommit Message: [Missing message]"
+
+                # Check if code changes are present
+                if "Code Changes:" not in content and "Changes:" not in content:
+                    content += "\n\nCode Changes:\n[No code changes found or extracted for this commit]"
+
+                # Format with CVE status in the title only
+                formatted_content = f"Similar Commit {i+1} [CVE Status: {cve_status}]:\n{content}"
+                formatted_contexts.append(formatted_content)
+
+            context = "\n\n".join(formatted_contexts)
+
+            # Format the full prompt
+            full_prompt = self.prompt_template.format(
+                context=context,
+                commit_info=commit_text
+            )
+
+            # Store prompt for logging/debugging purposes
+            prompts[commit_sha] = full_prompt
+
+            # Add to batch requests
+            batch_requests.append({
+                "custom_id": commit_sha,
+                "params": {
+                    "model": self.llm_configs["claude"]["model"],
+                    "max_tokens": self.llm_configs["claude"]["max_tokens"],
+                    "temperature": self.llm_configs["claude"]["temperature"],
+                    "messages": [{"role": "user", "content": full_prompt}],
+                    "system": "You are a security expert analyzing kernel commits to detect security vulnerabilities."
+                }
+            })
+
+        # Create batch request
+        logging.info("Submitting batch request to Claude API...")
+        batch = client.beta.messages.batches.create(requests=batch_requests)
+        batch_id = batch.id
+        logging.info(f"Batch submitted with ID: {batch_id}")
+
+        # Poll for batch completion
+        results = {}
+        poll_interval = 5 * 60  # 5 minutes in seconds
+        total_requests = len(batch_requests)
+        processed_ids = set()
+
+        # Wait until the batch is completed
+        while True:
+            try:
+                # Get batch status
+                status = client.beta.messages.batches.retrieve(batch_id)
+                processing_status = status.processing_status
+                logging.info(f"Batch status: {processing_status}")
+
+                # If the batch is still being processed, wait and check again
+                if processing_status == "in_progress":
+                    logging.info(f"Batch still in progress. Waiting {poll_interval//60} minutes before checking again...")
+                    time.sleep(poll_interval)
+                    continue
+
+                # If the batch is ended, process results
+                if processing_status == "ended":
+                    logging.info("Batch processing completed, retrieving results...")
+                    break
+
+                # If the batch failed or has some other status, handle accordingly
+                if processing_status not in ["in_progress", "ended"]:
+                    logging.error(f"Unexpected batch status: {processing_status}")
+                    raise Exception(f"Batch processing failed with status: {processing_status}")
+
+                # Wait before polling again
+                time.sleep(poll_interval)
+
+            except Exception as e:
+                logging.error(f"Error checking batch status: {e}")
+                time.sleep(60)  # Wait a minute before trying again
+
+        # Now retrieve and process all results
+        try:
+            # Process each request one by one to get results
+            for commit_sha in commit_infos.keys():
+                try:
+                    # Get the result for this specific request
+                    result = client.beta.messages.batches.results.retrieve(
+                        batch_id=batch_id,
+                        request_id=commit_sha
+                    )
+
+                    if result.result.type == "succeeded":
+                        # Extract text content from result
+                        response_text = ""
+                        for block in result.result.message.content:
+                            if block.type == "text":
+                                response_text += block.text
+
+                        # Parse the response
+                        prediction, explanation = self._parse_llm_response(response_text)
+
+                        # Store result
+                        results[commit_sha] = {
+                            "prediction": prediction,
+                            "explanation": explanation
+                        }
+
+                        # Print result in batch mode format
+                        print(f"{commit_sha} {'yes' if prediction else 'no'}")
+                    elif result.result.type == "failed":
+                        error_msg = "Unknown error"
+                        if hasattr(result.result, 'error') and hasattr(result.result.error, 'message'):
+                            error_msg = result.result.error.message
+                        results[commit_sha] = {"error": error_msg}
+                        print(f"{commit_sha} error")
+                        logging.error(f"Batch API error for {commit_sha}: {error_msg}")
+                except Exception as e:
+                    logging.error(f"Error retrieving result for {commit_sha}: {e}")
+                    results[commit_sha] = {"error": str(e)}
+                    print(f"{commit_sha} error")
+
+        except Exception as e:
+            logging.error(f"Error processing batch results: {e}")
+            # If batch processing fails, fall back to processing commits one by one
+            logging.warning("Falling back to processing commits one by one")
+            for sha, commit_info in commit_infos.items():
+                if sha not in results:  # Only process commits that don't have results yet
+                    try:
+                        # Use the regular non-batch predict method as fallback
+                        result = self.predict(commit_info, batch_mode=True, commit_sha=sha)
+                        results[sha] = result["claude"] if "claude" in result else {"error": "No result from Claude"}
+                    except Exception as e:
+                        results[sha] = {"error": str(e)}
+                        print(f"{sha} error")
+
+        return results
+
+    def batch_process_claude(self, commit_infos: Dict[str, dict]) -> Dict[str, Dict[str, Any]]:
+        """
+        Process multiple commits using Claude's batch API.
+
+        Args:
+            commit_infos: Dictionary mapping commit SHAs to commit info dictionaries
+
+        Returns:
+            Dictionary mapping commit SHAs to prediction results
+        """
+        if not self.vectorstore:
+            raise ValueError("Model not trained. Call train() first.")
+
+        try:
+            # Import Anthropic direct client
+            import anthropic
+            client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        except ImportError:
+            raise ImportError("Anthropic SDK not found. Please install with 'pip install anthropic'")
+
+        # Prepare batch requests
+        batch_requests = []
+        prompts = {}
+
+        logging.info(f"Preparing batch requests for {len(commit_infos)} commits")
+
+        for commit_sha, commit_info in commit_infos.items():
+            # Extract subject from commit message
+            message_lines = commit_info['message'].strip().split('\n')
+            subject = message_lines[0].strip()
+            message_body = '\n'.join(message_lines[1:]).strip() if len(message_lines) > 1 else ""
+
+            # Format commit info for better readability
+            commit_text = f"""
+            Subject: {subject}
+
+            Commit Message:
+            {message_body}
+
+            Files Changed:
+            {', '.join(commit_info['files_changed'])}
+
+            Code Changes:
+            {commit_info['diff']}
+            """
+
+            # Get similar commits for context
+            query = f"Commit: {commit_info['message']}\nDiff: {commit_info['diff']}"
+            # Use fetch_k=20 to search through more documents, and k=10 to return the most similar
+            docs = self.vectorstore.similarity_search(
+                query,
+                k=10,
+                fetch_k=20  # Search through more documents first
+            )
+
+            # Extract and highlight the CVE status from each similar commit
+            formatted_contexts = []
+            for i, doc in enumerate(docs):
+                if not doc.page_content:
+                    continue  # Skip empty content
+                content = doc.page_content
+
+                # Extract CVE status if present
+                cve_status = "UNKNOWN"
+                if "CVE Status: YES" in content:
+                    cve_status = "YES"
+                elif "CVE Status: NO" in content:
+                    cve_status = "NO"
+
+                # Get metadata for additional information
+                has_cve_metadata = doc.metadata.get('has_cve', None) if hasattr(doc, 'metadata') else None
+                if has_cve_metadata is not None:
+                    cve_status = "YES" if has_cve_metadata else "NO"
+
+                # Remove CVE status from beginning of content if present
+                content = re.sub(r'^\[CVE Status: (YES|NO)\]\s*\n+', '', content, flags=re.MULTILINE)
+
+                # Make sure commit displays have a consistent structure
+                if "Subject:" not in content:
+                    # Extract subject if possible from metadata
+                    sha = doc.metadata.get('sha', 'unknown') if hasattr(doc, 'metadata') else 'unknown'
+                    try:
+                        # Try to get commit info from the repository to ensure we have complete data
+                        if sha != 'unknown' and hasattr(self, 'repo'):
+                            content_parts = []
+                            commit = self.repo.commit(sha)
+                            message_lines = commit.message.strip().split('\n')
+                            subject = message_lines[0].strip()
+                            content_parts.append(f"Subject: {subject}")
+                            content_parts.append(f"Commit Message:\n{commit.message}")
+                            content = "\n\n".join(content_parts)
+                    except:
+                        # If we can't get the commit info, just note that
+                        content = f"Subject: [Missing subject for commit {sha}]\n\nCommit Message: [Missing message]"
+
+                # Check if code changes are present
+                if "Code Changes:" not in content and "Changes:" not in content:
+                    content += "\n\nCode Changes:\n[No code changes found or extracted for this commit]"
+
+                # Format with CVE status in the title only
+                formatted_content = f"Similar Commit {i+1} [CVE Status: {cve_status}]:\n{content}"
+                formatted_contexts.append(formatted_content)
+
+            context = "\n\n".join(formatted_contexts)
+
+            # Format the full prompt
+            full_prompt = self.prompt_template.format(
+                context=context,
+                commit_info=commit_text
+            )
+
+            # Store prompt for logging/debugging purposes
+            prompts[commit_sha] = full_prompt
+
+            # Add to batch requests
+            batch_requests.append({
+                "custom_id": commit_sha,
+                "params": {
+                    "model": self.llm_configs["claude"]["model"],
+                    "max_tokens": self.llm_configs["claude"]["max_tokens"],
+                    "temperature": self.llm_configs["claude"]["temperature"],
+                    "messages": [{"role": "user", "content": full_prompt}],
+                    "system": "You are a security expert analyzing kernel commits to detect security vulnerabilities."
+                }
+            })
+
+        # Create batch request
+        logging.info("Submitting batch request to Claude API...")
+        batch = client.beta.messages.batches.create(requests=batch_requests)
+        batch_id = batch.id
+        logging.info(f"Batch submitted with ID: {batch_id}")
+
+        # Poll for batch completion
+        results = {}
+        poll_interval = 5 * 60  # 5 minutes in seconds
+        max_retries = 288  # Maximum number of retries (24 hours with 5-minute intervals)
+        retry_count = 0
+
+        # Wait for batch to complete
+        while retry_count < max_retries:
+            try:
+                # Get batch status
+                status = client.beta.messages.batches.retrieve(batch_id)
+                processing_status = status.processing_status
+                logging.info(f"Batch status: {processing_status}, attempt {retry_count+1}/{max_retries}")
+
+                # If batch is complete, break the loop
+                if processing_status == "ended":
+                    logging.info("Batch processing completed, retrieving results...")
+                    break
+
+                # Wait before polling again
+                retry_count += 1
+                logging.info(f"Waiting {poll_interval//60} minutes before checking batch status again...")
+                time.sleep(poll_interval)
+
+            except Exception as e:
+                logging.error(f"Error in batch polling loop: {e}")
+                retry_count += 1
+                time.sleep(60)  # Wait a minute before trying again
+
+        # Process batch results
+        if retry_count < max_retries:
+            try:
+                # Stream results file in memory-efficient chunks
+                processed_count = 0
+                for result in client.beta.messages.batches.results(batch_id):
+                    try:
+                        # Get the custom_id (commit SHA)
+                        commit_sha = result.custom_id if hasattr(result, 'custom_id') else None
+                        if not commit_sha:
+                            logging.warning(f"Result missing custom_id: {result}")
+                            continue
+
+                        # Check if the result was successful
+                        if hasattr(result, 'result'):
+                            result_obj = result.result
+                            result_type = result_obj.type if hasattr(result_obj, 'type') else None
+
+                            if result_type == "succeeded":
+                                # Extract message content
+                                message = result_obj.message if hasattr(result_obj, 'message') else None
+                                if message and hasattr(message, 'content'):
+                                    content_blocks = message.content
+
+                                    # Extract text content from result
+                                    response_text = ""
+                                    for block in content_blocks:
+                                        if hasattr(block, 'type') and block.type == "text":
+                                            response_text += block.text if hasattr(block, 'text') else ""
+
+                                    # Parse the response
+                                    prediction, explanation = self._parse_llm_response(response_text)
+
+                                    # Store result
+                                    results[commit_sha] = {
+                                        "prediction": prediction,
+                                        "explanation": explanation
+                                    }
+
+                                    # Print result in batch mode format
+                                    print(f"{commit_sha} {'yes' if prediction else 'no'}")
+                                    processed_count += 1
+                            elif result_type == "failed":
+                                error_msg = "Unknown error"
+                                if hasattr(result_obj, 'error') and hasattr(result_obj.error, 'message'):
+                                    error_msg = result_obj.error.message
+                                results[commit_sha] = {"error": error_msg}
+                                print(f"{commit_sha} error")
+                                logging.error(f"Batch API error for {commit_sha}: {error_msg}")
+                                processed_count += 1
+                    except Exception as e:
+                        logging.error(f"Error processing result: {e}")
+
+                logging.info(f"Processed {processed_count} results from batch {batch_id}")
+            except Exception as e:
+                logging.error(f"Error retrieving batch results: {e}")
+
+        # If we couldn't get results or not all commits were processed, process remaining commits individually
+        missing_commits = set(commit_infos.keys()) - set(results.keys())
+        if missing_commits:
+            logging.warning(f"Failed to get all results via batch API. Processing {len(missing_commits)} remaining commits individually.")
+
+            # Process remaining commits one by one
+            for commit_sha in missing_commits:
+                try:
+                    # Use the regular non-batch predict method as fallback
+                    result = self.predict(commit_infos[commit_sha], batch_mode=True, commit_sha=commit_sha)
+                    results[commit_sha] = result.get("claude", {"error": "No result from Claude"})
+                except Exception as e:
+                    results[commit_sha] = {"error": str(e)}
+                    print(f"{commit_sha} error")
+
+        return results
+
+    def batch_process_openai(self, commit_infos: Dict[str, dict]) -> Dict[str, Dict[str, Any]]:
+        """
+        Process multiple commits using OpenAI's official Batch API.
+
+        Args:
+            commit_infos: Dictionary mapping commit SHAs to commit info dictionaries
+
+        Returns:
+            Dictionary mapping commit SHAs to prediction results
+        """
+        if not self.vectorstore:
+            raise ValueError("Model not trained. Call train() first.")
+
+        # Get the OpenAI client and model configuration
+        openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        # Determine which OpenAI model to use (gpt4 or gpt4o)
+        model_key = next((k for k in ["gpt4o", "gpt4"] if k in self.llm_providers), "gpt4o")
+
+        # Handle case where model_key isn't in llm_configs by using default values
+        if model_key in self.llm_configs:
+            model_config = self.llm_configs[model_key]
+            model_name = model_config.get("model_type", model_key)
+            temperature = model_config.get("temperature", 0)
+        else:
+            # Use defaults if config not found
+            model_name = model_key
+            temperature = 0
+            logging.info(f"Config for {model_key} not found in llm_configs, using defaults")
+
+        # Get the actual model name from OpenAILLM.MODELS dict or use model_name directly
+        model = OpenAILLM.MODELS.get(model_name, model_name)
+
+        logging.info(f"Preparing OpenAI Batch API requests using model: {model}")
+
+        # Prepare prompts for each commit
+        prompts = {}
+        batch_jsonl_content = []
+
+        for commit_sha, commit_info in commit_infos.items():
+            # Extract subject from commit message
+            message_lines = commit_info['message'].strip().split('\n')
+            subject = message_lines[0].strip()
+            message_body = '\n'.join(message_lines[1:]).strip() if len(message_lines) > 1 else ""
+
+            # Format commit info for better readability
+            commit_text = f"""
+            Subject: {subject}
+
+            Commit Message:
+            {message_body}
+
+            Files Changed:
+            {', '.join(commit_info['files_changed'])}
+
+            Code Changes:
+            {commit_info['diff']}
+            """
+
+            # Get similar commits for context
+            query = f"Commit: {commit_info['message']}\nDiff: {commit_info['diff']}"
+            # Use fetch_k=20 to search through more documents, and k=10 to return the most similar
+            docs = self.vectorstore.similarity_search(
+                query,
+                k=10,
+                fetch_k=20  # Search through more documents first
+            )
+
+            # Extract and highlight the CVE status from each similar commit
+            formatted_contexts = []
+            for i, doc in enumerate(docs):
+                if not doc.page_content:
+                    continue  # Skip empty content
+                content = doc.page_content
+
+                # Extract CVE status if present
+                cve_status = "UNKNOWN"
+                if "CVE Status: YES" in content:
+                    cve_status = "YES"
+                elif "CVE Status: NO" in content:
+                    cve_status = "NO"
+
+                # Get metadata for additional information
+                has_cve_metadata = doc.metadata.get('has_cve', None) if hasattr(doc, 'metadata') else None
+                if has_cve_metadata is not None:
+                    cve_status = "YES" if has_cve_metadata else "NO"
+
+                # Remove CVE status from beginning of content if present
+                content = re.sub(r'^\[CVE Status: (YES|NO)\]\s*\n+', '', content, flags=re.MULTILINE)
+
+                # Make sure commit displays have a consistent structure
+                if "Subject:" not in content:
+                    # Extract subject if possible from metadata
+                    sha = doc.metadata.get('sha', 'unknown') if hasattr(doc, 'metadata') else 'unknown'
+                    try:
+                        # Try to get commit info from the repository to ensure we have complete data
+                        if sha != 'unknown' and hasattr(self, 'repo'):
+                            content_parts = []
+                            commit = self.repo.commit(sha)
+                            message_lines = commit.message.strip().split('\n')
+                            subject = message_lines[0].strip()
+                            content_parts.append(f"Subject: {subject}")
+                            content_parts.append(f"Commit Message:\n{commit.message}")
+                            content = "\n\n".join(content_parts)
+                    except:
+                        # If we can't get the commit info, just note that
+                        content = f"Subject: [Missing subject for commit {sha}]\n\nCommit Message: [Missing message]"
+
+                # Check if code changes are present
+                if "Code Changes:" not in content and "Changes:" not in content:
+                    content += "\n\nCode Changes:\n[No code changes found or extracted for this commit]"
+
+                # Format with CVE status in the title only
+                formatted_content = f"Similar Commit {i+1} [CVE Status: {cve_status}]:\n{content}"
+                formatted_contexts.append(formatted_content)
+
+            context = "\n\n".join(formatted_contexts)
+
+            # Format the full prompt
+            full_prompt = self.prompt_template.format(
+                context=context,
+                commit_info=commit_text
+            )
+
+            # Store prompt for this commit
+            prompts[commit_sha] = full_prompt
+
+            # Add this request to the batch JSONL content
+            batch_request = {
+                "custom_id": commit_sha,
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a security expert analyzing kernel commits to detect security vulnerabilities."},
+                        {"role": "user", "content": full_prompt}
+                    ],
+                    "temperature": temperature
+                }
+            }
+            batch_jsonl_content.append(json.dumps(batch_request))
+
+        # Create a JSONL file with all requests
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".jsonl", delete=False) as batch_file:
+            batch_file_path = batch_file.name
+            # Write each request as a JSON line
+            batch_file.write("\n".join(batch_jsonl_content))
+
+        try:
+            logging.info(f"Created batch requests file with {len(batch_jsonl_content)} requests")
+
+            # Step 1: Upload the JSONL file
+            logging.info("Uploading batch requests file to OpenAI")
+            with open(batch_file_path, "rb") as file:
+                uploaded_file = openai_client.files.create(
+                    file=file,
+                    purpose="batch"
+                )
+            file_id = uploaded_file.id
+            logging.info(f"Batch file uploaded successfully, file ID: {file_id}")
+
+            # Step 2: Create a batch job
+            logging.info("Creating batch job")
+            batch = openai_client.batches.create(
+                input_file_id=file_id,
+                endpoint="/v1/chat/completions",
+                completion_window="24h"
+            )
+            batch_id = batch.id
+            logging.info(f"Batch job created successfully, batch ID: {batch_id}")
+
+            # Step 3: Poll for batch completion
+            results = {}
+            poll_interval = 5 * 60  # 5 minutes in seconds
+            max_retries = 288  # Maximum number of retries (24 hours with 5-minute intervals)
+            retry_count = 0
+
+            # Wait for batch to complete
+            while retry_count < max_retries:
+                try:
+                    # Get batch status
+                    batch_status = openai_client.batches.retrieve(batch_id)
+                    status = batch_status.status
+                    logging.info(f"Batch status: {status}, attempt {retry_count+1}/{max_retries}")
+
+                    # If batch is complete, break the loop
+                    if status == "completed":
+                        logging.info("Batch processing completed, retrieving results...")
+                        break
+
+                    # If batch failed, raise an exception
+                    if status in ["failed", "expired", "cancelled"]:
+                        raise Exception(f"Batch processing {status}")
+
+                    # Wait before polling again
+                    retry_count += 1
+                    logging.info(f"Waiting {poll_interval//60} minutes before checking batch status again...")
+                    time.sleep(poll_interval)
+
+                except Exception as e:
+                    logging.error(f"Error in batch polling loop: {e}")
+                    retry_count += 1
+                    time.sleep(60)  # Wait a minute before trying again
+
+            # Step 4: Download and process results
+            if retry_count < max_retries and batch_status.status == "completed":
+                try:
+                    # Get the output file ID
+                    output_file_id = batch_status.output_file_id
+                    if not output_file_id:
+                        raise Exception("No output file ID found in batch status")
+
+                    # Download the output file
+                    logging.info(f"Downloading batch results from file ID: {output_file_id}")
+                    output_content = openai_client.files.content(output_file_id)
+                    output_text = output_content.text
+
+                    # Process the output file line by line
+                    for line in output_text.strip().split('\n'):
+                        try:
+                            result_data = json.loads(line)
+                            commit_sha = result_data.get("custom_id")
+
+                            if not commit_sha:
+                                logging.warning(f"Result missing custom_id: {result_data}")
+                                continue
+
+                            # Check if there was an error
+                            if result_data.get("error"):
+                                error_msg = result_data["error"].get("message", "Unknown error")
+                                results[commit_sha] = {"error": error_msg}
+                                print(f"{commit_sha} error")
+                                logging.error(f"Batch API error for {commit_sha}: {error_msg}")
+                                continue
+
+                            # Get the response
+                            response = result_data.get("response", {})
+                            if response.get("status_code") != 200:
+                                results[commit_sha] = {"error": f"API returned status code {response.get('status_code')}"}
+                                print(f"{commit_sha} error")
+                                continue
+
+                            # Extract the message content
+                            body = response.get("body", {})
+                            choices = body.get("choices", [])
+                            if not choices:
+                                results[commit_sha] = {"error": "No choices in response"}
+                                print(f"{commit_sha} error")
+                                continue
+
+                            message = choices[0].get("message", {})
+                            response_text = message.get("content", "")
+
+                            # Parse the response
+                            prediction, explanation = self._parse_llm_response(response_text)
+
+                            # Store result
+                            results[commit_sha] = {
+                                "prediction": prediction,
+                                "explanation": explanation
+                            }
+
+                            # Print result in batch mode format
+                            print(f"{commit_sha} {'yes' if prediction else 'no'}")
+
+                        except Exception as e:
+                            logging.error(f"Error processing result line: {e}")
+
+                    # Check if there are any error results
+                    error_file_id = batch_status.error_file_id
+                    if error_file_id:
+                        logging.warning(f"Some requests failed. Downloading error file: {error_file_id}")
+                        error_content = openai_client.files.content(error_file_id)
+                        error_text = error_content.text
+
+                        # Process the error file line by line
+                        for line in error_text.strip().split('\n'):
+                            try:
+                                error_data = json.loads(line)
+                                commit_sha = error_data.get("custom_id")
+
+                                if not commit_sha:
+                                    continue
+
+                                # Extract error details
+                                error_obj = error_data.get("error", {})
+                                error_msg = error_obj.get("message", "Unknown error")
+
+                                # Store error in results
+                                results[commit_sha] = {"error": error_msg}
+                                print(f"{commit_sha} error")
+                                logging.error(f"Batch API error for {commit_sha}: {error_msg}")
+
+                            except Exception as e:
+                                logging.error(f"Error processing error line: {e}")
+
+                except Exception as e:
+                    logging.error(f"Error retrieving batch results: {e}")
+            else:
+                logging.error(f"Batch did not complete successfully. Status: {batch_status.status}")
+
+        finally:
+            # Clean up the temporary file
+            try:
+                os.unlink(batch_file_path)
+            except Exception as e:
+                logging.warning(f"Failed to delete temporary file {batch_file_path}: {e}")
+
+        # Process any missing commits individually as a fallback
+        missing_commits = set(commit_infos.keys()) - set(results.keys())
+        if missing_commits:
+            logging.warning(f"Failed to get results for {len(missing_commits)} commits. Processing individually as fallback.")
+
+            # Process remaining commits one by one
+            for commit_sha in missing_commits:
+                try:
+                    # Make a direct API call as fallback
+                    response = openai_client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": "You are a security expert analyzing kernel commits to detect security vulnerabilities."},
+                            {"role": "user", "content": prompts[commit_sha]}
+                        ],
+                        temperature=temperature
+                    )
+
+                    # Extract response text
+                    response_text = response.choices[0].message.content
+
+                    # Parse the response
+                    prediction, explanation = self._parse_llm_response(response_text)
+
+                    # Store result
+                    results[commit_sha] = {
+                        "prediction": prediction,
+                        "explanation": explanation
+                    }
+
+                    # Print result in batch mode format
+                    print(f"{commit_sha} {'yes' if prediction else 'no'}")
+
+                except Exception as e:
+                    results[commit_sha] = {"error": str(e)}
+                    print(f"{commit_sha} error")
+                    logging.error(f"Error processing fallback request for {commit_sha}: {e}")
+
+        return results
+
+    def predict_multiple(self, commit_infos: Dict[str, dict], batch_mode: bool = False) -> Dict[str, Dict[str, Any]]:
+        """
+        Predict for multiple commits at once, with option to use batch API for Claude or OpenAI
+
+        Args:
+            commit_infos: Dictionary mapping commit SHAs to commit info dictionaries
+            batch_mode: Whether to use batch mode output
+
+        Returns:
+            Dictionary mapping commit SHAs to prediction results
+        """
+        # If only Claude is enabled and batch mode is true, use Claude's batch API
+        if self.llm_providers == ["claude"] and batch_mode:
+            return self.batch_process_claude(commit_infos)
+
+        # If only OpenAI (gpt4/gpt4o) is enabled and batch mode is true, use OpenAI batch processing
+        if batch_mode and len(self.llm_providers) == 1 and self.llm_providers[0] in ["gpt4", "gpt4o"]:
+            return self.batch_process_openai(commit_infos)
+
+        # Otherwise, process commits one by one
+        results = {}
+        for sha, commit_info in commit_infos.items():
+            try:
+                result = self.predict(commit_info, batch_mode=batch_mode, commit_sha=sha)
+                results[sha] = result
+            except Exception as e:
+                results[sha] = {"error": str(e)}
+                if batch_mode:
+                    print(f"{sha} error")
+
+        return results
 
     def predict(self, commit_info: dict, verbose: bool = False, batch_mode: bool = False, commit_sha: str = None) -> dict:
         """Predict if a commit should be assigned a CVE using all configured LLMs"""
@@ -1144,11 +1887,19 @@ class CVEClassifier:
 
         # Get similar commits for context
         query = f"Commit: {commit_info['message']}\nDiff: {commit_info['diff']}"
-        docs = self.vectorstore.similarity_search(query, k=10)  # Get 10 most similar commits
+        # Use fetch_k=20 to search through more documents, and k=10 to return the most similar
+        # This increases the chance of getting complete commit information including diffs
+        docs = self.vectorstore.similarity_search(
+            query,
+            k=10,
+            fetch_k=20  # Search through more documents first
+        )
 
         # Extract and highlight the CVE status from each similar commit
         formatted_contexts = []
         for i, doc in enumerate(docs):
+            if not doc.page_content:
+                continue  # Skip empty content
             content = doc.page_content
 
             # Extract CVE status if present
@@ -1163,7 +1914,40 @@ class CVEClassifier:
             if has_cve_metadata is not None:
                 cve_status = "YES" if has_cve_metadata else "NO"
 
-            # Format with explicit CVE status highlight
+            # Remove CVE status from beginning of content if present
+            content = re.sub(r'^\[CVE Status: (YES|NO)\]\s*\n+', '', content, flags=re.MULTILINE)
+
+            # Add debug logging for the content of similar commits when verbose is enabled
+            if verbose:
+                sha = doc.metadata.get('sha', 'unknown') if hasattr(doc, 'metadata') else 'unknown'
+                logging.debug(f"Similar commit #{i+1} (SHA: {sha}) content size: {len(content)} bytes")
+                # Count how many occurrences of "Code Changes:" or "Changes:" appear in the content
+                code_change_count = content.count("Code Changes:") + content.count("Changes:")
+                logging.debug(f"Similar commit #{i+1} has {code_change_count} code change sections")
+
+            # Make sure commit displays have a consistent structure
+            if "Subject:" not in content:
+                # Extract subject if possible from metadata
+                sha = doc.metadata.get('sha', 'unknown') if hasattr(doc, 'metadata') else 'unknown'
+                try:
+                    # Try to get commit info from the repository to ensure we have complete data
+                    if sha != 'unknown' and hasattr(self, 'repo'):
+                        content_parts = []
+                        commit = self.repo.commit(sha)
+                        message_lines = commit.message.strip().split('\n')
+                        subject = message_lines[0].strip()
+                        content_parts.append(f"Subject: {subject}")
+                        content_parts.append(f"Commit Message:\n{commit.message}")
+                        content = "\n\n".join(content_parts)
+                except:
+                    # If we can't get the commit info, just note that
+                    content = f"Subject: [Missing subject for commit {sha}]\n\nCommit Message: [Missing message]"
+
+            # Check if code changes are present
+            if "Code Changes:" not in content and "Changes:" not in content:
+                content += "\n\nCode Changes:\n[No code changes found or extracted for this commit]"
+
+            # Format with CVE status in the title only
             formatted_content = f"Similar Commit {i+1} [CVE Status: {cve_status}]:\n{content}"
             formatted_contexts.append(formatted_content)
 
@@ -1337,7 +2121,7 @@ class CVEClassifier:
         """Custom deserialization"""
         self.__dict__.update(state)
 
-def setup_logging(debug: bool):
+def setup_logging(debug: bool, batch_mode: bool = False):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(
         level=level,
@@ -1345,21 +2129,35 @@ def setup_logging(debug: bool):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-def check_environment():
-    """Check if required environment variables are set"""
+    # Suppress HTTP request logs from Anthropic SDK in batch mode
+    if batch_mode:
+        logging.getLogger("anthropic").setLevel(logging.WARNING)
+        # Also suppress httpx which is used by the SDK
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+
+def check_environment(models=None):
+    """Check if required environment variables are set for the specified models
+
+    Args:
+        models: List of model providers to check keys for. If None, checks all keys.
+    """
+    if models is None:
+        models = ["claude", "llama", "qwen", "gpt4", "gpt4o"]
+    elif isinstance(models, str):
+        models = [m.strip() for m in models.split(',')]
+
     missing = []
-    if not os.getenv("ANTHROPIC_API_KEY"):
+    if any(model in ["claude"] for model in models) and not os.getenv("ANTHROPIC_API_KEY"):
         missing.append("ANTHROPIC_API_KEY")
-    if not os.getenv("HUGGINGFACE_API_KEY"):
+    if any(model in ["llama", "qwen"] for model in models) and not os.getenv("HUGGINGFACE_API_KEY"):
         missing.append("HUGGINGFACE_API_KEY")
-    if not os.getenv("OPENAI_API_KEY"):
+    if any(model in ["gpt4", "gpt4o"] for model in models) and not os.getenv("OPENAI_API_KEY"):
         missing.append("OPENAI_API_KEY")
 
     if missing:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+        raise ValueError(f"Missing required environment variables for selected models: {', '.join(missing)}")
 
 def main():
-    check_environment()
     parser = argparse.ArgumentParser(description='CVE Classification using RAG')
     parser.add_argument('--kernel-repo', type=str, default='~/linux',
                         help='Path to Linux kernel repository')
@@ -1370,7 +2168,7 @@ def main():
     parser.add_argument('--train', action='store_true',
                         help='Train the model')
     parser.add_argument('--test', action='store_true',
-                        help='Run training with limited dataset (500 CVE + 500 non-CVE commits)')
+                        help='Run training with limited dataset (100 CVE + 200 non-CVE commits)')
     parser.add_argument('--commit', type=str,
                         help='Single commit SHA to analyze')
     parser.add_argument('--commits', nargs='+',
@@ -1386,9 +2184,15 @@ def main():
 
     args = parser.parse_args()
 
-    # Only setup logging if not in batch mode
-    if not args.batch:
-        setup_logging(args.debug)
+    # Always set up logging, but adjust level based on debug flag
+    # This ensures debug output works even with --batch
+    setup_logging(args.debug, args.batch)
+
+    # Check environment variables based on specified models
+    if args.models:
+        check_environment(args.models)
+    else:
+        check_environment()
 
     model_path = Path(args.model_dir) / "cve_classifier.pkl"
 
@@ -1414,10 +2218,10 @@ def main():
 
         # If in test mode, limit the dataset size
         if args.test:
-            logging.info("Test mode: limiting dataset to 500 commits of each type")
-            dataset = collector.build_dataset(max_cve=500, max_non_cve=5000)
+            logging.info("Test mode: limiting dataset to 100 CVE and 200 non-CVE commits")
+            dataset = collector.build_dataset(max_cve=100, max_non_cve=200, commit_timeout=120)
         else:
-            dataset = collector.build_dataset()
+            dataset = collector.build_dataset(commit_timeout=120)
 
         cve_count = sum(dataset.has_cve)
         logging.info(f"Dataset built with {len(dataset)} total commits:")
@@ -1432,7 +2236,13 @@ def main():
 
         # Initialize and train classifier
         logging.info("Training classifier...")
-        classifier = CVEClassifier(llm_providers=llm_providers) if llm_providers else CVEClassifier()
+
+        # Create repo object to use for retrieving commit details
+        repo_path = Path(args.kernel_repo).expanduser()
+        repo = git.Repo(repo_path)
+
+        # Pass repo to classifier for better commit detail retrieval
+        classifier = CVEClassifier(llm_providers=llm_providers, repo=repo) if llm_providers else CVEClassifier(repo=repo)
         classifier.train(dataset)
 
         # Save the trained model
@@ -1461,6 +2271,13 @@ def main():
             classifier.llm_providers = llm_providers
             classifier.llms = None  # Reset LLMs to force reinitialization with new providers
 
+        # Set the repository for enhanced commit lookups if not already set
+        if not hasattr(classifier, 'repo') or classifier.repo is None:
+            repo_path = Path(args.kernel_repo).expanduser()
+            classifier.repo = git.Repo(repo_path)
+            if not args.batch:
+                logging.info("Added repository to classifier for enhanced commit lookups")
+
         # Initialize data collector for feature extraction
         if not args.batch:
             logging.debug("Initializing data collector for commit analysis")
@@ -1476,38 +2293,62 @@ def main():
         if args.commits:
             commits_to_analyze.extend(args.commits)
 
-        # Analyze each commit
-        for commit_sha in commits_to_analyze:
-            if not args.batch:
-                logging.info(f"Analyzing commit: {commit_sha}")
+        # Check if we should use batch processing (for Claude or OpenAI)
+        use_batch_processing = False
+        if args.batch and args.models:
+            models_list = args.models.lower().strip().split(",")
+            # Check if we're using Claude or OpenAI models exclusively (batch-capable models)
+            if "claude" in models_list or any(model in models_list for model in ["gpt4", "gpt4o"]):
+                # If we only have one kind of model or if we only have batch-capable models
+                if len(models_list) == 1 or all(model in ["claude", "gpt4", "gpt4o"] for model in models_list):
+                    use_batch_processing = True
 
-            try:
-                commit_info = collector.get_commit_features(commit_sha)
-                results = classifier.predict(
-                    commit_info,
-                    verbose=args.verbose and not args.batch,
-                    batch_mode=args.batch,
-                    commit_sha=commit_sha if args.batch else None
-                )
+        if use_batch_processing:
+            # Collect commit info for all commits first
+            commit_infos = {}
+            for commit_sha in commits_to_analyze:
+                try:
+                    commit_infos[commit_sha] = collector.get_commit_features(commit_sha)
+                except Exception as e:
+                    print(f"{commit_sha} error")
+                    logging.error(f"Error getting commit features for {commit_sha}: {e}")
 
+            # Process all commits in batch mode
+            if commit_infos:
+                classifier.predict_multiple(commit_infos, batch_mode=True)
+        else:
+            # Process each commit individually
+            for commit_sha in commits_to_analyze:
                 if not args.batch:
-                    print("\n" + "="*60)
-                    print(f"Commit: {commit_sha}")
-                    print(f"Author: {commit_info['author']}")
-                    print(f"Date: {commit_info['date']}")
-                    print("-"*60)
-                    for name, result in results.items():
-                        if "error" in result:
-                            print(f"{name.upper()}: Error - {result['error']}")
-                        else:
-                            print(f"{name.upper()}: {'YES' if result['prediction'] else 'NO'}")
-                            print(f"Explanation: {result['explanation']}")
+                    logging.info(f"Analyzing commit: {commit_sha}")
+
+                try:
+                    commit_info = collector.get_commit_features(commit_sha)
+                    results = classifier.predict(
+                        commit_info,
+                        verbose=args.verbose and not args.batch,
+                        batch_mode=args.batch,
+                        commit_sha=commit_sha if args.batch else None
+                    )
+
+                    if not args.batch:
+                        print("\n" + "="*60)
+                        print(f"Commit: {commit_sha}")
+                        print(f"Author: {commit_info['author']}")
+                        print(f"Date: {commit_info['date']}")
                         print("-"*60)
-            except Exception as e:
-                if args.batch:
-                    print(f"{commit_sha} error error error")
-                else:
-                    print(f"Error analyzing commit {commit_sha}: {e}")
+                        for name, result in results.items():
+                            if "error" in result:
+                                print(f"{name.upper()}: Error - {result['error']}")
+                            else:
+                                print(f"{name.upper()}: {'YES' if result['prediction'] else 'NO'}")
+                                print(f"Explanation: {result['explanation']}")
+                            print("-"*60)
+                except Exception as e:
+                    if args.batch:
+                        print(f"{commit_sha} error error error")
+                    else:
+                        print(f"Error analyzing commit {commit_sha}: {e}")
     else:
         parser.print_help()
 
