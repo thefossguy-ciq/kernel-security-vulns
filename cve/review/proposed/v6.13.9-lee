@@ -1,0 +1,27 @@
+f00db31d2359 Revert "arm64: dts: qcom: sdm845: Affirm IDR0.CCTW on apps_smmu"
+f44fa354a071 ARM: dts: bcm2711: Fix xHCI power-domain
+25655580136d RDMA/hns: Fix soft lockup during bt pages loop
+72d061ee630d Bluetooth: Fix error code in chan_alloc_skb_cb() [auto: cve already created]
+5f079290e591 net: ethernet: ti: am65-cpsw: Fix NAPI registration sequence [auto: cve already created]
+9740890ee20e ipv6: Fix memleak of nhc_pcpu_rth_output in fib_check_nh_v6_gw(). [auto: cve already created]
+f3b97b7d4bf3 devlink: fix xa_alloc_cyclic() error handling
+3614bf90130d dpll: fix xa_alloc_cyclic() error handling
+f3009d0d6ab7 net: atm: fix use after free in lec_send() [auto: cve already created]
+1d22a122ffb1 can: ucan: fix out of bound read in strscpy() source [auto: cve already created]
+344b7ef248f4 netfs: Call `invalidate_cache` only if implemented [auto: cve already created]
+8619909b38ee regulator: dummy: force synchronous probing
+2c7a50bec495 regulator: check that dummy regulator has been probed before using it
+67d15c7aa086 accel/qaic: Fix integer overflow in qaic_validate_req() [auto: cve already created]
+60cf233b585c mm/migrate: fix shmem xarray update during migration
+14efb4793519 mm/huge_memory: drop beyond-EOF folios with the right number of refs [auto: cve already created]
+654b33ada4ab proc: fix UAF in proc_get_inode() [auto: cve already created]
+da8d493a8099 firmware: qcom: uefisecapp: fix efivars registration race [auto: cve already created]
+75845c6c1a64 keys: Fix UAF in key_put() [auto: cve already created]
+559847f56769 xsk: fix an integer overflow in xp_create_and_assign_umem() [auto: cve already created]
+2eeb03ad9f42 soc: qcom: pdr: Fix the potential deadlock
+dd8689b52a24 drm/radeon: fix uninitialized size issue in radeon_vce_cs_parse() [auto: cve already created]
+a952f1ab6968 drm/sched: Fix fence reference count leak [auto: cve already created]
+acbf16a6ae77 drm/amd/display: Use HW lock mgr for PSR1 when only one eDP
+1b8b67f3c5e5 ksmbd: fix incorrect validation for num_aces field of smb_acl [auto: cve already created]
+67c007d6c12d io_uring/net: fix sendzc double notif flush
+fbc7e61195e2 KVM: arm64: Unconditionally save+flush host FPSIMD/SVE/SME state
