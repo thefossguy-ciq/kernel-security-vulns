@@ -12,7 +12,7 @@
 use gumdrop::Options;
 use log::{debug, error};
 use rusqlite::fallible_iterator::FallibleIterator;
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, ToSql};
 use colored::Colorize;
 use std::cmp::Ordering;
 use std::env;
@@ -141,34 +141,47 @@ fn git_full_id(state: &DyadState, git_sha: &String) -> Option<String> {
     }
 }
 
-/// Helper function to exec a sql statement that always returns a string vector, even if the sql
-/// statement fails (meaning it didn't match anything).  Takes one param, really should just make
-/// it all in the sql string one day...
-fn sql_wrap(conn: &Connection, sql: String, param: &String) -> Vec<String> {
-    let mut sql = match conn.prepare(&sql) {
+/// Generic SQL query function that can handle different return types and parameters
+fn execute_query<T, P>(conn: &Connection, sql: &str, params: P) -> Vec<T>
+where
+    T: rusqlite::types::FromSql,
+    P: rusqlite::Params,
+{
+    let mut stmt = match conn.prepare(sql) {
         Ok(s) => s,
-        Err(_) => return vec![],
+        Err(e) => {
+            debug!("SQL prepare error: {:?} for query: {}", e, sql);
+            return vec![];
+        }
     };
-    let rows = match sql.query(rusqlite::params![param]) {
+
+    let rows = match stmt.query(params) {
         Ok(r) => r,
-        Err(_) => return vec![],
+        Err(e) => {
+            debug!("SQL query error: {:?} for query: {}", e, sql);
+            return vec![];
+        }
     };
-    rows.map(|row| row.get(0)).collect().unwrap_or_default()
+
+    rows.map(|row| row.get(0))
+        .collect()
+        .unwrap_or_default()
 }
 
-/// Helper function to exec a sql statement that always returns a u32 vector, even if the sql
-/// statement fails (meaning it didn't match anything).  Takes one param, really should just make
-/// it all in the sql string one day...
-fn sql_wrap_u32(conn: &Connection, sql: String, param: &String) -> Vec<u32> {
-    let mut sql = match conn.prepare(&sql) {
-        Ok(s) => s,
-        Err(_) => return vec![],
-    };
-    let rows = match sql.query(rusqlite::params![param]) {
-        Ok(r) => r,
-        Err(_) => return vec![],
-    };
-    rows.map(|row| row.get(0)).collect().unwrap_or_default()
+/// Helper function that returns a vector of strings from a SQL query
+fn query_strings(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Vec<String> {
+    execute_query(conn, sql, params)
+}
+
+/// Helper function that returns a vector of u32 from a SQL query
+fn query_u32(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Vec<u32> {
+    execute_query(conn, sql, params)
+}
+
+/// Helper function that returns a single string from a SQL query, empty string if not found
+fn query_string(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> String {
+    let results: Vec<String> = execute_query(conn, sql, params);
+    results.first().cloned().unwrap_or_default()
 }
 
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
@@ -182,10 +195,10 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         Err(_) => return vec![],
     };
 
-    let mut ids = sql_wrap(
+    let ids = query_strings(
         &conn,
-        "SELECT id from commits WHERE mainline_id=?1;".to_string(),
-        git_sha,
+        "SELECT id from commits WHERE mainline_id=?1;",
+        &[&git_sha as &dyn ToSql],
     );
     debug!("\t\tfound_in: ids: {:?}", ids);
 
@@ -206,10 +219,10 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         debug!("\t\tfound_in: looking at id {:?}", id);
 
         // Check for a revert before adding it to our list
-        let reverts = sql_wrap(
+        let reverts = query_strings(
             &conn,
-            "SELECT id FROM commits WHERE reverts=?1;".to_string(),
-            &id,
+            "SELECT id FROM commits WHERE reverts=?1;",
+            &[&id as &dyn ToSql],
         );
         if !reverts.is_empty() {
             // we have a revert, so just skip this id entirely
@@ -221,20 +234,20 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         }
 
         // See if this commit itself is a revert of something else (if so, let's not add it)
-        let reverts = sql_wrap(
+        let reverts = query_strings(
             &conn,
-            "SELECT reverts FROM commits WHERE id=?1;".to_string(),
-            &id,
+            "SELECT reverts FROM commits WHERE id=?1;",
+            &[&id as &dyn ToSql],
         );
         for revert in reverts {
             debug!("\t\tfound_in: {:?} reverts commit {:?}", id, revert);
             // See if what we are reverting is a stable, or a mainline
             // commit.  If stable, skip it, if mainline, it's ok to add (as
             // this is just a backport of an upstream revert).
-            let mainlines = sql_wrap_u32(
+            let mainlines = query_u32(
                 &conn,
-                "SELECT mainline FROM commits WHERE id=?1;".to_string(),
-                &revert,
+                "SELECT mainline FROM commits WHERE id=?1;",
+                &[&revert as &dyn ToSql],
             );
             debug!("\t\tfound_in: mainlines = {:?}", mainlines);
 
@@ -260,13 +273,13 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
     }
 
     // Grab the mainline commit if it is there as well
-    ids = sql_wrap(
+    let mainline_ids = query_strings(
         &conn,
-        "SELECT id from commits WHERE id=?1;".to_string(),
-        git_sha,
+        "SELECT id from commits WHERE id=?1;",
+        &[&git_sha as &dyn ToSql],
     );
-    debug!("\t\tfound_in: mainline id: {:?}", ids);
-    for id in ids {
+    debug!("\t\tfound_in: mainline id: {:?}", mainline_ids);
+    for id in mainline_ids {
         // Get the version for this release and save it to the list
         if let Ok(version) = get_version(state, &id) {
             found_in.push(Kernel::new(version, id));
@@ -287,17 +300,20 @@ fn get_version(state: &DyadState, git_sha: &String) -> Result<String> {
 
     // Open db connection
     let conn = Connection::open(verhaal_db)?;
-    let mut sql = conn.prepare("SELECT release from commits WHERE id=?1")?;
-    let mut rows = sql.query(rusqlite::params![git_sha])?;
 
-    // Check if we have a row and return it
-    if let Some(row) = rows.next()? {
-        let version = row.get(0);
+    // Use our generic query function
+    let versions = query_strings(
+        &conn,
+        "SELECT release from commits WHERE id=?1",
+        &[&git_sha as &dyn ToSql],
+    );
+
+    if let Some(version) = versions.first() {
         debug!(
             "\t\tverhaal_db: {}\tget_version: '{}' => '{:?}'",
             verhaal_db, git_sha, version
         );
-        return version;
+        return Ok(version.clone());
     }
 
     debug!(
@@ -322,10 +338,10 @@ fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
     };
 
     // Ask the db for the fixes for this commit
-    let fixes = sql_wrap(
+    let fixes = query_strings(
         &conn,
-        "SELECT fixes FROM commits WHERE id=?1;".to_string(),
-        git_sha,
+        "SELECT fixes FROM commits WHERE id=?1;",
+        &[&git_sha as &dyn ToSql],
     );
     debug!("\t\tget_fixes: fixes: {:?}", fixes);
     for fix in fixes {
@@ -359,20 +375,15 @@ fn get_revert(state: &DyadState, git_sha: &String) -> Result<String> {
 
     // Open db connection
     let conn = Connection::open(verhaal_db)?;
-    let mut sql = conn.prepare("SELECT reverts from commits WHERE id=?1")?;
-    let mut rows = sql.query(rusqlite::params![git_sha])?;
 
-    // Check if we have a row and return it
-    if let Some(row) = rows.next()? {
-        let r: Result<String> = row.get(0);
-        match r {
-            Ok(r) => return Ok(r),
-            Err(_error) => return Ok("".to_string()),
-        }
-    }
+    // Use our query_string function to get a single result
+    let revert = query_string(
+        &conn,
+        "SELECT reverts from commits WHERE id=?1",
+        &[&git_sha as &dyn ToSql],
+    );
 
-    // If no rows found, return empty string instead of error
-    Ok("".to_string())
+    Ok(revert)
 }
 
 fn main() {
