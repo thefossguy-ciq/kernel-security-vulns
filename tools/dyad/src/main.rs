@@ -512,7 +512,7 @@ fn main() {
     // for a possible way to fix this up if anyone gets bored.
     let mut logging_level: log::LevelFilter = log::LevelFilter::Error;
 
-    let program_name = env!("CARGO_PKG_NAME");
+    //let program_name = env!("CARGO_PKG_NAME");
     let program_version = env!("CARGO_PKG_VERSION");
 
     // Parse our command line
@@ -523,7 +523,7 @@ fn main() {
 
     // If the version is asked for, just print that and exit
     if args.version {
-        println!("{} version: {}", program_name, program_version);
+        println!("{} version: {}", "dyad", program_version);
         std::process::exit(0);
     }
 
@@ -586,7 +586,7 @@ fn main() {
     println!(
         "{} {} {} {}",
         "#".green(),
-        program_name.purple(),
+        "dyad".purple(),
         "version:".green(),
         program_version.cyan()
     );
