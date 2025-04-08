@@ -6,16 +6,18 @@ use std::process::Command;
 use std::path::{Path, PathBuf};
 use std::env;
 use std::sync::{Arc, Mutex};
+use std::fs;
+use std::io::Write;
 use rayon::prelude::*;
 use indicatif::{ProgressBar, ProgressStyle};
 
-/// Integration test that verifies dyad doesn't introduce unexpected changes
+/// Integration test that verifies dyad produces expected output
 ///
 /// This test:
 /// 1. Only runs when explicitly requested with `cargo test -- --ignored --test integration`
-/// 2. Skips if the CVE directory has uncommitted changes (unless forced)
-/// 3. Fails if running dyad causes any changes to CVE files
-/// 4. Cleans up by resetting git state in the CVE directory
+/// 2. Runs dyad with sha1 and vulnerable file content (if it exists)
+/// 3. Compares the output with existing .dyad files, skipping lines starting with "#"
+/// 4. Fails if there are differences
 #[test]
 #[ignore]
 fn test_dyad_consistency() {
@@ -25,7 +27,6 @@ fn test_dyad_consistency() {
         return;
     }
 
-    let force_run = env::var("FORCE_INTEGRATION_TEST").is_ok();
     let limit_tests = env::var("LIMIT_TEST_CASES")
         .ok()
         .and_then(|s| s.parse::<usize>().ok())
@@ -37,12 +38,6 @@ fn test_dyad_consistency() {
         Err(err) => panic!("Failed to find CVE directory: {}", err),
     };
     println!("Running integration test in CVE directory: {}", cve_dir.display());
-
-    // Check if Git repo is clean
-    if !is_git_clean(&cve_dir) && !force_run {
-        println!("CVE directory has uncommitted changes. To run anyway, set FORCE_INTEGRATION_TEST=1");
-        return;
-    }
 
     // Collect and prepare test cases
     let mut test_cases = get_test_cases(&cve_dir);
@@ -58,7 +53,6 @@ fn test_dyad_consistency() {
     println!("Found {} test cases", test_cases.len());
 
     // Prepare for testing
-    let original_state = capture_git_state(&cve_dir);
     let failed_cases = Arc::new(Mutex::new(Vec::new()));
     let cve_dir = Arc::new(cve_dir);
 
@@ -70,12 +64,12 @@ fn test_dyad_consistency() {
         .progress_chars("#>-"));
 
     // Run tests in parallel
-    test_cases.par_iter().for_each(|(cve_id, git_sha)| {
-        let result = run_test_case(git_sha, &cve_dir);
+    test_cases.par_iter().for_each(|test_case| {
+        let result = run_test_case(test_case, &cve_dir);
 
         if !result.success {
             let mut failures = failed_cases.lock().unwrap();
-            failures.push((cve_id.clone(), git_sha.clone(), result.error_message));
+            failures.push((test_case.cve_id.clone(), result.error_message));
         }
 
         pb.inc(1);
@@ -83,15 +77,12 @@ fn test_dyad_consistency() {
 
     pb.finish_with_message("Testing complete");
 
-    // Always restore original git state
-    restore_git_state(&cve_dir, &original_state);
-
     // Report results
     let failed_cases = failed_cases.lock().unwrap();
     if !failed_cases.is_empty() {
         println!("\n⚠️ Test failures detected:");
-        for (cve_id, git_sha, error) in failed_cases.iter() {
-            println!("❌ Failed: CVE {}, SHA: {}", cve_id, git_sha);
+        for (cve_id, error) in failed_cases.iter() {
+            println!("❌ Failed: CVE {}", cve_id);
             if !error.is_empty() {
                 println!("   Error: {}", error);
             }
@@ -106,14 +97,23 @@ fn test_dyad_consistency() {
     println!("\n✅ All integration tests passed successfully");
 }
 
+/// Test case information
+struct TestCase {
+    cve_id: String,
+    git_sha: String,
+    sha1_path: PathBuf,
+    vulnerable_path: Option<PathBuf>,
+    dyad_path: Option<PathBuf>,
+}
+
 /// Result of running a test case
 struct TestResult {
     success: bool,
     error_message: String,
 }
 
-/// Run a single test case and check for changes
-fn run_test_case(git_sha: &str, cve_dir: &Arc<PathBuf>) -> TestResult {
+/// Run a single test case and check output against expected .dyad file
+fn run_test_case(test_case: &TestCase, cve_dir: &Arc<PathBuf>) -> TestResult {
     // Find the dyad binary
     let dyad_path = match find_dyad_binary() {
         Some(path) => path,
@@ -123,46 +123,89 @@ fn run_test_case(git_sha: &str, cve_dir: &Arc<PathBuf>) -> TestResult {
         },
     };
 
-    // Run dyad with the git SHA
-    let dyad_result = Command::new(&dyad_path)
-        .arg(git_sha)
-        .output();
+    // Build command with git SHA
+    let mut cmd = Command::new(&dyad_path);
+    cmd.arg(&test_case.git_sha.trim());
+
+    // If we have a .vulnerable file, read its content and pass it with --vulnerable
+    if let Some(v_path) = &test_case.vulnerable_path {
+        if let Ok(content) = std::fs::read_to_string(v_path) {
+            cmd.arg("--vulnerable").arg(content.trim());
+        }
+    }
+
+    // Run dyad
+    let dyad_result = cmd.output();
 
     match dyad_result {
-        Ok(_) => {
-            // Check if any files changed
-            if !is_git_clean(cve_dir) {
-                // Capture the diff for error reporting
-                let diff = match Command::new("git")
-                    .args(["diff", cve_dir.to_str().unwrap_or(".")])
-                    .output()
-                {
-                    Ok(output) => String::from_utf8_lossy(&output.stdout).to_string(),
-                    Err(_) => "Unable to capture diff".to_string(),
-                };
-
-                // Reset git state after checking
-                reset_git_state(cve_dir);
-
-                TestResult {
+        Ok(output) => {
+            if !output.status.success() {
+                return TestResult {
                     success: false,
-                    error_message: format!("Files were modified: {}", diff),
+                    error_message: format!("Dyad command failed: {}",
+                        String::from_utf8_lossy(&output.stderr)),
+                };
+            }
+
+            let actual_output = String::from_utf8_lossy(&output.stdout).to_string();
+
+            // If there's an existing .dyad file, compare with it
+            if let Some(dyad_path) = &test_case.dyad_path {
+                match fs::read_to_string(dyad_path) {
+                    Ok(expected_output) => {
+                        // Normalize line endings for comparison
+                        let expected = expected_output.replace("\r\n", "\n").trim().to_string();
+                        let actual = actual_output.replace("\r\n", "\n").trim().to_string();
+
+                        // Filter out lines starting with "#" for comparison
+                        let expected_filtered = expected.lines()
+                            .filter(|line| !line.trim_start().starts_with("#"))
+                            .collect::<Vec<&str>>()
+                            .join("\n");
+                        let actual_filtered = actual.lines()
+                            .filter(|line| !line.trim_start().starts_with("#"))
+                            .collect::<Vec<&str>>()
+                            .join("\n");
+
+                        if expected_filtered != actual_filtered {
+                            // Write actual output to a temp file for debugging
+                            let temp_path = dyad_path.with_extension("actual");
+                            if let Ok(mut file) = fs::File::create(&temp_path) {
+                                let _ = file.write_all(actual.as_bytes());
+                            }
+
+                            return TestResult {
+                                success: false,
+                                error_message: format!(
+                                    "Output differs from expected. Expected in {}, actual in {}",
+                                    dyad_path.display(),
+                                    temp_path.display()
+                                ),
+                            };
+                        }
+
+                        // Output matches expected
+                        TestResult {
+                            success: true,
+                            error_message: String::new(),
+                        }
+                    },
+                    Err(e) => TestResult {
+                        success: false,
+                        error_message: format!("Failed to read expected .dyad file: {}", e),
+                    },
                 }
             } else {
+                // No .dyad file exists, warn but don't fail
                 TestResult {
                     success: true,
-                    error_message: String::new(),
+                    error_message: format!("Warning: No .dyad file exists for {}", test_case.cve_id),
                 }
             }
         },
-        Err(err) => {
-            // Reset git state after failure
-            reset_git_state(cve_dir);
-
-            TestResult {
-                success: false,
-                error_message: format!("Failed to execute dyad: {}", err),
-            }
+        Err(err) => TestResult {
+            success: false,
+            error_message: format!("Failed to execute dyad: {}", err),
         }
     }
 }
@@ -181,59 +224,8 @@ fn find_cve_dir() -> Result<PathBuf, String> {
     }
 }
 
-/// Check if the git repository is in a clean state for the specific directory
-fn is_git_clean(dir: &Path) -> bool {
-    match Command::new("git")
-        .args(["status", "--porcelain", dir.to_str().unwrap_or(".")])
-        .output()
-    {
-        Ok(output) if output.status.success() => {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            stdout.trim().is_empty()
-        },
-        _ => false,
-    }
-}
-
-/// Capture the current git state (to be used for restoring later)
-fn capture_git_state(dir: &Path) -> String {
-    match Command::new("git")
-        .current_dir(dir)
-        .args(["rev-parse", "HEAD"])
-        .output()
-    {
-        Ok(output) if output.status.success() => {
-            String::from_utf8_lossy(&output.stdout).trim().to_string()
-        },
-        _ => "unknown".to_string(),
-    }
-}
-
-/// Reset the git state to discard changes in the specified directory
-fn reset_git_state(dir: &Path) {
-    let dir_path = dir.to_str().unwrap_or(".");
-    let _ = Command::new("git")
-        .args(["checkout", "--", dir_path])
-        .output();
-
-    let _ = Command::new("git")
-        .args(["clean", "-fd", dir_path])
-        .output();
-}
-
-/// Restore git to a specific state for the directory
-fn restore_git_state(dir: &Path, commit_hash: &str) {
-    if commit_hash == "unknown" {
-        return;
-    }
-
-    let _ = Command::new("git")
-        .args(["checkout", commit_hash, "--", dir.to_str().unwrap_or(".")])
-        .output();
-}
-
-/// Get a list of test cases (CVE ID and git SHA pairs)
-fn get_test_cases(cve_dir: &Path) -> Vec<(String, String)> {
+/// Get a list of test cases
+fn get_test_cases(cve_dir: &Path) -> Vec<TestCase> {
     let mut test_cases = Vec::new();
     let published_dir = cve_dir.join("published");
 
@@ -261,7 +253,30 @@ fn get_test_cases(cve_dir: &Path) -> Vec<(String, String)> {
                         if let Ok(content) = std::fs::read_to_string(&path) {
                             if let Some(cve_id) = path.file_stem().and_then(|s| s.to_str()) {
                                 let git_sha = content.trim().to_string();
-                                test_cases.push((cve_id.to_string(), git_sha));
+
+                                // Find corresponding vulnerable file if it exists
+                                let vulnerable_path = path.with_extension("vulnerable");
+                                let vulnerable_file = if vulnerable_path.exists() {
+                                    Some(vulnerable_path)
+                                } else {
+                                    None
+                                };
+
+                                // Check for existing .dyad file
+                                let dyad_path = path.with_extension("dyad");
+                                let dyad_file = if dyad_path.exists() {
+                                    Some(dyad_path)
+                                } else {
+                                    None
+                                };
+
+                                test_cases.push(TestCase {
+                                    cve_id: cve_id.to_string(),
+                                    git_sha,
+                                    sha1_path: path,
+                                    vulnerable_path: vulnerable_file,
+                                    dyad_path: dyad_file,
+                                });
                             }
                         }
                     }
