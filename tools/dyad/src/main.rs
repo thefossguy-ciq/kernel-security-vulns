@@ -18,10 +18,8 @@ use std::cmp::Ordering;
 use std::env;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 extern crate cve_utils;
 use cve_utils::version_utils;
-use git2::Repository;
 
 pub mod kernel;
 use kernel::Kernel;
@@ -377,134 +375,6 @@ fn get_revert(state: &DyadState, git_sha: &String) -> Result<String> {
     Ok("".to_string())
 }
 
-// Add this function to topologically sort the fix commits, similar to the bash implementation's
-// sort_order=$($git_cmd rev-list --topo-order $(cat "${v_file}") | grep --file="${v_file}" --max-count=${#v[@]} | tac)
-fn sort_commits_topologically(state: &DyadState, commits: &Vec<Kernel>) -> Vec<Kernel> {
-    // If we have 0 or 1 commits, no need to sort
-    if commits.len() <= 1 {
-        return commits.clone();
-    }
-
-    debug!("Need to sort {} commits", commits.len());
-    for k in commits {
-        debug!("To sort: {}:{}", k.version, k.git_id);
-    }
-
-    // Extract all git IDs for sorting
-    let git_ids: Vec<String> = commits.iter().map(|k| k.git_id.clone()).collect();
-
-    // Create a map from git ID to Kernel for later lookup
-    let mut kernel_map = std::collections::HashMap::new();
-    for kernel in commits {
-        kernel_map.insert(kernel.git_id.clone(), kernel.clone());
-    }
-
-    // Use cve_utils::git_utils from the common library
-    // First, open the repo
-    let repo_path = Path::new(&state.kernel_tree);
-    let repo = match Repository::open(repo_path) {
-        Ok(repo) => repo,
-        Err(e) => {
-            error!("Error opening repository: {}", e);
-            // Return original commits in case of error
-            return commits.clone();
-        }
-    };
-
-    // Resolve all references and sort them
-    let mut valid_ids = Vec::new();
-    for id in &git_ids {
-        match cve_utils::git_utils::resolve_reference(&repo, id) {
-            Ok(obj) => {
-                if let Ok(full_sha) = cve_utils::git_utils::get_object_full_sha(&repo, &obj) {
-                    valid_ids.push(full_sha);
-                }
-            },
-            Err(e) => {
-                debug!("Warning: Could not resolve git id {}: {}", id, e);
-            }
-        }
-    }
-
-    if valid_ids.is_empty() {
-        debug!("No valid git IDs found, returning original order");
-        return commits.clone();
-    }
-
-    // Use Kernel::git_sort_ids to sort the valid IDs
-    let sorted_ids = Kernel::git_sort_ids(&valid_ids);
-    debug!("Topological sort_order={:?}", sorted_ids);
-
-    // For each sorted commit, get its version and form version:id pairs
-    let mut version_id_pairs: Vec<String> = Vec::new();
-    for id in &sorted_ids {
-        if let Ok(version) = get_version(state, id) {
-            version_id_pairs.push(format!("{}:{}", version, id));
-            debug!("Processing commit {}:{}", version, id);
-        } else {
-            debug!("Could not get version for commit {}", id);
-        }
-    }
-
-    // Use bash's sort -V directly to ensure exact compatibility
-    debug!("Version:id pairs before sorting: {:?}", version_id_pairs);
-
-    // If no pairs, return empty result
-    if version_id_pairs.is_empty() {
-        return Vec::new();
-    }
-
-    // Run the bash sort -V command to get the first entry
-    let sort_cmd = format!(
-        "printf '%s\\n' {} | sort -V | head -n 1",
-        version_id_pairs.join(" ")
-    );
-    debug!("Running bash sort command: {}", sort_cmd);
-
-    let sort_output = Command::new("sh")
-        .arg("-c")
-        .arg(&sort_cmd)
-        .output()
-        .unwrap();
-
-    let selected_pair = String::from_utf8_lossy(&sort_output.stdout)
-        .trim()
-        .to_string();
-    debug!("Bash sort -V selected: {}", selected_pair);
-
-    // Extract the ID part from the selected pair
-    if !selected_pair.is_empty() {
-        let parts: Vec<&str> = selected_pair.split(':').collect();
-        if parts.len() >= 2 {
-            let selected_id = parts[1];
-            if let Some(kernel) = kernel_map.get(selected_id) {
-                // Return just this one kernel as bash does
-                debug!(
-                    "Returning selected kernel: {}:{}",
-                    kernel.version, kernel.git_id
-                );
-                return vec![kernel.clone()];
-            }
-        }
-    }
-
-    // Fallback to original list if something went wrong
-    debug!("Falling back to original sort order");
-    let mut sorted_kernels: Vec<Kernel> = sorted_ids
-        .iter()
-        .filter_map(|id| kernel_map.get(id).cloned())
-        .collect();
-
-    // Add any kernels that weren't found during sorting
-    for kernel in commits {
-        if !sorted_kernels.iter().any(|k| k.git_id == kernel.git_id) {
-            sorted_kernels.push(kernel.clone());
-        }
-    }
-
-    sorted_kernels
-}
-
 fn main() {
     // Default to no logging, can turn it on based on the command line.
     // Note, RUST_LOG_LEVEL does NOT work here anymore.  See
@@ -721,8 +591,9 @@ fn main() {
 
     debug!("vulnerable_kernels = {:?}", vulnerable_kernels);
 
-    // Sort vulnerable kernels topologically, similar to bash's "sort_order" processing
-    let sorted_vulnerable_kernels = sort_commits_topologically(&state, &vulnerable_kernels);
+    // Sort vulnerable kernels topologically
+    let mut sorted_vulnerable_kernels = vulnerable_kernels.clone();
+    sorted_vulnerable_kernels.sort();
 
     // We now have a list of "vulnerable" kernels in 'vulnerable_kernels', let's find out where
     // they were backported to and create the large list of all vulnerable branches
