@@ -51,3 +51,7 @@ summary:
 # update cvelistV5 and commit the difference
 update_cvelistV5:
 	cd cve/cvelistV5 && git pull && cd .. && git commit cvelistV5 -m "update cvelistV5" -s
+
+# Build the tools needed for working with this repo
+@build_utils:
+	cd tools && cargo build --release
