@@ -788,60 +788,9 @@ fn main() {
     let mut oldest_mainline_kernel: Kernel = Kernel::empty_kernel();
     if !vulnerable_mainline_set.is_empty() {
         debug!("Trying to find the best mainline kernel to use...");
-
-        // In the bash script:
-        // temp+=$(echo -e "${vuln_entry} \n")
-        // vuln_mainline_pair=$(printf "%s\n" ${temp} | sort -V | head -n 1)
-        //
-        // This sorts strings with embedded version numbers, and when versions
-        // are the same, it does alphabetical sorting on the remainder of the string.
-
-        // Create version:id pairs for sorting
-        let mut version_id_pairs: Vec<String> = Vec::new();
-        for k in &vulnerable_mainline_set {
-            version_id_pairs.push(format!("{}:{}", k.version, k.git_id));
-        }
-
-        // Use bash's sort -V directly to ensure exact compatibility
-        debug!("Version:id pairs before sorting: {:?}", version_id_pairs);
-
-        // Run the bash sort -V command to get the first entry
-        let sort_cmd = format!(
-            "printf '%s\\n' {} | sort -V | head -n 1",
-            version_id_pairs.join(" ")
-        );
-        debug!("Running bash sort command: {}", sort_cmd);
-
-        let sort_output = Command::new("sh")
-            .arg("-c")
-            .arg(&sort_cmd)
-            .output()
-            .unwrap();
-
-        let selected_pair = String::from_utf8_lossy(&sort_output.stdout)
-            .trim()
-            .to_string();
-        debug!("Bash sort -V result (first entry): {}", selected_pair);
-
-        // Extract the ID part from the selected pair
-        if !selected_pair.is_empty() {
-            let parts: Vec<&str> = selected_pair.split(':').collect();
-            if parts.len() >= 2 {
-                let selected_version = parts[0];
-                let selected_id = parts[1];
-                oldest_mainline_kernel =
-                    Kernel::new(selected_version.to_string(), selected_id.to_string());
-                debug!(
-                    "Using vulnerable kernel from sort -V: {}:{}",
-                    selected_version, selected_id
-                );
-            }
-        } else {
-            // Fallback to original sort
-            let mut sorted_mainline_kernels = vulnerable_mainline_set.clone();
-            sorted_mainline_kernels.sort();
-            oldest_mainline_kernel = sorted_mainline_kernels[0].clone();
-        }
+        let mut sorted_mainline_kernels = vulnerable_mainline_set.clone();
+        sorted_mainline_kernels.sort();
+        oldest_mainline_kernel = sorted_mainline_kernels[0].clone();
 
         debug!("vuln_mainline_pair={:?}", oldest_mainline_kernel);
 
