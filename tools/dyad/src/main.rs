@@ -187,112 +187,92 @@ fn query_string(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> String {
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
 /// and stable kernel releases, if any.
 fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
-    let verhaal_db = &state.verhaal_db;
-    let mut found_in: Vec<Kernel> = vec![];
-
-    let conn = match Connection::open(verhaal_db) {
+    let conn = match Connection::open(&state.verhaal_db) {
         Ok(c) => c,
         Err(_) => return vec![],
     };
 
-    let ids = query_strings(
+    let mut kernels = Vec::new();
+
+    // Find backported commits
+    let backported_ids = query_strings(
         &conn,
         "SELECT id from commits WHERE mainline_id=?1;",
         &[&git_sha as &dyn ToSql],
     );
-    debug!("\t\tfound_in: ids: {:?}", ids);
+    debug!("\t\tfound_in: backported_ids: {:?}", backported_ids);
 
-    for id in ids {
-        // First, check if this git id has already been added to the fixed list
-        let mut skip = false;
-        for existing in &state.fixed_set {
-            if existing.git_id == id {
-                skip = true;
-                break;
-            }
-        }
-
-        if skip {
+    // Process backported commits
+    for id in backported_ids {
+        // Skip if already in fixed set
+        if state.fixed_set.iter().any(|k| k.git_id == id) {
             continue;
         }
 
-        debug!("\t\tfound_in: looking at id {:?}", id);
+        debug!("\t\tfound_in: examining id {:?}", id);
 
-        // Check for a revert before adding it to our list
-        let reverts = query_strings(
+        // Skip if this commit is reverted by another commit
+        let reverts_this = query_strings(
             &conn,
             "SELECT id FROM commits WHERE reverts=?1;",
             &[&id as &dyn ToSql],
         );
-        if !reverts.is_empty() {
-            // we have a revert, so just skip this id entirely
-            debug!(
-                "\t\tfound_in: {:?} is a revert of {:?}, skipping",
-                id, reverts
-            );
+        if !reverts_this.is_empty() {
+            debug!("\t\tfound_in: {:?} is reverted by {:?}, skipping", id, reverts_this);
             continue;
         }
 
-        // See if this commit itself is a revert of something else (if so, let's not add it)
-        let reverts = query_strings(
+        // Check if this commit is itself a revert
+        let reverts_other = query_strings(
             &conn,
             "SELECT reverts FROM commits WHERE id=?1;",
             &[&id as &dyn ToSql],
         );
-        for revert in reverts {
+
+        // Skip if this commit reverts a stable commit
+        let should_skip = reverts_other.iter().any(|revert| {
             debug!("\t\tfound_in: {:?} reverts commit {:?}", id, revert);
-            // See if what we are reverting is a stable, or a mainline
-            // commit.  If stable, skip it, if mainline, it's ok to add (as
-            // this is just a backport of an upstream revert).
+
             let mainlines = query_u32(
                 &conn,
                 "SELECT mainline FROM commits WHERE id=?1;",
-                &[&revert as &dyn ToSql],
+                &[revert as &dyn ToSql],
             );
             debug!("\t\tfound_in: mainlines = {:?}", mainlines);
 
-            for mainline in mainlines {
-                if mainline == 0 {
-                    debug!(
-                        "\t\tfound_in: {:?} reverts the stable commit {:?} so skip it",
-                        id, revert
-                    );
-                    skip = true;
-                }
-            }
-        }
-        if skip {
-            debug!("\t\tfound_in: skipping {:?}", id);
+            mainlines.iter().any(|&mainline| mainline == 0)
+        });
+
+        if should_skip {
+            debug!("\t\tfound_in: skipping {:?} as it reverts a stable commit", id);
             continue;
         }
 
-        // Get the version for this release and save it to the list
+        // Add valid commit to the list
         if let Ok(version) = get_version(state, &id) {
-            found_in.push(Kernel::new(version, id));
+            kernels.push(Kernel::new(version, id));
         }
     }
 
-    // Grab the mainline commit if it is there as well
+    // Also check for the mainline commit itself
     let mainline_ids = query_strings(
         &conn,
         "SELECT id from commits WHERE id=?1;",
         &[&git_sha as &dyn ToSql],
     );
     debug!("\t\tfound_in: mainline id: {:?}", mainline_ids);
+
     for id in mainline_ids {
-        // Get the version for this release and save it to the list
         if let Ok(version) = get_version(state, &id) {
-            found_in.push(Kernel::new(version, id));
+            kernels.push(Kernel::new(version, id));
         }
     }
 
-    // Sort the kernels to keep things sane and deterministic (the database does not always have
-    // kernel ids sorted in order as we add new releases to the end from older kernel trees (i.e. a
-    // new 6.1.y kernel is released every week.)
-    found_in.sort();
+    // Sort for deterministic results
+    kernels.sort();
+    debug!("\t\tfound_in: {:?}", kernels);
 
-    debug!("\t\tfound_in: {:?}", found_in);
-    found_in
+    kernels
 }
 
 fn get_version(state: &DyadState, git_sha: &String) -> Result<String> {
