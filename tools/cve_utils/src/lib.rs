@@ -796,11 +796,6 @@ pub mod version_utils {
             return false;
         }
 
-        // Special case: 2.x kernels are always considered mainline
-        if version.starts_with("2.") {
-            return true;
-        }
-
         // If this is a -rc release, it's a mainline release
         if version_is_rc(version) {
             return true;
@@ -811,8 +806,13 @@ pub mod version_utils {
             return false;
         }
 
-        // Get the first parts of the version, separated by dots
-        let parts: Vec<&str> = version.split('.').collect();
+        // Get the parts of the version, separated by dots
+        let mut parts: Vec<&str> = version.split('.').collect();
+
+        // If this is a 2.x kernel, shift everything left by one
+        if version.starts_with("2.") {
+            parts.remove(0);
+        }
 
         // A mainline version typically has the format X.Y
         if parts.len() == 2 {
@@ -864,14 +864,17 @@ mod tests {
         assert!(!version_utils::version_is_mainline("5.4-queue"));
         assert!(!version_utils::version_is_mainline("next"));
         assert!(!version_utils::version_is_mainline("0"));
+        assert!(!version_utils::version_is_mainline("2.6.39.12"));
     }
 
     #[test]
     fn test_version_is_rc() {
         assert!(version_utils::version_is_rc("5.4-rc1"));
         assert!(version_utils::version_is_rc("6.5-rc"));
+        assert!(version_utils::version_is_rc("2.6.12.13-rc1"));
         assert!(!version_utils::version_is_rc("5.4"));
         assert!(!version_utils::version_is_rc("5.4.123"));
+        assert!(!version_utils::version_is_rc("2.6.12.13"));
     }
 
     #[test]

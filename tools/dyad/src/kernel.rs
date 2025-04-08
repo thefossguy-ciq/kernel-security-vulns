@@ -515,10 +515,10 @@ mod tests {
         assert!(version_utils::version_is_mainline("6.16-rc1"));
 
         // 2.* kernels
-        assert!(version_utils::version_is_mainline("2.6.14"));       // 2.X.Y is mainline
-        assert!(version_utils::version_is_mainline("2.6.32.12"));
+        assert!(version_utils::version_is_mainline("2.6.14"));      // 2.X.Y is mainline
+        assert!(!version_utils::version_is_mainline("2.6.32.12"));  // 2.X.Y.z is NOT mainline
         assert!(version_utils::version_is_mainline("2.4.20"));
-        assert!(version_utils::version_is_mainline("2.4.20.1"));
+        assert!(!version_utils::version_is_mainline("2.4.20.1"));
     }
 
     #[test]
