@@ -194,77 +194,70 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
 
     let mut kernels = Vec::new();
 
-    // Find backported commits
-    let backported_ids = query_strings(
-        &conn,
-        "SELECT id from commits WHERE mainline_id=?1;",
-        &[&git_sha as &dyn ToSql],
-    );
-    debug!("\t\tfound_in: backported_ids: {:?}", backported_ids);
+    // Find backported commits that aren't reverted in a single query
+    let sql = "
+        SELECT c.id, c.release, c.reverts
+        FROM commits c
+        LEFT JOIN commits rev ON rev.reverts = c.id
+        WHERE c.mainline_id = ?1
+        AND rev.id IS NULL
+    ";
 
-    // Process backported commits
-    for id in backported_ids {
-        // Skip if already in fixed set
-        if state.fixed_set.iter().any(|k| k.git_id == id) {
-            continue;
+    let mut stmt = match conn.prepare(sql) {
+        Ok(s) => s,
+        Err(e) => {
+            debug!("SQL prepare error: {:?} for query: {}", e, sql);
+            return vec![];
         }
+    };
 
-        debug!("\t\tfound_in: examining id {:?}", id);
+    if let Ok(commit_rows) = stmt.query_map([git_sha], |row| {
+        Ok((
+            row.get::<_, String>(0)?, // id
+            row.get::<_, String>(1)?, // release
+            row.get::<_, Option<String>>(2)?, // reverts
+        ))
+    }) {
+        for result in commit_rows {
+            if let Ok((id, release, reverts)) = result {
+                // Skip if already in fixed set
+                if state.fixed_set.iter().any(|k| k.git_id == id) {
+                    continue;
+                }
 
-        // Skip if this commit is reverted by another commit
-        let reverts_this = query_strings(
-            &conn,
-            "SELECT id FROM commits WHERE reverts=?1;",
-            &[&id as &dyn ToSql],
-        );
-        if !reverts_this.is_empty() {
-            debug!("\t\tfound_in: {:?} is reverted by {:?}, skipping", id, reverts_this);
-            continue;
-        }
+                // For commits that are themselves reverts, check if they revert a stable commit
+                if let Some(revert_id) = reverts {
+                    // Fetch mainline status of the reverted commit
+                    let sql_mainline = "SELECT mainline FROM commits WHERE id = ?";
+                    let mainline_values = query_u32(&conn, sql_mainline, &[&revert_id as &dyn ToSql]);
 
-        // Check if this commit is itself a revert
-        let reverts_other = query_strings(
-            &conn,
-            "SELECT reverts FROM commits WHERE id=?1;",
-            &[&id as &dyn ToSql],
-        );
+                    // Skip if this commit reverts a stable commit (mainline = 0)
+                    if mainline_values.iter().any(|&mainline| mainline == 0) {
+                        debug!("\t\tfound_in: skipping {:?} as it reverts a stable commit", id);
+                        continue;
+                    }
+                }
 
-        // Skip if this commit reverts a stable commit
-        let should_skip = reverts_other.iter().any(|revert| {
-            debug!("\t\tfound_in: {:?} reverts commit {:?}", id, revert);
-
-            let mainlines = query_u32(
-                &conn,
-                "SELECT mainline FROM commits WHERE id=?1;",
-                &[revert as &dyn ToSql],
-            );
-            debug!("\t\tfound_in: mainlines = {:?}", mainlines);
-
-            mainlines.iter().any(|&mainline| mainline == 0)
-        });
-
-        if should_skip {
-            debug!("\t\tfound_in: skipping {:?} as it reverts a stable commit", id);
-            continue;
-        }
-
-        // Add valid commit to the list
-        if let Ok(version) = get_version(state, &id) {
-            kernels.push(Kernel::new(version, id));
+                // Add valid commit to the list
+                kernels.push(Kernel::new(release, id));
+            }
         }
     }
 
     // Also check for the mainline commit itself
-    let mainline_ids = query_strings(
-        &conn,
-        "SELECT id from commits WHERE id=?1;",
-        &[&git_sha as &dyn ToSql],
-    );
-    debug!("\t\tfound_in: mainline id: {:?}", mainline_ids);
-
-    for id in mainline_ids {
-        if let Ok(version) = get_version(state, &id) {
-            kernels.push(Kernel::new(version, id));
+    let sql_mainline = "SELECT id, release FROM commits WHERE id = ?1";
+    if let Ok(mut stmt) = conn.prepare(sql_mainline) {
+        if let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+            ))
+        }) {
+            for result in mainline_rows {
+                if let Ok((id, release)) = result {
+                    kernels.push(Kernel::new(release, id));
+                }
+            }
         }
     }
 
@@ -308,7 +301,6 @@ fn get_version(state: &DyadState, git_sha: &String) -> Result<String> {
 /// contain "bad" data for fixes lines.
 /// If an error happened, or there are no fixes, an "empty" vector is returned.
 fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
-    let mut fixed_kernels: Vec<Kernel> = vec![];
     let verhaal_db = &state.verhaal_db;
 
     // Open db connection
@@ -317,25 +309,50 @@ fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         Err(_) => return vec![],
     };
 
-    // Ask the db for the fixes for this commit
+    let mut fixed_kernels: Vec<Kernel> = vec![];
+
+    // First get the fixes line
     let fixes = query_strings(
         &conn,
-        "SELECT fixes FROM commits WHERE id=?1;",
+        "SELECT fixes FROM commits WHERE id = ?1",
         &[&git_sha as &dyn ToSql],
     );
-    debug!("\t\tget_fixes: fixes: {:?}", fixes);
-    for fix in fixes {
-        // Fixes lines can have multiple ones, so split this into another list
-        let fix_ids: Vec<String> = fix.split_whitespace().map(|s| s.to_string()).collect();
-        debug!("\t\tget_fixes: fix_ids: {:?}", fix_ids);
 
-        // Sometimes fixes lines lie, so verify that this REALLY is an actual commit in the kernel
-        // tree before we add it to our list
-        for id in fix_ids {
-            if let Ok(version) = get_version(state, &id) {
-                fixed_kernels.push(Kernel::new(version, id.to_string()));
-            } else {
-                debug!("Could not get version for commit {}", id);
+    if fixes.is_empty() {
+        return vec![];
+    }
+
+    // Parse the fixes line and create a collection of IDs for batch processing
+    let mut fix_ids: Vec<String> = Vec::new();
+    for fix in fixes {
+        let ids: Vec<String> = fix.split_whitespace().map(|s| s.to_string()).collect();
+        fix_ids.extend(ids);
+    }
+
+    if fix_ids.is_empty() {
+        return vec![];
+    }
+
+    // Create a single parameterized query for all IDs
+    let placeholders = (1..=fix_ids.len()).map(|i| format!("?{}", i)).collect::<Vec<_>>().join(",");
+    let sql = format!("SELECT id, release FROM commits WHERE id IN ({})", placeholders);
+
+    if let Ok(mut stmt) = conn.prepare(&sql) {
+        // Convert fix_ids to parameters
+        let params: Vec<&dyn ToSql> = fix_ids.iter().map(|s| s as &dyn ToSql).collect();
+
+        if let Ok(rows) = stmt.query(rusqlite::params_from_iter(params)) {
+            let mut mapped_rows = rows.mapped(|row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                ))
+            });
+
+            while let Some(result) = mapped_rows.next() {
+                if let Ok((id, release)) = result {
+                    fixed_kernels.push(Kernel::new(release, id));
+                }
             }
         }
     }

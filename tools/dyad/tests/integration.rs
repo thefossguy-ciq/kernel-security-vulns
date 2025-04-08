@@ -54,7 +54,6 @@ fn test_dyad_consistency() {
 
     // Prepare for testing
     let failed_cases = Arc::new(Mutex::new(Vec::new()));
-    let cve_dir = Arc::new(cve_dir);
 
     // Setup progress bar
     let pb = ProgressBar::new(test_cases.len() as u64);
@@ -65,7 +64,7 @@ fn test_dyad_consistency() {
 
     // Run tests in parallel
     test_cases.par_iter().for_each(|test_case| {
-        let result = run_test_case(test_case, &cve_dir);
+        let result = run_test_case(test_case);
 
         if !result.success {
             let mut failures = failed_cases.lock().unwrap();
@@ -101,7 +100,6 @@ fn test_dyad_consistency() {
 struct TestCase {
     cve_id: String,
     git_sha: String,
-    sha1_path: PathBuf,
     vulnerable_path: Option<PathBuf>,
     dyad_path: Option<PathBuf>,
 }
@@ -113,7 +111,7 @@ struct TestResult {
 }
 
 /// Run a single test case and check output against expected .dyad file
-fn run_test_case(test_case: &TestCase, cve_dir: &Arc<PathBuf>) -> TestResult {
+fn run_test_case(test_case: &TestCase) -> TestResult {
     // Find the dyad binary
     let dyad_path = match find_dyad_binary() {
         Some(path) => path,
@@ -273,7 +271,6 @@ fn get_test_cases(cve_dir: &Path) -> Vec<TestCase> {
                                 test_cases.push(TestCase {
                                     cve_id: cve_id.to_string(),
                                     git_sha,
-                                    sha1_path: path,
                                     vulnerable_path: vulnerable_file,
                                     dyad_path: dyad_file,
                                 });
