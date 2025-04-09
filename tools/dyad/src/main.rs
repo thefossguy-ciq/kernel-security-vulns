@@ -38,11 +38,11 @@ struct DyadArgs {
     #[options(short = "V", help = "Show version")]
     version: bool,
 
-    #[options(help = "Show debugging information to stdout")]
+    #[options(no_short, help = "Show debugging information to stdout")]
     verbose: bool,
 
     #[options(
-        no_short,
+        short = "v",
         help = "The kernel git sha1 that this issue became vulnerable at"
     )]
     vulnerable: Option<String>,
