@@ -10,8 +10,10 @@ use thiserror::Error;
 use std::env;
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
+use cve_utils;
 use cve_utils::version_utils::version_is_mainline;
 use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
+use serde_json::ser::{PrettyFormatter, Serializer};
 
 /// Error types for the bippy tool
 #[derive(Error, Debug)]
@@ -395,7 +397,7 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>) -> R
 
 /// Arguments for the bippy tool
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None, disable_version_flag = true)]
+#[clap(author, version, about, long_about = None, disable_version_flag = true, trailing_var_arg = true)]
 struct Args {
     /// CVE number (e.g., "CVE-2021-1234")
     #[clap(short, long)]
@@ -440,6 +442,10 @@ struct Args {
     /// Verbose output
     #[clap(short, long)]
     verbose: bool,
+
+    /// Catch any trailing arguments
+    #[clap(hide = true)]
+    trailing_args: Vec<String>,
 }
 
 /// Get the commit subject for a git reference
@@ -591,12 +597,15 @@ fn generate_json_record(
     script_name: &str,
     script_version: &str,
 ) -> Result<String> {
-    // Get script directory from current executable location
-    let exe_path = std::env::current_exe()
-        .with_context(|| "Failed to get current executable path")?;
-    let script_dir = exe_path.parent()
-        .ok_or_else(|| anyhow::anyhow!("Failed to get parent directory from executable path"))?
-        .to_path_buf();
+    // Get vulns directory using cve_utils
+    let vulns_dir = cve_utils::find_vulns_dir()
+        .with_context(|| "Failed to find vulns directory")?;
+
+    // Get the script directory from vulns directory
+    let script_dir = vulns_dir.join("scripts");
+    if !script_dir.exists() {
+        return Err(anyhow::anyhow!("Scripts directory not found at {}", script_dir.display()));
+    }
 
     // Read the UUID from the linux.uuid file
     let uuid = match read_uuid(&script_dir) {
@@ -705,6 +714,12 @@ fn generate_json_record(
     }
 
     // Strip tags from commit text
+    let vulns_dir = match cve_utils::find_vulns_dir() {
+        Ok(dir) => dir,
+        Err(_) => PathBuf::new(),
+    };
+
+    let script_dir = vulns_dir.join("scripts");
     let tags = read_tags_file(&script_dir).unwrap_or_default();
 
     // Get the full commit message, skipping tags at the end
@@ -751,11 +766,15 @@ fn generate_json_record(
         data_version: "5.0".to_string(),
     };
 
-    // Use serde_json::to_string_pretty for more reliable serialization with large strings
-    let json_string = serde_json::to_string_pretty(&cve_record)
-        .unwrap_or_default()
-        // Replace 2-space indentation with 3-space indentation to match expected format
-        .replace("\n  ", "\n   ");
+    // Use a custom formatter with 3-space indentation
+    let formatter = PrettyFormatter::with_indent(b"   ");
+    let mut output = Vec::new();
+    let mut serializer = Serializer::with_formatter(&mut output, formatter);
+    cve_record.serialize(&mut serializer)
+        .map_err(|e| anyhow::anyhow!("Error serializing JSON: {}", e))?;
+
+    let json_string = String::from_utf8(output)
+        .map_err(|e| anyhow::anyhow!("Error converting JSON to string: {}", e))?;
 
     Ok(json_string)
 }
@@ -895,11 +914,12 @@ fn generate_mbox(
         Ok(obj) => match get_commit_text(&repo, &obj) {
             Ok(text) => {
                 // Get the tags to strip
-                let script_dir = match std::env::current_exe() {
-                    Ok(exe_path) => exe_path.parent().unwrap_or(Path::new("")).to_path_buf(),
+                let vulns_dir = match cve_utils::find_vulns_dir() {
+                    Ok(dir) => dir,
                     Err(_) => PathBuf::new(),
                 };
 
+                let script_dir = vulns_dir.join("scripts");
                 let tags = read_tags_file(&script_dir).unwrap_or_default();
                 let message = strip_commit_text(&text, &tags).unwrap_or(text);
 
@@ -1032,12 +1052,15 @@ fn main() -> Result<()> {
         println!("GIT_VULNERABLE={:?}", vulnerable_sha);
     }
 
-    // Get script directory from current executable location
-    let exe_path = std::env::current_exe()
-        .with_context(|| "Failed to get current executable path")?;
-    let script_dir = exe_path.parent()
-        .ok_or_else(|| anyhow::anyhow!("Failed to get parent directory from executable path"))?
-        .to_path_buf();
+    // Get vulns directory using cve_utils
+    let vulns_dir = cve_utils::find_vulns_dir()
+        .with_context(|| "Failed to find vulns directory")?;
+
+    // Get scripts directory
+    let script_dir = vulns_dir.join("scripts");
+    if !script_dir.exists() {
+        return Err(anyhow::anyhow!("Scripts directory not found at {}", script_dir.display()));
+    }
 
     // Get the script name
     let script_name = "bippy".to_string();
