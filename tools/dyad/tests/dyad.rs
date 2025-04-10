@@ -728,6 +728,27 @@ fn vulnerable_for_backported_commit() -> Result<(), Box<dyn std::error::Error>> 
 }
 
 #[test]
+fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("dyad")?;
+
+    let output =
+        "# 	getting vulnerable:fixed pairs for git id 81665adf25d28a00a986533f1d3a5df76b79cad9\n\
+         # 	Setting original vulnerable kernel to be kernel 6.7 and git id 1e18ec3e9d46e4ad2b6507c3bfc7f59e2ab449a2\n\
+         # 	Setting original vulnerable kernel to be kernel 6.1.130 and git id 3fa58a6fbd1e9e5682d09cdafb08fba004cb12ec\n\
+         6.7:1e18ec3e9d46e4ad2b6507c3bfc7f59e2ab449a2:6.8.7:38407914d48273d7f8ab765b9243658afe1c3ab6\n\
+         6.7:1e18ec3e9d46e4ad2b6507c3bfc7f59e2ab449a2:6.9:81665adf25d28a00a986533f1d3a5df76b79cad9\n\
+         6.1.130:3fa58a6fbd1e9e5682d09cdafb08fba004cb12ec:0:0\n";
+
+    cmd.arg("--vulnerable=1e18ec3e9d46 3fa58a6fbd1e")
+        .arg("81665adf25d28a00a986533f1d3a5df76b79cad9");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::ends_with(output));
+
+    Ok(())
+}
+
+#[test]
 fn vulnerable_for_short_id() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("dyad")?;
 

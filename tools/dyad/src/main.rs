@@ -9,11 +9,11 @@
 //        specific to how the Linux kernel has its stable branches and how it
 //        labels things.
 
+use colored::Colorize;
 use gumdrop::Options;
 use log::{debug, error};
 use rusqlite::fallible_iterator::FallibleIterator;
 use rusqlite::{Connection, Result, ToSql};
-use colored::Colorize;
 use std::cmp::Ordering;
 use std::env;
 use std::fs;
@@ -52,7 +52,7 @@ struct DyadState {
     kernel_tree: String,
     verhaal_db: String,
     has_vulnerable: bool,
-    vulnerable_sha: String,
+    vulnerable_sha: Vec<String>,
     git_sha_orig: String,
     git_sha_full: String,
     git_sha_short: String,
@@ -68,7 +68,7 @@ impl DyadState {
             kernel_tree: String::new(),
             verhaal_db: String::new(),
             has_vulnerable: false,
-            vulnerable_sha: String::new(),
+            vulnerable_sha: vec![],
             git_sha_orig: git_sha,
             git_sha_full: String::new(),
             git_sha_short: String::new(),
@@ -111,11 +111,19 @@ fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String)
 
     if let Ok(k) = Kernel::new(version.clone(), git_id.clone()) {
         state.vulnerable_set.push(k);
-        debug!("create_vulnerable_set: version: {}\tgit_id: {}\tmainline: {}",
-            version.clone(), git_id.clone(), mainline);
+        debug!(
+            "create_vulnerable_set: version: {}\tgit_id: {}\tmainline: {}",
+            version.clone(),
+            git_id.clone(),
+            mainline
+        );
     } else {
-        debug!("create_vulnerable_set FAILED!: version: {}\tgit_id: {}\tmainline: {}",
-            version.clone(), git_id.clone(), mainline);
+        debug!(
+            "create_vulnerable_set FAILED!: version: {}\tgit_id: {}\tmainline: {}",
+            version.clone(),
+            git_id.clone(),
+            mainline
+        );
     }
 }
 
@@ -162,9 +170,7 @@ where
         }
     };
 
-    rows.map(|row| row.get(0))
-        .collect()
-        .unwrap_or_default()
+    rows.map(|row| row.get(0)).collect().unwrap_or_default()
 }
 
 /// Helper function that returns a vector of strings from a SQL query
@@ -212,8 +218,8 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
 
     if let Ok(commit_rows) = stmt.query_map([git_sha], |row| {
         Ok((
-            row.get::<_, String>(0)?, // id
-            row.get::<_, String>(1)?, // release
+            row.get::<_, String>(0)?,         // id
+            row.get::<_, String>(1)?,         // release
             row.get::<_, Option<String>>(2)?, // reverts
         ))
     }) {
@@ -228,11 +234,15 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
                 if let Some(revert_id) = reverts {
                     // Fetch mainline status of the reverted commit
                     let sql_mainline = "SELECT mainline FROM commits WHERE id = ?";
-                    let mainline_values = query_u32(&conn, sql_mainline, &[&revert_id as &dyn ToSql]);
+                    let mainline_values =
+                        query_u32(&conn, sql_mainline, &[&revert_id as &dyn ToSql]);
 
                     // Skip if this commit reverts a stable commit (mainline = 0)
                     if mainline_values.iter().any(|&mainline| mainline == 0) {
-                        debug!("\t\tfound_in: skipping {:?} as it reverts a stable commit", id);
+                        debug!(
+                            "\t\tfound_in: skipping {:?} as it reverts a stable commit",
+                            id
+                        );
                         continue;
                     }
                 }
@@ -249,10 +259,7 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
     let sql_mainline = "SELECT id, release FROM commits WHERE id = ?1";
     if let Ok(mut stmt) = conn.prepare(sql_mainline) {
         if let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-            ))
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
         }) {
             for result in mainline_rows {
                 if let Ok((id, release)) = result {
@@ -337,20 +344,22 @@ fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
     }
 
     // Create a single parameterized query for all IDs
-    let placeholders = (1..=fix_ids.len()).map(|i| format!("?{}", i)).collect::<Vec<_>>().join(",");
-    let sql = format!("SELECT id, release FROM commits WHERE id IN ({})", placeholders);
+    let placeholders = (1..=fix_ids.len())
+        .map(|i| format!("?{}", i))
+        .collect::<Vec<_>>()
+        .join(",");
+    let sql = format!(
+        "SELECT id, release FROM commits WHERE id IN ({})",
+        placeholders
+    );
 
     if let Ok(mut stmt) = conn.prepare(&sql) {
         // Convert fix_ids to parameters
         let params: Vec<&dyn ToSql> = fix_ids.iter().map(|s| s as &dyn ToSql).collect();
 
         if let Ok(rows) = stmt.query(rusqlite::params_from_iter(params)) {
-            let mut mapped_rows = rows.mapped(|row| {
-                Ok((
-                    row.get::<_, String>(0)?,
-                    row.get::<_, String>(1)?,
-                ))
-            });
+            let mut mapped_rows =
+                rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
             while let Some(result) = mapped_rows.next() {
                 if let Ok((id, release)) = result {
@@ -451,15 +460,24 @@ fn main() {
     debug!(" Full git id: '{}'", state.git_sha_full);
     debug!("Short git id: '{}'", state.git_sha_short);
 
-    let vulnerable = args.vulnerable.unwrap_or_default();
-    if !vulnerable.is_empty() {
-        state.has_vulnerable = true;
-        match git_full_id(&state, &vulnerable) {
-            Some(full_id) => state.vulnerable_sha = full_id,
+    // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
+    let vuln_ids: Vec<String> = args
+        .vulnerable
+        .unwrap_or_default()
+        .split_whitespace()
+        .map(|s| s.to_string())
+        .collect();
+    for vuln_id in vuln_ids {
+        match git_full_id(&state, &vuln_id) {
+            // FIXME, just make a vec of kernels here, no need to parse it again later...
+            Some(id) => {
+                state.vulnerable_sha.push(id);
+                state.has_vulnerable = true;
+            }
             None => {
                 error!(
                     "Error: The provided vulnerable git SHA1 '{}' could not be found in the repository",
-                    vulnerable
+                    vuln_id
                 );
                 std::process::exit(1);
             }
@@ -507,21 +525,22 @@ fn main() {
 
     if state.has_vulnerable {
         // We are asked to set the original vulnerable kernel to be a specific
-        // one, so no need to look it up.
-
-        let version = get_version(&state, &state.vulnerable_sha);
-        let version = match version {
-            Ok(version) => version,
-            Err(error) => panic!("Can not read the version from the db, error {:?}", error),
-        };
-        println!(
-            "# 	Setting original vulnerable kernel to be kernel {} and git id {}",
-            version.clone(),
-            state.vulnerable_sha
-        );
-        // Save off this commit
-        if let Ok(k) = Kernel::new(version.clone(), state.vulnerable_sha.clone()) {
-            vulnerable_kernels.push(k);
+        // one, or many, so no need to look it up.
+        for id in &state.vulnerable_sha {
+            let version = get_version(&state, &id);
+            let version = match version {
+                Ok(version) => version,
+                Err(error) => panic!("Can not read the version from the db, error {:?}", error),
+            };
+            println!(
+                "# 	Setting original vulnerable kernel to be kernel {} and git id {}",
+                version.clone(),
+                id
+            );
+            // Save off this commit
+            if let Ok(k) = Kernel::new(version.clone(), id.to_string()) {
+                vulnerable_kernels.push(k);
+            }
         }
     } else {
         // Get the list of all valid "Fixes:" entries for this commit
