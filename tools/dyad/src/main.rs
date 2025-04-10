@@ -54,7 +54,6 @@ struct DyadState {
     vulnerable_sha: Vec<String>,
     git_sha_orig: String,
     git_sha_full: String,
-    git_sha_short: String,
     fixed_set: Vec<Kernel>,
     vulnerable_set: Vec<Kernel>,
 }
@@ -69,7 +68,6 @@ impl DyadState {
             vulnerable_sha: vec![],
             git_sha_orig: git_sha,
             git_sha_full: String::new(),
-            git_sha_short: String::new(),
             fixed_set: vec![],
             vulnerable_set: vec![],
         }
@@ -440,7 +438,7 @@ fn main() {
     // we attempt to use any of them
     validate_env_vars(&mut state);
 
-    // Calculate the short and long git sha that was passed to us so we can use it later
+    // Calculate full git sha that was passed to us so we can use it later
     match git_full_id(&state, &args.git_sha) {
         Some(full_id) => state.git_sha_full = full_id,
         None => {
@@ -451,12 +449,7 @@ fn main() {
             std::process::exit(1);
         }
     }
-
-    // Truncate the git sha for use later
-    state.git_sha_short = state.git_sha_full.clone();
-    state.git_sha_short.truncate(12);
     debug!(" Full git id: '{}'", state.git_sha_full);
-    debug!("Short git id: '{}'", state.git_sha_short);
 
     // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
     let vuln_ids: Vec<String> = args
