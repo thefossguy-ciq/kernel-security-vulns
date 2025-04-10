@@ -51,7 +51,6 @@ struct DyadArgs {
 struct DyadState {
     kernel_tree: String,
     verhaal_db: String,
-    has_vulnerable: bool,
     vulnerable_sha: Vec<String>,
     git_sha_orig: String,
     git_sha_full: String,
@@ -67,7 +66,6 @@ impl DyadState {
             // environment variables will override them
             kernel_tree: String::new(),
             verhaal_db: String::new(),
-            has_vulnerable: false,
             vulnerable_sha: vec![],
             git_sha_orig: git_sha,
             git_sha_full: String::new(),
@@ -472,7 +470,6 @@ fn main() {
             // FIXME, just make a vec of kernels here, no need to parse it again later...
             Some(id) => {
                 state.vulnerable_sha.push(id);
-                state.has_vulnerable = true;
             }
             None => {
                 error!(
@@ -523,7 +520,7 @@ fn main() {
     // This goes before the pairs output to match the bash script formatting
     let mut vulnerable_kernels: Vec<Kernel> = vec![];
 
-    if state.has_vulnerable {
+    if !state.vulnerable_sha.is_empty() {
         // We are asked to set the original vulnerable kernel to be a specific
         // one, or many, so no need to look it up.
         for id in &state.vulnerable_sha {
