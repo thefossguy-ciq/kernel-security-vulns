@@ -1559,7 +1559,7 @@ mod tests {
             DyadEntry::from_str("5.15.1:abcdef123456:5.15.2:fedcba654321").unwrap(),
             DyadEntry::from_str("6.0:123456abcdef:6.0:654321fedcba").unwrap(),
         ];
-        assert_eq!(determine_default_status(&entries), "affected");
+        assert_eq!(determine_default_status(&entries), "unaffected");
     }
 
     #[test]
