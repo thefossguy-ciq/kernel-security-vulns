@@ -12,6 +12,7 @@ use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
 use cve_utils::version_utils::version_is_mainline;
 use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
+use cve_utils::git_config;
 use serde_json::ser::{PrettyFormatter, Serializer};
 
 /// Error types for the bippy tool
@@ -1194,7 +1195,16 @@ fn main() -> Result<()> {
         other => other,
     };
 
-    let user_name = args.name.as_deref().unwrap_or("");
+    // Dig into git if the user name is not set
+    let user_name = match args.name {
+        Some(ref name) => name.clone(),
+        None => {
+            match git_config::get_git_config("user.name") {
+                Ok(val) => val,
+                Err(_) => "".to_string(),
+            }
+        }
+    };
 
     // Debug output if verbose is enabled
     if args.verbose {
@@ -1371,7 +1381,7 @@ fn main() -> Result<()> {
             &git_sha_full,
             &git_sha_short,
             &commit_subject,
-            user_name,
+            &user_name,
             &user_email,
             &dyad_data,
             &script_name,
@@ -1399,7 +1409,7 @@ fn main() -> Result<()> {
             &git_sha_full,
             &git_sha_short,
             &commit_subject,
-            user_name,
+            &user_name,
             &user_email,
             &dyad_data,
             &script_name,
