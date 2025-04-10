@@ -1,0 +1,42 @@
+c50f8e6053b0 mm: fix kernel BUG when userfaultfd_move encounters swapcache
+dfd3df31c9db mm/slab/kvfree_rcu: Switch to WQ_MEM_RECLAIM wq
+acf40ab42799 pinctrl: nuvoton: npcm8xx: Add NULL check in npcm8xx_gpio_fw
+23d97f18901e ice: fix memory leak in aRFS after reset
+115ef44a9822 sched: address a potential NULL pointer dereference in the GRED scheduler.
+72d520476a2f wifi: cfg80211: cancel wiphy_work before freeing wiphy
+aed709355fd0 drm/hyperv: Fix address space leak when Hyper-V DRM device is removed
+ea2f45ab0e53 fbdev: hyperv_fb: Allow graceful removal of framebuffer
+eab0396353be net/mlx5: handle errors in mlx5_chains_create_table()
+9f7b2aa5034e eth: bnxt: fix truesize for mb-xdp-pass case
+ca2456e07395 eth: bnxt: return fail if interface is down in bnxt_queue_mem_alloc()
+f09af5fdfbd9 eth: bnxt: fix kernel panic in the bnxt_get_queue_stats{rx | tx}
+87dd2850835d eth: bnxt: fix memory leak in queue reset
+62531a1effa8 net: switchdev: Convert blocking notification chain to a raw one
+f5d83cf0eeb9 net: mctp: unshare packets when reassembling
+0c3057a5a04d net_sched: Prevent creation of classes with TC_H_ROOT
+1063ae07383c Revert "openvswitch: switch to per-action label counting in conntrack"
+4b8eeed4fb10 net/mlx5: Bridge, fix the crash caused by LAG state check
+07e0d99a2f70 iscsi_ibft: Fix UBSAN shift-out-of-bounds warning in ibft_attr_show_nic()
+8adbb2a98b00 drm/amd/display: Fix out-of-bound accesses
+5363ee9d110e scsi: core: Use GFP_NOIO to avoid circular locking dependency
+5233e3235dec scsi: qla1280: Fix kernel oops when debug level > 2
+363236d709e7 HID: ignore non-functional sensor in HP 5MP Camera
+b4f82f9ed43a Bluetooth: L2CAP: Fix slab-use-after-free Read in l2cap_send_cmd
+e3e89178a9f4 x86/microcode/AMD: Fix out-of-bounds on systems with CPU-less NUMA nodes
+6cc30748e17e drm/amdgpu: NULL-check BO's backing store when determining GFX12 PTE flags
+e204aab79e01 drm/amd/display: fix missing .is_two_pixels_per_container
+79e31396fdd7 drm/amd/display: Assign normalized_pix_clk when color depth = 14
+e65e7bea220c drm/amd/display: Fix slab-use-after-free on hdcp_work
+bb39ed470654 ksmbd: fix use-after-free in ksmbd_free_work_struct
+3aa660c05924 ksmbd: prevent connection release during oplock break notification
+f3600c867c99 netmem: prevent TX of unreadable skbs
+57e9417f6983 dm-flakey: Fix memory corruption in optional corrupt_bio_byte feature
+d2b9d97e89c7 qlcnic: fix memory leak issues in qlcnic_sriov_common.c
+3e64bb2ae7d9 net: mana: cleanup mana struct after debugfs_remove()
+9360dfe4cbd6 sched_ext: Validate prev_cpu in scx_bpf_select_cpu_dfl()
+7489161b1852 cifs: Fix integer overflow while processing acregmax mount option
+5b29891f91df cifs: Fix integer overflow while processing acdirmax mount option
+64f690ee22c9 cifs: Fix integer overflow while processing actimeo mount option
+d5a30fddfe2f cifs: Fix integer overflow while processing closetimeo mount option
+ab4eedb790ca Bluetooth: L2CAP: Fix corrupted list in hci_chan_del
+e25cec3b76ab fs/netfs/read_collect: add to next->prev_donated
