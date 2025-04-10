@@ -17,6 +17,7 @@
 //! of the git tree must be in the CVEKERNELTREE environment variable.
 //!
 
+use anyhow::Result;
 use cve_utils::version_utils;
 use git2::{Oid, Repository};
 use log::{debug, error};
@@ -39,15 +40,15 @@ pub struct Kernel {
 impl Kernel {
     /// Create a new Kernel object
     /// `mainline` and `rc` attributes will be determined when created
-    pub fn new(v: String, g: String) -> Self {
+    pub fn new(v: String, g: String) -> Result<Self> {
         let mainline = version_utils::version_is_mainline(&v);
         let rc = version_utils::version_is_rc(&v);
-        Self {
+        Ok(Self {
             version: v,
             git_id: g,
             mainline,
             rc,
-        }
+        })
     }
 
     /// Creates an "empty" kernel object.
@@ -429,6 +430,18 @@ mod tests {
     use std::cmp::Ordering;
     use cve_utils::version_utils;
 
+    // Helper function to ALWAYS allocate a kernel object for testing.
+    // Not generally a good idea to do (allocation can fail if you provide
+    // an invalid git id, but good enough for testing, as we "know" what
+    // we are doing here.  Hopefully...
+    fn alloc_kernel(version: String, git_id: String) -> Kernel {
+        if let Ok(k) = Kernel::new(version, git_id) {
+            return k;
+        } else {
+            return Kernel::empty_kernel();
+        }
+    }
+
     #[test]
     fn empty_kernel() {
         let k: Kernel = Kernel::empty_kernel();
@@ -439,10 +452,10 @@ mod tests {
 
     #[test]
     fn constructor_logic() {
-        let k1: Kernel = Kernel::new("5.10".to_string(), "1234".to_string());
+        let k1: Kernel = alloc_kernel("5.10".to_string(), "1234".to_string());
         assert_eq!(k1.is_mainline(), true);
 
-        let k2: Kernel = Kernel::new("5.10.1".to_string(), "1234".to_string());
+        let k2: Kernel = alloc_kernel("5.10.1".to_string(), "1234".to_string());
         assert_eq!(k2.is_mainline(), false);
     }
 
@@ -490,19 +503,19 @@ mod tests {
 
     #[test]
     fn rc_version_handling() {
-        let k: Kernel = Kernel::new("5.14-rc1".to_string(), "1234".to_string());
+        let k: Kernel = alloc_kernel("5.14-rc1".to_string(), "1234".to_string());
         assert!(k.is_rc_version());
         assert_eq!(k.rc_number(), Some(1));
 
-        let k: Kernel = Kernel::new("5.14-rc10".to_string(), "1234".to_string());
+        let k: Kernel = alloc_kernel("5.14-rc10".to_string(), "1234".to_string());
         assert_eq!(k.rc_number(), Some(10));
 
-        let k: Kernel = Kernel::new("5.14".to_string(), "1234".to_string());
+        let k: Kernel = alloc_kernel("5.14".to_string(), "1234".to_string());
         assert!(!k.is_rc_version());
         assert_eq!(k.rc_number(), None);
 
         // Invalid RC format
-        let k1: Kernel = Kernel::new("5.14-rcx".to_string(), "1234".to_string());
+        let k1: Kernel = alloc_kernel("5.14-rcx".to_string(), "1234".to_string());
         assert!(k1.is_rc_version());
         assert_eq!(k1.rc_number(), None);
     }
@@ -629,11 +642,11 @@ mod tests {
 
         // Test sorting of lists of kernels, first the easy one with versions being the sort order
         let mut kernels: Vec<Kernel> = vec![];
-        kernels.push(Kernel::new("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
-        kernels.push(Kernel::new("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
-        kernels.push(Kernel::new("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
-        kernels.push(Kernel::new("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
-        kernels.push(Kernel::new("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
+        kernels.push(alloc_kernel("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
+        kernels.push(alloc_kernel("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
+        kernels.push(alloc_kernel("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
+        kernels.push(alloc_kernel("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
+        kernels.push(alloc_kernel("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
         kernels.sort_by(|a, b| a.cmp(b));
 
         assert_eq!(kernels[0].version, "6.1.132");
@@ -643,11 +656,11 @@ mod tests {
         assert_eq!(kernels[4].version, "6.9");
 
         kernels = Vec::new();
-        kernels.push(Kernel::new("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
-        kernels.push(Kernel::new("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
-        kernels.push(Kernel::new("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
-        kernels.push(Kernel::new("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
-        kernels.push(Kernel::new("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
+        kernels.push(alloc_kernel("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
+        kernels.push(alloc_kernel("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
+        kernels.push(alloc_kernel("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
+        kernels.push(alloc_kernel("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
+        kernels.push(alloc_kernel("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
         kernels.sort_by(|a, b| a.cmp(b));
 
         assert_eq!(kernels[0].version, "6.1.132");
@@ -659,11 +672,11 @@ mod tests {
         // Now a harder test, only look at git commit ids
         kernels = Vec::new();
         let v = "6.11".to_string();
-        kernels.push(Kernel::new(v.clone(), "538fd3921afac97158d4177139a0ad39f056dbb2".to_string()));
-        kernels.push(Kernel::new(v.clone(), "28cd47f75185c4818b0fb1b46f2f02faaba96376".to_string()));
-        kernels.push(Kernel::new(v.clone(), "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e".to_string()));
-        kernels.push(Kernel::new(v.clone(), "4e9903b0861c9df3464b82db4a7025863bac1897".to_string()));
-        kernels.push(Kernel::new(v.clone(), "4f336dc07eceb77d2164bc1121a5ae6003b19f55".to_string()));
+        kernels.push(alloc_kernel(v.clone(), "538fd3921afac97158d4177139a0ad39f056dbb2".to_string()));
+        kernels.push(alloc_kernel(v.clone(), "28cd47f75185c4818b0fb1b46f2f02faaba96376".to_string()));
+        kernels.push(alloc_kernel(v.clone(), "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e".to_string()));
+        kernels.push(alloc_kernel(v.clone(), "4e9903b0861c9df3464b82db4a7025863bac1897".to_string()));
+        kernels.push(alloc_kernel(v.clone(), "4f336dc07eceb77d2164bc1121a5ae6003b19f55".to_string()));
         kernels.sort_by(|a, b| a.cmp(b));
         assert_eq!(kernels[0].git_id, "28cd47f75185c4818b0fb1b46f2f02faaba96376");
         assert_eq!(kernels[1].git_id, "538fd3921afac97158d4177139a0ad39f056dbb2");

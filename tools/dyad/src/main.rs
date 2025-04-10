@@ -109,15 +109,14 @@ fn validate_env_vars(state: &mut DyadState) {
 fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String) {
     let mainline = version_utils::version_is_mainline(&version);
 
-    state
-        .vulnerable_set
-        .push(Kernel::new(version.clone(), git_id.clone()));
-    debug!(
-        "create_vulnerable_set: version: {}\tgit_id: {}\tmainline: {}",
-        version.clone(),
-        git_id.clone(),
-        mainline
-    );
+    if let Ok(k) = Kernel::new(version.clone(), git_id.clone()) {
+        state.vulnerable_set.push(k);
+        debug!("create_vulnerable_set: version: {}\tgit_id: {}\tmainline: {}",
+            version.clone(), git_id.clone(), mainline);
+    } else {
+        debug!("create_vulnerable_set FAILED!: version: {}\tgit_id: {}\tmainline: {}",
+            version.clone(), git_id.clone(), mainline);
+    }
 }
 
 /// Look up the "full" and "short" git ids for the one passed on the command line.
@@ -239,7 +238,9 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
                 }
 
                 // Add valid commit to the list
-                kernels.push(Kernel::new(release, id));
+                if let Ok(k) = Kernel::new(release, id) {
+                    kernels.push(k);
+                }
             }
         }
     }
@@ -255,7 +256,9 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         }) {
             for result in mainline_rows {
                 if let Ok((id, release)) = result {
-                    kernels.push(Kernel::new(release, id));
+                    if let Ok(k) = Kernel::new(release, id) {
+                        kernels.push(k);
+                    }
                 }
             }
         }
@@ -351,7 +354,9 @@ fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
 
             while let Some(result) = mapped_rows.next() {
                 if let Ok((id, release)) = result {
-                    fixed_kernels.push(Kernel::new(release, id));
+                    if let Ok(k) = Kernel::new(release, id) {
+                        fixed_kernels.push(k);
+                    }
                 }
             }
         }
@@ -515,7 +520,9 @@ fn main() {
             state.vulnerable_sha
         );
         // Save off this commit
-        vulnerable_kernels.push(Kernel::new(version.clone(), state.vulnerable_sha.clone()));
+        if let Ok(k) = Kernel::new(version.clone(), state.vulnerable_sha.clone()) {
+            vulnerable_kernels.push(k);
+        }
     } else {
         // Get the list of all valid "Fixes:" entries for this commit
         let fix_ids = get_fixes(&state, &state.git_sha_full);
@@ -557,7 +564,9 @@ fn main() {
                             debug!("R\t{:<12}{}\t{}", version, revert, mainline);
 
                             // Save off this commit
-                            vulnerable_kernels.push(Kernel::new(version.clone(), revert.clone()));
+                            if let Ok(k) = Kernel::new(version.clone(), revert.clone()) {
+                                vulnerable_kernels.push(k);
+                            }
 
                             // Find all backports of this revert
                             let backports = found_in(&state, &revert);
