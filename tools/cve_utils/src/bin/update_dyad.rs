@@ -75,9 +75,9 @@ fn main() -> Result<()> {
         }
     };
 
-    let dyad_path = vulns_dir.join("dyad");
+    let dyad_path = vulns_dir.join("scripts").join("dyad");
     if !dyad_path.exists() {
-        return Err(anyhow!("Dyad directory not found at {}", dyad_path.display()));
+        return Err(anyhow!("Dyad script not found at {}", dyad_path.display()));
     }
 
     // Process CVEs based on input
