@@ -16,6 +16,7 @@ use clap::Parser;
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 use colored::Colorize;
+use indicatif::{ProgressBar, ProgressStyle, MultiProgress};
 
 /// Update all existing CVE entries based on the latest information from the git tree(s)
 #[derive(Parser, Debug)]
@@ -63,7 +64,7 @@ fn main() -> Result<()> {
                 if args.dry_run {
                     println!("  {} Dry run mode - no actual update", "INFO:".blue());
                 }
-                if let Err(e) = update_cve(&cve_id, "[1/1]", args.dry_run) {
+                if let Err(e) = update_cve(&cve_id, args.dry_run) {
                     eprintln!("Error updating {}: {}", cve_id_str.cyan(), e);
                     print_git_error_details(&e);
                     return Err(e);
@@ -103,17 +104,30 @@ fn main() -> Result<()> {
 fn update_all_years(cve_root: &Path, num_threads: usize, dry_run: bool) -> Result<()> {
     let published_dir = cve_root.join("published");
 
+    // Collect and sort all years numerically
+    let mut years = Vec::new();
     for year_entry in fs::read_dir(&published_dir)? {
         let year_entry = year_entry?;
         let year_path = year_entry.path();
 
         if year_path.is_dir() {
-            let year = year_path.file_name()
-                .and_then(|s| s.to_str())
-                .ok_or_else(|| anyhow!("Invalid year directory name"))?;
-
-            update_year(year, num_threads, dry_run)?;
+            if let Some(year) = year_path.file_name().and_then(|s| s.to_str()) {
+                if is_valid_year(year) {
+                    years.push(year.to_string());
+                }
+            }
         }
+    }
+
+    // Sort years numerically (newest first)
+    years.sort_by(|a, b| b.cmp(a));
+
+    // Display total work to be done
+    println!("Found {} years with published CVE entries", years.len());
+
+    // Update each year
+    for year in years {
+        update_year(&year, num_threads, dry_run)?;
     }
 
     Ok(())
@@ -150,35 +164,65 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
         return Ok(());
     }
 
+    // Create a multi-progress display
+    let multi = MultiProgress::new();
+
+    // Create the main progress bar
+    let progress = multi.add(ProgressBar::new(total_count as u64));
+    progress.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
+        .unwrap()
+        .progress_chars("#>-"));
+
+    // Create a progress tracker for each thread
+    let progress = Arc::new(progress);
+
     // Process files in parallel
     let sha1_files = Arc::new(sha1_files);
     let counter = Arc::new(Mutex::new(0));
+    let update_results = Arc::new(Mutex::new(Vec::new()));
+
     let handles: Vec<_> = (0..num_threads)
         .map(|_thread_id| {
             let sha1_files = Arc::clone(&sha1_files);
             let counter = Arc::clone(&counter);
+            let progress = Arc::clone(&progress);
+            let update_results = Arc::clone(&update_results);
 
             thread::spawn(move || -> Result<()> {
                 loop {
                     // Get the next file to process
-                    let (index, file) = {
+                    let file = {
                         let mut counter = counter.lock().unwrap();
                         let index = *counter;
                         if index >= total_count {
                             break;
                         }
                         *counter += 1;
-                        (index, sha1_files[index].clone())
+                        sha1_files[index].clone()
                     };
 
-                    // Format the counter string
-                    let count_string = format!("[{:04}/{:04}]", index + 1, total_count);
-
                     // Update the CVE
-                    if let Err(e) = update_cve(&file, &count_string, dry_run) {
-                        eprintln!("  {} Failed to update {}: {}",
-                                 "ERROR:".red(), file.display(), e);
+                    let cve_id = file.file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("unknown");
+
+                    let result = update_cve(&file, dry_run);
+
+                    if let Err(ref e) = result {
+                        // Store errors for later display
+                        let mut results = update_results.lock().unwrap();
+                        results.push((cve_id.to_string(), format!("ERROR: {}", e)));
+                    } else if let Ok(ref updated_files) = result {
+                        if !updated_files.is_empty() {
+                            // Store successful updates
+                            let mut results = update_results.lock().unwrap();
+                            results.push((cve_id.to_string(), format!("Updated: {}", updated_files.join(", "))));
+                        }
                     }
+
+                    // Update progress
+                    progress.inc(1);
                 }
                 Ok(())
             })
@@ -190,11 +234,27 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
         handle.join().unwrap()?;
     }
 
+    // Finish progress bar
+    progress.finish_with_message(format!("Year {} update complete", year.green()));
+
+    // Report any errors or updates
+    let results = update_results.lock().unwrap();
+    if !results.is_empty() {
+        println!("\nUpdate summary for year {}:", year.green());
+        for (cve_id, message) in results.iter() {
+            if message.starts_with("ERROR") {
+                println!("  {} {}: {}", "ERROR:".red(), cve_id.cyan(), message);
+            } else {
+                println!("  {} {}", cve_id.cyan(), message.blue());
+            }
+        }
+    }
+
     Ok(())
 }
 
 /// Update a single CVE entry
-fn update_cve(sha1_file: &Path, count_string: &str, dry_run: bool) -> Result<()> {
+fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
     // Read the commit SHA
     let sha = fs::read_to_string(sha1_file)
         .context(format!("Failed to read SHA1 file: {}", sha1_file.display()))?
@@ -208,8 +268,6 @@ fn update_cve(sha1_file: &Path, count_string: &str, dry_run: bool) -> Result<()>
 
     let cve_id = file_stem.to_string();
     let root_path = sha1_file.with_file_name(cve_id.clone());
-
-    let mut message = format!("Updating {} {}...", cve_id.cyan(), count_string.yellow());
 
     // Check for .vulnerable file
     let vulnerable_file = sha1_file.with_extension("vulnerable");
@@ -231,8 +289,7 @@ fn update_cve(sha1_file: &Path, count_string: &str, dry_run: bool) -> Result<()>
     let has_reference_file = reference_file.exists();
 
     if dry_run {
-        println!("{}\t{}", message, "DRY RUN".blue());
-        return Ok(());
+        return Ok(Vec::new());
     }
 
     // Create temporary files for the new json and mbox content
@@ -241,8 +298,14 @@ fn update_cve(sha1_file: &Path, count_string: &str, dry_run: bool) -> Result<()>
     let tmp_mbox = NamedTempFile::new()
         .context("Failed to create temporary mbox file")?;
 
-    // Build bippy command
-    let mut bippy_cmd = Command::new("bippy");
+    // Build bippy command with full path from vulns dir
+    let vulns_dir = match common::find_vulns_dir() {
+        Ok(dir) => dir,
+        Err(e) => return Err(anyhow!("Failed to find vulns directory: {}", e)),
+    };
+    let bippy_path = vulns_dir.join("scripts").join("bippy");
+
+    let mut bippy_cmd = Command::new(bippy_path);
     bippy_cmd.arg(format!("--cve={}", cve_id))
         .arg(format!("--sha={}", sha))
         .arg(format!("--json={}", tmp_json.path().display()))
@@ -264,13 +327,14 @@ fn update_cve(sha1_file: &Path, count_string: &str, dry_run: bool) -> Result<()>
     }
 
     // Run bippy
-    let status = bippy_cmd.status()
-        .context("Failed to execute bippy command")?;
+    let output = bippy_cmd.stdout(std::process::Stdio::piped())
+                         .stderr(std::process::Stdio::piped())
+                         .output()
+                         .context("Failed to execute bippy command")?;
 
-    if !status.success() {
-        message.push_str(&format!("\t{} bippy failed", "ERROR:".red()));
-        println!("{}", message);
-        return Err(anyhow!("bippy failed for {}", cve_id));
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr);
+        return Err(anyhow!("bippy failed for {}: {}", cve_id, error));
     }
 
     // Check if files have changed
@@ -334,16 +398,7 @@ fn update_cve(sha1_file: &Path, count_string: &str, dry_run: bool) -> Result<()>
         }
     }
 
-    // Report the update status
-    if updated_files.is_empty() {
-        message.push_str(&format!("\t{}", "Nothing changed".green()));
-    } else {
-        message.push_str(&format!("\tUpdated {}", updated_files.join(", ").blue()));
-    }
-
-    println!("{}", message);
-
-    Ok(())
+    Ok(updated_files)
 }
 
 #[cfg(test)]
