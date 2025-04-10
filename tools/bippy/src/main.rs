@@ -14,6 +14,7 @@ use cve_utils;
 use cve_utils::version_utils::version_is_mainline;
 use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
 use serde_json::ser::{PrettyFormatter, Serializer};
+use tempfile;
 
 /// Error types for the bippy tool
 #[derive(Error, Debug)]
@@ -410,7 +411,7 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verb
             // Only print vulnerable SHA information if verbose is enabled
             if verbose {
                 if let Ok(repo) = Repository::open(&kernel_tree) {
-                    if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
+                    if let Ok(obj) = resolve_reference(&repo, &vuln_sha) {
                         if let Ok(short_sha) = get_short_sha(&repo, &obj) {
                             println!("Using vulnerable SHA: {}", short_sha);
                         }
@@ -482,7 +483,7 @@ struct Args {
     #[clap(short, long)]
     mbox: Option<PathBuf>,
 
-    /// Output diff file path
+    /// Diff file to apply to the commit text (optional)
     #[clap(short, long)]
     diff: Option<PathBuf>,
 
@@ -527,32 +528,43 @@ fn get_commit_text(_repo: &Repository, obj: &Object) -> Result<String> {
 }
 
 /// Apply a diff to text and return the result
-fn apply_diff_to_text<'a>(repo: &'a Repository, obj: &Object<'a>, _affected_files: &[String]) -> Result<String> {
-    let commit = obj.as_commit()
-        .ok_or_else(|| anyhow::anyhow!("Object is not a commit"))?;
+fn apply_diff_to_text(text: &str, diff_file: &Path) -> Result<String> {
+    // Create a temporary file
+    let mut temp_file = tempfile::NamedTempFile::new()
+        .with_context(|| "Failed to create temporary file for applying diff")?;
 
-    // Get parent commit
-    let parent = match commit.parent(0) {
-        Ok(parent) => parent,
-        Err(_) => {
-            // First commit has no parent
-            return Ok(String::new());
-        }
-    };
+    // Write the original text to the temporary file
+    std::io::Write::write_all(&mut temp_file, text.as_bytes())
+        .with_context(|| "Failed to write to temporary file")?;
 
-    // Get the diff between parent and commit
-    let parent_tree = parent.tree()?;
-    let commit_tree = commit.tree()?;
+    // Get the path of the temporary file
+    let temp_path = temp_file.path();
 
-    let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)?;
+    // Run the patch command
+    let status = std::process::Command::new("patch")
+        .arg("-p1")
+        .arg(temp_path)
+        .arg(diff_file)
+        .status()
+        .with_context(|| format!("Failed to execute patch command with diff file {:?}", diff_file))?;
 
-    let mut diff_text = String::new();
-    diff.print(git2::DiffFormat::Patch, |_delta, _hunk, line| {
-        diff_text.push_str(&String::from_utf8_lossy(line.content()));
-        true
-    })?;
+    if !status.success() {
+        return Err(anyhow::anyhow!("Patch command failed with status: {}", status));
+    }
 
-    Ok(diff_text)
+    // Read the modified content
+    let modified_text = std::fs::read_to_string(temp_path)
+        .with_context(|| "Failed to read patched temporary file")?;
+
+    // Ensure we handle newlines consistently - trim trailing newlines and add exactly one
+    let trimmed = modified_text.trim_end();
+
+    // Return the text with exactly one newline at the end, same as the original handling
+    if text.ends_with('\n') {
+        Ok(format!("{}\n", trimmed))
+    } else {
+        Ok(trimmed.to_string())
+    }
 }
 
 /// Models for the CVE JSON format
@@ -656,6 +668,7 @@ fn generate_json_record(
     script_name: &str,
     script_version: &str,
     additional_references: &[String],
+    commit_text: &str,
 ) -> Result<String> {
     // Get vulns directory using cve_utils
     let vulns_dir = cve_utils::find_vulns_dir()
@@ -675,12 +688,11 @@ fn generate_json_record(
         }
     };
 
-    // Get the full commit text
+    // Get the kernel tree path from environment
     let kernel_tree = std::env::var("CVEKERNELTREE")
         .with_context(|| "CVEKERNELTREE environment variable is not set")?;
     let repo = Repository::open(&kernel_tree)?;
     let git_ref = resolve_reference(&repo, git_sha_full)?;
-    let commit_text = get_commit_text(&repo, &git_ref)?;
 
     // Get affected files
     let affected_files = get_affected_files(&repo, &git_ref)?;
@@ -772,26 +784,8 @@ fn generate_json_record(
         });
     }
 
-    // Strip tags from commit text
-    let vulns_dir = match cve_utils::find_vulns_dir() {
-        Ok(dir) => dir,
-        Err(_) => PathBuf::new(),
-    };
-
-    let script_dir = vulns_dir.join("scripts");
-    let tags = read_tags_file(&script_dir).unwrap_or_default();
-
-    // Get the full commit message, skipping tags at the end
-    let full_message = match strip_commit_text(&commit_text, &tags) {
-        Ok(desc) => desc,
-        Err(_) => {
-            // If stripping fails, use the raw commit text with a fallback prefix
-            format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{}", commit_text)
-        }
-    };
-
-    // Use the full message without specific commit ID hardcoding
-    let description = full_message;
+    // Use the provided commit_text, which might have been modified by the diff
+    let description = commit_text;
 
     // Truncate description to 3982 characters (CVE backend limit) if needed
     let max_length = 3982; // CVE backend limit
@@ -866,6 +860,7 @@ fn generate_mbox(
     script_name: &str,
     script_version: &str,
     additional_references: &[String],
+    commit_text: &str,
 ) -> String {
     // For the From line we need the script name and version
     let from_line = format!("From {}-{} Mon Sep 17 00:00:00 2001", script_name, script_version);
@@ -964,7 +959,7 @@ fn generate_mbox(
     }
 
     // Get affected files from the commit
-    let affected_files = match resolve_reference(&repo, git_sha_full) {
+    let affected_files = match resolve_reference(&repo, &git_sha_full) {
         Ok(obj) => get_affected_files(&repo, &obj).unwrap_or_default(),
         Err(_) => Vec::new(),
     };
@@ -1049,28 +1044,8 @@ fn generate_mbox(
         url_section.push_str(&format!("\t{}\n", url));
     }
 
-    // Get the commit message
-    let commit_message = match resolve_reference(&repo, git_sha_full) {
-        Ok(obj) => match get_commit_text(&repo, &obj) {
-            Ok(text) => {
-                // Get the tags to strip
-                let vulns_dir = match cve_utils::find_vulns_dir() {
-                    Ok(dir) => dir,
-                    Err(_) => PathBuf::new(),
-                };
-
-                let script_dir = vulns_dir.join("scripts");
-                let tags = read_tags_file(&script_dir).unwrap_or_default();
-                let message = strip_commit_text(&text, &tags).unwrap_or(text);
-
-                // Remove any extra blank lines between the description and the CVE assignment line
-                // and ensure only a single newline after the message
-                message.replace("\n\n\nThe Linux kernel", "\nThe Linux kernel").trim_end().to_string()
-            },
-            Err(_) => String::from("No commit message available")
-        },
-        Err(_) => String::from("No commit message available")
-    };
+    // Use the provided commit_text, which might have been modified by the diff
+    let commit_message = commit_text;
 
     // The full formatted mbox content
     let result = format!(
@@ -1122,7 +1097,7 @@ fn generate_mbox(
         from_line,
         user_name, user_email,
         cve_number, commit_subject,
-        commit_message,
+        commit_message.trim_end(),  // Trim any trailing newlines
         cve_number,
         vuln_section,
         cve_number,
@@ -1286,12 +1261,38 @@ fn main() -> Result<()> {
     let commit_subject = get_commit_subject(&repo, &git_ref)
         .with_context(|| "Failed to get commit subject")?;
 
-    // Get affected files if diff file is requested
-    let affected_files = match args.diff.as_ref() {
-        Some(_) => get_affected_files(&repo, &git_ref)
-            .with_context(|| "Failed to get affected files")?,
-        None => Vec::new(),
-    };
+    // Get the full commit message text
+    let kernel_tree = std::env::var("CVEKERNELTREE")
+        .with_context(|| "CVEKERNELTREE environment variable is not set")?;
+    let repo = Repository::open(&kernel_tree)?;
+    let git_ref = resolve_reference(&repo, &git_sha_full)?;
+    let mut commit_text = get_commit_text(&repo, &git_ref)?;
+
+    // Read the tags file to strip from commit message
+    let vulns_dir = cve_utils::find_vulns_dir()
+        .with_context(|| "Failed to find vulns directory")?;
+    let script_dir = vulns_dir.join("scripts");
+    let tags = read_tags_file(&script_dir).unwrap_or_default();
+
+    // Strip tags from commit text
+    commit_text = strip_commit_text(&commit_text, &tags)
+        .unwrap_or_else(|_| format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{}", commit_text));
+
+    // Apply diff file to the commit text if provided
+    if let Some(diff_path) = args.diff.as_ref() {
+        match apply_diff_to_text(&commit_text, diff_path) {
+            Ok(modified_text) => {
+                if args.verbose {
+                    println!("Applied diff from {} to the commit text", diff_path.display());
+                }
+                // The apply_diff_to_text function handles newline preservation
+                commit_text = modified_text;
+            },
+            Err(err) => {
+                eprintln!("Warning: Failed to apply diff to commit text: {}", err);
+            }
+        }
+    }
 
     // Run dyad with the given SHA
     let dyad_data = match run_dyad(&script_dir, &git_sha_full, vulnerable_sha, args.verbose) {
@@ -1301,22 +1302,6 @@ fn main() -> Result<()> {
             String::new()
         }
     };
-
-    // Write diff file if requested
-    if let Some(diff_path) = args.diff.as_ref() {
-        match apply_diff_to_text(&repo, &git_ref, &affected_files) {
-            Ok(diff_text) => {
-                if let Err(err) = std::fs::write(diff_path, diff_text) {
-                    eprintln!("Warning: Failed to write diff file to {:?}: {}", diff_path, err);
-                } else if args.verbose {
-                    println!("Wrote diff file to {}", diff_path.display());
-                }
-            },
-            Err(err) => {
-                eprintln!("Warning: Failed to generate diff text: {}", err);
-            }
-        }
-    }
 
     // First check for the reference file explicitly specified with --reference
     let mut reference_path: Option<PathBuf> = args.reference.clone();
@@ -1394,6 +1379,7 @@ fn main() -> Result<()> {
             &script_name,
             &script_version,
             &additional_references,
+            &commit_text,
         ) {
             Ok(json_record) => {
                 if let Err(err) = std::fs::write(json_path, json_record) {
@@ -1421,6 +1407,7 @@ fn main() -> Result<()> {
             &script_name,
             &script_version,
             &additional_references,
+            &commit_text,
         );
 
         if let Err(err) = std::fs::write(mbox_path, mbox_content) {
