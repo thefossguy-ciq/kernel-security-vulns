@@ -219,34 +219,35 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
             row.get::<_, Option<String>>(2)?, // reverts
         ))
     }) {
-        for result in commit_rows {
-            if let Ok((id, release, reverts)) = result {
-                // Skip if already in fixed set
-                if state.fixed_set.iter().any(|k| k.git_id == id) {
+        for result in commit_rows.flatten() {
+            // Unpack the tuple
+            let (id, release, reverts) = result;
+
+            // Skip if already in fixed set
+            if state.fixed_set.iter().any(|k| k.git_id == id) {
+                continue;
+            }
+
+            // For commits that are themselves reverts, check if they revert a stable commit
+            if let Some(revert_id) = reverts {
+                // Fetch mainline status of the reverted commit
+                let sql_mainline = "SELECT mainline FROM commits WHERE id = ?";
+                let mainline_values =
+                    query_u32(&conn, sql_mainline, &[&revert_id as &dyn ToSql]);
+
+                // Skip if this commit reverts a stable commit (mainline = 0)
+                if mainline_values.iter().any(|&mainline| mainline == 0) {
+                    debug!(
+                        "\t\tfound_in: skipping {:?} as it reverts a stable commit",
+                        id
+                    );
                     continue;
                 }
+            }
 
-                // For commits that are themselves reverts, check if they revert a stable commit
-                if let Some(revert_id) = reverts {
-                    // Fetch mainline status of the reverted commit
-                    let sql_mainline = "SELECT mainline FROM commits WHERE id = ?";
-                    let mainline_values =
-                        query_u32(&conn, sql_mainline, &[&revert_id as &dyn ToSql]);
-
-                    // Skip if this commit reverts a stable commit (mainline = 0)
-                    if mainline_values.iter().any(|&mainline| mainline == 0) {
-                        debug!(
-                            "\t\tfound_in: skipping {:?} as it reverts a stable commit",
-                            id
-                        );
-                        continue;
-                    }
-                }
-
-                // Add valid commit to the list
-                if let Ok(k) = Kernel::new(release, id) {
-                    kernels.push(k);
-                }
+            // Add valid commit to the list
+            if let Ok(k) = Kernel::new(release, id) {
+                kernels.push(k);
             }
         }
     }
@@ -257,11 +258,9 @@ fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         if let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
             Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
         }) {
-            for result in mainline_rows {
-                if let Ok((id, release)) = result {
-                    if let Ok(k) = Kernel::new(release, id) {
-                        kernels.push(k);
-                    }
+            for result in mainline_rows.flatten() {
+                if let Ok(k) = Kernel::new(result.1, result.0) {
+                    kernels.push(k);
                 }
             }
         }
@@ -354,14 +353,12 @@ fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
         let params: Vec<&dyn ToSql> = fix_ids.iter().map(|s| s as &dyn ToSql).collect();
 
         if let Ok(rows) = stmt.query(rusqlite::params_from_iter(params)) {
-            let mut mapped_rows =
+            let mapped_rows =
                 rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
-            while let Some(result) = mapped_rows.next() {
-                if let Ok((id, release)) = result {
-                    if let Ok(k) = Kernel::new(release, id) {
-                        fixed_kernels.push(k);
-                    }
+            for result in mapped_rows.flatten() {
+                if let Ok(k) = Kernel::new(result.1, result.0) {
+                    fixed_kernels.push(k);
                 }
             }
         }
@@ -517,7 +514,7 @@ fn main() {
         // We are asked to set the original vulnerable kernel to be a specific
         // one, or many, so no need to look it up.
         for id in &state.vulnerable_sha {
-            let version = get_version(&state, &id);
+            let version = get_version(&state, id);
             let version = match version {
                 Ok(version) => version,
                 Err(error) => panic!("Can not read the version from the db, error {:?}", error),

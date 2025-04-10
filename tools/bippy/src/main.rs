@@ -10,11 +10,9 @@ use thiserror::Error;
 use std::env;
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
-use cve_utils;
 use cve_utils::version_utils::version_is_mainline;
 use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
 use serde_json::ser::{PrettyFormatter, Serializer};
-use tempfile;
 
 /// Error types for the bippy tool
 #[derive(Error, Debug)]
@@ -313,8 +311,8 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         let b_parts: Vec<&str> = b.version.split('.').collect();
 
         // Compare major versions first
-        if let (Ok(a_major), Ok(b_major)) = (a_parts.get(0).unwrap_or(&"0").parse::<u32>(),
-                                            b_parts.get(0).unwrap_or(&"0").parse::<u32>()) {
+        if let (Ok(a_major), Ok(b_major)) = (a_parts.first().unwrap_or(&"0").parse::<u32>(),
+                                            b_parts.first().unwrap_or(&"0").parse::<u32>()) {
             if a_major != b_major {
                 return a_major.cmp(&b_major);
             }
@@ -411,7 +409,7 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verb
             // Only print vulnerable SHA information if verbose is enabled
             if verbose {
                 if let Ok(repo) = Repository::open(&kernel_tree) {
-                    if let Ok(obj) = resolve_reference(&repo, &vuln_sha) {
+                    if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
                         if let Ok(short_sha) = get_short_sha(&repo, &obj) {
                             println!("Using vulnerable SHA: {}", short_sha);
                         }
@@ -959,7 +957,7 @@ fn generate_mbox(
     }
 
     // Get affected files from the commit
-    let affected_files = match resolve_reference(&repo, &git_sha_full) {
+    let affected_files = match resolve_reference(&repo, git_sha_full) {
         Ok(obj) => get_affected_files(&repo, &obj).unwrap_or_default(),
         Err(_) => Vec::new(),
     };
@@ -988,8 +986,8 @@ fn generate_mbox(
         let b_parts: Vec<&str> = ver_b.split('.').collect();
 
         // Compare major versions first
-        if let (Ok(a_major), Ok(b_major)) = (a_parts.get(0).unwrap_or(&"0").parse::<u32>(),
-                                            b_parts.get(0).unwrap_or(&"0").parse::<u32>()) {
+        if let (Ok(a_major), Ok(b_major)) = (a_parts.first().unwrap_or(&"0").parse::<u32>(),
+                                            b_parts.first().unwrap_or(&"0").parse::<u32>()) {
             if a_major != b_major {
                 return a_major.cmp(&b_major);
             }
