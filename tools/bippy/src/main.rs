@@ -788,14 +788,21 @@ fn generate_json_record(
 
     // Truncate description to 3982 characters (CVE backend limit) if needed
     let max_length = 3982; // CVE backend limit
-    let truncated_description = if description.len() > max_length {
-        // Take exact bytes instead of chars to match bash's truncation behavior
-        // This is more accurate than using chars().take() which can result in different truncation
-        let truncated = &description[..max_length];
-        format!("{}\n---truncated---", truncated)
-    } else {
-        // Ensure no trailing newline in the final description to match bash version
+    let truncated_description = if description.len() <= max_length {
+        // If already under the limit, just ensure no trailing newline
         description.trim_end().to_string()
+    } else {
+        // Get the truncated text limited to max_length
+        let truncated = &description[..max_length];
+
+        // Special case: if only over by a trailing newline, just trim it
+        if description.len() == max_length + 1 && description.ends_with('\n') {
+            truncated.to_string()
+        } else {
+            // Add truncation marker, with proper newline handling
+            let separator = if truncated.ends_with('\n') { "" } else { "\n" };
+            format!("{}{}---truncated---", truncated, separator)
+        }
     };
 
     // Create the structured CVE record using our defined types
