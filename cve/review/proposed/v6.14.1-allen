@@ -1,0 +1,6 @@
+14c7aca5ba27 atm: Fix NULL pointer dereference
+221c27259324 netfilter: socket: Lookup orig tuple for IPv6 SNAT
+1f9b803d6994 counter: microchip-tcb-capture: Fix undefined counter channel state on probe
+de9e78167f76 usb: xhci: Don't skip on Stopped - Length Invalid
+061a1683bae6 usb: xhci: Apply the link chain quirk on NEC isoc endpoints
+75123adf204f memstick: rtsx_usb_ms: Fix slab-use-after-free in rtsx_usb_ms_drv_remove
