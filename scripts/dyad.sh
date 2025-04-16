@@ -341,7 +341,6 @@ kernel_greater_than()
 
 # Verify that some basic environment variables are set up
 KERNEL_TREE=${CVEKERNELTREE}
-COMMIT_TREE=${CVECOMMITTREE}
 
 # Try to find the most useful version of FOUND_IN:
 # If we have one in our tools/ directory, then use that, otherwise fall back to
@@ -370,10 +369,9 @@ SQL="sqlite3 ${DB}"
 
 git_cmd="git --git-dir=${KERNEL_TREE}/.git"
 
-if [[ ! -d "${KERNEL_TREE}" ]] || [[ ! -d "${COMMIT_TREE}" ]]; then
+if [[ ! -d "${KERNEL_TREE}" ]]; then
 	echo "${txtred}ERROR:${txtrst}"
 	echo "	${txtblu}CVEKERNELTREE${txtrst} needs setting to the stable repo directory"
-	echo "	${txtblu}CVECOMMITTREE${txtrst} needs setting to the Stable commit tree"
 	echo -e "\nEither manually export them or add them to your .bashrc/.zshrc et al."
 	echo -e "\nSee HOWTO in the root of this repo"
 	exit 1

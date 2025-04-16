@@ -25,7 +25,6 @@ Source repos that are required:
 	Export the following environment variables with full paths to both repos.
 
 	  export CVEKERNELTREE="${HOME}/<path_to_kernel>"
-	  export CVECOMMITTREE="${HOME}/<path_to_commit_tree>"
 
 	If it helps, add them to your terminal rc file (~/.bashrc|~/.zshrc) et al.
 

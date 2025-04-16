@@ -22,11 +22,9 @@
 DEBUG=0
 
 KERNEL_TREE=${CVEKERNELTREE}
-COMMIT_TREE=${CVECOMMITTREE}
 
-if [[ ! -d "${KERNEL_TREE}" ]] || [[ ! -d "${COMMIT_TREE}" ]]; then
+if [[ ! -d "${KERNEL_TREE}" ]]; then
 	echo "CVEKERNELTREE needs setting to the stable repo directory"
-	echo "CVECOMMITTREE needs setting to the Stable commit tree"
 	echo -e "\nEither manually export them or add them to your .bashrc/.zshrc et al."
 	echo -e "\nSee HOWTO in the root of this repo"
 	exit 1

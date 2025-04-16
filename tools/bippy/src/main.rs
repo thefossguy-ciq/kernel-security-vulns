@@ -392,15 +392,12 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verb
     // Get kernel tree paths from environment variables
     let kernel_tree = std::env::var("CVEKERNELTREE")
         .with_context(|| "CVEKERNELTREE environment variable is not set")?;
-    let commit_tree = std::env::var("CVECOMMITTREE")
-        .with_context(|| "CVECOMMITTREE environment variable is not set")?;
 
     // Construct the command
     let mut command = std::process::Command::new(&dyad_script);
 
     // Set environment variables
-    command.env("CVEKERNELTREE", &kernel_tree)
-           .env("CVECOMMITTREE", &commit_tree);
+    command.env("CVEKERNELTREE", &kernel_tree);
 
     // Add vulnerable SHA if provided
     if let Some(vuln_sha) = vulnerable_sha {
@@ -1183,13 +1180,6 @@ fn main() -> Result<()> {
     if env::var("CVEKERNELTREE").is_err() {
         eprintln!("CVEKERNELTREE environment variable is not set");
         eprintln!("It needs to be set to the stable repo directory");
-        std::process::exit(1);
-    }
-
-    // Check for CVECOMMITTREE environment variable
-    if env::var("CVECOMMITTREE").is_err() {
-        eprintln!("CVECOMMITTREE environment variable is not set");
-        eprintln!("It needs to be set to the Stable commit tree");
         std::process::exit(1);
     }
 
