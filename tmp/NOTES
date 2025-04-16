@@ -3,3 +3,5 @@ To reserve some cves:
 cve -u gregkh@kernel.org -o Linux reserve -y 2019 50 > x.2019
 
 
+
+Fix up bippy output for stuff like CVE-2024-49854 and CVE-2024-36907 that has no versions listed in the json file.
