@@ -357,13 +357,11 @@ unmet direct dependencies detected|\
         if [ "${ANNOTATE}" == "true" ]; then
             echo "- [${NAME}] ${CHOICE}" >> ${CVEME}
         fi
-
-        UPDATEFINALDIR=true
     fi
 
     echo "${oneline}" >> ${PROCESSEDFILE}
 done
 
-if [ "${UPDATEFINALDIR}" == "true" ]; then
+if [ -s ${CVEME} ]; then
     cat ${CVEME} >> ${FINALDIR}/${CVEMEFILE}
 fi
