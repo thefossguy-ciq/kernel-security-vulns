@@ -1,0 +1,5 @@
+bf2986fcf82a atm: Fix NULL pointer dereference [auto: cve already created]
+932b32ffd760 netfilter: socket: Lookup orig tuple for IPv6 SNAT [auto: cve already created]
+58d0a3fab5f4 usb: xhci: Don't skip on Stopped - Length Invalid [auto: cve already created]
+bb0ba4cb1065 usb: xhci: Apply the link chain quirk on NEC isoc endpoints [auto: cve already created]
+4676741a3464 memstick: rtsx_usb_ms: Fix slab-use-after-free in rtsx_usb_ms_drv_remove [auto: cve already created]
