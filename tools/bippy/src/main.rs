@@ -613,6 +613,7 @@ struct AffectedProduct {
     repo: String,
     #[serde(rename = "programFiles")]
     program_files: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     versions: Vec<VersionRange>,
 }
 
