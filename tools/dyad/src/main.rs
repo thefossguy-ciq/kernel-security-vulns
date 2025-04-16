@@ -316,45 +316,21 @@ fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
 
     let mut fixed_kernels: Vec<Kernel> = vec![];
 
-    // First get the fixes line
-    let fixes = query_strings(
-        &conn,
-        "SELECT fixes FROM commits WHERE id = ?1",
-        &[&git_sha as &dyn ToSql],
-    );
+    let sql = "
+        WITH fix_ids AS (
+            SELECT value AS id
+            FROM commits, json_each('[\"' || replace(fixes, ' ', '\",\"') || '\"]')
+            WHERE commits.id = ?1 AND fixes IS NOT NULL AND fixes != ''
+        )
+        SELECT id, release
+        FROM commits
+        WHERE id IN (SELECT id FROM fix_ids)
+    ";
 
-    if fixes.is_empty() {
-        return vec![];
-    }
-
-    // Parse the fixes line and create a collection of IDs for batch processing
-    let mut fix_ids: Vec<String> = Vec::new();
-    for fix in fixes {
-        let ids: Vec<String> = fix.split_whitespace().map(|s| s.to_string()).collect();
-        fix_ids.extend(ids);
-    }
-
-    if fix_ids.is_empty() {
-        return vec![];
-    }
-
-    // Create a single parameterized query for all IDs
-    let placeholders = (1..=fix_ids.len())
-        .map(|i| format!("?{}", i))
-        .collect::<Vec<_>>()
-        .join(",");
-    let sql = format!(
-        "SELECT id, release FROM commits WHERE id IN ({})",
-        placeholders
-    );
-
-    if let Ok(mut stmt) = conn.prepare(&sql) {
-        // Convert fix_ids to parameters
-        let params: Vec<&dyn ToSql> = fix_ids.iter().map(|s| s as &dyn ToSql).collect();
-
-        if let Ok(rows) = stmt.query(rusqlite::params_from_iter(params)) {
-            let mapped_rows =
-                rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
+    if let Ok(mut stmt) = conn.prepare(sql) {
+        if let Ok(rows) = stmt.query([git_sha]) {
+            let mapped_rows = rows.mapped(|row|
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
             for result in mapped_rows.flatten() {
                 if let Ok(k) = Kernel::new(result.1, result.0) {
