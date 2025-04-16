@@ -30,7 +30,7 @@ use kernel::KernelPair;
 #[derive(Debug, Options)]
 struct DyadArgs {
     #[options(free)]
-    git_sha: String,
+    git_sha: Vec<String>,
 
     #[options(help_flag, help = "Print this help message")]
     help: bool,
@@ -52,22 +52,20 @@ struct DyadState {
     kernel_tree: String,
     verhaal_db: String,
     vulnerable_sha: Vec<String>,
-    git_sha_orig: String,
-    git_sha_full: String,
+    git_sha_full: Vec<String>,
     fixed_set: Vec<Kernel>,
     vulnerable_set: Vec<Kernel>,
 }
 
 impl DyadState {
-    pub fn new(git_sha: String) -> Self {
+    pub fn new() -> Self {
         Self {
             // Init with some "blank" default, the command line and
             // environment variables will override them
             kernel_tree: String::new(),
             verhaal_db: String::new(),
             vulnerable_sha: vec![],
-            git_sha_orig: git_sha,
-            git_sha_full: String::new(),
+            git_sha_full: vec![],
             fixed_set: vec![],
             vulnerable_set: vec![],
         }
@@ -405,24 +403,30 @@ fn main() {
         .init();
 
     // Copy the command line args to our local "state" so we can pass it around
-    let mut state = DyadState::new(args.git_sha.clone());
+    let mut state = DyadState::new();
 
     // Set up the locations of all of our external helper programs and databases are there before
     // we attempt to use any of them
     validate_env_vars(&mut state);
 
-    // Calculate full git sha that was passed to us so we can use it later
-    match git_full_id(&state, &args.git_sha) {
-        Some(full_id) => state.git_sha_full = full_id,
-        None => {
-            error!(
-                "Error: The provided git SHA1 '{}' could not be found in the repository",
-                args.git_sha
-            );
-            std::process::exit(1);
+    // Calculate full git sha for each fixing SHA1 that was passed to us
+    state.git_sha_full.clear(); // Clear any existing values
+    for git_sha in &args.git_sha {
+        match git_full_id(&state, git_sha) {
+            Some(full_id) => state.git_sha_full.push(full_id),
+            None => {
+                error!(
+                    "Error: The provided git SHA1 '{}' could not be found in the repository",
+                    git_sha
+                );
+                std::process::exit(1);
+            }
         }
     }
-    debug!(" Full git id: '{}'", state.git_sha_full);
+
+    for (idx, full_id) in state.git_sha_full.iter().enumerate() {
+        debug!(" Full git id {}: '{}'", idx, full_id);
+    }
 
     // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
     let vuln_ids: Vec<String> = args
@@ -433,7 +437,6 @@ fn main() {
         .collect();
     for vuln_id in vuln_ids {
         match git_full_id(&state, &vuln_id) {
-            // FIXME, just make a vec of kernels here, no need to parse it again later...
             Some(id) => {
                 state.vulnerable_sha.push(id);
             }
@@ -454,27 +457,35 @@ fn main() {
         "version:".green(),
         program_version.cyan()
     );
-    println!(
-        "{} {}",
-        "# \tgetting vulnerable:fixed pairs for git id".green(),
-        state.git_sha_full.cyan()
-    );
 
-    // Find all of the places where this git commit was backported to and save them off
-    let kernels = found_in(&state, &state.git_sha_full);
-    for kernel in kernels {
-        state.fixed_set.push(kernel);
+    // Print all fixing SHA1s
+    for git_sha in &state.git_sha_full {
+        println!(
+            "{} {}",
+            "# \tgetting vulnerable:fixed pairs for git id".green(),
+            git_sha.cyan()
+        );
+    }
+
+    // Find all of the places where each git commit was backported to and save them off
+    for git_sha in &state.git_sha_full {
+        let kernels = found_in(&state, git_sha);
+        for kernel in kernels {
+            // Check if we already have this kernel in our fixed set
+            if !state.fixed_set.iter().any(|k| k.git_id == kernel.git_id && k.version == kernel.version) {
+                state.fixed_set.push(kernel);
+            }
+        }
     }
 
     let num_fixed = state.fixed_set.len();
     debug!(
-        "We have found {} fixed kernel version/commits by this git id:",
+        "We have found {} fixed kernel version/commits by these git ids:",
         num_fixed
     );
     if (num_fixed) == 0 {
         error!(
-            "No vulnerable and then fixed pairs of kernels were found for commit {}",
-            state.git_sha_orig
+            "No vulnerable and then fixed pairs of kernels were found for the provided commit(s)",
         );
         std::process::exit(1);
     }
@@ -496,7 +507,7 @@ fn main() {
                 Err(error) => panic!("Can not read the version from the db, error {:?}", error),
             };
             println!(
-                "# 	Setting original vulnerable kernel to be kernel {} and git id {}",
+                "# \tSetting original vulnerable kernel to be kernel {} and git id {}",
                 version.clone(),
                 id
             );
@@ -505,86 +516,99 @@ fn main() {
                 vulnerable_kernels.push(k);
             }
         }
-    } else {
-        // Get the list of all valid "Fixes:" entries for this commit
-        let fix_ids = get_fixes(&state, &state.git_sha_full);
-        if !fix_ids.is_empty() {
-            for fix_id in fix_ids {
-                // Find all places this fix commit was backported to
-                let backports = found_in(&state, &fix_id.git_id);
+    }
 
-                for kernel in backports {
-                    let kernel_is_mainline = kernel.is_mainline();
+    // Only derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
+    let mut all_vulnerable_candidates = Vec::new();
 
-                    if !kernel_is_mainline {
-                        // For non-mainline kernels, use the backported ID
-                        debug!(
-                            "Creating vulnerable set (stable): {}:{}",
-                            kernel.version, kernel.git_id
-                        );
-                        create_vulnerable_set(&mut state, kernel.version, kernel.git_id);
-                    } else {
-                        // For mainline kernels, use the original fix ID
-                        debug!(
-                            "Creating vulnerable set (mainline): {}:{}",
-                            kernel.version, fix_id.git_id
-                        );
-                        create_vulnerable_set(&mut state, kernel.version, fix_id.git_id.clone());
+    if state.vulnerable_sha.is_empty() {
+        // Only try to derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
+        for git_sha in &state.git_sha_full {
+            // Get the list of all valid "Fixes:" entries for this commit
+            let fix_ids = get_fixes(&state, git_sha);
+            if !fix_ids.is_empty() {
+                for fix_id in fix_ids {
+                    // Find all places this fix commit was backported to
+                    let backports = found_in(&state, &fix_id.git_id);
+
+                    for kernel in backports {
+                        let kernel_is_mainline = kernel.is_mainline();
+
+                        if !kernel_is_mainline {
+                            // For non-mainline kernels, use the backported ID
+                            debug!(
+                                "Creating vulnerable set (stable): {}:{}",
+                                kernel.version, kernel.git_id
+                            );
+                            all_vulnerable_candidates.push((kernel.version.clone(), kernel.git_id.clone()));
+                        } else {
+                            // For mainline kernels, use the original fix ID
+                            debug!(
+                                "Creating vulnerable set (mainline): {}:{}",
+                                kernel.version, fix_id.git_id
+                            );
+                            all_vulnerable_candidates.push((kernel.version.clone(), fix_id.git_id.clone()));
+                        }
                     }
                 }
-            }
-        } else {
-            // No fixes found, check if this is a revert commit
-            let revert_result = get_revert(&state, &state.git_sha_full);
-            match revert_result {
-                Ok(revert) => {
-                    debug!("Revert: '{}'", revert);
-                    if !revert.is_empty() {
-                        debug!("{} is a revert of {}", &state.git_sha_full, revert.clone());
-                        if let Ok(version) = get_version(&state, &revert) {
-                            let mainline = version_utils::version_is_mainline(&version);
-                            debug!("R\t{:<12}{}\t{}", version, revert, mainline);
+            } else {
+                // No fixes found, check if this is a revert commit
+                let revert_result = get_revert(&state, git_sha);
+                match revert_result {
+                    Ok(revert) => {
+                        debug!("Revert: '{}'", revert);
+                        if !revert.is_empty() {
+                            debug!("{} is a revert of {}", git_sha, revert.clone());
+                            if let Ok(version) = get_version(&state, &revert) {
+                                let mainline = version_utils::version_is_mainline(&version);
+                                debug!("R\t{:<12}{}\t{}", version, revert, mainline);
 
-                            // Save off this commit
-                            if let Ok(k) = Kernel::new(version.clone(), revert.clone()) {
-                                vulnerable_kernels.push(k);
-                            }
+                                // Save off this commit
+                                if let Ok(k) = Kernel::new(version.clone(), revert.clone()) {
+                                    vulnerable_kernels.push(k);
+                                }
 
-                            // Find all backports of this revert
-                            let backports = found_in(&state, &revert);
-                            for kernel in backports {
-                                let kernel_is_mainline = kernel.is_mainline();
-                                if !kernel_is_mainline {
-                                    // For non-mainline kernels, use the backported ID
-                                    debug!(
-                                        "Creating vulnerable set for revert (stable): {}:{}",
-                                        kernel.version, kernel.git_id
-                                    );
-                                    create_vulnerable_set(
-                                        &mut state,
-                                        kernel.version,
-                                        kernel.git_id,
-                                    );
-                                } else {
-                                    // For mainline kernels, use the original revert ID
-                                    debug!(
-                                        "Creating vulnerable set for revert (mainline): {}:{}",
-                                        kernel.version, revert
-                                    );
-                                    create_vulnerable_set(
-                                        &mut state,
-                                        kernel.version,
-                                        revert.clone(),
-                                    );
+                                // Find all backports of this revert
+                                let backports = found_in(&state, &revert);
+
+                                for kernel in backports {
+                                    let kernel_is_mainline = kernel.is_mainline();
+                                    if !kernel_is_mainline {
+                                        // For non-mainline kernels, use the backported ID
+                                        debug!(
+                                            "Creating vulnerable set for revert (stable): {}:{}",
+                                            kernel.version, kernel.git_id
+                                        );
+                                        all_vulnerable_candidates.push((kernel.version.clone(), kernel.git_id.clone()));
+                                    } else {
+                                        // For mainline kernels, use the original revert ID
+                                        debug!(
+                                            "Creating vulnerable set for revert (mainline): {}:{}",
+                                            kernel.version, revert
+                                        );
+                                        all_vulnerable_candidates.push((kernel.version.clone(), revert.clone()));
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                Err(e) => {
-                    debug!("Error getting revert info: {:?}", e);
+                    Err(e) => {
+                        debug!("Error getting revert info: {:?}", e);
+                    }
                 }
             }
+        }
+
+        // Now add all candidates to the state
+        for (version, git_id) in all_vulnerable_candidates {
+            create_vulnerable_set(&mut state, version, git_id);
+        }
+    } else {
+        // When --vulnerable is provided, only use those specific commits
+        debug!("Using only explicitly provided vulnerable commits, skipping 'Fixes:' tag processing");
+        // Add the explicitly provided vulnerable commits directly to vulnerable_set
+        for k in &vulnerable_kernels {
+            state.vulnerable_set.push(k.clone());
         }
     }
 
@@ -664,7 +688,23 @@ fn main() {
 
         debug!("vuln_mainline_pair={:?}", oldest_mainline_kernel);
 
-        vulnerable_set.push(oldest_mainline_kernel.clone());
+        // Add both explicitly specified vulnerabilities and the oldest mainline kernel
+        // for detected vulnerabilities
+        if !vulnerable_kernels.is_empty() {
+            // Add all explicitly specified vulnerabilities
+            vulnerable_set.extend(vulnerable_kernels.clone());
+
+            // Also add the oldest mainline kernel if it's not already included
+            let already_included = vulnerable_kernels.iter().any(|k|
+                k.version == oldest_mainline_kernel.version && k.git_id == oldest_mainline_kernel.git_id);
+            if !already_included {
+                vulnerable_set.push(oldest_mainline_kernel.clone());
+            }
+        } else {
+            // For detected vulnerabilities, use the oldest as default
+            vulnerable_set.push(oldest_mainline_kernel.clone());
+        }
+
         // iterate over all of the stable entries, and only add the ones that
         // are "older" than the mainline release.
         for k in &vulnerable_stable_set {
@@ -679,6 +719,16 @@ fn main() {
     } else {
         // No mainline kernels, so just add all stable ones
         vulnerable_set = vulnerable_stable_set;
+
+        // Also add any explicitly provided vulnerable kernels
+        if !vulnerable_kernels.is_empty() {
+            for k in &vulnerable_kernels {
+                // Only add if not already in the set
+                if !vulnerable_set.iter().any(|x| x.version == k.version && x.git_id == k.git_id) {
+                    vulnerable_set.push(k.clone());
+                }
+            }
+        }
     }
 
     debug!("oldest mainline kernel = {:?}", oldest_mainline_kernel);
@@ -714,16 +764,21 @@ fn main() {
                 vulnerable: Kernel::empty_kernel(),
                 fixed: k.clone(),
             });
-            //create = true;
             continue;
         }
 
-        // We have some vulnerable entries, so let's try to match them up
-        for v in &state.vulnerable_set {
+        // Sort vulnerable kernels by version for more predictable pairing
+        let mut sorted_vulnerabilities = state.vulnerable_set.clone();
+        sorted_vulnerabilities.sort();
+
+        // First, check if there are any mainline vulnerabilities in our set
+        let mainline_vulns = sorted_vulnerabilities.iter()
+            .filter(|k| k.is_mainline())
+            .collect::<Vec<_>>();
+
+        // Priority 1: Exact version match
+        for v in &sorted_vulnerabilities {
             if k.version == v.version {
-                // vulnerable and fixed in the same version.  Save this off as
-                // it is needed for the git vulnerable information (small window
-                // of where things went wrong).
                 debug!("\t\t{} == {} save it", k.version, v.version);
                 fixed_pairs.push(KernelPair {
                     vulnerable: v.clone(),
@@ -732,33 +787,183 @@ fn main() {
                 create = true;
                 break;
             }
+        }
 
-            // If these are both mainline commits then create a matching pair
-            if k.is_mainline() && v.is_mainline() {
-                debug!(
-                    "\t\t{} and {} are both mainline, save it",
-                    k.version, v.version
-                );
-                fixed_pairs.push(KernelPair {
-                    vulnerable: v.clone(),
-                    fixed: k.clone(),
-                });
+        // If we haven't found a match yet, try other matching strategies
+        if !create {
+            // Priority 2: Mainline to mainline special case (both are mainline releases)
+            if k.is_mainline() && !mainline_vulns.is_empty() {
+                // For mainline fixes, pair with all mainline vulnerabilities
+                // This ensures each mainline vulnerability gets a chance to pair with each mainline fix
+                // The filtering step will remove duplicates later
+                for mainline_vuln in &mainline_vulns {
+                    // Only add pairs where fix version >= vulnerable version
+                    if k.compare(mainline_vuln) != std::cmp::Ordering::Less {
+                        debug!(
+                            "\t\t{} and {} are both mainline, save it",
+                            k.version, mainline_vuln.version
+                        );
+                        fixed_pairs.push(KernelPair {
+                            vulnerable: (*mainline_vuln).clone(),
+                            fixed: k.clone(),
+                        });
+                    }
+                }
                 create = true;
-                break;
+            }
+            // Priority 3: Same major version line
+            else if !create {
+                for v in &sorted_vulnerabilities {
+                    if v.version_major_match(k) {
+                        debug!(
+                            "\t\t{} and {} are same major release, save it",
+                            k.version, v.version
+                        );
+                        fixed_pairs.push(KernelPair {
+                            vulnerable: v.clone(),
+                            fixed: k.clone(),
+                        });
+                        create = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Priority 4: If still no match and we have mainline vulnerabilities,
+        // always use the closest future mainline vulnerability regardless of version proximity
+        if !create && !mainline_vulns.is_empty() {
+            // Find the best mainline vulnerability match based on version proximity
+            let mut best_match: Option<&Kernel> = None;
+            let mut best_match_score = std::i32::MAX;
+
+            for v in &mainline_vulns {
+                // Convert versions to components for comparison
+                let v_version_parts: Vec<i32> = v.version
+                    .split('.')
+                    .filter_map(|s| s.parse::<i32>().ok())
+                    .collect();
+
+                let k_version_parts: Vec<i32> = k.version
+                    .split('.')
+                    .filter_map(|s| s.parse::<i32>().ok())
+                    .collect();
+
+                if !v_version_parts.is_empty() && !k_version_parts.is_empty() {
+                    let v_major = v_version_parts[0];
+                    let k_major = k_version_parts[0];
+
+                    // Only consider vulnerabilities that come before the fix
+                    if v_major <= k_major {
+                        // Calculate version distance - prioritize closeness
+                        let mut distance = (k_major - v_major) * 100;
+
+                        // Add minor version component
+                        if v_version_parts.len() > 1 && k_version_parts.len() > 1 {
+                            let v_minor = v_version_parts[1];
+                            let k_minor = k_version_parts[1];
+                            distance += (k_minor - v_minor).abs();
+                        }
+
+                        if distance < best_match_score {
+                            best_match_score = distance;
+                            best_match = Some(v);
+                            debug!(
+                                "\t\t\tFound better mainline match: {} -> {} (score: {})",
+                                v.version, k.version, distance
+                            );
+                        }
+                    }
+                }
             }
 
-            // if this is the same X.Y version, make a pair
-            if v.version_major_match(k) {
+            if let Some(best_v) = best_match {
                 debug!(
-                    "\t\t{} and {} are same major release, save it",
-                    k.version, v.version
+                    "\t\tUsing closest mainline vulnerability {} for fix {} (score: {})",
+                    best_v.version, k.version, best_match_score
+                );
+
+                fixed_pairs.push(KernelPair {
+                    vulnerable: best_v.clone(),
+                    fixed: k.clone(),
+                });
+                create = true;
+            } else {
+                // Fall back to oldest mainline if we couldn't find a better match
+                let closest_mainline = mainline_vulns[0];
+                debug!(
+                    "\t\tFalling back to oldest mainline vulnerability {} for fix {}",
+                    closest_mainline.version, k.version
+                );
+
+                fixed_pairs.push(KernelPair {
+                    vulnerable: closest_mainline.clone(),
+                    fixed: k.clone(),
+                });
+                create = true;
+            }
+        }
+
+        // Priority 5: Distance-based scoring (only if no other match found)
+        if !create {
+            // Find the best matching vulnerability for this fix based on version proximity
+            let mut best_match: Option<&Kernel> = None;
+            let mut best_match_score = std::i32::MAX;
+
+            // We have some vulnerable entries, so let's try to match them up
+            for v in &sorted_vulnerabilities {
+                // Get the numerical values for proper version comparison
+                let v_version_parts: Vec<i32> = v.version
+                    .split('.')
+                    .filter_map(|s| s.parse::<i32>().ok())
+                    .collect();
+
+                let k_version_parts: Vec<i32> = k.version
+                    .split('.')
+                    .filter_map(|s| s.parse::<i32>().ok())
+                    .collect();
+
+                // Only compare if we have valid numbers and the vulnerable version is <= fixed version
+                if !v_version_parts.is_empty() && !k_version_parts.is_empty() {
+                    let v_major = v_version_parts[0];
+                    let k_major = k_version_parts[0];
+
+                    // Only consider vulnerabilities older than or same as fix
+                    if v_major <= k_major {
+                        // Calculate weighted distance - give more weight to major version match
+                        let mut distance = (k_major - v_major) * 100;
+
+                        // Add minor version distance if available
+                        if v_version_parts.len() > 1 && k_version_parts.len() > 1 {
+                            let v_minor = v_version_parts[1];
+                            let k_minor = k_version_parts[1];
+                            distance += (k_minor - v_minor).abs();
+                        }
+
+                        // Find closest vulnerability by version
+                        if distance < best_match_score {
+                            best_match_score = distance;
+                            best_match = Some(v);
+                            debug!(
+                                "\t\t\tFound better version match: {} -> {} (score: {})",
+                                v.version, k.version, distance
+                            );
+                        }
+                    }
+                }
+            }
+
+            // If we found a best match by version distance
+            if let Some(v) = best_match {
+                debug!(
+                    "\t\tbest version match for {} is {}, score {}",
+                    k.version, v.version, best_match_score
                 );
                 fixed_pairs.push(KernelPair {
                     vulnerable: v.clone(),
                     fixed: k.clone(),
                 });
                 create = true;
-                break;
             }
         }
 
@@ -803,22 +1008,146 @@ fn main() {
         }
         if !found {
             debug!("not found {:?}", v);
-            fixed_pairs.push(KernelPair {
-                vulnerable: v.clone(),
-                fixed: Kernel::empty_kernel(),
-            });
+
+            // Attempt to find a matching fix for this vulnerable version
+            let mut best_fix: Option<Kernel> = None;
+
+            // Find a compatible kernel version in the fixed_set
+            for fix in &state.fixed_set {
+                // Check if this is a mainline fix for a mainline vulnerability
+                if v.is_mainline() && fix.is_mainline() {
+                    // For mainline vulnerable and fixed, pick the closest future release
+                    if fix.compare(v) == std::cmp::Ordering::Greater {
+                        if best_fix.is_none() || fix.compare(&best_fix.as_ref().unwrap()) == std::cmp::Ordering::Less {
+                            best_fix = Some(fix.clone());
+                        }
+                    }
+                }
+            }
+
+            // If we found a fix, create a pair
+            if let Some(fix) = best_fix {
+                debug!("Found compatible fix for {} in {}", v.version, fix.version);
+                fixed_pairs.push(KernelPair {
+                    vulnerable: v.clone(),
+                    fixed: fix,
+                });
+            } else {
+                // No fix found, mark as unfixed
+                fixed_pairs.push(KernelPair {
+                    vulnerable: v.clone(),
+                    fixed: Kernel::empty_kernel(),
+                });
+            }
+        }
+    }
+
+    // We need to filter out invalid pairs
+    // For example, if we have a vulnerability in 6.6 and fixes in 6.7 and 6.13,
+    // we shouldn't create a pair 6.6:6.13 if the version was fixed in 6.7
+    let mut filtered_pairs: Vec<KernelPair> = Vec::new();
+
+    // Track which vulnerable commits have already been paired with a mainline fix
+    let mut vulnerable_commit_with_mainline_fix: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+
+    // First, separate the pairs by vulnerable git id
+    let mut pairs_by_vuln_id: std::collections::HashMap<String, Vec<KernelPair>> = std::collections::HashMap::new();
+
+    for pair in &fixed_pairs {
+        // Skip empty kernel pairs (unfixed)
+        if pair.fixed.version == "0" {
+            filtered_pairs.push(pair.clone());
+            continue;
+        }
+
+        let vuln_id = pair.vulnerable.git_id.clone();
+        pairs_by_vuln_id.entry(vuln_id).or_insert_with(Vec::new).push(pair.clone());
+    }
+
+    // Process each set of pairs for a specific vulnerability
+    for (vuln_id, mut vuln_pairs) in pairs_by_vuln_id {
+        // Sort the pairs within each vulnerability group
+        vuln_pairs.sort_by(|a, b| {
+            // First group by fix type: stable vs mainline
+            if a.fixed.is_mainline() != b.fixed.is_mainline() {
+                // For different types, prefer mainline
+                return if a.fixed.is_mainline() {
+                    Ordering::Less
+                } else {
+                    Ordering::Greater
+                };
+            }
+
+            // If both are mainline, sort by version (ascending - we want closest future version first)
+            if a.fixed.is_mainline() {
+                return a.fixed.compare(&b.fixed);
+            }
+
+            // For stable kernels, compare versions normally (ascending)
+            a.fixed.compare(&b.fixed)
+        });
+
+        // Debugging output
+        debug!("Processing vulnerability ID {} pairs:", vuln_id);
+        for pair in &vuln_pairs {
+            debug!("  {} -> {}", pair.vulnerable.version, pair.fixed.version);
+        }
+
+        // Find the best mainline fix for this vulnerability
+        let mut mainline_fix = None;
+        for pair in &vuln_pairs {
+            if pair.fixed.is_mainline() {
+                mainline_fix = Some(pair.clone());
+                break;
+            }
+        }
+
+        // Record and add the mainline fix pair if found
+        if let Some(mainline_pair) = mainline_fix {
+            debug!("Selected mainline fix for {}:{} -> {}",
+                  mainline_pair.vulnerable.version, vuln_id, mainline_pair.fixed.version);
+            vulnerable_commit_with_mainline_fix.insert(vuln_id.clone(), mainline_pair.fixed.version.clone());
+            filtered_pairs.push(mainline_pair);
+        }
+
+        // Add all stable fix pairs for this vulnerability
+        for pair in &vuln_pairs {
+            if !pair.fixed.is_mainline() {
+                debug!("Added stable fix for {}:{} -> {}",
+                      pair.vulnerable.version, vuln_id, pair.fixed.version);
+                filtered_pairs.push(pair.clone());
+            }
         }
     }
 
     // We are done!
     // Print out the pairs we found so that bippy can do something with them.
     debug!(
-        "Number of vulnerable / fixed kernel pairs: {}",
-        fixed_pairs.len()
+        "Number of vulnerable / fixed kernel pairs after filtering: {}",
+        filtered_pairs.len()
     );
     debug!("Final output:");
-    for e in &fixed_pairs {
-        //debug!("Pair: {}:{} => {}:{}", e.vulnerable.version, e.vulnerable.git_id, e.fixed.version, e.fixed.git_id);
+
+    // Sort the filtered pairs by fixed kernel version to ensure consistent order
+    filtered_pairs.sort_by(|a, b| {
+        // First compare by fixed kernel version
+        if a.fixed.version != "0" && b.fixed.version != "0" {
+            return a.fixed.compare(&b.fixed);
+        }
+
+        // If one is unfixed (version "0"), it goes last
+        if a.fixed.version == "0" {
+            return Ordering::Greater;
+        }
+        if b.fixed.version == "0" {
+            return Ordering::Less;
+        }
+
+        // Otherwise, sort by vulnerable version
+        a.vulnerable.compare(&b.vulnerable)
+    });
+
+    for e in &filtered_pairs {
         println!(
             "{}:{}:{}:{}",
             e.vulnerable.version.green(),

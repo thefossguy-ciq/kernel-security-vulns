@@ -846,3 +846,28 @@ fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("dyad")?;
+
+    let output =
+        "# 	getting vulnerable:fixed pairs for git id 258ea41c926b7b3a16d0d7aa210a1401c4a1601b\n\
+         # 	getting vulnerable:fixed pairs for git id bf373d2919d98f3d1fe1b19a0304f72fe74386d9\n\
+         # 	Setting original vulnerable kernel to be kernel 6.6 and git id adda6e82a7de7d6d478f6c8ef127f0ac51c510a1\n\
+         # 	Setting original vulnerable kernel to be kernel 6.9 and git id b48415afe5fd7e6f5912d4c45720217b77d8e7ea\n\
+         6.6:adda6e82a7de7d6d478f6c8ef127f0ac51c510a1:6.6.4:e27877990e54bfe4246dd850f7ec8646c999ce58\n\
+         6.6:adda6e82a7de7d6d478f6c8ef127f0ac51c510a1:6.7:258ea41c926b7b3a16d0d7aa210a1401c4a1601b\n\
+         6.9:b48415afe5fd7e6f5912d4c45720217b77d8e7ea:6.11.11:48d52d3168749e10c1c37cd4ceccd18625851741\n\
+         6.9:b48415afe5fd7e6f5912d4c45720217b77d8e7ea:6.12.2:776f13ad1f88485206f1dca5ef138553106950e5\n\
+         6.9:b48415afe5fd7e6f5912d4c45720217b77d8e7ea:6.13:bf373d2919d98f3d1fe1b19a0304f72fe74386d9\n";
+
+    cmd.arg("258ea41c926b7b3a16d0d7aa210a1401c4a1601b")
+       .arg("bf373d2919d98f3d1fe1b19a0304f72fe74386d9")
+       .arg("--vulnerable=adda6e82a7de7d6d478f6c8ef127f0ac51c510a1 b48415afe5fd7e6f5912d4c45720217b77d8e7ea");
+    cmd.assert()
+       .success()
+       .stdout(predicate::str::ends_with(output));
+
+    Ok(())
+}

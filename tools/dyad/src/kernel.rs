@@ -418,7 +418,7 @@ impl PartialEq for Kernel {
 
 impl Eq for Kernel {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KernelPair {
     pub vulnerable: Kernel,
     pub fixed: Kernel,
