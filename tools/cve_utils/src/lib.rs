@@ -682,26 +682,26 @@ pub mod cve_validation {
             return Ok(None);
         }
 
-        // Search for the specific CVE ID
-        for entry in WalkDir::new(&cve_root).into_iter().filter_map(Result::ok) {
-            let path = entry.path();
-            if path.is_file() && path.file_stem().is_some_and(|s| s.to_string_lossy() == cve_id) {
-                return Ok(Some(path.to_path_buf()));
-            }
-        }
-
         // Try building path based on CVE year
         if let Some(year) = extract_year_from_cve(cve_id) {
-            // Check published directory
-            let published_path = cve_root.join("published").join(&year).join(cve_id);
+            // First priority: Check published directory
+            let published_path = cve_root.join("published").join(&year).join(format!("{}.sha1", cve_id));
             if published_path.exists() {
                 return Ok(Some(published_path));
             }
 
-            // Check rejected directory
-            let rejected_path = cve_root.join("rejected").join(&year).join(cve_id);
+            // Second priority: Check rejected directory
+            let rejected_path = cve_root.join("rejected").join(&year).join(format!("{}.sha1", cve_id));
             if rejected_path.exists() {
                 return Ok(Some(rejected_path));
+            }
+        }
+
+        // Fallback: Search for the specific CVE ID in the entire cve directory
+        for entry in WalkDir::new(&cve_root).into_iter().filter_map(Result::ok) {
+            let path = entry.path();
+            if path.is_file() && path.file_stem().is_some_and(|s| s.to_string_lossy() == cve_id) {
+                return Ok(Some(path.to_path_buf()));
             }
         }
 
