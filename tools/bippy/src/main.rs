@@ -378,7 +378,7 @@ fn read_uuid(script_dir: &Path) -> Result<String> {
 }
 
 /// Run the dyad script to get version range information
-fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_shas: &[String], verbose: bool) -> Result<String> {
+fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[String], verbose: bool) -> Result<String> {
     // Ensure dyad script exists
     let dyad_script = script_dir.join("dyad");
     if !dyad_script.exists() {
@@ -415,8 +415,15 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_shas: &[String], verbos
         }
     }
 
-    // Add the Git SHA
-    command.arg("--sha1").arg(git_sha);
+    // Add each Git SHA as a separate --sha1 argument
+    for git_sha in git_shas {
+        if !git_sha.trim().is_empty() {
+            command.arg("--sha1").arg(git_sha);
+            if verbose {
+                println!("Using fix SHA: {}", git_sha);
+            }
+        }
+    }
 
     // Only print the command when verbose mode is enabled
     if verbose {
@@ -1216,7 +1223,6 @@ fn main() -> Result<()> {
         eprintln!("Missing required argument: sha");
         std::process::exit(1);
     }
-    let main_git_sha = &git_shas[0];
 
     // Use all provided vulnerable SHAs (if any)
     let vulnerable_shas: Vec<String> = args.vulnerable.iter().filter(|s| !s.trim().is_empty()).cloned().collect();
@@ -1328,7 +1334,7 @@ fn main() -> Result<()> {
     }
 
     // Run dyad with all main SHAs and all vulnerable SHAs
-    let dyad_data = match run_dyad(&script_dir, &git_shas[0], &vulnerable_shas, args.verbose) {
+    let dyad_data = match run_dyad(&script_dir, &git_shas, &vulnerable_shas, args.verbose) {
         Ok(data) => data,
         Err(err) => {
             eprintln!("Warning: Failed to run dyad: {:?}", err);
