@@ -181,15 +181,29 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     let json_file = published_dir.join(format!("{}.json", cve_id));
     let mbox_file = published_dir.join(format!("{}.mbox", cve_id));
 
-    let result = Command::new("bippy")
+    // Build bippy command with full path from vulns dir
+    let vulns_dir = match cve_utils::common::find_vulns_dir() {
+        Ok(dir) => dir,
+        Err(e) => return Err(anyhow!("Failed to find vulns directory: {}", e)),
+    };
+    let bippy_path = vulns_dir.join("scripts").join("bippy");
+    let bippy_path_str = bippy_path.to_string_lossy().to_string();
+
+    println!("Running bippy command:");
+    println!("  {} --verbose --cve={} --sha={} --json={} --mbox={}", 
+        bippy_path.display(), cve_id, git_sha_full, json_file.display(), mbox_file.display());
+
+    let result = Command::new(&bippy_path)
+        .arg(format!("--verbose"))
         .arg(format!("--cve={}", cve_id))
         .arg(format!("--sha={}", git_sha_full))
         .arg(format!("--json={}", json_file.display()))
         .arg(format!("--mbox={}", mbox_file.display()))
-        .status();
+        .status()
+        .context(format!("Failed to execute bippy: {}", bippy_path_str))?;
 
     // Handle bippy failure
-    if result.is_err() || !result.unwrap().success() {
+    if !result.success() {
         // Revert changes
         fs::rename(&published_file, &reserved_file)
             .context(format!("Failed to revert CVE ID move after bippy failure: {}", cve_id))?;
@@ -197,8 +211,8 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
         fs::remove_file(sha1_file)
             .context("Failed to remove SHA1 file after bippy failure")?;
 
-        return Err(anyhow!("bippy failed to create {} for commit {}",
-            cve_id.cyan(), git_commit.green()));
+        return Err(anyhow!("bippy execution failed for {} (exit code: {})",
+            cve_id.cyan(), result.code().map_or_else(|| "unknown".to_string(), |c| c.to_string())));
     }
 
     // Success
