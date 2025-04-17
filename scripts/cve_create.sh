@@ -130,7 +130,11 @@ mv "${ID}" "${PUBLISHED_DIR}"
 echo "${GIT_SHA_FULL}" > "${PUBLISHED_DIR}/${ID}.sha1"
 
 # write the new json and mbox entry out, using bippy
-"${DIR}"/bippy --cve="${ID}" --sha="${GIT_SHA_FULL}" --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
+sha_args=()
+while IFS= read -r line; do
+    [ -n "$line" ] && sha_args+=(--sha="$line")
+done < "${PUBLISHED_DIR}/${ID}.sha1"
+"${DIR}"/bippy --cve="${ID}" "${sha_args[@]}" --json="${PUBLISHED_DIR}/${ID}.json" --mbox="${PUBLISHED_DIR}/${ID}.mbox"
 result=$?
 if [[ "${result}" != 0 ]]; then
 	# move the id back to the reserved area and delete the .sha1 file

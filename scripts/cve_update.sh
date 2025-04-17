@@ -113,7 +113,11 @@ update_cve()
 	fi
 
 	# Create the new json and mbox files
-	"${DIR}"/bippy --cve="${cve}" --sha="${sha}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}" "${diff_option}" "${reference_option}"
+	sha_args=()
+	while IFS= read -r line; do
+		[ -n "$line" ] && sha_args+=(--sha="$line")
+	done < "${id}"
+	"${DIR}"/bippy --cve="${cve}" "${sha_args[@]}" --json="${tmp_json}" --mbox="${tmp_mbox}" --vulnerable="${vulnerable_sha}" "${diff_option}" "${reference_option}"
 	result=$?
 	if [[ "${result}" != 0 ]]; then
 		# bippy failed, so report it and continue on

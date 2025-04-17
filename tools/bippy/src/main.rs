@@ -461,9 +461,9 @@ struct Args {
     #[clap(short, long)]
     cve: Option<String>,
 
-    /// Git SHA of the commit
-    #[clap(short, long)]
-    sha: Option<String>,
+    /// Git SHA(s) of the commit(s)
+    #[clap(short, long, num_args = 1..)]
+    sha: Vec<String>,
 
     /// Git SHA(s) of the vulnerable commit(s) (optional, can be specified multiple times)
     #[clap(short = 'V', long, num_args = 1..)]
@@ -1183,7 +1183,7 @@ fn main() -> Result<()> {
     }
 
     // Check for required arguments
-    if args.cve.is_none() || args.sha.is_none() || (args.json.is_none() && args.mbox.is_none()) {
+    if args.cve.is_none() || args.sha.is_empty() || (args.json.is_none() && args.mbox.is_none()) {
         eprintln!("Missing required arguments: cve, sha, or one of json/mbox");
         std::process::exit(1);
     }
@@ -1211,7 +1211,12 @@ fn main() -> Result<()> {
 
     // Extract values from args
     let cve_number = args.cve.as_ref().unwrap();
-    let git_sha = args.sha.as_ref().unwrap();
+    let git_shas: Vec<String> = args.sha.iter().filter(|s| !s.trim().is_empty()).cloned().collect();
+    if git_shas.is_empty() {
+        eprintln!("Missing required argument: sha");
+        std::process::exit(1);
+    }
+    let main_git_sha = &git_shas[0];
 
     // Use all provided vulnerable SHAs (if any)
     let vulnerable_shas: Vec<String> = args.vulnerable.iter().filter(|s| !s.trim().is_empty()).cloned().collect();
@@ -1230,7 +1235,7 @@ fn main() -> Result<()> {
     // Debug output if verbose is enabled
     if args.verbose {
         println!("CVE_NUMBER={}", cve_number);
-        println!("GIT_SHA={}", git_sha);
+        println!("GIT_SHAS={:?}", git_shas);
         println!("JSON_FILE={:?}", args.json);
         println!("MBOX_FILE={:?}", args.mbox);
         println!("DIFF_FILE={:?}", args.diff);
@@ -1264,30 +1269,32 @@ fn main() -> Result<()> {
     let repo = Repository::open(&kernel_tree)
         .with_context(|| format!("Failed to open Git repository at {:?}", kernel_tree))?;
 
-    // Resolve Git reference for the main commit
-    let git_ref = resolve_reference(&repo, git_sha.as_str())
-        .with_context(|| format!("Failed to resolve Git reference: {}", git_sha))?;
-
-    // Get vulnerable SHA references if provided
-    let _vulnerable_refs: Vec<_> = vulnerable_shas.iter().filter_map(|sha| {
+    // Resolve Git references for all main commits
+    let git_refs: Vec<_> = git_shas.iter().filter_map(|sha| {
         match resolve_reference(&repo, sha) {
             Ok(reference) => Some(reference),
             Err(err) => {
-                eprintln!("Warning: Could not resolve vulnerable SHA reference: {}", err);
+                eprintln!("Warning: Could not resolve SHA reference: {}", err);
                 None
             }
         }
     }).collect();
+    if git_refs.is_empty() {
+        eprintln!("None of the provided SHAs could be resolved");
+        std::process::exit(1);
+    }
+    // Use the first as the main one for output fields
+    let main_git_ref = &git_refs[0];
 
-    // Get SHA information
-    let git_sha_full = get_object_full_sha(&repo, &git_ref)
+    // Get SHA information for the main commit
+    let git_sha_full = get_object_full_sha(&repo, main_git_ref)
         .with_context(|| "Failed to get full SHA")?;
-    let git_sha_short = get_short_sha(&repo, &git_ref)
+    let git_sha_short = get_short_sha(&repo, main_git_ref)
         .with_context(|| "Failed to get short SHA")?;
-    let commit_subject = get_commit_subject(&repo, &git_ref)
+    let commit_subject = get_commit_subject(&repo, main_git_ref)
         .with_context(|| "Failed to get commit subject")?;
 
-    // Get the full commit message text
+    // Get the full commit message text for the main commit
     let kernel_tree = std::env::var("CVEKERNELTREE")
         .with_context(|| "CVEKERNELTREE environment variable is not set")?;
     let repo = Repository::open(&kernel_tree)?;
@@ -1320,8 +1327,8 @@ fn main() -> Result<()> {
         }
     }
 
-    // Run dyad with the given SHA and all vulnerable SHAs
-    let dyad_data = match run_dyad(&script_dir, &git_sha_full, &vulnerable_shas, args.verbose) {
+    // Run dyad with all main SHAs and all vulnerable SHAs
+    let dyad_data = match run_dyad(&script_dir, &git_shas[0], &vulnerable_shas, args.verbose) {
         Ok(data) => data,
         Err(err) => {
             eprintln!("Warning: Failed to run dyad: {:?}", err);

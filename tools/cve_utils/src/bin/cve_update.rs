@@ -255,11 +255,20 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
 
 /// Update a single CVE entry
 fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
-    // Read the commit SHA
-    let sha = fs::read_to_string(sha1_file)
-        .context(format!("Failed to read SHA1 file: {}", sha1_file.display()))?
-        .trim()
-        .to_string();
+    // Read the SHA1 file and split into individual SHAs
+    let sha_content = fs::read_to_string(sha1_file)
+        .context(format!("Failed to read SHA1 file: {}", sha1_file.display()))?;
+
+    // Split content by lines and collect non-empty lines
+    let shas: Vec<String> = sha_content
+        .lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty())
+        .collect();
+
+    if shas.is_empty() {
+        return Err(anyhow!("SHA1 file is empty: {}", sha1_file.display()));
+    }
 
     // Extract CVE ID and root path from the sha1 file path
     let file_stem = sha1_file.file_stem()
@@ -310,9 +319,13 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
 
     let mut bippy_cmd = Command::new(bippy_path);
     bippy_cmd.arg(format!("--cve={}", cve_id))
-        .arg(format!("--sha={}", sha))
         .arg(format!("--json={}", tmp_json.path().display()))
         .arg(format!("--mbox={}", tmp_mbox.path().display()));
+
+    // Add each SHA as a separate argument
+    for sha in &shas {
+        bippy_cmd.arg(format!("--sha={}", sha));
+    }
 
     // Add vulnerable option if present
     for sha in &vulnerable_shas {
