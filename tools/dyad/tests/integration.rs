@@ -123,7 +123,7 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
 
     // Build command with git SHA
     let mut cmd = Command::new(&dyad_path);
-    cmd.arg(&test_case.git_sha.trim());
+    cmd.arg("--sha1").arg(&test_case.git_sha.trim());
 
     // If we have a .vulnerable file, read its content and pass it with --vulnerable
     if let Some(v_path) = &test_case.vulnerable_path {

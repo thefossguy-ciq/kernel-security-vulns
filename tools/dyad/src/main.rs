@@ -8,6 +8,8 @@
 //        with 'bippy' to create CVE entries for the Linux kernel.  Is VERY
 //        specific to how the Linux kernel has its stable branches and how it
 //        labels things.
+//
+// Usage: dyad --sha1 <git-sha> [--sha1 <git-sha> ...] [--vulnerable <git-sha> ...]
 
 use colored::Colorize;
 use gumdrop::Options;
@@ -29,9 +31,6 @@ use kernel::KernelPair;
 
 #[derive(Debug, Options)]
 struct DyadArgs {
-    #[options(free)]
-    git_sha: Vec<String>,
-
     #[options(help_flag, help = "Print this help message")]
     help: bool,
 
@@ -40,6 +39,13 @@ struct DyadArgs {
 
     #[options(no_short, help = "Show debugging information to stdout")]
     verbose: bool,
+
+    #[options(
+        short = "s",
+        help = "The kernel git sha1 that fixes this issue",
+        multi = "push"
+    )]
+    sha1: Vec<String>,
 
     #[options(
         short = "v",
@@ -387,10 +393,10 @@ fn main() {
         std::process::exit(0);
     }
 
-    // Verify we at least got a git sha passed to us
+    // Verify we at least got a git sha passed to us using the --sha1 flag
     // (not checking to see if it is valid just yet...)
-    if args.git_sha.is_empty() {
-        println!("Error: GIT_SHA required\n");
+    if args.sha1.is_empty() {
+        println!("Error: At least one --sha1 value is required\n");
         std::process::exit(1);
     }
 
@@ -412,7 +418,7 @@ fn main() {
 
     // Calculate full git sha for each fixing SHA1 that was passed to us
     state.git_sha_full.clear(); // Clear any existing values
-    for git_sha in &args.git_sha {
+    for git_sha in &args.sha1 {
         match git_full_id(&state, git_sha) {
             Some(full_id) => state.git_sha_full.push(full_id),
             None => {

@@ -266,7 +266,7 @@ fn process_single_file(
             command.arg(parts[0]).arg(parts[1]);
         }
     }
-    command.arg(sha.trim());
+    command.arg("--sha1").arg(sha.trim());
 
     let output = command.stdout(Stdio::piped()).output()
         .context("Failed to execute dyad command")?;

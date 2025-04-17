@@ -421,7 +421,7 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verb
     }
 
     // Add the Git SHA
-    command.arg(git_sha);
+    command.arg("--sha1").arg(git_sha);
 
     // Only print the command when verbose mode is enabled
     if verbose {

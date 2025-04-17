@@ -17,7 +17,7 @@ fn can_run() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.assert()
         .failure()
-        .stdout(predicate::str::contains("Error: GIT_SHA required"));
+        .stdout(predicate::str::contains("Error: At least one --sha1 value is required"));
 
     Ok(())
 }
@@ -26,7 +26,7 @@ fn can_run() -> Result<(), Box<dyn std::error::Error>> {
 fn invalid_git_id() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("dyad")?;
 
-    cmd.arg("5dce04fefe3e");
+    cmd.arg("--sha1=5dce04fefe3e");
     cmd.assert().failure().stderr(predicate::str::contains(
         "Error: The provided git SHA1 '5dce04fefe3e' could not be found in the repository",
     ));
@@ -38,7 +38,7 @@ fn invalid_git_id() -> Result<(), Box<dyn std::error::Error>> {
 fn invalid_vulnerable_git_id() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("dyad")?;
 
-    cmd.arg("--vulnerable=5dce04fefe3e").arg("d9407ff11809");
+    cmd.arg("--vulnerable=5dce04fefe3e").arg("--sha1=d9407ff11809");
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("Error: The provided vulnerable git SHA1 '5dce04fefe3e' could not be found in the repository"));
@@ -54,7 +54,7 @@ fn fixed_single_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
         "# 	getting vulnerable:fixed pairs for git id 2a8664583d4d3655cfe5d36cf03f56b11530b69b\n\
          4.19.179:cb1f69d53ac8a417fc42df013526b54735194c14:4.19.279:2a8664583d4d3655cfe5d36cf03f56b11530b69b\n";
 
-    cmd.arg("2a8664583d4d");
+    cmd.arg("--sha1=2a8664583d4d");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -74,7 +74,7 @@ fn fixed_multiple_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
          4.13:349d39dc57396e3e9f39170905ff8d626eea9e44:5.7.8:9006b543384ab10902819364c1205f11a1458571\n\
          4.13:349d39dc57396e3e9f39170905ff8d626eea9e44:5.8:371a3bc79c11b707d7a1b7a2c938dc3cc042fffb\n";
 
-    cmd.arg("371a3bc79c11");
+    cmd.arg("--sha1=371a3bc79c11");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -90,7 +90,7 @@ fn fixed_only_mainline_branch() -> Result<(), Box<dyn std::error::Error>> {
         "# 	getting vulnerable:fixed pairs for git id 94959c0e796e41128483588d133b9a7003b409f9\n\
          0:0:6.8:94959c0e796e41128483588d133b9a7003b409f9\n";
 
-    cmd.arg("94959c0e796e");
+    cmd.arg("--sha1=94959c0e796e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -108,7 +108,7 @@ fn vulnerable_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::err
          6.7:ffa55858330f267beec995fc4f68098c91311c64:6.7.4:46826a3844068c0d3919eb4a24c3ba7bf5d24449\n\
          6.7:ffa55858330f267beec995fc4f68098c91311c64:6.8:d9407ff11809c6812bb84fe7be9c1367d758e5c8\n";
 
-    cmd.arg("d9407ff11809");
+    cmd.arg("--sha1=d9407ff11809");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -126,7 +126,7 @@ fn vulnerable_always_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn s
          0:0:6.7.4:1673211a38012e731373177b3a820a257b7964d2\n\
          0:0:6.8:c481016bb4f8a9c059c39ac06e7b65e233a61f6a\n";
 
-    cmd.arg("c481016bb4f8");
+    cmd.arg("--sha1=c481016bb4f8");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -149,7 +149,7 @@ fn unfixed_stable_branches_1() -> Result<(), Box<dyn std::error::Error>> {
          5.4.53:d3b7bacd1115400b94482dfc7efffc175c29b831:0:0\n\
          5.7.8:9006b543384ab10902819364c1205f11a1458571:0:0\n";
 
-    cmd.arg("34ab17cc6c2c1a");
+    cmd.arg("--sha1=34ab17cc6c2c1a");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -179,7 +179,7 @@ fn unfixed_stable_branches_2() -> Result<(), Box<dyn std::error::Error>> {
          4.4.50:41e07a7e01d951cfd4c9a7dac90c921269d89513:0:0\n\
          4.9.11:a7fe4e5d06338e1a82b1977eca37400951f99730:0:0\n";
 
-    cmd.arg("d375b98e024898");
+    cmd.arg("--sha1=d375b98e024898");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -201,7 +201,7 @@ fn loads_of_fixes() -> Result<(), Box<dyn std::error::Error>> {
          4.1:49499c3e6e18b7677a63316f3ff54a16533dc28f:6.5.4:c8f292322ff16b9a2272a67de396c09a50e09dce\n\
          4.1:49499c3e6e18b7677a63316f3ff54a16533dc28f:6.6:fd94d9dadee58e09b49075240fe83423eb1dcd36\n";
 
-    cmd.arg("fd94d9dadee58e09b49075240fe83423eb1dcd36");
+    cmd.arg("--sha1=fd94d9dadee58e09b49075240fe83423eb1dcd36");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -219,7 +219,7 @@ fn no_fixes() -> Result<(), Box<dyn std::error::Error>> {
          0:0:5.6.7:8e8542437bb4070423c9754d5ba270ffdbae8c8d\n\
          0:0:5.7:df77fbd8c5b222c680444801ffd20e8bbc90a56e\n";
 
-    cmd.arg("df77fbd8c5b222c680444801ffd20e8bbc90a56e");
+    cmd.arg("--sha1=df77fbd8c5b222c680444801ffd20e8bbc90a56e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -242,7 +242,7 @@ fn multiple_fixes_hard() -> Result<(), Box<dyn std::error::Error>> {
          2.6.19:446fda4f26822b2d42ab3396aafcedf38a9ff2b6:4.20.15:fbf9578919d6c91100ec63acf2cba641383f6c78\n\
          2.6.19:446fda4f26822b2d42ab3396aafcedf38a9ff2b6:5.0:5578de4834fe0f2a34fedc7374be691443396d1f\n";
 
-    cmd.arg("5578de4834fe0f2a34fedc7374be691443396d1f");
+    cmd.arg("--sha1=5578de4834fe0f2a34fedc7374be691443396d1f");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -266,7 +266,7 @@ fn lots_vuln_fix_in_same_version() -> Result<(), Box<dyn std::error::Error>> {
          5.12:8a12f8836145ffe37e9c8733dce18c22fb668b66:5.12.1:41c44e1f3112d7265dae522c026399b2a42d19ef\n\
          5.12:8a12f8836145ffe37e9c8733dce18c22fb668b66:5.13:2ad5692db72874f02b9ad551d26345437ea4f7f3\n";
 
-    cmd.arg("2ad5692db72874f02b9ad551d26345437ea4f7f3");
+    cmd.arg("--sha1=2ad5692db72874f02b9ad551d26345437ea4f7f3");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -290,7 +290,7 @@ fn multiple_fixes_hard_to_pick_correct_pairs() -> Result<(), Box<dyn std::error:
          2.6.30:14131f2f98ac350ee9e73faed916d2238a8b6a0d:5.12.3:2a1bd74b8186d7938bf004f5603f25b84785f63e\n\
          2.6.30:14131f2f98ac350ee9e73faed916d2238a8b6a0d:5.13:aafe104aa9096827a429bc1358f8260ee565b7cc\n";
 
-    cmd.arg("aafe104aa909");
+    cmd.arg("--sha1=aafe104aa909");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -309,7 +309,7 @@ fn fake_fixes() -> Result<(), Box<dyn std::error::Error>> {
          6.0:0495e337b7039191dfce6e03f5f830454b1fae6b:6.6:46a9ea6681907a3be6b6b0d43776dccc62cad6cf\n\
          5.19.8:357321557920c805de2b14832002465c320eea4f:0:0\n";
 
-    cmd.arg("46a9ea6681907a3be6b6b0d43776dccc62cad6cf");
+    cmd.arg("--sha1=46a9ea6681907a3be6b6b0d43776dccc62cad6cf");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -329,7 +329,7 @@ fn invalid_data_in_fixes() -> Result<(), Box<dyn std::error::Error>> {
          5.1:3f1f3234bc2db1c16b9818b9a15a5d58ad45251c:5.12.3:3f72d3709f53af72835af7dc8b15ba61611a0e36\n\
          5.1:3f1f3234bc2db1c16b9818b9a15a5d58ad45251c:5.13:a97709f563a078e259bf0861cd259aa60332890a\n";
 
-    cmd.arg("a97709f563a0");
+    cmd.arg("--sha1=a97709f563a0");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -352,7 +352,7 @@ fn lots_stable_branches_4_x_vulnerable() -> Result<(), Box<dyn std::error::Error
          4.10:8d8e20e2d7bba8c50e64e0eca1cb83956f468e49:6.7.2:c149cc7c88cadf956111bd85cd03c5c11618c0b7\n\
          4.10:8d8e20e2d7bba8c50e64e0eca1cb83956f468e49:6.8:d6938c1c76c64f42363d0d1f051e1b4641c2ad40\n";
 
-    cmd.arg("d6938c1c76c6");
+    cmd.arg("--sha1=d6938c1c76c6");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -375,7 +375,7 @@ fn lots_stable_branches_3_x_vulnerable() -> Result<(), Box<dyn std::error::Error
          3.6:c7aa12252f5142b9eee2f6e34ca8870a8e7e048c:6.6.11:fb195df90544f4559eebf6a99f4531cfed1bfcb2\n\
          3.6:c7aa12252f5142b9eee2f6e34ca8870a8e7e048c:6.7:c95f919567d6f1914f13350af61a1b044ac85014\n";
 
-    cmd.arg("c95f919567d6");
+    cmd.arg("--sha1=c95f919567d6");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -398,7 +398,7 @@ fn stable_branches_have_git_ids_for_wrong_commits() -> Result<(), Box<dyn std::e
          5.0:979d63d50c0c0f7bc537bf821e056cc9fe5abd38:5.13:b9b34ddbe2076ade359cd5ce7537d5ed019e9807\n\
          4.20.6:078da99d449f64ca04d459cdbdcce513b64173cd:0:0\n";
 
-    cmd.arg("b9b34ddbe207");
+    cmd.arg("--sha1=b9b34ddbe207");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -416,7 +416,7 @@ fn old_vulnerablity_multiple_fixes_out_of_order() -> Result<(), Box<dyn std::err
          2.6.19:ac27a0ec112a089f1a5102bc8dffc79c8c815571:5.12.10:1385b23396d511d5233b8b921ac3058b3f86a5e1\n\
          2.6.19:ac27a0ec112a089f1a5102bc8dffc79c8c815571:5.13:afd09b617db3786b6ef3dc43e28fe728cfea84df\n";
 
-    cmd.arg("afd09b617db3786b6ef3dc43e28fe728cfea84df");
+    cmd.arg("--sha1=afd09b617db3786b6ef3dc43e28fe728cfea84df");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -442,7 +442,7 @@ fn complex_beast_old_stable_unfixed_stable_vulnerability_backported(
          4.9.225:f76905ce52653e8a821963c35d9013cff19b1399:0:0\n\
          4.14.182:450caf1faa0d7bbbd1da93d3ee8c5edea7bc51a8:0:0\n";
 
-    cmd.arg("38d75297745f");
+    cmd.arg("--sha1=38d75297745f");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -460,7 +460,7 @@ fn vulnerable_and_fixed_same_branch() -> Result<(), Box<dyn std::error::Error>> 
          6.7.7:c5d47e80f6aa072912d94ddabfc846e4ac2fc8cc:6.7.7:3f6730b2261c62f94460137a0dcbbb1577e5112b\n\
          6.8:59f1622a5f05d948a7c665a458a3dd76ba73015e:6.8:97cba232549b9fe7e491fb60a69cf93075015f29\n";
 
-    cmd.arg("97cba232549b");
+    cmd.arg("--sha1=97cba232549b");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -484,7 +484,7 @@ fn vulnerable_and_fixed_same_branch_some_not() -> Result<(), Box<dyn std::error:
          5.12:8a12f8836145ffe37e9c8733dce18c22fb668b66:5.12.1:41c44e1f3112d7265dae522c026399b2a42d19ef\n\
          5.12:8a12f8836145ffe37e9c8733dce18c22fb668b66:5.13:2ad5692db72874f02b9ad551d26345437ea4f7f3\n";
 
-    cmd.arg("2ad5692db7");
+    cmd.arg("--sha1=2ad5692db7");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -502,7 +502,7 @@ fn fixes_line_corrupted() -> Result<(), Box<dyn std::error::Error>> {
          5.7:89b83f282d8ba380cf2124f88106c57df49c538c:5.12.13:ce6e8bee7a3883e8008b30f5887dbb426aac6a35\n\
          5.7:89b83f282d8ba380cf2124f88106c57df49c538c:5.13:e41a49fadbc80b60b48d3c095d9e2ee7ef7c9a8e\n";
 
-    cmd.arg("e41a49fadbc8");
+    cmd.arg("--sha1=e41a49fadbc8");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -524,7 +524,7 @@ fn fixes_line_is_not_real() -> Result<(), Box<dyn std::error::Error>> {
          0:0:6.9.4:4e99103f757cdf636c6ee860994a19a346a11785\n\
          0:0:6.10:8ee1b439b1540ae543149b15a2a61b9dff937d91\n";
 
-    cmd.arg("8ee1b439b154");
+    cmd.arg("--sha1=8ee1b439b154");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -540,7 +540,7 @@ fn fixes_line_sha_is_not_in_tree() -> Result<(), Box<dyn std::error::Error>> {
         "# 	getting vulnerable:fixed pairs for git id 259043e3b730e0aa6408bff27af7edf7a5c9101c\n\
          0:0:6.11:259043e3b730e0aa6408bff27af7edf7a5c9101c\n";
 
-    cmd.arg("259043e3b730e0aa6408bff27af7edf7a5c9101c");
+    cmd.arg("--sha1=259043e3b730e0aa6408bff27af7edf7a5c9101c");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -559,7 +559,7 @@ fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() -> Result<()
          6.7:5329aa5101f73c451bcd48deaf3f296685849d9c:6.7.2:92be3095c6ca1cdc46237839c6087555be9160e3\n\
          6.7:5329aa5101f73c451bcd48deaf3f296685849d9c:6.8:547713d502f7b4b8efccd409cff84d731a23853b\n";
 
-    cmd.arg("547713d502f7");
+    cmd.arg("--sha1=547713d502f7");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -577,7 +577,7 @@ fn reverts_in_some_branches_so_do_not_count_them() -> Result<(), Box<dyn std::er
          6.6:16aac5ad1fa94894b798dd522c5c3a6a0628d7f0:6.12.10:3c7c90274ae339e1ad443c9be1c67a20b80b9c76\n\
          6.6:16aac5ad1fa94894b798dd522c5c3a6a0628d7f0:6.13:c45beebfde34aa71afbc48b2c54cdda623515037\n";
 
-    cmd.arg("c45beebfde34aa71afbc48b2c54cdda623515037");
+    cmd.arg("--sha1=c45beebfde34aa71afbc48b2c54cdda623515037");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -596,7 +596,7 @@ fn revert_with_no_fixes() -> Result<(), Box<dyn std::error::Error>> {
          5.17.2:c6399f6f2f84921feebbf985e3819b1ad851ebe5:5.17.2:9d73b40f979737029bac724c39648016da3f914c\n\
          5.18:6d35d04a9e18990040e87d2bbf72689252669d54:5.18:7198bfc2017644c6b92d2ecef9b8b8e0363bb5fd\n";
 
-    cmd.arg("7198bfc2017644c6b92d2ecef9b8b8e0363bb5fd");
+    cmd.arg("--sha1=7198bfc2017644c6b92d2ecef9b8b8e0363bb5fd");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -616,7 +616,7 @@ fn fixes_line_requires_manual_lookup() -> Result<(), Box<dyn std::error::Error>>
          6.8.10:02f05ed44b71152d5e11d29be28aed91c0489b4e:6.8.10:d1f768214320852766a60a815a0be8f14fba0cc3\n\
          6.9:2e4edfa1e2bd821a317e7d006517dcf2f3fac68d:6.9:40d442f969fb1e871da6fca73d3f8aef1f888558\n";
 
-    cmd.arg("40d442f969fb1e871da6fca73d3f8aef1f888558");
+    cmd.arg("--sha1=40d442f969fb1e871da6fca73d3f8aef1f888558");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -637,7 +637,7 @@ fn multiple_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
          5.8:ef8d563f184e1112651f2cbde383d43e599334e8:6.9.4:69136304fd144144a4828c7b7b149d0f80321ba4\n\
          5.8:ef8d563f184e1112651f2cbde383d43e599334e8:6.10:0a4ed2d97cb6d044196cc3e726b6699222b41019\n";
 
-    cmd.arg("0a4ed2d97cb6d044196cc3e726b6699222b41019");
+    cmd.arg("--sha1=0a4ed2d97cb6d044196cc3e726b6699222b41019");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -655,7 +655,7 @@ fn fixes_line_hard_to_parse() -> Result<(), Box<dyn std::error::Error>> {
          6.11:68f83057b913467a999e1bf9e0da6a119668f769:6.13.4:835b69c868f53f959d4986bbecd561ba6f38e492\n\
          6.11:68f83057b913467a999e1bf9e0da6a119668f769:6.14:e76946110137703c16423baf6ee177b751a34b7e\n";
 
-    cmd.arg("e76946110137703c16423baf6ee177b751a34b7e");
+    cmd.arg("--sha1=e76946110137703c16423baf6ee177b751a34b7e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -673,7 +673,7 @@ fn vulnerable_for_stable_only() -> Result<(), Box<dyn std::error::Error>> {
          4.19.246:ef481b262bba4f454351eec43f024fec942c2d4c:4.19.306:10d75984495f7fe62152c3b0dbfa3f0a6b739c9b\n";
 
     cmd.arg("--vulnerable=ef481b262bba4f454351eec43f024fec942c2d4c")
-        .arg("10d75984495f");
+        .arg("--sha1=10d75984495f");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -694,7 +694,7 @@ fn vulnerable_for_mainline() -> Result<(), Box<dyn std::error::Error>> {
          5.18:1854bc6e2420472676c5c90d3d6b15f6cd640e40:6.8:4ef9ad19e17676b9ef071309bc62020e2373705d\n";
 
     cmd.arg("--vulnerable=1854bc6e2420")
-        .arg("4ef9ad19e17676b9ef071309bc62020e2373705d");
+        .arg("--sha1=4ef9ad19e17676b9ef071309bc62020e2373705d");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -719,7 +719,7 @@ fn vulnerable_for_backported_commit() -> Result<(), Box<dyn std::error::Error>> 
          6.12:bf58f03931fdcf7b3c45cb76ac13244477a60f44:6.12:a6dd15981c03f2cdc9a351a278f09b5479d53d2e\n";
 
     cmd.arg("--vulnerable=bf58f03931fdcf7b3c45cb76ac13244477a60f44")
-        .arg("a6dd15981c03f2cdc9a351a278f09b5479d53d2e");
+        .arg("--sha1=a6dd15981c03f2cdc9a351a278f09b5479d53d2e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -741,10 +741,10 @@ fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.arg("-v").arg("1e18ec3e9d46")
         .arg("-v").arg("3fa58a6fbd1e")
-        .arg("81665adf25d28a00a986533f1d3a5df76b79cad9");
+        .arg("--sha1=81665adf25d28a00a986533f1d3a5df76b79cad9");
     cmd.assert()
-        .success()
-        .stdout(predicate::str::ends_with(output));
+       .success()
+       .stdout(predicate::str::ends_with(output));
 
     Ok(())
 }
@@ -760,7 +760,7 @@ fn vulnerable_for_short_id() -> Result<(), Box<dyn std::error::Error>> {
          6.7:1e18ec3e9d46e4ad2b6507c3bfc7f59e2ab449a2:6.9:81665adf25d28a00a986533f1d3a5df76b79cad9\n";
 
     cmd.arg("--vulnerable=1e18ec3e9d46")
-        .arg("81665adf25d28a00a986533f1d3a5df76b79cad9");
+        .arg("--sha1=81665adf25d28a00a986533f1d3a5df76b79cad9");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -785,7 +785,7 @@ fn multiple_fixes_same_stable_release() -> Result<(), Box<dyn std::error::Error>
          5.17.13:70674d11d14eeecad90be4b409a22b902112ba32:0:0\n\
          5.18.2:a08d942ecbf46e23a192093f6983cb1d779f4fa8:0:0\n";
 
-    cmd.arg("8ea607330a39184f51737c6ae706db7fdca7628e");
+    cmd.arg("--sha1=8ea607330a39184f51737c6ae706db7fdca7628e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -805,7 +805,7 @@ fn sort_releases_properly() -> Result<(), Box<dyn std::error::Error>> {
          0:0:6.8.3:22f665ecfd1225afa1309ace623157d12bb9bb0c\n\
          0:0:6.9:22207fd5c80177b860279653d017474b2812af5e\n";
 
-    cmd.arg("22207fd5c80177b860279653d017474b2812af5e");
+    cmd.arg("--sha1=22207fd5c80177b860279653d017474b2812af5e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -823,7 +823,7 @@ fn vulnerable_in_mainline_and_stable_same_branch() -> Result<(), Box<dyn std::er
          6.11:449d0d84bcd8246b508d07995326d13c54488b8c:6.13.3:e03db7c1255ebabba5e1a447754faeb138de15a2\n\
          6.11:449d0d84bcd8246b508d07995326d13c54488b8c:6.14:b628510397b5cafa1f5d3e848a28affd1c635302\n";
 
-    cmd.arg("b628510397b5cafa1f5d3e848a28affd1c635302");
+    cmd.arg("--sha1=b628510397b5cafa1f5d3e848a28affd1c635302");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -840,7 +840,7 @@ fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
          6.9:07fd7c329839cf0b8c7766883d830a1a0d12d1dd:6.10.10:03e2a1209a83a380df34a72f7d6d1bc6c74132c7\n\
          6.9:07fd7c329839cf0b8c7766883d830a1a0d12d1dd:6.11:4e32c25b58b945f976435bbe51f39b32d714052e\n";
 
-    cmd.arg("4e32c25b58b945f976435bbe51f39b32d714052e");
+    cmd.arg("--sha1=4e32c25b58b945f976435bbe51f39b32d714052e");
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
@@ -863,8 +863,8 @@ fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Er
          6.9:b48415afe5fd7e6f5912d4c45720217b77d8e7ea:6.12.2:776f13ad1f88485206f1dca5ef138553106950e5\n\
          6.9:b48415afe5fd7e6f5912d4c45720217b77d8e7ea:6.13:bf373d2919d98f3d1fe1b19a0304f72fe74386d9\n";
 
-    cmd.arg("258ea41c926b7b3a16d0d7aa210a1401c4a1601b")
-       .arg("bf373d2919d98f3d1fe1b19a0304f72fe74386d9")
+    cmd.arg("--sha1=258ea41c926b7b3a16d0d7aa210a1401c4a1601b")
+       .arg("--sha1=bf373d2919d98f3d1fe1b19a0304f72fe74386d9")
        .arg("-v").arg("adda6e82a7de7d6d478f6c8ef127f0ac51c510a1")
        .arg("-v").arg("b48415afe5fd7e6f5912d4c45720217b77d8e7ea");
     cmd.assert()
