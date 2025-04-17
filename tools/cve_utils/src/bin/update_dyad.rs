@@ -266,7 +266,11 @@ fn process_single_file(
             command.arg(parts[0]).arg(parts[1]);
         }
     }
-    command.arg("--sha1").arg(sha.trim());
+
+    // Split SHA values and add each as a separate --sha1 argument
+    for sha_value in sha.lines().filter(|line| !line.trim().is_empty()) {
+        command.arg("--sha1").arg(sha_value.trim());
+    }
 
     let output = command.stdout(Stdio::piped()).output()
         .context("Failed to execute dyad command")?;
