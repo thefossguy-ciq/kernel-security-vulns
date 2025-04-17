@@ -24,7 +24,7 @@
 KERNEL_TREE=${CVEKERNELTREE}
 
 if [ ! -d ${KERNEL_TREE} ]; then
-       echo "CVEERNELTREE needs setting to the stable repo directory"
+       echo "CVEKERNELTREE needs setting to the stable repo directory"
        echo "Either manually export it or add it to your .bashrc/.zshrc et al."
        echo "See HOWTO in the root of this repo"
        exit 1
