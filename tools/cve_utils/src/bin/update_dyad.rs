@@ -289,13 +289,22 @@ fn process_single_file(
         if diff_output.status.success() {
             // Files are the same, do nothing
         } else {
-            // Check if the changes are meaningful
+            // Check if the changes are meaningful (ignore comment lines)
             let diff_text = String::from_utf8_lossy(&diff_output.stdout);
-            let meaningful_change = diff_text.lines()
-                .any(|line|
-                    line.starts_with("+") || line.starts_with("-") &&
-                    !line.contains("dyad") && !line.starts_with("@@ ")
-                );
+            let meaningful_change = diff_text.lines().any(|line| {
+                // Only consider added/removed lines
+                if let Some(rest) = line.strip_prefix('+') {
+                    let rest = rest.trim_start();
+                    // Ignore added comment lines and diff metadata
+                    !rest.starts_with('#') && !line.starts_with("+++ ")
+                } else if let Some(rest) = line.strip_prefix('-') {
+                    let rest = rest.trim_start();
+                    // Ignore removed comment lines and diff metadata
+                    !rest.starts_with('#') && !line.starts_with("--- ")
+                } else {
+                    false
+                }
+            });
 
             if meaningful_change {
                 // Update the file
