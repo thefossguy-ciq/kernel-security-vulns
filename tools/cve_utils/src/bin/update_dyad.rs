@@ -245,11 +245,14 @@ fn process_single_file(
 
     // Check for vulnerable file
     let vuln_file = vulns_dir.join(format!("{}.vulnerable", root));
-    let vulnerable_option = if vuln_file.exists() {
+    let vulnerable_options = if vuln_file.exists() {
         let vulnerable_sha = fs::read_to_string(&vuln_file)?;
-        format!("--vulnerable={}", vulnerable_sha.trim())
+        // Split the vulnerable SHA string in case it contains multiple space-separated values
+        vulnerable_sha.split_whitespace()
+            .map(|sha| format!("-v {}", sha.trim()))
+            .collect::<Vec<String>>()
     } else {
-        String::new()
+        Vec::new()
     };
 
     // Create temporary file for dyad output
@@ -257,8 +260,11 @@ fn process_single_file(
 
     // Run dyad
     let mut command = Command::new(dyad_path);
-    if !vulnerable_option.is_empty() {
-        command.arg(&vulnerable_option);
+    for option in &vulnerable_options {
+        let parts: Vec<&str> = option.split_whitespace().collect();
+        if parts.len() == 2 {
+            command.arg(parts[0]).arg(parts[1]);
+        }
     }
     command.arg(sha.trim());
 

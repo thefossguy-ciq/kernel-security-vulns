@@ -43,9 +43,10 @@ struct DyadArgs {
 
     #[options(
         short = "v",
-        help = "The kernel git sha1 that this issue became vulnerable at"
+        help = "The kernel git sha1 that this issue became vulnerable at",
+        multi = "push"
     )]
-    vulnerable: Option<String>,
+    vulnerable: Vec<String>,
 }
 
 struct DyadState {
@@ -429,12 +430,7 @@ fn main() {
     }
 
     // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
-    let vuln_ids: Vec<String> = args
-        .vulnerable
-        .unwrap_or_default()
-        .split_whitespace()
-        .map(|s| s.to_string())
-        .collect();
+    let vuln_ids = args.vulnerable.clone();
     for vuln_id in vuln_ids {
         match git_full_id(&state, &vuln_id) {
             Some(id) => {

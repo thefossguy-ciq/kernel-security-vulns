@@ -402,14 +402,17 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verb
     // Add vulnerable SHA if provided
     if let Some(vuln_sha) = vulnerable_sha {
         if !vuln_sha.is_empty() {
-            command.arg("-v").arg(vuln_sha);
+            // Split the vulnerable SHA string and add each as a separate -v argument
+            for single_sha in vuln_sha.split_whitespace() {
+                command.arg("-v").arg(single_sha);
 
-            // Only print vulnerable SHA information if verbose is enabled
-            if verbose {
-                if let Ok(repo) = Repository::open(&kernel_tree) {
-                    if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
-                        if let Ok(short_sha) = get_short_sha(&repo, &obj) {
-                            println!("Using vulnerable SHA: {}", short_sha);
+                // Only print vulnerable SHA information if verbose is enabled
+                if verbose {
+                    if let Ok(repo) = Repository::open(&kernel_tree) {
+                        if let Ok(obj) = resolve_reference(&repo, single_sha) {
+                            if let Ok(short_sha) = get_short_sha(&repo, &obj) {
+                                println!("Using vulnerable SHA: {}", short_sha);
+                            }
                         }
                     }
                 }

@@ -313,7 +313,10 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
 
     // Add vulnerable option if present
     if let Some(vuln_sha) = &vulnerable_sha {
-        bippy_cmd.arg(format!("--vulnerable={}", vuln_sha));
+        // Split by whitespace in case there are multiple SHA values
+        for single_sha in vuln_sha.split_whitespace() {
+            bippy_cmd.arg(format!("--vulnerable={}", single_sha));
+        }
     }
 
     // Add diff option if present

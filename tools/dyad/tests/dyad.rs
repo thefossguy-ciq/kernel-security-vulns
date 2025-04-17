@@ -739,7 +739,8 @@ fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
          6.7:1e18ec3e9d46e4ad2b6507c3bfc7f59e2ab449a2:6.9:81665adf25d28a00a986533f1d3a5df76b79cad9\n\
          6.1.130:3fa58a6fbd1e9e5682d09cdafb08fba004cb12ec:0:0\n";
 
-    cmd.arg("--vulnerable=1e18ec3e9d46 3fa58a6fbd1e")
+    cmd.arg("-v").arg("1e18ec3e9d46")
+        .arg("-v").arg("3fa58a6fbd1e")
         .arg("81665adf25d28a00a986533f1d3a5df76b79cad9");
     cmd.assert()
         .success()
@@ -864,7 +865,8 @@ fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Er
 
     cmd.arg("258ea41c926b7b3a16d0d7aa210a1401c4a1601b")
        .arg("bf373d2919d98f3d1fe1b19a0304f72fe74386d9")
-       .arg("--vulnerable=adda6e82a7de7d6d478f6c8ef127f0ac51c510a1 b48415afe5fd7e6f5912d4c45720217b77d8e7ea");
+       .arg("-v").arg("adda6e82a7de7d6d478f6c8ef127f0ac51c510a1")
+       .arg("-v").arg("b48415afe5fd7e6f5912d4c45720217b77d8e7ea");
     cmd.assert()
        .success()
        .stdout(predicate::str::ends_with(output));
