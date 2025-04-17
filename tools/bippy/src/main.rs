@@ -378,7 +378,7 @@ fn read_uuid(script_dir: &Path) -> Result<String> {
 }
 
 /// Run the dyad script to get version range information
-fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verbose: bool) -> Result<String> {
+fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_shas: &[String], verbose: bool) -> Result<String> {
     // Ensure dyad script exists
     let dyad_script = script_dir.join("dyad");
     if !dyad_script.exists() {
@@ -399,20 +399,15 @@ fn run_dyad(script_dir: &Path, git_sha: &str, vulnerable_sha: Option<&str>, verb
     // Set environment variables
     command.env("CVEKERNELTREE", &kernel_tree);
 
-    // Add vulnerable SHA if provided
-    if let Some(vuln_sha) = vulnerable_sha {
-        if !vuln_sha.is_empty() {
-            // Split the vulnerable SHA string and add each as a separate -v argument
-            for single_sha in vuln_sha.split_whitespace() {
-                command.arg("-v").arg(single_sha);
-
-                // Only print vulnerable SHA information if verbose is enabled
-                if verbose {
-                    if let Ok(repo) = Repository::open(&kernel_tree) {
-                        if let Ok(obj) = resolve_reference(&repo, single_sha) {
-                            if let Ok(short_sha) = get_short_sha(&repo, &obj) {
-                                println!("Using vulnerable SHA: {}", short_sha);
-                            }
+    // Add each vulnerable SHA as a separate -v argument
+    for vuln_sha in vulnerable_shas {
+        if !vuln_sha.trim().is_empty() {
+            command.arg("-v").arg(vuln_sha);
+            if verbose {
+                if let Ok(repo) = Repository::open(&kernel_tree) {
+                    if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
+                        if let Ok(short_sha) = get_short_sha(&repo, &obj) {
+                            println!("Using vulnerable SHA: {}", short_sha);
                         }
                     }
                 }
@@ -470,9 +465,9 @@ struct Args {
     #[clap(short, long)]
     sha: Option<String>,
 
-    /// Git SHA of the vulnerable commit (optional)
-    #[clap(short = 'V', long)]
-    vulnerable: Option<String>,
+    /// Git SHA(s) of the vulnerable commit(s) (optional, can be specified multiple times)
+    #[clap(short = 'V', long, num_args = 1..)]
+    vulnerable: Vec<String>,
 
     /// Output JSON file path
     #[clap(short, long)]
@@ -1218,11 +1213,8 @@ fn main() -> Result<()> {
     let cve_number = args.cve.as_ref().unwrap();
     let git_sha = args.sha.as_ref().unwrap();
 
-    // Treat empty string vulnerable values as None
-    let vulnerable_sha = match args.vulnerable.as_deref() {
-        Some("") => None,
-        other => other,
-    };
+    // Use all provided vulnerable SHAs (if any)
+    let vulnerable_shas: Vec<String> = args.vulnerable.iter().filter(|s| !s.trim().is_empty()).cloned().collect();
 
     // Dig into git if the user name is not set
     let user_name = match args.name {
@@ -1245,7 +1237,7 @@ fn main() -> Result<()> {
         println!("REFERENCE_FILE={:?}", args.reference);
         println!("REF_FROM_TRAILING={:?}", reference_from_trailing);
         println!("REF_FROM_RAW_ARGS={:?}", reference_from_raw_args);
-        println!("GIT_VULNERABLE={:?}", vulnerable_sha);
+        println!("GIT_VULNERABLE={:?}", vulnerable_shas);
     }
 
     // Get vulns directory using cve_utils
@@ -1272,23 +1264,20 @@ fn main() -> Result<()> {
     let repo = Repository::open(&kernel_tree)
         .with_context(|| format!("Failed to open Git repository at {:?}", kernel_tree))?;
 
-    // Resolve Git references
+    // Resolve Git reference for the main commit
     let git_ref = resolve_reference(&repo, git_sha.as_str())
         .with_context(|| format!("Failed to resolve Git reference: {}", git_sha))?;
 
-    // Get vulnerable SHA reference if provided
-    let _vulnerable_ref = match vulnerable_sha {
-        Some(sha) => {
-            match resolve_reference(&repo, sha) {
-                Ok(reference) => Some(reference),
-                Err(err) => {
-                    eprintln!("Warning: Could not resolve vulnerable SHA reference: {}", err);
-                    None
-                }
+    // Get vulnerable SHA references if provided
+    let _vulnerable_refs: Vec<_> = vulnerable_shas.iter().filter_map(|sha| {
+        match resolve_reference(&repo, sha) {
+            Ok(reference) => Some(reference),
+            Err(err) => {
+                eprintln!("Warning: Could not resolve vulnerable SHA reference: {}", err);
+                None
             }
-        },
-        None => None,
-    };
+        }
+    }).collect();
 
     // Get SHA information
     let git_sha_full = get_object_full_sha(&repo, &git_ref)
@@ -1331,8 +1320,8 @@ fn main() -> Result<()> {
         }
     }
 
-    // Run dyad with the given SHA
-    let dyad_data = match run_dyad(&script_dir, &git_sha_full, vulnerable_sha, args.verbose) {
+    // Run dyad with the given SHA and all vulnerable SHAs
+    let dyad_data = match run_dyad(&script_dir, &git_sha_full, &vulnerable_shas, args.verbose) {
         Ok(data) => data,
         Err(err) => {
             eprintln!("Warning: Failed to run dyad: {:?}", err);

@@ -177,6 +177,19 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     fs::write(&sha1_file, &git_sha_full)
         .context(format!("Failed to create SHA1 file: {}", sha1_file.display()))?;
 
+    // Check for .vulnerable file and collect SHAs
+    let vulnerable_file = published_dir.join(format!("{}.vulnerable", cve_id));
+    let mut vulnerable_shas = Vec::new();
+    if vulnerable_file.exists() {
+        let contents = fs::read_to_string(&vulnerable_file)?;
+        for line in contents.lines() {
+            let sha = line.trim();
+            if !sha.is_empty() {
+                vulnerable_shas.push(sha.to_string());
+            }
+        }
+    }
+
     // Generate JSON and mbox files using bippy
     let json_file = published_dir.join(format!("{}.json", cve_id));
     let mbox_file = published_dir.join(format!("{}.mbox", cve_id));
@@ -189,17 +202,24 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     let bippy_path = vulns_dir.join("scripts").join("bippy");
     let bippy_path_str = bippy_path.to_string_lossy().to_string();
 
-    println!("Running bippy command:");
-    println!("  {} --verbose --cve={} --sha={} --json={} --mbox={}", 
-        bippy_path.display(), cve_id, git_sha_full, json_file.display(), mbox_file.display());
-
-    let result = Command::new(&bippy_path)
-        .arg(format!("--verbose"))
+    // Build bippy command
+    let mut bippy_cmd = Command::new(&bippy_path);
+    bippy_cmd.arg("--verbose")
         .arg(format!("--cve={}", cve_id))
         .arg(format!("--sha={}", git_sha_full))
         .arg(format!("--json={}", json_file.display()))
-        .arg(format!("--mbox={}", mbox_file.display()))
-        .status()
+        .arg(format!("--mbox={}", mbox_file.display()));
+    
+    // Add vulnerable SHAs if any
+    for sha in &vulnerable_shas {
+        bippy_cmd.arg(format!("--vulnerable={}", sha));
+    }
+
+    println!("Running bippy command:");
+    println!("  {} --verbose --cve={} --sha={} --json={} --mbox={}", 
+        bippy_path.display(), cve_id, git_sha_full, json_file.display(), mbox_file.display());
+    
+    let result = bippy_cmd.status()
         .context(format!("Failed to execute bippy: {}", bippy_path_str))?;
 
     // Handle bippy failure

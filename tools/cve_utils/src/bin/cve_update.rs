@@ -271,14 +271,17 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
 
     // Check for .vulnerable file
     let vulnerable_file = sha1_file.with_extension("vulnerable");
-    let vulnerable_sha = if vulnerable_file.exists() {
-        Some(fs::read_to_string(&vulnerable_file)
-            .context(format!("Failed to read vulnerable file: {}", vulnerable_file.display()))?
-            .trim()
-            .to_string())
-    } else {
-        None
-    };
+    let mut vulnerable_shas = Vec::new();
+    if vulnerable_file.exists() {
+        let contents = fs::read_to_string(&vulnerable_file)
+            .context(format!("Failed to read vulnerable file: {}", vulnerable_file.display()))?;
+        for line in contents.lines() {
+            let sha = line.trim();
+            if !sha.is_empty() {
+                vulnerable_shas.push(sha.to_string());
+            }
+        }
+    }
 
     // Check for .diff file
     let diff_file = sha1_file.with_extension("diff");
@@ -312,11 +315,8 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
         .arg(format!("--mbox={}", tmp_mbox.path().display()));
 
     // Add vulnerable option if present
-    if let Some(vuln_sha) = &vulnerable_sha {
-        // Split by whitespace in case there are multiple SHA values
-        for single_sha in vuln_sha.split_whitespace() {
-            bippy_cmd.arg(format!("--vulnerable={}", single_sha));
-        }
+    for sha in &vulnerable_shas {
+        bippy_cmd.arg(format!("--vulnerable={}", sha));
     }
 
     // Add diff option if present
