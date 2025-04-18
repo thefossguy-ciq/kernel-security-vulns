@@ -83,10 +83,11 @@ fn main() -> Result<()> {
     // Process CVEs based on input
     match &args.cve_id_or_year {
         None => {
-            // Process all years
+            // Process all years, in sorted order
             let published_dir = vulns_dir.join("cve").join("published");
-            for entry in fs::read_dir(&published_dir)? {
-                let entry = entry?;
+            let mut years: Vec<_> = fs::read_dir(&published_dir).unwrap().map(|r| r.unwrap()).collect();
+            years.sort_by_key(|dir| dir.path());
+            for entry in years {
                 if entry.file_type()?.is_dir() {
                     let year = entry.file_name().to_string_lossy().to_string();
                     if year.chars().all(|c| c.is_ascii_digit()) {
