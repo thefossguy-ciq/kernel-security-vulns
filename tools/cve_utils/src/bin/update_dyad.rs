@@ -185,9 +185,9 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> 
     let progress_bar = ProgressBar::new(total_count as u64);
     progress_bar.set_style(
         ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {wide_bar:.cyan/blue} {pos:>}/{len} ({percent}%) {eta} {msg}")
+            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({percent}%)")
             .unwrap()
-            .progress_chars("█▉▊▋▌▍▎▏ ")
+            .progress_chars("#>-")
     );
     progress_bar.set_message(format!("Year {}", year));
 
