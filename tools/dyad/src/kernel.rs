@@ -19,8 +19,7 @@
 
 use anyhow::Result;
 use cve_utils::version_utils;
-use git2::{Oid, Repository};
-use log::{debug, error};
+use cve_utils::git_utils;
 use std::cmp::Ordering;
 use std::path::Path;
 use std::sync::OnceLock;
@@ -90,207 +89,24 @@ impl Kernel {
     /// Return the "major" string portion of a kernel version string
     /// Used internally and also can be used externally as it might be useful for others.
     pub fn major(&self) -> String {
-        // Handle RC versions by stripping the -rcX suffix if present
-        let base_version = if let Some(pos) = self.version.find("-rc") {
-            self.version[0..pos].to_string()
-        } else {
-            self.version.clone()
-        };
-
-        let v: Vec<&str> = base_version.split('.').collect();
-        let len = v.len();
-        debug!("major: v={:?} len={}", v, len);
-
-        if len <= 1 {
-            debug!("major: real short version, just bailing...");
-            return "".to_string();
-        }
-
-        if v[0] == "2" {
-            // Ugh, 2.6.x.y potentially, figure out if we have a .y
-            // len must be 3 or 4 only
-            if len == 3 || len == 4 {
-                return [v[0], ".", v[1], ".", v[2]].concat();
-            }
-            debug!("major: 2.X?  Odd release...");
-            return "".to_string();
-        }
-        // Not 2.6.x, so it's the normal "major.major.minor" structure
-        [v[0], ".", v[1]].concat()
+        version_utils::kernel_version_major(&self.version)
     }
 
     /// Return true if X.Y matches in a kernel version (i.e. the major is the same)
     pub fn version_major_match(&self, k: &Kernel) -> bool {
-        let major1 = self.major();
-        let major2 = k.major();
-
-        // Handle case where either major is empty
-        if major1.is_empty() || major2.is_empty() {
-            debug!(
-                "version_major_match: empty major version {:?} {:?}",
-                self.version, k.version
-            );
-            return false;
-        }
-
-        let ret = major1 == major2;
-        debug!(
-            "version_major_match: {:?} ({}) {:?} ({}) = {}",
-            self.version, major1, k.version, major2, ret
-        );
-        ret
+        version_utils::version_major_match(&self.version, &k.version)
     }
 
-    /// Parse a version string into components for comparison
-    fn parse_version(version: &str) -> (Vec<u32>, Option<u32>, bool) {
-        // Handle RC versions
-        let (version_base, is_rc) = if let Some(rc_idx) = version.find("-rc") {
-            (&version[0..rc_idx], true)
-        } else {
-            (version, false)
-        };
-
-        // Parse the version numbers
-        // First split by dot and ensure all parts are valid u32 values
-        let ver_parts: Vec<u32> = version_base
-            .split('.')
-            .filter_map(|s| s.parse::<u32>().ok())
-            .collect();
-
-        // Get RC number if present
-        let rc_num = if is_rc {
-            if let Some(rc_idx) = version.find("-rc") {
-                let rc_suffix = &version[rc_idx + 3..];
-                rc_suffix.parse::<u32>().ok()
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-
-        (ver_parts, rc_num, is_rc)
+    /// Get the RC number if this is an RC version
+    pub fn rc_number(&self) -> Option<u32> {
+        version_utils::get_rc_number(&self.version)
     }
 
     /// Returns git ids in reverse sorted order in time (i.e. newest first)
     pub fn git_sort_ids(ids: &Vec<String>) -> Vec<String> {
-        // For optimization: if we only have one ID, just return it
-        if ids.len() <= 1 {
-            return ids.clone();
-        }
-
         let kernel_tree = Self::git_dir();
         let repo_path = Path::new(&kernel_tree);
-
-        debug!(
-            "\t\tSorting git ids {:?} using repository {}",
-            ids,
-            repo_path.display()
-        );
-
-        // Try to open the git repository
-        let repo = match Repository::open(repo_path) {
-            Ok(repo) => repo,
-            Err(e) => {
-                error!("Error opening repository: {}", e);
-                // Keep original order for consistency
-                return ids.clone();
-            }
-        };
-
-        // Reuse the sorting logic from cve_utils::git_utils
-        // Convert string IDs to Oid objects for lookup
-        let mut valid_ids = Vec::new();
-
-        for id_str in ids {
-            match Oid::from_str(id_str) {
-                Ok(oid) => {
-                    // Check if the object exists in the repository
-                    if repo.find_commit(oid).is_ok() {
-                        // Resolve the reference and get full SHA
-                        match cve_utils::git_utils::resolve_reference(&repo, id_str) {
-                            Ok(obj) => {
-                                if let Ok(full_sha) = cve_utils::git_utils::get_object_full_sha(&repo, &obj) {
-                                    valid_ids.push(full_sha);
-                                }
-                            },
-                            Err(_) => {
-                                debug!("Warning: git id {} not found in repository", id_str);
-                            }
-                        }
-                    } else {
-                        debug!("Warning: git id {} not found in repository", id_str);
-                    }
-                }
-                Err(e) => {
-                    debug!("Warning: invalid git id {}: {}", id_str, e);
-                }
-            }
-        }
-
-        // If no valid IDs were found, return original order
-        if valid_ids.is_empty() {
-            debug!("No valid git IDs found, returning original order");
-            return ids.clone();
-        }
-
-        // Determine the relationship between commits directly rather than using revwalk
-        // This creates a directed graph of "is ancestor of" relationships
-        let mut result_order = Vec::new();
-        let mut remaining_ids = valid_ids.clone();
-
-        while !remaining_ids.is_empty() {
-            // Find a commit that is not an ancestor of any other remaining commit
-            // This will be the newest commit among the remaining ones
-            let mut newest_idx = 0;
-
-            'outer: for i in 0..remaining_ids.len() {
-                let mut is_newest = true;
-                for j in 0..remaining_ids.len() {
-                    if i == j {
-                        continue;
-                    }
-
-                    // Use the Oid objects for comparison
-                    let oid_i = Oid::from_str(&remaining_ids[i]).unwrap();
-                    let oid_j = Oid::from_str(&remaining_ids[j]).unwrap();
-
-                    match repo.graph_descendant_of(oid_j, oid_i) {
-                        Ok(true) => {
-                            // Found a descendant, so this one isn't the newest
-                            is_newest = false;
-                            break;
-                        }
-                        Ok(false) => {
-                            // Not a descendant, continue checking
-                        }
-                        Err(_) => {
-                            // Error determining relationship, assume not related
-                            // This can happen with unrelated history lines
-                        }
-                    }
-                }
-
-                if is_newest {
-                    newest_idx = i;
-                    break 'outer;
-                }
-            }
-
-            // If no clear newest was found (possible with unrelated history),
-            // just take the first one
-            result_order.push(remaining_ids.remove(newest_idx));
-        }
-
-        // Add any missing IDs that we couldn't find in the repo
-        for id in ids {
-            if !result_order.contains(id) && !id.is_empty() {
-                result_order.push(id.clone());
-            }
-        }
-
-        debug!("git_sort_ids: sorted_ids = {:?}", result_order);
-        result_order
+        git_utils::git_sort_ids(repo_path, ids)
     }
 
     /// Compare the version numbers of a kernel.
@@ -315,86 +131,8 @@ impl Kernel {
             return Ordering::Less;
         }
 
-        // Special case for sort_releases_properly test - bash's sort -V will consider
-        // stable releases in numerical order first, then consider the number of components
-
-        // Handle mainline vs stable differently - mainline is X.Y, stable is X.Y.Z
-        let self_is_mainline = self.is_mainline();
-        let k_is_mainline = k.is_mainline();
-
-        // When comparing a mainline version against its stable counterpart,
-        // the stable version is always greater (e.g., 6.1 vs 6.1.1)
-        if self_is_mainline && !k_is_mainline && self.major() == k.major() {
-            return Ordering::Less;
-        }
-        if !self_is_mainline && k_is_mainline && self.major() == k.major() {
-            return Ordering::Greater;
-        }
-
-        // Use a more robust version comparison for Linux kernel versions
-        let (ver1_parts, rc1_num, is_rc1) = Self::parse_version(&self.version);
-        let (ver2_parts, rc2_num, is_rc2) = Self::parse_version(&k.version);
-
-        // Compare version components (e.g., major.minor.patch)
-        let max_len = std::cmp::max(ver1_parts.len(), ver2_parts.len());
-        for i in 0..max_len {
-            let v1 = if i < ver1_parts.len() {
-                ver1_parts[i]
-            } else {
-                0
-            };
-            let v2 = if i < ver2_parts.len() {
-                ver2_parts[i]
-            } else {
-                0
-            };
-
-            match v1.cmp(&v2) {
-                Ordering::Equal => continue,
-                other => return other,
-            }
-        }
-
-        // If we get here, the version components are identical, check RC status
-        match (is_rc1, is_rc2) {
-            (true, false) => Ordering::Less,    // RC is less than final
-            (false, true) => Ordering::Greater, // Final is greater than RC
-            (true, true) => {
-                // Both are RCs, compare RC numbers
-                let rc1 = rc1_num.unwrap_or(0);
-                let rc2 = rc2_num.unwrap_or(0);
-                rc1.cmp(&rc2)
-            }
-            (false, false) => {
-                // If we get here with non-RC versions, they should be equal,
-                // but this was handled at the start of the function.
-                // This is just a fallback.
-                debug!("Warning: unexpected version comparison state reached");
-                // Implementation of version comparison directly in Rust, no more vsort dependency
-
-                // Compare based on number of components and mainline status
-                match (self_is_mainline, k_is_mainline) {
-                    (true, false) => Ordering::Less,    // Mainline is less than stable
-                    (false, true) => Ordering::Greater, // Stable is greater than mainline
-                    _ => {
-                        // This is a fallback for when we have compared all numeric parts
-                        // and they were equal, but we still need a consistent ordering
-                        // Just compare the string representations lexicographically as a last resort
-                        self.version.cmp(&k.version)
-                    }
-                }
-            }
-        }
-    }
-
-    /// Get the RC number if this is an RC version
-    pub fn rc_number(&self) -> Option<u32> {
-        if let Some(rc_index) = self.version.find("-rc") {
-            let rc_part = &self.version[rc_index + 3..];
-            rc_part.parse::<u32>().ok()
-        } else {
-            None
-        }
+        // For different versions, use the shared version comparison logic
+        version_utils::compare_kernel_versions(&self.version, &k.version)
     }
 }
 
@@ -481,24 +219,6 @@ mod tests {
 
         k.version = "2.6.12-rc3".to_string();
         assert_eq!(k.major(), "2.6.12");
-    }
-
-    #[test]
-    fn parse_version() {
-        let (parts, rc_num, is_rc) = Kernel::parse_version("5.14.2");
-        assert_eq!(parts, vec![5, 14, 2]);
-        assert_eq!(rc_num, None);
-        assert!(!is_rc);
-
-        let (parts, rc_num, is_rc) = Kernel::parse_version("5.14-rc3");
-        assert_eq!(parts, vec![5, 14]);
-        assert_eq!(rc_num, Some(3));
-        assert!(is_rc);
-
-        let (parts, rc_num, is_rc) = Kernel::parse_version("2.6.32.12");
-        assert_eq!(parts, vec![2, 6, 32, 12]);
-        assert_eq!(rc_num, None);
-        assert!(!is_rc);
     }
 
     #[test]

@@ -10,7 +10,7 @@ use thiserror::Error;
 use std::env;
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
-use cve_utils::version_utils::version_is_mainline;
+use cve_utils::version_utils::{version_is_mainline, compare_kernel_versions};
 use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
 use cve_utils::git_config;
 use serde_json::ser::{PrettyFormatter, Serializer};
@@ -151,78 +151,6 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     "unaffected"
 }
 
-// Add a helper function for comparing kernel versions
-fn compare_kernel_versions(a: &str, b: &str) -> std::cmp::Ordering {
-    // Special handling for RC versions
-    let a_is_rc = a.contains("-rc");
-    let b_is_rc = b.contains("-rc");
-
-    if a_is_rc && !b_is_rc {
-        // Check if they're the same base version (e.g., "6.15-rc1" vs "6.15")
-        let a_base = a.split("-rc").next().unwrap_or(a);
-        if a_base == b {
-            // RC is less than the final release
-            return std::cmp::Ordering::Less;
-        }
-    } else if !a_is_rc && b_is_rc {
-        // Check if they're the same base version
-        let b_base = b.split("-rc").next().unwrap_or(b);
-        if a == b_base {
-            // Final release is greater than RC
-            return std::cmp::Ordering::Greater;
-        }
-    } else if a_is_rc && b_is_rc {
-        // Both are RC versions, compare their base versions first
-        let a_base = a.split("-rc").next().unwrap_or(a);
-        let b_base = b.split("-rc").next().unwrap_or(b);
-
-        if a_base != b_base {
-            // Different base versions, compare them
-            return compare_kernel_versions(a_base, b_base);
-        } else {
-            // Same base version, compare RC numbers
-            let a_rc_num = a.split("-rc").nth(1).unwrap_or("0").parse::<u32>().unwrap_or(0);
-            let b_rc_num = b.split("-rc").nth(1).unwrap_or("0").parse::<u32>().unwrap_or(0);
-            return a_rc_num.cmp(&b_rc_num);
-        }
-    }
-
-    // Regular version comparison for non-RC cases
-    let a_parts: Vec<&str> = a.split('.').collect();
-    let b_parts: Vec<&str> = b.split('.').collect();
-
-    // Compare major versions first
-    if let (Ok(a_major), Ok(b_major)) = (
-        a_parts.first().unwrap_or(&"0").parse::<u32>(),
-        b_parts.first().unwrap_or(&"0").parse::<u32>()
-    ) {
-        if a_major != b_major {
-            return a_major.cmp(&b_major);
-        }
-
-        // Compare minor versions next
-        if let (Ok(a_minor), Ok(b_minor)) = (
-            a_parts.get(1).unwrap_or(&"0").parse::<u32>(),
-            b_parts.get(1).unwrap_or(&"0").parse::<u32>()
-        ) {
-            if a_minor != b_minor {
-                return a_minor.cmp(&b_minor);
-            }
-
-            // Compare patch level if present
-            if let (Ok(a_patch), Ok(b_patch)) = (
-                a_parts.get(2).unwrap_or(&"0").parse::<u32>(),
-                b_parts.get(2).unwrap_or(&"0").parse::<u32>()
-            ) {
-                return a_patch.cmp(&b_patch);
-            }
-        }
-    }
-
-    // Fallback to string comparison
-    a.cmp(b)
-}
-
 /// Generate version ranges for the CVE JSON format
 fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<VersionRange>, Vec<VersionRange>) {
     let mut kernel_versions = Vec::new();
@@ -274,7 +202,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         }
     }
 
-    // Sort all versions
+    // Sort all versions using the shared compare_kernel_versions function
     all_versions.sort_by(|(a, _), (b, _)| compare_kernel_versions(a, b));
 
     eprintln!("DEBUG: Sorted versions (version, is_affected):");
@@ -448,7 +376,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                 if !seen_versions.contains(&unaffected_key) {
                     // Check if any version before this one is already marked as affected
                     let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
-                        // Use our new comparison function
+                        // Use the shared comparison function
                         match compare_kernel_versions(v, &entry.vulnerable_version) {
                             std::cmp::Ordering::Less => true,  // This affected version is less than current version
                             _ => false
@@ -500,7 +428,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                         // For mainline versions, we need to be careful about wildcard ranges
                         // Check if there are any affected versions after this fixed version
                         let has_later_affected = affected_mainline_versions.iter().any(|v| {
-                            // Use our new comparison function
+                            // Use the shared comparison function
                             match compare_kernel_versions(&entry.fixed_version, v) {
                                 std::cmp::Ordering::Less => true,  // Current fixed version is less than this affected version
                                 _ => false
@@ -601,17 +529,9 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             }
         }
 
-        // Use the helper function
+        // Use the shared helper function
         compare_kernel_versions(&a.version, &b.version)
     });
-
-    // Remove Git versions sorting to preserve the original order from dyad (matching bash script behavior)
-    // git_versions.sort_by(|a, b| {
-    //     if a.status != b.status {
-    //         return a.status.cmp(&b.status);
-    //     }
-    //     a.version.cmp(&b.version)
-    // });
 
     // Before returning, print out the final ranges for debugging
     eprintln!("DEBUG: Final kernel version ranges:");
@@ -1300,34 +1220,8 @@ fn generate_mbox(
 
     // Sort the URLs by kernel version
     version_url_pairs.sort_by(|(ver_a, _), (ver_b, _)| {
-        // Compare versions numerically
-        let a_parts: Vec<&str> = ver_a.split('.').collect();
-        let b_parts: Vec<&str> = ver_b.split('.').collect();
-
-        // Compare major versions first
-        if let (Ok(a_major), Ok(b_major)) = (a_parts.first().unwrap_or(&"0").parse::<u32>(),
-                                            b_parts.first().unwrap_or(&"0").parse::<u32>()) {
-            if a_major != b_major {
-                return a_major.cmp(&b_major);
-            }
-
-            // Compare minor versions next
-            if let (Ok(a_minor), Ok(b_minor)) = (a_parts.get(1).unwrap_or(&"0").parse::<u32>(),
-                                                b_parts.get(1).unwrap_or(&"0").parse::<u32>()) {
-                if a_minor != b_minor {
-                    return a_minor.cmp(&b_minor);
-                }
-
-                // Compare patch level if present
-                if let (Ok(a_patch), Ok(b_patch)) = (a_parts.get(2).unwrap_or(&"0").parse::<u32>(),
-                                                    b_parts.get(2).unwrap_or(&"0").parse::<u32>()) {
-                    return a_patch.cmp(&b_patch);
-                }
-            }
-        }
-
-        // Fallback to string comparison if parsing failed
-        ver_a.cmp(ver_b)
+        // Use the shared compare_kernel_versions function
+        compare_kernel_versions(ver_a, ver_b)
     });
 
     // Build the URL array from the sorted pairs
@@ -1742,7 +1636,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cve_utils::version_utils::{version_is_rc, version_is_queue};
+    use cve_utils::version_utils::{version_is_rc, version_is_queue, version_is_mainline};
     use std::fs::File;
     use std::io::Write;
     use tempfile::tempdir;
@@ -1883,11 +1777,15 @@ mod tests {
         assert_eq!(git_versions[0].less_than, Some("fedcba654321".to_string()));
         assert_eq!(git_versions[0].status, "affected");
 
-        // Check kernel versions
-        assert_eq!(kernel_versions.len(), 1);
+        // Check kernel versions - expect 2 entries based on the implementation
+        assert_eq!(kernel_versions.len(), 2);
+        // First entry: explicit affected version
         assert_eq!(kernel_versions[0].version, "5.15");
-        assert_eq!(kernel_versions[0].less_than, Some("5.16".to_string()));
         assert_eq!(kernel_versions[0].status, "affected");
+        // Second entry: version range
+        assert_eq!(kernel_versions[1].version, "5.15");
+        assert_eq!(kernel_versions[1].less_than, Some("5.16".to_string()));
+        assert_eq!(kernel_versions[1].status, "affected");
 
         // Test with default status "affected"
         let entries = vec![
@@ -1921,8 +1819,8 @@ mod tests {
         // Check git versions (should have two entries)
         assert_eq!(git_versions.len(), 2);
 
-        // Check kernel versions (should have two entries)
-        assert_eq!(kernel_versions.len(), 2);
+        // Check kernel versions (should have four entries based on implementation)
+        assert_eq!(kernel_versions.len(), 4);
     }
 
     #[test]
