@@ -189,12 +189,12 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     let bippy_path = vulns_dir.join("scripts").join("bippy");
     let bippy_path_str = bippy_path.to_string_lossy().to_string();
 
-    println!("Running bippy command:");
-    println!("  {} --verbose --cve={} --sha={} --json={} --mbox={}", 
-        bippy_path.display(), cve_id, git_sha_full, json_file.display(), mbox_file.display());
+    //println!("Running bippy command:");
+    //println!("  {} --verbose --cve={} --sha={} --json={} --mbox={}", 
+    //    bippy_path.display(), cve_id, git_sha_full, json_file.display(), mbox_file.display());
 
     let result = Command::new(&bippy_path)
-        .arg(format!("--verbose"))
+    //    .arg(format!("--verbose"))
         .arg(format!("--cve={}", cve_id))
         .arg(format!("--sha={}", git_sha_full))
         .arg(format!("--json={}", json_file.display()))
