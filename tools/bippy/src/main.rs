@@ -625,11 +625,38 @@ struct Generator {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct CpeMatch {
+    vulnerable: String,
+    // critera is always going to be: "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*"
+    criteria: String,
+    #[serde(rename = "versionStartIncluding")]
+    version_start_including: String,
+    #[serde(rename = "versionEndExcluding")]
+    version_end_excluding: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CpeNodes {
+    operator: String,
+    negate: String,
+    #[serde(rename = "cpeMatch")]
+    cpe_match: Vec<CpeMatch>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CpeApplicability {
+    nodes: Vec<CpeNodes>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct CnaData {
     #[serde(rename = "providerMetadata")]
     provider_metadata: ProviderMetadata,
     descriptions: Vec<Description>,
     affected: Vec<AffectedProduct>,
+    #[serde(rename = "cpeApplicability")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    cpe_applicability: Vec<CpeApplicability>,
     references: Vec<Reference>,
     title: String,
     #[serde(rename = "x_generator")]
@@ -815,6 +842,7 @@ fn generate_json_record(
                     value: truncated_description,
                 }],
                 affected: vec![git_product, kernel_product],
+                cpe_applicability: vec![],  // FIXME
                 references,
                 title: commit_subject.to_string(),
                 x_generator: Generator {
