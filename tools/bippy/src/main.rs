@@ -151,11 +151,256 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     "unaffected"
 }
 
+// Add a helper function for comparing kernel versions
+fn compare_kernel_versions(a: &str, b: &str) -> std::cmp::Ordering {
+    // Special handling for RC versions
+    let a_is_rc = a.contains("-rc");
+    let b_is_rc = b.contains("-rc");
+
+    if a_is_rc && !b_is_rc {
+        // Check if they're the same base version (e.g., "6.15-rc1" vs "6.15")
+        let a_base = a.split("-rc").next().unwrap_or(a);
+        if a_base == b {
+            // RC is less than the final release
+            return std::cmp::Ordering::Less;
+        }
+    } else if !a_is_rc && b_is_rc {
+        // Check if they're the same base version
+        let b_base = b.split("-rc").next().unwrap_or(b);
+        if a == b_base {
+            // Final release is greater than RC
+            return std::cmp::Ordering::Greater;
+        }
+    } else if a_is_rc && b_is_rc {
+        // Both are RC versions, compare their base versions first
+        let a_base = a.split("-rc").next().unwrap_or(a);
+        let b_base = b.split("-rc").next().unwrap_or(b);
+
+        if a_base != b_base {
+            // Different base versions, compare them
+            return compare_kernel_versions(a_base, b_base);
+        } else {
+            // Same base version, compare RC numbers
+            let a_rc_num = a.split("-rc").nth(1).unwrap_or("0").parse::<u32>().unwrap_or(0);
+            let b_rc_num = b.split("-rc").nth(1).unwrap_or("0").parse::<u32>().unwrap_or(0);
+            return a_rc_num.cmp(&b_rc_num);
+        }
+    }
+
+    // Regular version comparison for non-RC cases
+    let a_parts: Vec<&str> = a.split('.').collect();
+    let b_parts: Vec<&str> = b.split('.').collect();
+
+    // Compare major versions first
+    if let (Ok(a_major), Ok(b_major)) = (
+        a_parts.first().unwrap_or(&"0").parse::<u32>(),
+        b_parts.first().unwrap_or(&"0").parse::<u32>()
+    ) {
+        if a_major != b_major {
+            return a_major.cmp(&b_major);
+        }
+
+        // Compare minor versions next
+        if let (Ok(a_minor), Ok(b_minor)) = (
+            a_parts.get(1).unwrap_or(&"0").parse::<u32>(),
+            b_parts.get(1).unwrap_or(&"0").parse::<u32>()
+        ) {
+            if a_minor != b_minor {
+                return a_minor.cmp(&b_minor);
+            }
+
+            // Compare patch level if present
+            if let (Ok(a_patch), Ok(b_patch)) = (
+                a_parts.get(2).unwrap_or(&"0").parse::<u32>(),
+                b_parts.get(2).unwrap_or(&"0").parse::<u32>()
+            ) {
+                return a_patch.cmp(&b_patch);
+            }
+        }
+    }
+
+    // Fallback to string comparison
+    a.cmp(b)
+}
+
 /// Generate version ranges for the CVE JSON format
 fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<VersionRange>, Vec<VersionRange>) {
     let mut kernel_versions = Vec::new();
     let mut git_versions = Vec::new();
     let mut seen_versions = HashSet::new();
+    let mut affected_mainline_versions = HashSet::new();
+    let mut fixed_mainline_versions = HashSet::new();
+
+    // Add debugging output for the dyad entries we're processing
+    eprintln!("DEBUG: Processing {} dyad entries with default_status={}", entries.len(), default_status);
+    for (i, entry) in entries.iter().enumerate() {
+        eprintln!("DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
+            i, entry.vulnerable_version, entry.vulnerable_git(),
+            entry.fixed_version, entry.fixed_git());
+    }
+
+    // First pass: Collect all affected and fixed mainline versions
+    for entry in entries {
+        // Skip entries where the vulnerability is in the same version it was fixed
+        // These versions are not actually affected in any released version
+        if entry.vulnerable_version == entry.fixed_version {
+            eprintln!("DEBUG: Skipping version {} as it was fixed in the same version", entry.vulnerable_version);
+            continue;
+        }
+
+        if entry.vulnerable_version != "0" && version_is_mainline(&entry.vulnerable_version) {
+            affected_mainline_versions.insert(entry.vulnerable_version.clone());
+            eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable_version);
+        }
+        if entry.fixed_version != "0" && version_is_mainline(&entry.fixed_version) {
+            fixed_mainline_versions.insert(entry.fixed_version.clone());
+            eprintln!("DEBUG: Adding fixed version: {}", entry.fixed_version);
+        }
+    }
+
+    // Get all versions we know about and sort them
+    let mut all_versions: Vec<(String, bool)> = Vec::new(); // (version, is_affected)
+
+    // Add all affected versions
+    for v in &affected_mainline_versions {
+        all_versions.push((v.clone(), true));
+    }
+
+    // Add all fixed versions
+    for v in &fixed_mainline_versions {
+        // Only add if not already in the list as affected
+        if !affected_mainline_versions.contains(v) {
+            all_versions.push((v.clone(), false));
+        }
+    }
+
+    // Sort all versions
+    all_versions.sort_by(|(a, _), (b, _)| compare_kernel_versions(a, b));
+
+    eprintln!("DEBUG: Sorted versions (version, is_affected):");
+    for (v, affected) in &all_versions {
+        eprintln!("DEBUG:   {} => {}", v, if *affected { "affected" } else { "unaffected" });
+    }
+
+    if !all_versions.is_empty() {
+        // Process each version and add to kernel_versions if not already seen
+        for (version, is_affected) in all_versions.iter() {
+            // Don't add individual unaffected mainline versions - they'll be added later with range information
+            if !is_affected && version_is_mainline(version) {
+                eprintln!("DEBUG: Skipping individual unaffected mainline version {} - will be added with range info later", version);
+                continue;
+            }
+
+            let status = if *is_affected { "affected" } else { "unaffected" };
+
+            // Skip versions that match the default status (redundant)
+            // EXCEPT for affected versions, which we always include for clarity
+            if status == default_status && !is_affected {
+                eprintln!("DEBUG: Skipping explicit version {} (matches default status '{}')", version, default_status);
+                continue;
+            }
+
+            let ver_key = format!("kernel:{}:{}:::", status, version);
+            if !seen_versions.contains(&ver_key) {
+                seen_versions.insert(ver_key);
+                kernel_versions.push(VersionRange {
+                    version: version.clone(),
+                    less_than: None,
+                    less_than_or_equal: None,
+                    status: status.to_string(),
+                    version_type: None,
+                });
+                eprintln!("DEBUG: Added explicit version: {} => {}", version, status);
+            }
+        }
+
+        // Now infer statuses for intermediate versions
+        // This is for versions that fall between our known points
+        for i in 0..all_versions.len() - 1 {
+            let (current_version, current_affected) = &all_versions[i];
+            let (next_version, next_affected) = &all_versions[i + 1];
+
+            eprintln!("DEBUG: Checking for intermediate versions between {} ({}) and {} ({})",
+                current_version, if *current_affected { "affected" } else { "unaffected" },
+                next_version, if *next_affected { "affected" } else { "unaffected" });
+
+            // Check if they're in the same major version
+            let current_parts: Vec<&str> = current_version.split('.').collect();
+            let next_parts: Vec<&str> = next_version.split('.').collect();
+
+            if let (Ok(current_major), Ok(next_major), Ok(current_minor), Ok(next_minor)) = (
+                current_parts.first().unwrap_or(&"0").parse::<u32>(),
+                next_parts.first().unwrap_or(&"0").parse::<u32>(),
+                current_parts.get(1).unwrap_or(&"0").parse::<u32>(),
+                next_parts.get(1).unwrap_or(&"0").parse::<u32>()
+            ) {
+                eprintln!("DEBUG: Parsed version components: {}.{} and {}.{}",
+                    current_major, current_minor, next_major, next_minor);
+
+                // Only process if they're in the same major version and there's a gap
+                if current_major == next_major && next_minor - current_minor > 1 {
+                    eprintln!("DEBUG: Found gap of {} versions", next_minor - current_minor - 1);
+
+                    // Process each intermediate version
+                    for minor in (current_minor + 1)..next_minor {
+                        let intermediate_version = format!("{}.{}", current_major, minor);
+
+                        // Determine status based on surrounding versions
+                        let status = match (*current_affected, *next_affected) {
+                            (true, true) => "affected",    // Both surrounding versions affected
+                            (false, true) => "affected",   // Current fixed, next affected - intermediate is likely affected
+                            (true, false) => {
+                                // Current affected, next fixed
+                                // If we're processing consecutive versions, the last affected version
+                                // should be the highest version that is affected, so we don't need to
+                                // explicitly add intermediate versions as affected - they'll be covered by default
+                                // Prevent redundant entries if default status is already "affected"
+                                if default_status == "affected" {
+                                    // Skip explicit entry by using default status
+                                    eprintln!("DEBUG: Setting status to default_status to skip redundant entry");
+                                    default_status
+                                } else {
+                                    "affected"  // Only add explicit entries if default is not affected
+                                }
+                            },
+                            (false, false) => "unaffected", // Both surrounding versions fixed
+                        };
+
+                        eprintln!("DEBUG: Inferring intermediate version {} => {}", intermediate_version, status);
+
+                        // Explicitly check if the status equals the default_status string value
+                        let is_default = status == default_status;
+                        eprintln!("DEBUG: Status '{}' is {} to default '{}'",
+                                  status, if is_default { "equal" } else { "not equal" }, default_status);
+
+                        // Only add intermediate version if its status differs from the default status
+                        // This prevents adding redundant entries
+                        if !is_default {
+                            let ver_key = format!("kernel:{}:{}:::", status, intermediate_version);
+                            if !seen_versions.contains(&ver_key) {
+                                seen_versions.insert(ver_key);
+                                kernel_versions.push(VersionRange {
+                                    version: intermediate_version.clone(),
+                                    less_than: None,
+                                    less_than_or_equal: None,
+                                    status: status.to_string(),
+                                    version_type: None,
+                                });
+                                eprintln!("DEBUG: Added intermediate version: {} => {}", intermediate_version, status);
+                            }
+                        } else {
+                            eprintln!("DEBUG: Skipping redundant intermediate version {} (matches default status '{}')",
+                                      intermediate_version, default_status);
+                        }
+                    }
+                } else {
+                    eprintln!("DEBUG: No gap found or different major versions");
+                }
+            } else {
+                eprintln!("DEBUG: Failed to parse version components");
+            }
+        }
+    }
 
     for entry in entries {
         // Handle git version ranges
@@ -197,23 +442,20 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
 
         // Handle kernel version ranges
         if default_status == "affected" {
+            // Only add versions before affected as unaffected if no other versions before this are affected
             if entry.vulnerable_version != "0" && version_is_mainline(&entry.vulnerable_version) {
-                let ver_key = format!("kernel:affected:{}:::", entry.vulnerable_version);
-                if !seen_versions.contains(&ver_key) {
-                    seen_versions.insert(ver_key);
-
-                    // Add the mainline affected version
-                    kernel_versions.push(VersionRange {
-                        version: entry.vulnerable_version.clone(),
-                        less_than: None,
-                        less_than_or_equal: None,
-                        status: "affected".to_string(),
-                        version_type: None,
+                let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable_version);
+                if !seen_versions.contains(&unaffected_key) {
+                    // Check if any version before this one is already marked as affected
+                    let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
+                        // Use our new comparison function
+                        match compare_kernel_versions(v, &entry.vulnerable_version) {
+                            std::cmp::Ordering::Less => true,  // This affected version is less than current version
+                            _ => false
+                        }
                     });
 
-                    // Add versions before affected as unaffected
-                    let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable_version);
-                    if !seen_versions.contains(&unaffected_key) {
+                    if is_safe_to_mark_unaffected {
                         seen_versions.insert(unaffected_key);
                         kernel_versions.push(VersionRange {
                             version: "0".to_string(),
@@ -255,14 +497,67 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                             version_type: Some("semver".to_string()),
                         });
                     } else {
-                        // For mainline versions
-                        kernel_versions.push(VersionRange {
-                            version: entry.fixed_version.clone(),
-                            less_than: None,
-                            less_than_or_equal: Some("*".to_string()),
-                            status: "unaffected".to_string(),
-                            version_type: Some("original_commit_for_fix".to_string()),
+                        // For mainline versions, we need to be careful about wildcard ranges
+                        // Check if there are any affected versions after this fixed version
+                        let has_later_affected = affected_mainline_versions.iter().any(|v| {
+                            // Use our new comparison function
+                            match compare_kernel_versions(&entry.fixed_version, v) {
+                                std::cmp::Ordering::Less => true,  // Current fixed version is less than this affected version
+                                _ => false
+                            }
                         });
+
+                        // Handle RC versions as mainline versions
+                        let is_rc_version = entry.fixed_version.contains("-rc");
+
+                        if has_later_affected && !is_rc_version {
+                            // If there's a later affected version, we need to be precise
+                            // Find the next version that's affected
+                            let mut next_affected_version: Option<String> = None;
+
+                            for v in &affected_mainline_versions {
+                                if compare_kernel_versions(&entry.fixed_version, v) == std::cmp::Ordering::Less {
+                                    // v is later than entry.fixed_version
+                                    if let Some(ref candidate) = next_affected_version {
+                                        if compare_kernel_versions(candidate, v) == std::cmp::Ordering::Greater {
+                                            next_affected_version = Some(v.clone());
+                                        }
+                                    } else {
+                                        // No candidate yet, set this as the first candidate
+                                        next_affected_version = Some(v.clone());
+                                    }
+                                }
+                            }
+
+                            if let Some(next_version) = next_affected_version {
+                                // Add a range for versions between the fixed version and the next affected version
+                                kernel_versions.push(VersionRange {
+                                    version: entry.fixed_version.clone(),
+                                    less_than: Some(next_version),
+                                    less_than_or_equal: None,
+                                    status: "unaffected".to_string(),
+                                    version_type: Some("semver".to_string()),
+                                });
+                            } else {
+                                // Fallback - should not normally happen
+                                kernel_versions.push(VersionRange {
+                                    version: entry.fixed_version.clone(),
+                                    less_than: None,
+                                    less_than_or_equal: None,
+                                    status: "unaffected".to_string(),
+                                    version_type: Some("original_commit_for_fix".to_string()),
+                                });
+                            }
+                        } else {
+                            // No later affected versions or this is an RC version, so we can use the original_commit_for_fix entry
+                            kernel_versions.push(VersionRange {
+                                version: entry.fixed_version.clone(),
+                                less_than: None,
+                                less_than_or_equal: Some("*".to_string()),
+                                status: "unaffected".to_string(),
+                                version_type: Some("original_commit_for_fix".to_string()),
+                            });
+                        }
                     }
                 }
             }
@@ -306,35 +601,8 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             }
         }
 
-        // Compare versions numerically
-        // First try to parse as kernel versions (x.y.z)
-        let a_parts: Vec<&str> = a.version.split('.').collect();
-        let b_parts: Vec<&str> = b.version.split('.').collect();
-
-        // Compare major versions first
-        if let (Ok(a_major), Ok(b_major)) = (a_parts.first().unwrap_or(&"0").parse::<u32>(),
-                                            b_parts.first().unwrap_or(&"0").parse::<u32>()) {
-            if a_major != b_major {
-                return a_major.cmp(&b_major);
-            }
-
-            // Compare minor versions next
-            if let (Ok(a_minor), Ok(b_minor)) = (a_parts.get(1).unwrap_or(&"0").parse::<u32>(),
-                                                b_parts.get(1).unwrap_or(&"0").parse::<u32>()) {
-                if a_minor != b_minor {
-                    return a_minor.cmp(&b_minor);
-                }
-
-                // Compare patch level if present
-                if let (Ok(a_patch), Ok(b_patch)) = (a_parts.get(2).unwrap_or(&"0").parse::<u32>(),
-                                                    b_parts.get(2).unwrap_or(&"0").parse::<u32>()) {
-                    return a_patch.cmp(&b_patch);
-                }
-            }
-        }
-
-        // Fallback to string comparison if parsing failed
-        a.version.cmp(&b.version)
+        // Use the helper function
+        compare_kernel_versions(&a.version, &b.version)
     });
 
     // Remove Git versions sorting to preserve the original order from dyad (matching bash script behavior)
@@ -344,6 +612,18 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
     //     }
     //     a.version.cmp(&b.version)
     // });
+
+    // Before returning, print out the final ranges for debugging
+    eprintln!("DEBUG: Final kernel version ranges:");
+    for v in &kernel_versions {
+        let range_desc = match (&v.less_than, &v.less_than_or_equal) {
+            (Some(lt), None) => format!(" < {}", lt),
+            (None, Some(lte)) => format!(" <= {}", lte),
+            (Some(lt), Some(lte)) => format!(" < {} OR <= {}", lt, lte),
+            (None, None) => "".to_string(),
+        };
+        eprintln!("DEBUG:   {} ({}){}", v.version, v.status, range_desc);
+    }
 
     (kernel_versions, git_versions)
 }
