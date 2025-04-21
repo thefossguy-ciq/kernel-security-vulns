@@ -18,8 +18,9 @@
 //!
 
 use anyhow::Result;
-use cve_utils::version_utils;
-use cve_utils::git_utils;
+use crate::common;
+use crate::version_utils;
+use crate::git_utils;
 use std::cmp::Ordering;
 use std::path::Path;
 use std::sync::OnceLock;
@@ -79,7 +80,7 @@ impl Kernel {
     fn git_dir() -> &'static String {
         GIT_DIR.get_or_init(|| {
             // Use cve_utils to get and validate the kernel tree path
-            match cve_utils::common::get_kernel_tree() {
+            match common::get_kernel_tree() {
                 Ok(path) => path.to_string_lossy().into_owned(),
                 Err(e) => panic!("Failed to get kernel tree: {}", e),
             }
@@ -166,7 +167,7 @@ pub struct KernelPair {
 mod tests {
     use crate::Kernel;
     use std::cmp::Ordering;
-    use cve_utils::version_utils;
+    use crate::version_utils;
 
     // Helper function to ALWAYS allocate a kernel object for testing.
     // Not generally a good idea to do (allocation can fail if you provide

@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
+pub mod kernel;
+
 use anyhow::{anyhow, Result, Context};
 use std::env;
 use std::fs;
@@ -33,6 +35,8 @@ pub use self::year_utils::{is_valid_year, is_year_dir_exists};
 pub use self::version_utils::{version_is_rc, version_is_queue, version_is_mainline,
                               parse_kernel_version, compare_kernel_versions, kernel_version_major,
                               get_rc_number, version_major_match};
+// Kernel structures
+pub use self::kernel::{Kernel, KernelPair};
 
 /// Common functionality shared across all CVE utilities
 pub mod common {

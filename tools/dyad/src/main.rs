@@ -22,10 +22,8 @@ use std::fs;
 use std::path::Path;
 extern crate cve_utils;
 use cve_utils::version_utils;
-
-pub mod kernel;
-use kernel::Kernel;
-use kernel::KernelPair;
+use cve_utils::Kernel;
+use cve_utils::KernelPair;
 
 // Using more specific error types directly instead of a custom error enum
 
