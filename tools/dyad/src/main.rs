@@ -14,7 +14,6 @@
 use colored::Colorize;
 use gumdrop::Options;
 use log::{debug, error};
-use rusqlite::{Result};
 use std::cmp::Ordering;
 use std::env;
 use std::fs;
@@ -55,7 +54,7 @@ struct DyadArgs {
 
 struct DyadState {
     kernel_tree: String,
-    verhaal_db: String,
+    verhaal: Verhaal,
     vulnerable_sha: Vec<String>,
     git_sha_full: Vec<String>,
     fixed_set: Vec<Kernel>,
@@ -63,12 +62,40 @@ struct DyadState {
 }
 
 impl DyadState {
+    fn verhaal_database_file() -> String {
+        let database_file: String;
+
+        // Find the path to the verhaal.db database file using vulns dir
+        let vulns_dir = match cve_utils::find_vulns_dir() {
+            Ok(dir) => dir,
+            Err(e) => panic!("Could not find vulns directory: {}", e),
+        };
+
+        let verhaal_db_path = vulns_dir.join("tools").join("verhaal").join("verhaal.db");
+        match fs::exists(&verhaal_db_path) {
+            Ok(true) => database_file = verhaal_db_path.to_string_lossy().into_owned(),
+            Ok(false) => panic!(
+                "The verhaal database 'verhaal.db' is not found at expected path: {}",
+                verhaal_db_path.display()
+            ),
+            Err(e) => {
+                panic!("Error {e}: Something went wrong trying to lookup the path for 'verhaal.db'")
+            }
+        }
+        database_file
+    }
+
     pub fn new() -> Self {
+        let verhaal = match Verhaal::new(Self::verhaal_database_file()) {
+            Ok(verhaal) => verhaal,
+            Err(error) => panic!("Can not open the database file {:?}", error),
+        };
+
         Self {
             // Init with some "blank" default, the command line and
             // environment variables will override them
             kernel_tree: String::new(),
-            verhaal_db: String::new(),
+            verhaal: verhaal,
             vulnerable_sha: vec![],
             git_sha_full: vec![],
             fixed_set: vec![],
@@ -84,25 +111,6 @@ fn validate_env_vars(state: &mut DyadState) {
         Err(e) => panic!("Failed to get kernel tree: {}", e),
     };
     debug!("kernel_tree = {}", state.kernel_tree);
-
-    // Find the path to the verhaal.db database file using vulns dir
-    let vulns_dir = match cve_utils::common::find_vulns_dir() {
-        Ok(dir) => dir,
-        Err(e) => panic!("Could not find vulns directory: {}", e),
-    };
-
-    let verhaal_db_path = vulns_dir.join("tools").join("verhaal").join("verhaal.db");
-    match fs::exists(&verhaal_db_path) {
-        Ok(true) => state.verhaal_db = verhaal_db_path.to_string_lossy().into_owned(),
-        Ok(false) => panic!(
-            "The verhaal database 'verhaal.db' is not found at expected path: {}",
-            verhaal_db_path.display()
-        ),
-        Err(e) => {
-            panic!("Error {e}: Something went wrong trying to lookup the path for 'verhaal.db'")
-        }
-    }
-    debug!("verhaal.db = {}", state.verhaal_db);
 }
 
 fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String) {
@@ -150,41 +158,7 @@ fn git_full_id(state: &DyadState, git_sha: &String) -> Option<String> {
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
 /// and stable kernel releases, if any.
 fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
-    let verhaal = match Verhaal::new(state.verhaal_db.clone()) {
-        Ok(v) => v,
-        Err(_) => return vec![],
-    };
-
-    return verhaal.found_in(git_sha, &state.fixed_set);
-}
-
-fn get_version(state: &DyadState, git_sha: &String) -> Result<String> {
-    let verhaal = Verhaal::new(state.verhaal_db.clone())?;
-
-    return verhaal.get_version(git_sha);
-}
-
-/// Returns a vector of kernels that are fixes for this specific git id as listed in the database.
-/// All kernels returned are actual commits, they are validated before returned as the database can
-/// contain "bad" data for fixes lines.
-/// If an error happened, or there are no fixes, an "empty" vector is returned.
-fn get_fixes(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
-    let verhaal = match Verhaal::new(state.verhaal_db.clone()) {
-        Ok(v) => v,
-        Err(_) => return vec![],
-    };
-
-    return verhaal.get_fixes(git_sha);
-}
-
-//
-// Returns a sha for the revert if present
-// If no revert is found, "" is returned, NOT an error, to make code flow easier.
-// Errors are only returned if something went wrong with the sql stuff
-fn get_revert(state: &DyadState, git_sha: &String) -> Result<String> {
-    let verhaal = Verhaal::new(state.verhaal_db.clone())?;
-
-    return verhaal.get_revert(git_sha);
+    return state.verhaal.found_in(git_sha, &state.fixed_set);
 }
 
 fn main() {
@@ -319,7 +293,7 @@ fn main() {
         // We are asked to set the original vulnerable kernel to be a specific
         // one, or many, so no need to look it up.
         for id in &state.vulnerable_sha {
-            let version = get_version(&state, id);
+            let version = state.verhaal.get_version(id);
             let version = match version {
                 Ok(version) => version,
                 Err(error) => panic!("Can not read the version from the db, error {:?}", error),
@@ -343,7 +317,7 @@ fn main() {
         // Only try to derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
         for git_sha in &state.git_sha_full {
             // Get the list of all valid "Fixes:" entries for this commit
-            let fix_ids = get_fixes(&state, git_sha);
+            let fix_ids = state.verhaal.get_fixes(git_sha);
             if !fix_ids.is_empty() {
                 for fix_id in fix_ids {
                     // Find all places this fix commit was backported to
@@ -371,13 +345,13 @@ fn main() {
                 }
             } else {
                 // No fixes found, check if this is a revert commit
-                let revert_result = get_revert(&state, git_sha);
+                let revert_result = state.verhaal.get_revert(git_sha);
                 match revert_result {
                     Ok(revert) => {
                         debug!("Revert: '{}'", revert);
                         if !revert.is_empty() {
                             debug!("{} is a revert of {}", git_sha, revert.clone());
-                            if let Ok(version) = get_version(&state, &revert) {
+                            if let Ok(version) = state.verhaal.get_version(&revert) {
                                 let mainline = version_utils::version_is_mainline(&version);
                                 debug!("R\t{:<12}{}\t{}", version, revert, mainline);
 
