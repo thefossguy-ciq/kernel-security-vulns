@@ -4,37 +4,40 @@
 
 pub mod kernel;
 
-use anyhow::{anyhow, Result, Context};
+use anyhow::{anyhow, Context, Result};
+use git2::{Oid, Repository};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
-use git2::{Repository, Oid};
 
 // Re-export specific functions from submodules for easier access
 // Common utilities for finding and working with CVE data
-pub use self::common::{get_kernel_tree, get_cve_root, find_vulns_dir,
-                      find_cve_by_sha, find_sha_by_cve, verify_commit, get_full_git_sha};
+pub use self::common::{
+    find_cve_by_sha, find_sha_by_cve, find_vulns_dir, get_cve_root, get_full_git_sha,
+    get_kernel_tree, verify_commit,
+};
 // Git repository operations using the git2 library
-pub use self::git_utils::{get_full_sha, get_commit_details, get_commit_year,
-                         get_modified_files, match_pattern, print_git_error_details,
-                         get_commit_message, get_commit_oneline, get_short_sha,
-                         resolve_reference, get_affected_files, get_object_full_sha,
-                         git_sort_ids};
+pub use self::git_utils::{
+    get_affected_files, get_commit_details, get_commit_message, get_commit_oneline,
+    get_commit_year, get_full_sha, get_modified_files, get_object_full_sha, get_short_sha,
+    git_sort_ids, match_pattern, print_git_error_details, resolve_reference,
+};
 // CVE file operations
 pub use self::cve_utils::{extract_cve_id_from_path, find_next_free_cve_id};
 // Git configuration utilities
 pub use self::git_config::{get_git_config, set_git_config};
 // CVE validation and processing
-pub use self::cve_validation::{is_valid_cve, year_from_cve, extract_year_from_cve, find_cve_id};
+pub use self::cve_validation::{extract_year_from_cve, find_cve_id, is_valid_cve, year_from_cve};
 // Command execution utilities
-pub use self::cmd_utils::{run_command};
+pub use self::cmd_utils::run_command;
 // Year-based utilities
 pub use self::year_utils::{is_valid_year, is_year_dir_exists};
 // Version utilities
-pub use self::version_utils::{version_is_rc, version_is_queue, version_is_mainline,
-                              parse_kernel_version, compare_kernel_versions, kernel_version_major,
-                              get_rc_number, version_major_match};
+pub use self::version_utils::{
+    compare_kernel_versions, get_rc_number, kernel_version_major, parse_kernel_version,
+    version_is_mainline, version_is_queue, version_is_rc, version_major_match,
+};
 // Kernel structures
 pub use self::kernel::{Kernel, KernelPair};
 
@@ -52,7 +55,10 @@ pub mod common {
 
         let kernel_tree_path = PathBuf::from(&kernel_tree);
         if !kernel_tree_path.is_dir() {
-            return Err(anyhow!("CVEKERNELTREE directory does not exist: {}", kernel_tree));
+            return Err(anyhow!(
+                "CVEKERNELTREE directory does not exist: {}",
+                kernel_tree
+            ));
         }
 
         Ok(kernel_tree_path)
@@ -106,7 +112,9 @@ pub mod common {
             }
         }
 
-        Err(anyhow!("Could not find vulns directory. Please run from within the vulns directory."))
+        Err(anyhow!(
+            "Could not find vulns directory. Please run from within the vulns directory."
+        ))
     }
 
     /// Gets the root CVE directory path
@@ -119,8 +127,7 @@ pub mod common {
     ///
     /// Returns true if the commit exists, false otherwise
     pub fn verify_commit(kernel_tree: &Path, sha: &str) -> Result<bool> {
-        let repo = Repository::open(kernel_tree)
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
         // Check if the commit hash is valid format
         let oid = match Oid::from_str(sha) {
@@ -149,11 +156,9 @@ pub mod common {
 
         // Try prefix lookup with git2's revparse functionality
         match repo.revparse_single(&format!("{}^{{commit}}", sha)) {
-            Ok(object) => {
-                match repo.find_commit(object.id()) {
-                    Ok(commit) => Some(commit.id().to_string()),
-                    Err(_) => None,
-                }
+            Ok(object) => match repo.find_commit(object.id()) {
+                Ok(commit) => Some(commit.id().to_string()),
+                Err(_) => None,
             },
             Err(_) => None,
         }
@@ -175,7 +180,13 @@ pub mod common {
                 let path = entry.path();
 
                 // Only check .sha1 files
-                if path.is_file() && path.file_name().unwrap().to_string_lossy().ends_with(".sha1") {
+                if path.is_file()
+                    && path
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .ends_with(".sha1")
+                {
                     if let Ok(content) = fs::read_to_string(path) {
                         // Match either exact SHA or if it starts with the provided partial SHA
                         if content.trim() == sha || content.trim().starts_with(sha) {
@@ -202,7 +213,9 @@ pub mod common {
             let path = entry.path();
 
             // Skip reserved and testing directories
-            if path.to_string_lossy().contains("reserved") || path.to_string_lossy().contains("testing") {
+            if path.to_string_lossy().contains("reserved")
+                || path.to_string_lossy().contains("testing")
+            {
                 continue;
             }
 
@@ -224,11 +237,11 @@ pub mod common {
 
 /// Git repository operations commonly used across CVE tools
 pub mod git_utils {
-    use std::path::{Path, PathBuf};
-    use git2::{Repository, StatusOptions, Status, Object, ObjectType, Oid};
-    use anyhow::{Context, Result, anyhow};
+    use anyhow::{anyhow, Context, Result};
     use chrono::DateTime;
+    use git2::{Object, ObjectType, Oid, Repository, Status, StatusOptions};
     use log::{debug, error};
+    use std::path::{Path, PathBuf};
 
     /// Gets the full SHA from a partial SHA
     ///
@@ -236,13 +249,14 @@ pub mod git_utils {
     /// The function accepts a kernel tree path and a partial SHA, and returns
     /// the complete 40-character git commit hash if found.
     pub fn get_full_sha(kernel_tree: &Path, git_sha: &str) -> Result<String> {
-        let repo = Repository::open(kernel_tree)
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
-        let object = repo.revparse_single(&format!("{}^{{commit}}", git_sha))
+        let object = repo
+            .revparse_single(&format!("{}^{{commit}}", git_sha))
             .context(format!("Git SHA '{}' not found in kernel tree", git_sha))?;
 
-        let commit = repo.find_commit(object.id())
+        let commit = repo
+            .find_commit(object.id())
             .context("Found object is not a commit")?;
 
         Ok(commit.id().to_string())
@@ -272,7 +286,11 @@ pub mod git_utils {
         let object = match repo.revparse_single(reference) {
             Ok(obj) => obj,
             Err(e) => {
-                return Err(anyhow!("Failed to resolve reference '{}': {}", reference, e));
+                return Err(anyhow!(
+                    "Failed to resolve reference '{}': {}",
+                    reference,
+                    e
+                ));
             }
         };
 
@@ -324,7 +342,7 @@ pub mod git_utils {
                                 if let Ok(full_sha) = get_object_full_sha(&repo, &obj) {
                                     valid_ids.push(full_sha);
                                 }
-                            },
+                            }
                             Err(_) => {
                                 debug!("Warning: git id {} not found in repository", id_str);
                             }
@@ -408,7 +426,8 @@ pub mod git_utils {
     ///
     /// Used by bippy and other tools to find affected files
     pub fn get_affected_files<'a>(repo: &'a Repository, obj: &Object<'a>) -> Result<Vec<String>> {
-        let commit = repo.find_commit(obj.id())
+        let commit = repo
+            .find_commit(obj.id())
             .context("Failed to find commit")?;
 
         // If it's the first commit, we can't get a diff with its parent
@@ -420,7 +439,8 @@ pub mod git_utils {
         let parent_tree = parent.tree().context("Failed to get parent tree")?;
         let commit_tree = commit.tree().context("Failed to get commit tree")?;
 
-        let diff = repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)
+        let diff = repo
+            .diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)
             .context("Failed to get diff")?;
 
         let mut affected_files = Vec::new();
@@ -434,7 +454,8 @@ pub mod git_utils {
             None,
             None,
             None,
-        ).context("Failed to process diff")?;
+        )
+        .context("Failed to process diff")?;
 
         Ok(affected_files)
     }
@@ -445,13 +466,13 @@ pub mod git_utils {
     /// of 'git show --no-patch --format=%h %s'.
     /// Returns a string containing the short SHA and commit subject.
     pub fn get_commit_details(kernel_tree: &Path, git_sha: &str) -> Result<String> {
-        let repo = Repository::open(kernel_tree)
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
-        let oid = git2::Oid::from_str(git_sha)
-            .context(format!("Invalid Git SHA format: {}", git_sha))?;
+        let oid =
+            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {}", git_sha))?;
 
-        let commit = repo.find_commit(oid)
+        let commit = repo
+            .find_commit(oid)
             .context(format!("Commit not found: {}", git_sha))?;
 
         // Format similar to `git show --no-patch --format=%h %s`
@@ -473,13 +494,13 @@ pub mod git_utils {
     /// # Returns
     /// The year of the commit as a string (e.g., "2023")
     pub fn get_commit_year(kernel_tree: &Path, git_sha: &str) -> Result<String> {
-        let repo = Repository::open(kernel_tree)
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
-        let oid = git2::Oid::from_str(git_sha)
-            .context(format!("Invalid Git SHA format: {}", git_sha))?;
+        let oid =
+            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {}", git_sha))?;
 
-        let commit = repo.find_commit(oid)
+        let commit = repo
+            .find_commit(oid)
             .context(format!("Commit not found: {}", git_sha))?;
 
         let time = commit.time();
@@ -517,13 +538,13 @@ pub mod git_utils {
     /// Searches the current git repository for modified files that match any of the
     /// provided patterns.
     pub fn get_modified_files(patterns: &[&str]) -> Result<Vec<PathBuf>> {
-        let repo = Repository::open(".")
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(".").context("Failed to open git repository")?;
 
         let mut options = StatusOptions::new();
         options.include_untracked(true);
 
-        let statuses = repo.statuses(Some(&mut options))
+        let statuses = repo
+            .statuses(Some(&mut options))
             .context("Failed to get git status")?;
 
         let mut modified_files = Vec::new();
@@ -568,13 +589,12 @@ pub mod git_utils {
     /// # Returns
     /// The full commit message as a string
     pub fn get_commit_message(sha: &str) -> Result<String> {
-        let repo = Repository::open(".")
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(".").context("Failed to open git repository")?;
 
-        let oid = git2::Oid::from_str(sha)
-            .context(format!("Invalid Git SHA format: {}", sha))?;
+        let oid = git2::Oid::from_str(sha).context(format!("Invalid Git SHA format: {}", sha))?;
 
-        let commit = repo.find_commit(oid)
+        let commit = repo
+            .find_commit(oid)
             .context(format!("Commit not found: {}", sha))?;
 
         // Get the full commit message
@@ -594,13 +614,12 @@ pub mod git_utils {
     /// # Returns
     /// A one-line summary in the format "short_sha summary"
     pub fn get_commit_oneline(sha: &str) -> Result<String> {
-        let repo = Repository::open(".")
-            .context("Failed to open git repository")?;
+        let repo = Repository::open(".").context("Failed to open git repository")?;
 
-        let oid = git2::Oid::from_str(sha)
-            .context(format!("Invalid Git SHA format: {}", sha))?;
+        let oid = git2::Oid::from_str(sha).context(format!("Invalid Git SHA format: {}", sha))?;
 
-        let commit = repo.find_commit(oid)
+        let commit = repo
+            .find_commit(oid)
             .context(format!("Commit not found: {}", sha))?;
 
         // Format similar to `git show --no-patch --oneline`
@@ -613,9 +632,9 @@ pub mod git_utils {
 
 /// CVE file operations commonly used across tools
 pub mod cve_utils {
-    use std::path::Path;
-    use std::fs;
     use anyhow::{anyhow, Context, Result};
+    use std::fs;
+    use std::path::Path;
 
     /// Extracts a CVE ID from a file path
     ///
@@ -681,10 +700,12 @@ pub mod cve_utils {
             let cve_part = &path_str[start..];
             if let Some(end) = cve_part.find(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
                 let candidate = &cve_part[..end];
-                if candidate.len() >= 13 && candidate.starts_with("CVE-") &&
-                   candidate[4..8].chars().all(|c| c.is_ascii_digit()) &&
-                   candidate[8..9] == *"-" &&
-                   candidate[9..].chars().all(|c| c.is_ascii_digit()) {
+                if candidate.len() >= 13
+                    && candidate.starts_with("CVE-")
+                    && candidate[4..8].chars().all(|c| c.is_ascii_digit())
+                    && candidate[8..9] == *"-"
+                    && candidate[9..].chars().all(|c| c.is_ascii_digit())
+                {
                     return Ok(candidate.to_string());
                 }
             } else {
@@ -692,7 +713,10 @@ pub mod cve_utils {
             }
         }
 
-        Err(anyhow!("Could not extract CVE ID from path: {}", path.display()))
+        Err(anyhow!(
+            "Could not extract CVE ID from path: {}",
+            path.display()
+        ))
     }
 
     /// Finds the next free CVE ID in a reserved directory
@@ -701,12 +725,17 @@ pub mod cve_utils {
     /// indicates an available CVE ID.
     pub fn find_next_free_cve_id(reserved_dir: &Path) -> Result<String> {
         if !reserved_dir.exists() {
-            return Err(anyhow!("Reserved directory does not exist: {}", reserved_dir.display()));
+            return Err(anyhow!(
+                "Reserved directory does not exist: {}",
+                reserved_dir.display()
+            ));
         }
 
         // Get all reserved CVE IDs
-        let entries = fs::read_dir(reserved_dir)
-            .context(format!("Failed to read reserved directory: {}", reserved_dir.display()))?;
+        let entries = fs::read_dir(reserved_dir).context(format!(
+            "Failed to read reserved directory: {}",
+            reserved_dir.display()
+        ))?;
 
         // Find the first available CVE ID (empty file)
         for entry in entries {
@@ -714,7 +743,8 @@ pub mod cve_utils {
             let path = entry.path();
 
             if path.is_file() {
-                let file_name = path.file_name()
+                let file_name = path
+                    .file_name()
                     .ok_or_else(|| anyhow!("Invalid file path: {}", path.display()))?
                     .to_string_lossy();
 
@@ -745,7 +775,8 @@ pub mod git_config {
     /// Gets a value from git configuration
     pub fn get_git_config(key: &str) -> Result<String> {
         let config = Config::open_default().context("Failed to open git config")?;
-        let value = config.get_string(key)
+        let value = config
+            .get_string(key)
             .map_err(|_| anyhow!("Git config value '{}' not found", key))?;
         Ok(value)
     }
@@ -753,7 +784,9 @@ pub mod git_config {
     /// Sets a value in git configuration
     pub fn set_git_config(key: &str, value: &str) -> Result<()> {
         let mut config = Config::open_default().context("Failed to open git config")?;
-        config.set_str(key, value).context("Failed to set git config value")?;
+        config
+            .set_str(key, value)
+            .context("Failed to set git config value")?;
         Ok(())
     }
 }
@@ -762,8 +795,8 @@ pub mod git_config {
 pub mod cve_validation {
     use super::*;
     use anyhow::{anyhow, Result};
-    use std::path::{Path, PathBuf};
     use regex::Regex;
+    use std::path::{Path, PathBuf};
     use walkdir::WalkDir;
 
     /// Extracts the year from a CVE ID
@@ -796,7 +829,8 @@ pub mod cve_validation {
     /// Extracts year from CVE ID using regex
     pub fn extract_year_from_cve(cve_id: &str) -> Option<String> {
         let re = Regex::new(r"(?i)CVE-(\d{4})-\d+").ok()?;
-        re.captures(cve_id).and_then(|caps| caps.get(1).map(|m| m.as_str().to_string()))
+        re.captures(cve_id)
+            .and_then(|caps| caps.get(1).map(|m| m.as_str().to_string()))
     }
 
     /// Finds a CVE ID by name in the CVE directory structure
@@ -813,13 +847,19 @@ pub mod cve_validation {
         // Try building path based on CVE year
         if let Some(year) = extract_year_from_cve(cve_id) {
             // First priority: Check published directory
-            let published_path = cve_root.join("published").join(&year).join(format!("{}.sha1", cve_id));
+            let published_path = cve_root
+                .join("published")
+                .join(&year)
+                .join(format!("{}.sha1", cve_id));
             if published_path.exists() {
                 return Ok(Some(published_path));
             }
 
             // Second priority: Check rejected directory
-            let rejected_path = cve_root.join("rejected").join(&year).join(format!("{}.sha1", cve_id));
+            let rejected_path = cve_root
+                .join("rejected")
+                .join(&year)
+                .join(format!("{}.sha1", cve_id));
             if rejected_path.exists() {
                 return Ok(Some(rejected_path));
             }
@@ -828,7 +868,11 @@ pub mod cve_validation {
         // Fallback: Search for the specific CVE ID in the entire cve directory
         for entry in WalkDir::new(&cve_root).into_iter().filter_map(Result::ok) {
             let path = entry.path();
-            if path.is_file() && path.file_stem().is_some_and(|s| s.to_string_lossy() == cve_id) {
+            if path.is_file()
+                && path
+                    .file_stem()
+                    .is_some_and(|s| s.to_string_lossy() == cve_id)
+            {
                 return Ok(Some(path.to_path_buf()));
             }
         }
@@ -839,8 +883,8 @@ pub mod cve_validation {
 
 /// Command execution utilities
 pub mod cmd_utils {
-    use std::process::Command;
     use anyhow::{anyhow, Context, Result};
+    use std::process::Command;
 
     /// Runs a command and returns its output as a string
     ///
@@ -848,11 +892,7 @@ pub mod cmd_utils {
     /// * `cmd` - The command to run
     /// * `args` - Arguments to pass to the command
     /// * `cwd` - Optional working directory
-    pub fn run_command(
-        cmd: &str,
-        args: &[&str],
-        cwd: Option<&str>
-    ) -> Result<String> {
+    pub fn run_command(cmd: &str, args: &[&str], cwd: Option<&str>) -> Result<String> {
         let mut command = Command::new(cmd);
         command.args(args);
 
@@ -860,11 +900,18 @@ pub mod cmd_utils {
             command.current_dir(dir);
         }
 
-        let output = command.output().context(format!("Failed to execute: {} {:?}", cmd, args))?;
+        let output = command
+            .output()
+            .context(format!("Failed to execute: {} {:?}", cmd, args))?;
 
         if !output.status.success() {
             let error = String::from_utf8_lossy(&output.stderr);
-            return Err(anyhow!("Command failed: {} {:?}\nError: {}", cmd, args, error));
+            return Err(anyhow!(
+                "Command failed: {} {:?}\nError: {}",
+                cmd,
+                args,
+                error
+            ));
         }
 
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
@@ -874,8 +921,8 @@ pub mod cmd_utils {
 /// Year utilities for CVE management
 pub mod year_utils {
     use anyhow::Result;
-    use std::path::Path;
     use chrono::Datelike;
+    use std::path::Path;
 
     /// Checks if a string is a valid year (4 digits, reasonable range)
     ///
@@ -902,9 +949,9 @@ pub mod year_utils {
 
 /// Version utilities for kernel version management
 pub mod version_utils {
+    use anyhow::Result;
     use std::cmp::Ordering;
     use std::str::FromStr;
-    use anyhow::Result;
 
     /// Represents a parsed Linux kernel version
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -921,8 +968,18 @@ pub mod version_utils {
 
     impl KernelVersion {
         /// Creates a new KernelVersion from parsed components
-        pub fn new(components: Vec<u32>, rc_num: Option<u32>, is_queue: bool, is_rc_by_name: bool) -> Self {
-            Self { components, rc_num, is_queue, is_rc_by_name }
+        pub fn new(
+            components: Vec<u32>,
+            rc_num: Option<u32>,
+            is_queue: bool,
+            is_rc_by_name: bool,
+        ) -> Self {
+            Self {
+                components,
+                rc_num,
+                is_queue,
+                is_rc_by_name,
+            }
         }
 
         /// Returns whether this is a release candidate version
@@ -954,8 +1011,10 @@ pub mod version_utils {
             }
 
             // Check for 2.6.x and 2.4.x special cases
-            if self.components.len() >= 3 && self.components[0] == 2 &&
-               (self.components[1] == 6 || self.components[1] == 4) {
+            if self.components.len() >= 3
+                && self.components[0] == 2
+                && (self.components[1] == 6 || self.components[1] == 4)
+            {
                 return self.components.len() == 3;
             }
 
@@ -984,9 +1043,9 @@ pub mod version_utils {
 
         /// Checks if the major version matches another kernel version
         pub fn major_matches(&self, other: &KernelVersion) -> bool {
-            !self.major_version().is_empty() &&
-            !other.major_version().is_empty() &&
-            self.major_version() == other.major_version()
+            !self.major_version().is_empty()
+                && !other.major_version().is_empty()
+                && self.major_version() == other.major_version()
         }
     }
 
@@ -1005,10 +1064,10 @@ pub mod version_utils {
                 let rc_number = if rc_idx + 3 < version.len() {
                     match version[rc_idx + 3..].parse::<u32>() {
                         Ok(num) => Some(num),
-                        Err(_) => None  // Invalid RC format like "rcx" should return None
+                        Err(_) => None, // Invalid RC format like "rcx" should return None
                     }
                 } else {
-                    Some(0)  // Just "-rc" without number
+                    Some(0) // Just "-rc" without number
                 };
 
                 (base, rc_number)
@@ -1022,7 +1081,12 @@ pub mod version_utils {
                 .filter_map(|s| s.parse::<u32>().ok())
                 .collect();
 
-            Ok(KernelVersion::new(components, rc_num, is_queue, is_rc_by_name))
+            Ok(KernelVersion::new(
+                components,
+                rc_num,
+                is_queue,
+                is_rc_by_name,
+            ))
         }
     }
 
@@ -1075,27 +1139,38 @@ pub mod version_utils {
 
     /// Check if a kernel version is a release candidate (ends with -rc)
     pub fn version_is_rc(version: &str) -> bool {
-        KernelVersion::from_str(version).map(|v| v.is_rc()).unwrap_or(false)
+        KernelVersion::from_str(version)
+            .map(|v| v.is_rc())
+            .unwrap_or(false)
     }
 
     /// Check if a kernel version is a queue (ends with -queue)
     pub fn version_is_queue(version: &str) -> bool {
-        KernelVersion::from_str(version).map(|v| v.is_queue()).unwrap_or(false)
+        KernelVersion::from_str(version)
+            .map(|v| v.is_queue())
+            .unwrap_or(false)
     }
 
     /// Check if a version is a mainline kernel version
     pub fn version_is_mainline(version: &str) -> bool {
-        KernelVersion::from_str(version).map(|v| v.is_mainline()).unwrap_or(false)
+        KernelVersion::from_str(version)
+            .map(|v| v.is_mainline())
+            .unwrap_or(false)
     }
 
     /// Extract the "major" portion of a kernel version string
     pub fn kernel_version_major(version: &str) -> String {
-        KernelVersion::from_str(version).map(|v| v.major_version()).unwrap_or_default()
+        KernelVersion::from_str(version)
+            .map(|v| v.major_version())
+            .unwrap_or_default()
     }
 
     /// Check if the major version components of two kernel versions match
     pub fn version_major_match(version1: &str, version2: &str) -> bool {
-        match (KernelVersion::from_str(version1), KernelVersion::from_str(version2)) {
+        match (
+            KernelVersion::from_str(version1),
+            KernelVersion::from_str(version2),
+        ) {
             (Ok(v1), Ok(v2)) => v1.major_matches(&v2),
             _ => false,
         }
@@ -1113,7 +1188,10 @@ pub mod version_utils {
             return Ordering::Equal;
         }
 
-        match (KernelVersion::from_str(version1), KernelVersion::from_str(version2)) {
+        match (
+            KernelVersion::from_str(version1),
+            KernelVersion::from_str(version2),
+        ) {
             (Ok(v1), Ok(v2)) => v1.cmp(&v2),
             _ => version1.cmp(version2), // Fallback to string comparison
         }
@@ -1147,7 +1225,10 @@ mod tests {
 
         let vulns_dir = result.unwrap();
         assert!(vulns_dir.ends_with("vulns"), "Path should end with 'vulns'");
-        assert!(vulns_dir.join("cve").exists(), "cve directory should exist in vulns dir");
+        assert!(
+            vulns_dir.join("cve").exists(),
+            "cve directory should exist in vulns dir"
+        );
     }
 
     #[test]
@@ -1157,7 +1238,10 @@ mod tests {
 
         let cve_root = result.unwrap();
         assert!(cve_root.ends_with("cve"), "Path should end with 'cve'");
-        assert!(cve_root.join("published").exists(), "published directory should exist in CVE root");
+        assert!(
+            cve_root.join("published").exists(),
+            "published directory should exist in CVE root"
+        );
     }
 
     #[test]

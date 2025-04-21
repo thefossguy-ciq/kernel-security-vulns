@@ -17,10 +17,10 @@
 //! of the git tree must be in the CVEKERNELTREE environment variable.
 //!
 
-use anyhow::Result;
 use crate::common;
-use crate::version_utils;
 use crate::git_utils;
+use crate::version_utils;
+use anyhow::Result;
 use std::cmp::Ordering;
 use std::path::Path;
 use std::sync::OnceLock;
@@ -165,9 +165,9 @@ pub struct KernelPair {
 
 #[cfg(test)]
 mod tests {
+    use crate::version_utils;
     use crate::Kernel;
     use std::cmp::Ordering;
-    use crate::version_utils;
 
     // Helper function to ALWAYS allocate a kernel object for testing.
     // Not generally a good idea to do (allocation can fail if you provide
@@ -249,8 +249,8 @@ mod tests {
         assert!(version_utils::version_is_mainline("6.16-rc1"));
 
         // 2.* kernels
-        assert!(version_utils::version_is_mainline("2.6.14"));      // 2.X.Y is mainline
-        assert!(!version_utils::version_is_mainline("2.6.32.12"));  // 2.X.Y.z is NOT mainline
+        assert!(version_utils::version_is_mainline("2.6.14")); // 2.X.Y is mainline
+        assert!(!version_utils::version_is_mainline("2.6.32.12")); // 2.X.Y.z is NOT mainline
         assert!(version_utils::version_is_mainline("2.4.20"));
         assert!(!version_utils::version_is_mainline("2.4.20.1"));
     }
@@ -363,11 +363,26 @@ mod tests {
 
         // Test sorting of lists of kernels, first the easy one with versions being the sort order
         let mut kernels: Vec<Kernel> = vec![];
-        kernels.push(alloc_kernel("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
-        kernels.push(alloc_kernel("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
-        kernels.push(alloc_kernel("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
-        kernels.push(alloc_kernel("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
-        kernels.push(alloc_kernel("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
+        kernels.push(alloc_kernel(
+            "6.1.132".to_string(),
+            "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.6.24".to_string(),
+            "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.7.12".to_string(),
+            "af054a5fb24a144f99895afce9519d709891894c".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.8.3".to_string(),
+            "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.9".to_string(),
+            "22207fd5c80177b860279653d017474b2812af5e".to_string(),
+        ));
         kernels.sort_by(|a, b| a.cmp(b));
 
         assert_eq!(kernels[0].version, "6.1.132");
@@ -377,11 +392,26 @@ mod tests {
         assert_eq!(kernels[4].version, "6.9");
 
         kernels = Vec::new();
-        kernels.push(alloc_kernel("6.9".to_string(), "22207fd5c80177b860279653d017474b2812af5e".to_string()));
-        kernels.push(alloc_kernel("6.8.3".to_string(), "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()));
-        kernels.push(alloc_kernel("6.7.12".to_string(), "af054a5fb24a144f99895afce9519d709891894c".to_string()));
-        kernels.push(alloc_kernel("6.1.132".to_string(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()));
-        kernels.push(alloc_kernel("6.6.24".to_string(), "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()));
+        kernels.push(alloc_kernel(
+            "6.9".to_string(),
+            "22207fd5c80177b860279653d017474b2812af5e".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.8.3".to_string(),
+            "22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.7.12".to_string(),
+            "af054a5fb24a144f99895afce9519d709891894c".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.1.132".to_string(),
+            "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            "6.6.24".to_string(),
+            "e87e08c94c9541b4e18c4c13f2f605935f512605".to_string(),
+        ));
         kernels.sort_by(|a, b| a.cmp(b));
 
         assert_eq!(kernels[0].version, "6.1.132");
@@ -393,16 +423,46 @@ mod tests {
         // Now a harder test, only look at git commit ids
         kernels = Vec::new();
         let v = "6.11".to_string();
-        kernels.push(alloc_kernel(v.clone(), "538fd3921afac97158d4177139a0ad39f056dbb2".to_string()));
-        kernels.push(alloc_kernel(v.clone(), "28cd47f75185c4818b0fb1b46f2f02faaba96376".to_string()));
-        kernels.push(alloc_kernel(v.clone(), "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e".to_string()));
-        kernels.push(alloc_kernel(v.clone(), "4e9903b0861c9df3464b82db4a7025863bac1897".to_string()));
-        kernels.push(alloc_kernel(v.clone(), "4f336dc07eceb77d2164bc1121a5ae6003b19f55".to_string()));
+        kernels.push(alloc_kernel(
+            v.clone(),
+            "538fd3921afac97158d4177139a0ad39f056dbb2".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            v.clone(),
+            "28cd47f75185c4818b0fb1b46f2f02faaba96376".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            v.clone(),
+            "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            v.clone(),
+            "4e9903b0861c9df3464b82db4a7025863bac1897".to_string(),
+        ));
+        kernels.push(alloc_kernel(
+            v.clone(),
+            "4f336dc07eceb77d2164bc1121a5ae6003b19f55".to_string(),
+        ));
         kernels.sort_by(|a, b| a.cmp(b));
-        assert_eq!(kernels[0].git_id, "28cd47f75185c4818b0fb1b46f2f02faaba96376");
-        assert_eq!(kernels[1].git_id, "538fd3921afac97158d4177139a0ad39f056dbb2");
-        assert_eq!(kernels[2].git_id, "4e9903b0861c9df3464b82db4a7025863bac1897");
-        assert_eq!(kernels[3].git_id, "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e");
-        assert_eq!(kernels[4].git_id, "4f336dc07eceb77d2164bc1121a5ae6003b19f55");
+        assert_eq!(
+            kernels[0].git_id,
+            "28cd47f75185c4818b0fb1b46f2f02faaba96376"
+        );
+        assert_eq!(
+            kernels[1].git_id,
+            "538fd3921afac97158d4177139a0ad39f056dbb2"
+        );
+        assert_eq!(
+            kernels[2].git_id,
+            "4e9903b0861c9df3464b82db4a7025863bac1897"
+        );
+        assert_eq!(
+            kernels[3].git_id,
+            "bbf3c7ff9dfa45be51500d23a1276991a7cd8c6e"
+        );
+        assert_eq!(
+            kernels[4].git_id,
+            "4f336dc07eceb77d2164bc1121a5ae6003b19f55"
+        );
     }
 }
