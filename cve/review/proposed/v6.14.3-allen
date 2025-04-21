@@ -1,0 +1,70 @@
+a22b3d54de94 cgroup/cpuset: Fix race between newly created partition and dying one
+6ee6bd5d4fce ublk: fix handling recovery & reissue in ublk_abort_queue()
+ad320e408a8c ata: pata_pxa: Fix potential NULL pointer dereference in pxa_ata_probe()
+69ae94725f4f tipc: fix memory leak in tipc_link_xmit
+5071a1e606b3 net: tls: explicitly disallow disconnect
+dacafdcc7789 drm/tests: modeset: Fix drm_display_mode memory leak
+7f1ff1b38a7c net: libwx: handle page_pool_dev_alloc_pages error
+e3ea2eae7069 drm/i915/huc: Fix fence not released on early probe errors
+aa1ac98268cd s390/cpumf: Fix double free on error in cpumf_pmu_event_init()
+b3bf8f63e617 net_sched: sch_sfq: move the limit validation
+9502dd5c7029 smb: client: fix UAF in decryption with multichannel
+fc75ea20ffb4 net: phy: allow MDIO bus PM ops to start/stop state machine for phylink-controlled PHY
+aabc6596ffb3 net: ppp: Add bound checking for skb data on ppp_sync_txmung
+38e8844005e6 iommu/mediatek: Fix NULL pointer deference in mtk_iommu_device_group
+208baa3ec904 pm: cpupower: bench: Prevent NULL dereference on malloc failure
+52323ed1444e PM: hibernate: Avoid deadlock in hibernate_compressor_param_set()
+22a05462c3d0 HID: pidff: Fix null pointer dereference in pidff_find_fields
+efb24b1f0d29 wifi: ath11k: fix memory leak in ath11k_xxx_remove()
+1b24394ed5c8 wifi: ath12k: fix memory leak in ath12k_pci_remove()
+ecfc13138992 wifi: ath12k: Avoid memory leak while enabling statistics
+f195fc060c73 scsi: mpi3mr: Synchronous access b/w reset and tm thread for reply queue
+43130d02baa1 page_pool: avoid infinite loop to schedule delayed worker
+9629d7d66c62 jfs: Fix uninit-value access of imap allocated in the diMount() function
+70ca3246ad20 fs/jfs: cast inactags to s64 to prevent potential overflow
+7fcbf789629c fs/jfs: Prevent integer overflow in AG size calculation
+b61e69bb1c04 jfs: Prevent copying of nlink with value 0 from disk inode
+9a0dddfb30f1 wifi: ath12k: Fix invalid data access in ath12k_dp_rx_h_undecap_nwifi
+e6494977bd4a f2fs: fix to avoid out-of-bounds access in f2fs_truncate_inode_blocks()
+c8e008b60492 ext4: ignore xattrs past end
+a018d1cf990d scsi: st: Fix array overflow in st_setup()
+27b918007d96 net: vlan: don't propagate flags on open
+459777724d30 drm/xe/vf: Don't try to trigger a full GT reset if VF
+c87d202692de drm/amd/display: Guard Possible Null Pointer Dereference
+f0b4440cdc18 drm/amdkfd: Fix mode1 reset crash issue
+1435e895d4fc drm/amdgpu: handle amdgpu_cgs_create_device() errors in amd_powerplay_create()
+18056a48669a PCI: vmd: Make vmd_dev::cfg_lock a raw_spinlock_t type
+f1e9087abaee KVM: arm64: Tear down vGIC on failed vCPU creation
+659b1f29f3e2 mtd: rawnand: brcmnand: fix PM resume warning
+845471285264 accel/ivpu: Fix PM related deadlocks in MS IOCTLs
+5e589abf20da media: hi556: Fix memory leak (on error) in hi556_check_hwcfg()
+9aa804e6b969 io_uring/net: fix io_req_post_cqe abuse by send bundle
+aafb5325aca3 ASoC: codecs: wcd937x: fix a potential memory leak in wcd937x_soc_codec_probe()
+019634f27a16 accel/ivpu: Fix deadlock in ivpu_ms_cleanup()
+ee1fce83ed56 bus: mhi: host: Fix race between unprepare and queue_buf
+ab0cc5c25552 ext4: fix off-by-one error in do_split
+f1044e995b64 tpm: do not start chip while suspended
+4129760e462f soc: samsung: exynos-chipid: Add NULL pointer check in exynos_chipid_probe()
+ff9d61db59bb i3c: Add NULL pointer check in i3c_master_queue_ibi()
+76d0f4199bc5 mfd: ene-kb3930: Fix a potential NULL pointer dereference
+4b2649b97176 mptcp: fix NULL pointer in can_accept_new_subflow
+5f6022a74147 arm64: mops: Do not dereference src reg for a set operation
+5c1bf8eae78b arm64: dts: mediatek: mt8188: Assign apll1 clock as parent to avoid hang
+b8ddf5107f53 backlight: led_bl: Hold led_access lock when calling led_sysfs_disable()
+e38ed6908080 iommu/tegra241-cmdqv: Fix warnings due to dmam_free_coherent()
+8136cde70faf iommu/vt-d: Fix possible circular locking dependency
+2155802d3313 net: Fix null-ptr-deref by sock_lock_init_class_and_name() and rmmod.
+ff3be033d264 mm/hwpoison: introduce folio_contain_hwpoisoned_page() helper
+6c14ee6af8f1 cifs: avoid NULL pointer dereference in dbg call
+72be43ff061a ftrace: Add cond_resched() to ftrace_graph_set_hash()
+9ffa52fea7d6 gpio: mpc8xxx: Fix wakeup source leaks on device unbind
+36cdcee2e4a8 of/irq: Fix device node refcount leakage in API of_irq_parse_one()
+c02b57fbc93c of/irq: Fix device node refcount leakage in API of_irq_parse_raw()
+e07b63443c4a of/irq: Fix device node refcount leakages in of_irq_count()
+3a08bcf59993 of/irq: Fix device node refcount leakage in API irq_of_parse_and_map()
+a3c6219c8c0c of/irq: Fix device node refcount leakages in of_irq_init()
+7535d10a2c61 PCI: pciehp: Avoid unnecessary device replacement check
+29332b168295 PCI: Fix reference leak in pci_alloc_child_bus()
+f9208aec8622 PCI: Fix reference leak in pci_register_host_bridge()
+f9bfb3a5f6f6 spi: fsl-qspi: use devm function instead of driver remove
+4b4194c9a7a8 HSI: ssi_protocol: Fix use after free vulnerability in ssi_protocol Driver Due to Race Condition
