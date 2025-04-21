@@ -56,7 +56,7 @@ impl Kernel {
     /// Sometimes you don't know when a kernel release happened, so use this as an initial
     /// "placeholder" that you can pass around where needed (i.e. by the dyad tool).
     ///
-    /// Note that the kernel object created here will return true for both `is_mainline()` and
+    /// Note that the kernel object created here will return false for both `is_mainline()` and
     /// `is_rc()`.
     pub fn empty_kernel() -> Self {
         Self {
@@ -65,6 +65,13 @@ impl Kernel {
             mainline: false, // This MUST be false, we rely on it elsewhere...
             rc: false,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        if self.version == "0" && self.git_id == "0" {
+            return true;
+        }
+        false
     }
 
     /// Check if a kernel commit is in a mainline branch (i.e. Linus's), or in a stable branch
@@ -182,11 +189,24 @@ mod tests {
     }
 
     #[test]
-    fn empty_kernel() {
+    fn empty_kernel_1() {
         let k: Kernel = Kernel::empty_kernel();
         assert_eq!(k.version, "0");
         assert_eq!(k.git_id, "0");
         assert_eq!(k.is_mainline(), false);
+        assert_eq!(k.is_rc_version(), false);
+    }
+
+    #[test]
+    fn empty_kernel_2() {
+        let k: Kernel = Kernel::empty_kernel();
+        assert!(k.is_empty());
+    }
+
+    #[test]
+    fn empty_kernel_3() {
+        let k: Kernel = alloc_kernel("5.10".to_string(), "1234".to_string());
+        assert!(!k.is_empty());
     }
 
     #[test]
