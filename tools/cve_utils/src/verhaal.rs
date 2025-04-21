@@ -9,9 +9,10 @@
 //
 
 use crate::Kernel;
+use anyhow::{anyhow, Result};
 use log::debug;
 use rusqlite::fallible_iterator::FallibleIterator;
-use rusqlite::{Connection, Result, ToSql};
+use rusqlite::{Connection, ToSql};
 
 pub struct Verhaal {
     conn: Connection,
@@ -84,7 +85,7 @@ impl Verhaal {
         }
 
         debug!("\t\tget_version: '{}' => VERSION NOT FOUND", git_sha);
-        Err(rusqlite::Error::QueryReturnedNoRows)
+        Err(anyhow!("Version not found"))
     }
 
     /// Returns a vector of kernels that are fixes for this specific git id as listed in the database.
@@ -263,7 +264,7 @@ mod tests {
         let version = verhaal.get_version(&git_id);
         let version = match version {
             Ok(version) => version,
-            Err(error) => panic!("Can not read the version from the db, error {:?}", error),
+            Err(error) => panic!("{:?}", error),
         };
         version
     }
@@ -294,5 +295,11 @@ mod tests {
             get_version("e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()),
             "6.6.24"
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "Version not found")]
+    fn get_invalid_version_test() {
+        assert_eq!(get_version("00000000".to_string()), "0.0");
     }
 }
