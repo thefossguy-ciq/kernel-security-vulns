@@ -255,9 +255,12 @@ mod tests {
     }
 
     fn get_version(git_id: String) -> String {
-        let verhaal = Verhaal::new(verhaal_database_file());
+        let verhaal = match Verhaal::new(verhaal_database_file()) {
+            Ok(verhaal) => verhaal,
+            Err(error) => panic!("Can not open the database file {:?}", error),
+        };
 
-        let version = verhaal.expect("Failed!!!").get_version(&git_id);
+        let version = verhaal.get_version(&git_id);
         let version = match version {
             Ok(version) => version,
             Err(error) => panic!("Can not read the version from the db, error {:?}", error),
