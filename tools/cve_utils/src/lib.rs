@@ -3,6 +3,7 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
 pub mod kernel;
+pub mod verhaal;
 pub mod version_utils;
 
 use anyhow::{anyhow, Context, Result};
@@ -41,6 +42,8 @@ pub use self::version_utils::{
 };
 // Kernel structures
 pub use self::kernel::{Kernel, KernelPair};
+// Verhaal structure
+pub use self::verhaal::Verhaal;
 
 /// Common functionality shared across all CVE utilities
 pub mod common {
