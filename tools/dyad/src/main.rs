@@ -16,7 +16,6 @@ use gumdrop::Options;
 use log::{debug, error};
 use std::cmp::Ordering;
 use std::env;
-use std::fs;
 use std::path::Path;
 extern crate cve_utils;
 use cve_utils::version_utils;
@@ -62,31 +61,8 @@ struct DyadState {
 }
 
 impl DyadState {
-    fn verhaal_database_file() -> String {
-        let database_file: String;
-
-        // Find the path to the verhaal.db database file using vulns dir
-        let vulns_dir = match cve_utils::find_vulns_dir() {
-            Ok(dir) => dir,
-            Err(e) => panic!("Could not find vulns directory: {}", e),
-        };
-
-        let verhaal_db_path = vulns_dir.join("tools").join("verhaal").join("verhaal.db");
-        match fs::exists(&verhaal_db_path) {
-            Ok(true) => database_file = verhaal_db_path.to_string_lossy().into_owned(),
-            Ok(false) => panic!(
-                "The verhaal database 'verhaal.db' is not found at expected path: {}",
-                verhaal_db_path.display()
-            ),
-            Err(e) => {
-                panic!("Error {e}: Something went wrong trying to lookup the path for 'verhaal.db'")
-            }
-        }
-        database_file
-    }
-
     pub fn new() -> Self {
-        let verhaal = match Verhaal::new(Self::verhaal_database_file()) {
+        let verhaal = match Verhaal::new() {
             Ok(verhaal) => verhaal,
             Err(error) => panic!("Can not open the database file {:?}", error),
         };

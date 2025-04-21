@@ -8,11 +8,17 @@
 //
 //
 
+use crate::common;
 use crate::Kernel;
 use anyhow::{anyhow, Result};
 use log::debug;
 use rusqlite::fallible_iterator::FallibleIterator;
 use rusqlite::{Connection, ToSql};
+use std::fs;
+use std::sync::OnceLock;
+
+// Location of the verhaal database we are working on.
+static VERHAAL_DB: OnceLock<String> = OnceLock::new();
 
 pub struct Verhaal {
     conn: Connection,
@@ -62,9 +68,9 @@ fn query_string(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> String {
 impl Verhaal {
     /// Create a new Verhaal object
     /// Will attempt to open a database connection with the file given
-    pub fn new(db_file: String) -> Result<Self> {
+    pub fn new() -> Result<Self> {
         // Attempt to open the database connection
-        let conn = Connection::open(&db_file)?;
+        let conn = Connection::open(Self::verhaal_database_file())?;
 
         Ok(Self { conn })
     }
@@ -222,17 +228,10 @@ impl Verhaal {
 
         kernels
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::common;
-    use crate::Verhaal;
-    use std::fs;
 
     // Helper function to get the path to the database
     // Logic taken from dyad source
-    fn verhaal_database_file() -> String {
+    fn lookup_verhaal_database_file() -> String {
         let database_file: String;
 
         // Find the path to the verhaal.db database file using vulns dir
@@ -255,8 +254,18 @@ mod tests {
         database_file
     }
 
+    fn verhaal_database_file() -> &'static String {
+        VERHAAL_DB.get_or_init(|| Self::lookup_verhaal_database_file())
+    }
+
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Verhaal;
+
     fn get_version(git_id: String) -> String {
-        let verhaal = match Verhaal::new(verhaal_database_file()) {
+        let verhaal = match Verhaal::new() {
             Ok(verhaal) => verhaal,
             Err(error) => panic!("Can not open the database file {:?}", error),
         };
