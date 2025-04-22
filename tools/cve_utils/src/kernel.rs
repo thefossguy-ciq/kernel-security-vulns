@@ -32,7 +32,7 @@ static GIT_DIR: OnceLock<String> = OnceLock::new();
 #[derive(Debug, Clone)]
 pub struct Kernel {
     pub version: String,
-    pub git_id: String,
+    git_id: String,
     mainline: bool,
     rc: bool,
 }
@@ -65,6 +65,10 @@ impl Kernel {
             mainline: false, // This MUST be false, we rely on it elsewhere...
             rc: false,
         }
+    }
+
+    pub fn git_id(&self) -> String {
+        self.git_id.clone()
     }
 
     pub fn is_empty(&self) -> bool {

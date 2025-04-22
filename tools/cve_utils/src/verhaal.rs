@@ -180,7 +180,7 @@ impl Verhaal {
                 let (id, release, reverts) = result;
 
                 // Skip if already in fixed set
-                if fixed_set.iter().any(|k| k.git_id == id) {
+                if fixed_set.iter().any(|k| k.git_id() == id) {
                     continue;
                 }
 

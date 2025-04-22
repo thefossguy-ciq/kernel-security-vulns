@@ -240,7 +240,7 @@ fn main() {
         let kernels = found_in(&state, git_sha);
         for kernel in kernels {
             // Check if we already have this kernel in our fixed set
-            if !state.fixed_set.iter().any(|k| k.git_id == kernel.git_id && k.version == kernel.version) {
+            if !state.fixed_set.iter().any(|k| k.git_id() == kernel.git_id() && k.version == kernel.version) {
                 state.fixed_set.push(kernel);
             }
         }
@@ -258,7 +258,7 @@ fn main() {
         std::process::exit(1);
     }
     for k in &state.fixed_set {
-        debug!("\t{:<12}{}\t{}", k.version, k.git_id, k.is_mainline());
+        debug!("\t{:<12}{}\t{}", k.version, k.git_id(), k.is_mainline());
     }
 
     // Print fixed kernels like the bash script does
@@ -297,7 +297,7 @@ fn main() {
             if !fix_ids.is_empty() {
                 for fix_id in fix_ids {
                     // Find all places this fix commit was backported to
-                    let backports = found_in(&state, &fix_id.git_id);
+                    let backports = found_in(&state, &fix_id.git_id());
 
                     for kernel in backports {
                         let kernel_is_mainline = kernel.is_mainline();
@@ -306,16 +306,16 @@ fn main() {
                             // For non-mainline kernels, use the backported ID
                             debug!(
                                 "Creating vulnerable set (stable): {}:{}",
-                                kernel.version, kernel.git_id
+                                kernel.version, kernel.git_id()
                             );
-                            all_vulnerable_candidates.push((kernel.version.clone(), kernel.git_id.clone()));
+                            all_vulnerable_candidates.push((kernel.version.clone(), kernel.git_id()));
                         } else {
                             // For mainline kernels, use the original fix ID
                             debug!(
                                 "Creating vulnerable set (mainline): {}:{}",
-                                kernel.version, fix_id.git_id
+                                kernel.version, fix_id.git_id()
                             );
-                            all_vulnerable_candidates.push((kernel.version.clone(), fix_id.git_id.clone()));
+                            all_vulnerable_candidates.push((kernel.version.clone(), fix_id.git_id()));
                         }
                     }
                 }
@@ -345,9 +345,9 @@ fn main() {
                                         // For non-mainline kernels, use the backported ID
                                         debug!(
                                             "Creating vulnerable set for revert (stable): {}:{}",
-                                            kernel.version, kernel.git_id
+                                            kernel.version, kernel.git_id()
                                         );
-                                        all_vulnerable_candidates.push((kernel.version.clone(), kernel.git_id.clone()));
+                                        all_vulnerable_candidates.push((kernel.version.clone(), kernel.git_id()));
                                     } else {
                                         // For mainline kernels, use the original revert ID
                                         debug!(
@@ -389,10 +389,10 @@ fn main() {
     // We now have a list of "vulnerable" kernels in 'vulnerable_kernels', let's find out where
     // they were backported to and create the large list of all vulnerable branches
     for k in sorted_vulnerable_kernels {
-        debug!("Finding kernels with id: {}", k.git_id);
+        debug!("Finding kernels with id: {}", k.git_id());
 
         // Find all backports of the vulnerability
-        let kernels = found_in(&state, &k.git_id);
+        let kernels = found_in(&state, &k.git_id());
         debug!("Found kernels: {:?}", kernels);
 
         for kernel in kernels {
@@ -402,14 +402,14 @@ fn main() {
             if !kernel_is_mainline {
                 // For non-mainline kernels, use the kernel_git_id from found_in (the backported ID)
                 debug!("Creating vulnerable set for stable: {:?}", kernel);
-                create_vulnerable_set(&mut state, kernel.version, kernel.git_id);
+                create_vulnerable_set(&mut state, kernel.version.clone(), kernel.git_id());
             } else {
                 // For mainline kernels, use the original full git ID that we're looking at
                 debug!(
                     "Creating vulnerable set for mainline: {}:{}",
-                    kernel.version, k.git_id
+                    kernel.version, k.git_id()
                 );
-                create_vulnerable_set(&mut state, kernel.version, k.git_id.clone());
+                create_vulnerable_set(&mut state, kernel.version, k.git_id());
             }
         }
     }
@@ -464,7 +464,7 @@ fn main() {
 
             // Also add the oldest mainline kernel if it's not already included
             let already_included = vulnerable_kernels.iter().any(|k|
-                k.version == oldest_mainline_kernel.version && k.git_id == oldest_mainline_kernel.git_id);
+                k.version == oldest_mainline_kernel.version && k.git_id() == oldest_mainline_kernel.git_id());
             if !already_included {
                 vulnerable_set.push(oldest_mainline_kernel.clone());
             }
@@ -492,7 +492,7 @@ fn main() {
         if !vulnerable_kernels.is_empty() {
             for k in &vulnerable_kernels {
                 // Only add if not already in the set
-                if !vulnerable_set.iter().any(|x| x.version == k.version && x.git_id == k.git_id) {
+                if !vulnerable_set.iter().any(|x| x.version == k.version && x.git_id() == k.git_id()) {
                     vulnerable_set.push(k.clone());
                 }
             }
@@ -765,7 +765,7 @@ fn main() {
         let mut found: bool = false;
 
         for e in &fixed_pairs {
-            if v.version == e.vulnerable.version && v.git_id == e.vulnerable.git_id {
+            if v.version == e.vulnerable.version && v.git_id() == e.vulnerable.git_id() {
                 found = true;
                 break;
             }
@@ -828,7 +828,7 @@ fn main() {
             continue;
         }
 
-        let vuln_id = pair.vulnerable.git_id.clone();
+        let vuln_id = pair.vulnerable.git_id();
         pairs_by_vuln_id.entry(vuln_id).or_insert_with(Vec::new).push(pair.clone());
     }
 
@@ -919,9 +919,9 @@ fn main() {
         println!(
             "{}:{}:{}:{}",
             e.vulnerable.version.green(),
-            e.vulnerable.git_id.cyan(),
+            e.vulnerable.git_id().cyan(),
             e.fixed.version.green(),
-            e.fixed.git_id.cyan()
+            e.fixed.git_id().cyan()
         );
     }
 }
