@@ -7,6 +7,7 @@ use clap::Parser;
 use colored::Colorize;
 use cve_utils::common;
 use cve_utils::print_git_error_details;
+use cve_utils::git_utils;
 use dialoguer::Input;
 use regex::Regex;
 use std::cmp::min;
@@ -672,16 +673,7 @@ fn get_mainline_sha(sha: &str) -> Result<String> {
 ///
 /// Returns a string in the format "<short-sha> <subject>" for the given commit SHA.
 fn get_commit_oneline(sha: &str) -> Result<String> {
-    let output = Command::new("git")
-        .args(["--no-pager", "log", "-n1", "--format=%h %s", sha])
-        .output()
-        .context("Failed to execute git command")?;
-
-    if !output.status.success() {
-        return Err(anyhow!("Git command failed"));
-    }
-
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    git_utils::get_commit_oneline(sha)
 }
 
 /// Check if a commit has been previously reviewed in a different session
