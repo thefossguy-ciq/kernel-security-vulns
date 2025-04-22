@@ -389,6 +389,13 @@ mod tests {
         k2.git_id = "0327ca9d53bfbb0918867313049bba7046900f73".to_string();
         assert_eq!(k1.compare(&k2), Ordering::Greater);
 
+        k1.version = "6.9".to_string();
+        k1.git_id = "ff956a3be95b45b2a823693a8c9db740939ca35e".to_string();
+        k2.version = "6.9".to_string();
+        k2.git_id = "ff956a3be95b45b2a823693a8c9db740939ca35e".to_string();
+        assert_eq!(k1.compare(&k2), Ordering::Equal);
+        assert!(k1 == k2);
+
         // Test sorting of lists of kernels, first the easy one with versions being the sort order
         let mut kernels: Vec<Kernel> = vec![];
         kernels.push(alloc_kernel(

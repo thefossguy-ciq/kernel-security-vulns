@@ -240,7 +240,7 @@ fn main() {
         let kernels = found_in(&state, git_sha);
         for kernel in kernels {
             // Check if we already have this kernel in our fixed set
-            if !state.fixed_set.iter().any(|k| k.git_id() == kernel.git_id() && k.version() == kernel.version()) {
+            if !state.fixed_set.iter().any(|k| k == &kernel) {
                 state.fixed_set.push(kernel);
             }
         }
