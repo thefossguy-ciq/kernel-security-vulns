@@ -37,8 +37,8 @@ pub use self::cmd_utils::run_command;
 pub use self::year_utils::{is_valid_year, is_year_dir_exists};
 // Version utilities
 pub use self::version_utils::{
-    compare_kernel_versions, get_rc_number, kernel_version_major, parse_kernel_version,
-    version_is_mainline, version_is_queue, version_is_rc, version_major_match,
+    compare_kernel_versions, get_rc_number, kernel_version_major,
+    version_is_mainline, version_is_queue, version_is_rc, version_major_match, KernelVersion,
 };
 // Kernel structures
 pub use self::kernel::{Kernel, KernelPair};

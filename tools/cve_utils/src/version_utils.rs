@@ -252,21 +252,6 @@ pub fn compare_kernel_versions(version1: &str, version2: &str) -> Ordering {
     }
 }
 
-/// Parse a kernel version string into components for comparison
-///
-/// Returns a tuple containing:
-/// - Vec<u32>: The version numbers as a vector of u32
-/// - Option<u32>: The RC number if present
-/// - bool: Whether this is an RC version
-pub fn parse_kernel_version(version: &str) -> (Vec<u32>, Option<u32>, bool) {
-    if let Ok(v) = KernelVersion::from_str(version) {
-        (v.components.clone(), v.rc_num, v.is_rc())
-    } else {
-        // Fallback for unparseable versions
-        (Vec::new(), None, false)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::version_utils;
