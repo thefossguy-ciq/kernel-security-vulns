@@ -122,13 +122,14 @@ fn git_full_id(state: &DyadState, git_sha: &String) -> Option<String> {
     let repo_path = Path::new(&state.kernel_tree);
 
     // Use the cve_utils function to get the full SHA
-    match cve_utils::common::get_full_git_sha(repo_path, git_sha) {
-        Some(full_id) => Some(full_id),
-        None => {
+    let full_id = match cve_utils::git_utils::get_full_sha(repo_path, git_sha) {
+        Ok(full_id) => full_id,
+        Err(_) => {
             debug!("Notice: git SHA1 {} not found", git_sha);
             None
-        }
-    }
+        }?
+    };
+    Some(full_id)
 }
 
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
