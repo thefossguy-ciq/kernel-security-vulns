@@ -14,6 +14,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use cve_utils::git_utils;
 
 // Define a type alias for the complex commit result type
 type CommitResult = (String, bool, HashMap<String, bool>);
@@ -357,21 +358,20 @@ impl VotingResults {
         let commit = match git2::Oid::from_str(stable_sha) {
             Ok(oid) => self.repo.find_commit(oid),
             Err(_) => {
-                // If that fails, fall back to using Command to look up short SHA
-                // since libgit2 doesn't have direct support for partial SHAs
-                let lookup_cmd = Command::new("git")
-                    .args(["rev-parse", short_stable_sha])
-                    .output()
-                    .context("Failed to resolve short SHA")?;
-
-                let full_sha = String::from_utf8_lossy(&lookup_cmd.stdout).trim().to_string();
-                if full_sha.is_empty() {
-                    return Ok(stable_sha.to_string());
-                }
-
-                match git2::Oid::from_str(&full_sha) {
-                    Ok(oid) => self.repo.find_commit(oid),
-                    Err(_) => return Ok(stable_sha.to_string())
+                // If that fails, try to resolve the short SHA using git_utils
+                // First, we'll need to find the working directory to pass to get_full_sha
+                let repo_path = self.repo.path().parent().unwrap_or(self.repo.path());
+                match cve_utils::git_utils::get_full_sha(repo_path, short_stable_sha) {
+                    Ok(full_sha) => {
+                        match git2::Oid::from_str(&full_sha) {
+                            Ok(oid) => self.repo.find_commit(oid),
+                            Err(_) => return Ok(stable_sha.to_string())
+                        }
+                    },
+                    Err(_) => {
+                        // If git_utils fails, just return the original SHA
+                        return Ok(stable_sha.to_string());
+                    }
                 }
             }
         };
