@@ -20,6 +20,7 @@
 use crate::common;
 use crate::git_utils;
 use crate::version_utils;
+use crate::Verhaal;
 use anyhow::Result;
 use std::cmp::Ordering;
 use std::path::Path;
@@ -40,6 +41,7 @@ pub struct Kernel {
 impl Kernel {
     /// Create a new Kernel object
     /// `mainline` and `rc` attributes will be determined when created
+    //#[deprecated(note = "Should use from_id() instead")]
     pub fn new(v: String, g: String) -> Result<Self> {
         let mainline = version_utils::version_is_mainline(&v);
         let rc = version_utils::version_is_rc(&v);
@@ -65,6 +67,21 @@ impl Kernel {
             mainline: false, // This MUST be false, we rely on it elsewhere...
             rc: false,
         }
+    }
+
+    /// Create a new Kernel object based on a git id
+    /// Will verify, AND turn the id passed in into a "full" sha1 value, and properly populate the
+    /// `mainline` and `rc` attributes as needed
+    /// Should be always used, new() will be deprecated soon.
+    pub fn from_id(id: String) -> Result<Self> {
+        // Verify, AND turn the id given to us into a "full" sha1
+        let kernel_tree = Self::git_dir();
+        let repo_path = Path::new(&kernel_tree);
+        let full_id = git_utils::get_full_sha(repo_path, &id)?;
+
+        let verhaal = Verhaal::new()?;
+        let version = verhaal.get_version(&full_id)?;
+        return Self::new(version, full_id);
     }
 
     pub fn git_id(&self) -> String {
@@ -196,6 +213,14 @@ mod tests {
         }
     }
 
+    fn alloc_kernel_id(git_id: String) -> Kernel {
+        let k = match Kernel::from_id(git_id) {
+            Ok(k) => k,
+            Err(err) => panic!("{}", err),
+        };
+        k
+    }
+
     #[test]
     fn empty_kernel_1() {
         let k: Kernel = Kernel::empty_kernel();
@@ -224,6 +249,44 @@ mod tests {
 
         let k2: Kernel = alloc_kernel("5.10.1".to_string(), "1234".to_string());
         assert_eq!(k2.is_mainline(), false);
+    }
+
+    #[test]
+    #[should_panic(expected = "Git SHA '111111' not found in kernel tree")]
+    fn constructor_invalid_id() {
+        let _k = match Kernel::from_id("111111".to_string()) {
+            Ok(k) => k,
+            Err(err) => panic!("{}", err),
+        };
+    }
+
+    #[test]
+    fn constructor_valid_id() {
+        let k = match Kernel::from_id("2e13f88e01ae7e28a7e83".to_string()) {
+            Ok(k) => k,
+            Err(err) => panic!("{}", err),
+        };
+        assert_eq!(k.git_id(), "2e13f88e01ae7e28a7e831bf5c2409c4748e0a60");
+        assert_eq!(k.version(), "6.1.132");
+    }
+
+    #[test]
+    fn constructor_valid_id_2() {
+        let mut k = alloc_kernel_id("e87e08c94c9541b4e18c4c13f2f605935f512605".to_string());
+        assert_eq!(k.version(), "6.6.24");
+        assert!(!k.is_mainline());
+
+        k = alloc_kernel_id("af054a5fb24a144f99895afce9519d709891894c".to_string());
+        assert_eq!(k.version(), "6.7.12");
+        assert!(!k.is_mainline());
+
+        k = alloc_kernel_id("22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string());
+        assert_eq!(k.version(), "6.8.3");
+        assert!(!k.is_mainline());
+
+        k = alloc_kernel_id("22207fd5c80177b860279653d017474b2812af5e".to_string());
+        assert_eq!(k.version(), "6.9");
+        assert!(k.is_mainline());
     }
 
     #[test]
