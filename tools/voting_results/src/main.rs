@@ -14,7 +14,6 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use cve_utils::git_utils;
 
 // Define a type alias for the complex commit result type
 type CommitResult = (String, bool, HashMap<String, bool>);
