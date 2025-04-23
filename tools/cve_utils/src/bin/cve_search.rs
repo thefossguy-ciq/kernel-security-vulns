@@ -44,7 +44,7 @@ fn main() -> Result<()> {
     };
 
     // Try to interpret the search string as a git SHA first
-    if let Some(_git_sha_full) = common::get_full_git_sha(&kernel_tree, &args.search_string) {
+    if let Ok(_git_sha_full) = cve_utils::get_full_sha(&kernel_tree, &args.search_string) {
         // It's a valid SHA, search for it in the CVE records
         if let Some(cve) = common::find_cve_by_sha(&cve_root, &args.search_string) {
             println!("{} is assigned to git id {}",
