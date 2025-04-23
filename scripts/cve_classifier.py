@@ -262,6 +262,46 @@ class OpenAILLM(BaseLLM):
         )
         return response.choices[0].message.content
 
+class NvidiaLLM(BaseLLM):
+    MODELS = {
+        "llama-3.1-ultra": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+    }
+
+    def __init__(self, model_type: str = "llama-3.1-ultra", temperature: float = 0, max_tokens: int = 4096):
+        self.client = OpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key=os.getenv("NVIDIA_API_KEY")
+        )
+        self.model = self.MODELS.get(model_type, model_type)
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+
+    def invoke(self, prompt: str) -> str:
+        try:
+            full_response = ""
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "detailed thinking off"},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=self.temperature,
+                top_p=0.95,
+                max_tokens=self.max_tokens,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stream=True
+            )
+
+            for chunk in completion:
+                if chunk.choices[0].delta.content is not None:
+                    full_response += chunk.choices[0].delta.content
+
+            return full_response
+        except Exception as e:
+            logging.error(f"Error invoking NVIDIA LLM: {e}")
+            return f"NO\nExplanation: Error occurred while generating response from NVIDIA LLM: {str(e)}"
+
 class CommitDataCollector:
     def __init__(self, kernel_repo_path: str, cve_commits_path: str):
         self.kernel_repo_path = kernel_repo_path
@@ -712,7 +752,7 @@ class CommitDataCollector:
 class CVEClassifier:
     def __init__(self,
                  embedding_model: str = "all-MiniLM-L6-v2",
-                 llm_providers: Union[str, List[str]] = ["claude", "llama", "qwen", "gpt4"],
+                 llm_providers: Union[str, List[str]] = ["claude", "llama", "qwen", "gpt4", "nvidia"],
                  llm_configs: dict = None,
                  repo: git.Repo = None):
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
@@ -755,6 +795,11 @@ class CVEClassifier:
             "gpt4o": {
                 "model_type": "gpt4o",
                 "temperature": 0
+            },
+            "nvidia": {
+                "model_type": "llama-3.1-ultra",
+                "temperature": 0,
+                "max_tokens": 4096
             }
         }
 
@@ -810,6 +855,8 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
                     self.llms[provider] = HuggingFaceLLM(**self.llm_configs[provider])
                 elif provider in ["gpt4", "gpt4o"]:
                     self.llms[provider] = OpenAILLM(**self.llm_configs.get(provider, {"model_type": provider}))
+                elif provider == "nvidia":
+                    self.llms["nvidia"] = NvidiaLLM(**self.llm_configs.get("nvidia", {}))
 
             if not self.llms:
                 raise ValueError("No valid LLM providers specified")
@@ -2142,7 +2189,7 @@ def check_environment(models=None):
         models: List of model providers to check keys for. If None, checks all keys.
     """
     if models is None:
-        models = ["claude", "llama", "qwen", "gpt4", "gpt4o"]
+        models = ["claude", "llama", "qwen", "gpt4", "gpt4o", "nvidia"]
     elif isinstance(models, str):
         models = [m.strip() for m in models.split(',')]
 
@@ -2153,6 +2200,8 @@ def check_environment(models=None):
         missing.append("HUGGINGFACE_API_KEY")
     if any(model in ["gpt4", "gpt4o"] for model in models) and not os.getenv("OPENAI_API_KEY"):
         missing.append("OPENAI_API_KEY")
+    if any(model in ["nvidia"] for model in models) and not os.getenv("NVIDIA_API_KEY"):
+        missing.append("NVIDIA_API_KEY")
 
     if missing:
         raise ValueError(f"Missing required environment variables for selected models: {', '.join(missing)}")
