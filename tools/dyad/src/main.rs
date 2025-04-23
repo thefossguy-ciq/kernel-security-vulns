@@ -301,11 +301,11 @@ fn main() {
                         if !revert.is_empty() {
                             debug!("{:?} is a revert of {}", git_sha, revert.clone());
                             if let Ok(version) = state.verhaal.get_version(&revert) {
-                                let mainline = version_utils::version_is_mainline(&version);
-                                debug!("R\t{:<12}{}\t{}", version, revert, mainline);
+                                debug!("R\t{:<12}{}", version, revert);
 
                                 // Save off this commit
-                                if let Ok(k) = Kernel::new(version.clone(), revert.clone()) {
+                                // FIXME make revert a Kernel structure
+                                if let Ok(k) = Kernel::from_id(revert.clone()) {
                                     vulnerable_kernels.push(k);
                                 }
 
