@@ -5,7 +5,7 @@
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use colored::Colorize;
-use cve_utils::common::{get_cve_root, get_kernel_tree};
+use cve_utils::common::{get_cve_root, get_kernel_tree, find_cve_by_sha};
 use cve_utils::git_utils::get_full_sha;
 use cve_utils::git_utils::{get_commit_details, get_commit_year};
 use cve_utils::cve_utils::find_next_free_cve_id;
@@ -243,53 +243,10 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
 
 /// Find if a CVE already exists for a given Git SHA
 ///
-/// First tries to use the cve_search command, then falls back to manual search if needed.
+/// Uses the common find_cve_by_sha function to check if a CVE exists for the given SHA.
 fn find_existing_cve(git_sha: &str) -> Result<Option<String>> {
-    // Call cve_search to check if a CVE already exists
-    let output = Command::new("cve_search")
-        .arg(git_sha)
-        .output();
-
-    match output {
-        Ok(output) => {
-            if output.status.success() {
-                let search_result = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                // Extract the CVE ID from the output (first word)
-                if !search_result.is_empty() {
-                    if let Some(cve_id) = search_result.split_whitespace().next() {
-                        return Ok(Some(cve_id.to_string()));
-                    }
-                }
-            }
-        }
-        Err(_) => {
-            // If cve_search isn't available, try to search manually
-            let cve_root = get_cve_root()?;
-
-            for year_dir in fs::read_dir(cve_root.join("published"))? {
-                let year_dir = year_dir?.path();
-
-                if !year_dir.is_dir() {
-                    continue;
-                }
-
-                for file in fs::read_dir(year_dir)? {
-                    let file = file?.path();
-
-                    if file.is_file() && file.to_string_lossy().ends_with(".sha1") {
-                        let content = fs::read_to_string(&file)?;
-                        if content.trim() == git_sha {
-                            if let Some(file_name) = file.file_stem() {
-                                return Ok(Some(file_name.to_string_lossy().into_owned()));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(None)
+    let cve_root = get_cve_root()?;
+    Ok(find_cve_by_sha(&cve_root, git_sha))
 }
 
 #[cfg(test)]
