@@ -621,12 +621,14 @@ class CommitDataCollector:
         logging.info(f"Processed {len(all_commits)} unique CVE commits (skipped {duplicates_found} duplicates, {timeouts_count} timeouts)")
 
         # Get non-CVE commits from linux- branches
-        logging.info(f"Getting non-CVE commits between {min_months} and {max_months} months old from linux- branches...")
+        logging.info(f"Getting non-CVE commits between April 1st, 2024 and the last 2 weeks from linux- branches...")
 
         # Calculate date boundaries
         now = datetime.now(timezone.utc)
-        oldest_date = now - timedelta(days=max_months * 30)  # Approximate months
-        newest_date = now - timedelta(days=min_months * 30)
+        # Use April 1st, 2024 as the start date instead of a relative date
+        oldest_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
+        # Use 2 weeks (14 days) instead of 1 month for most recent commits
+        newest_date = now - timedelta(days=14)
 
         # Get list of linux- branches
         branches = [ref.name for ref in self.repo.refs if ref.name.startswith('origin/linux-')]
@@ -666,8 +668,8 @@ class CommitDataCollector:
                 # Get all commits in this branch between merge-base and tip, respecting date constraints
                 cmd = [
                     'git', 'rev-list', '--no-merges',
-                    f'--since="{max_months} months ago"',
-                    f'--until="{min_months} months ago"',
+                    f'--since="{oldest_date.strftime("%Y-%m-%d")}"',
+                    f'--until="{newest_date.strftime("%Y-%m-%d")}"',
                     f'{merge_base}..{branch_tip}'  # Range from merge-base to tip
                 ]
                 output = self.repo.git.execute(cmd)
@@ -867,7 +869,7 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
         metadatas = []
 
         # Set a maximum size limit for text chunks to prevent memory issues
-        MAX_CHUNK_LENGTH = 5000  # Characters
+        MAX_CHUNK_LENGTH = 100000  # Characters
         MAX_CHUNKS_PER_BATCH = 1000  # Maximum number of chunks to process at once
 
         for _, row in tqdm(commit_dataset.iterrows(), desc="Processing commits", total=len(commit_dataset)):
