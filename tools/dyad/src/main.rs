@@ -16,7 +16,6 @@ use gumdrop::Options;
 use log::{debug, error};
 use std::cmp::Ordering;
 use std::env;
-use std::path::Path;
 extern crate cve_utils;
 use cve_utils::version_utils;
 use cve_utils::Kernel;
@@ -54,7 +53,7 @@ struct DyadArgs {
 struct DyadState {
     kernel_tree: String,
     verhaal: Verhaal,
-    vulnerable_sha: Vec<String>,
+    vulnerable_sha: Vec<Kernel>,
     git_sha_full: Vec<Kernel>,
     fixed_set: Vec<Kernel>,
     vulnerable_set: Vec<Kernel>,
@@ -108,28 +107,6 @@ fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String)
             mainline
         );
     }
-}
-
-/// Look up the "full" and "short" git ids for the one passed on the command line.
-/// If the git id is not found, return None instead of aborting.
-fn git_full_id(state: &DyadState, git_sha: &String) -> Option<String> {
-    // Early check for obviously invalid SHA1s (like email addresses)
-    if git_sha.contains('@') || git_sha.len() < 4 {
-        debug!("Ignoring invalid git SHA1-like string: {}", git_sha);
-        return None;
-    }
-
-    let repo_path = Path::new(&state.kernel_tree);
-
-    // Use the cve_utils function to get the full SHA
-    let full_id = match cve_utils::git_utils::get_full_sha(repo_path, git_sha) {
-        Ok(full_id) => full_id,
-        Err(_) => {
-            debug!("Notice: git SHA1 {} not found", git_sha);
-            None
-        }?
-    };
-    Some(full_id)
 }
 
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
@@ -205,11 +182,9 @@ fn main() {
     // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
     let vuln_ids = args.vulnerable.clone();
     for vuln_id in vuln_ids {
-        match git_full_id(&state, &vuln_id) {
-            Some(id) => {
-                state.vulnerable_sha.push(id);
-            }
-            None => {
+        match Kernel::from_id(vuln_id.to_string()) {
+            Ok(kernel) => state.vulnerable_sha.push(kernel),
+            Err(_) => {
                 error!(
                     "Error: The provided vulnerable git SHA1 '{}' could not be found in the repository",
                     vuln_id
@@ -269,21 +244,15 @@ fn main() {
     if !state.vulnerable_sha.is_empty() {
         // We are asked to set the original vulnerable kernel to be a specific
         // one, or many, so no need to look it up.
-        for id in &state.vulnerable_sha {
-            let version = state.verhaal.get_version(id);
-            let version = match version {
-                Ok(version) => version,
-                Err(error) => panic!("Can not read the version from the db, error {:?}", error),
-            };
-            println!(
-                "# \tSetting original vulnerable kernel to be kernel {} and git id {}",
-                version.clone(),
-                id
-            );
+        for k in &state.vulnerable_sha {
+            println!("{} {} {} {}",
+                "# \tSetting original vulnerable kernel to be kernel".green(),
+                k.version().cyan(),
+                "and git id".green(),
+                k.git_id().cyan()
+                );
             // Save off this commit
-            if let Ok(k) = Kernel::new(version.clone(), id.to_string()) {
-                vulnerable_kernels.push(k);
-            }
+            vulnerable_kernels.push(k.clone());
         }
     }
 
