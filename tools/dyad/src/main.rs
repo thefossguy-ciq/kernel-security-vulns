@@ -55,7 +55,7 @@ struct DyadState {
     kernel_tree: String,
     verhaal: Verhaal,
     vulnerable_sha: Vec<String>,
-    git_sha_full: Vec<String>,
+    git_sha_full: Vec<Kernel>,
     fixed_set: Vec<Kernel>,
     vulnerable_set: Vec<Kernel>,
 }
@@ -186,9 +186,9 @@ fn main() {
     // Calculate full git sha for each fixing SHA1 that was passed to us
     state.git_sha_full.clear(); // Clear any existing values
     for git_sha in &args.sha1 {
-        match git_full_id(&state, git_sha) {
-            Some(full_id) => state.git_sha_full.push(full_id),
-            None => {
+        match Kernel::from_id(git_sha.to_string()) {
+            Ok(kernel) => state.git_sha_full.push(kernel),
+            Err(_) => {
                 error!(
                     "Error: The provided git SHA1 '{}' could not be found in the repository",
                     git_sha
@@ -199,7 +199,7 @@ fn main() {
     }
 
     for (idx, full_id) in state.git_sha_full.iter().enumerate() {
-        debug!(" Full git id {}: '{}'", idx, full_id);
+        debug!(" Full git id {}: '{:?}'", idx, full_id);
     }
 
     // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
@@ -232,13 +232,13 @@ fn main() {
         println!(
             "{} {}",
             "# \tgetting vulnerable:fixed pairs for git id".green(),
-            git_sha.cyan()
+            git_sha.git_id().cyan()
         );
     }
 
     // Find all of the places where each git commit was backported to and save them off
     for git_sha in &state.git_sha_full {
-        let kernels = found_in(&state, git_sha);
+        let kernels = found_in(&state, &git_sha.git_id());
         for kernel in kernels {
             // Check if we already have this kernel in our fixed set
             if !state.fixed_set.iter().any(|k| k == &kernel) {
@@ -294,7 +294,7 @@ fn main() {
         // Only try to derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
         for git_sha in &state.git_sha_full {
             // Get the list of all valid "Fixes:" entries for this commit
-            let fix_ids = state.verhaal.get_fixes(git_sha);
+            let fix_ids = state.verhaal.get_fixes(&git_sha.git_id());
             if !fix_ids.is_empty() {
                 for fix_id in fix_ids {
                     // Find all places this fix commit was backported to
@@ -322,12 +322,12 @@ fn main() {
                 }
             } else {
                 // No fixes found, check if this is a revert commit
-                let revert_result = state.verhaal.get_revert(git_sha);
+                let revert_result = state.verhaal.get_revert(&git_sha.git_id());
                 match revert_result {
                     Ok(revert) => {
                         debug!("Revert: '{}'", revert);
                         if !revert.is_empty() {
-                            debug!("{} is a revert of {}", git_sha, revert.clone());
+                            debug!("{:?} is a revert of {}", git_sha, revert.clone());
                             if let Ok(version) = state.verhaal.get_version(&revert) {
                                 let mainline = version_utils::version_is_mainline(&version);
                                 debug!("R\t{:<12}{}\t{}", version, revert, mainline);
