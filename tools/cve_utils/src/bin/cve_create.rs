@@ -134,7 +134,7 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
         .context(format!("Git SHA {} not found in kernel tree", git_sha.cyan()))?;
 
     // Get the commit details for display
-    let git_commit = get_commit_details(&kernel_tree, &git_sha_full)?;
+    let git_commit = get_commit_details(&kernel_tree, &git_sha_full, None)?;
 
     // Get the commit year
     let year = get_commit_year(&kernel_tree, &git_sha_full)?;

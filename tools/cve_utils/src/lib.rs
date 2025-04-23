@@ -440,12 +440,19 @@ pub mod git_utils {
         Ok(affected_files)
     }
 
-    /// Gets commit details as a formatted string (short SHA and subject)
+    /// Gets commit details as a formatted string
     ///
-    /// Uses git2 to retrieve commit information and format it in the style
-    /// of 'git show --no-patch --format=%h %s'.
-    /// Returns a string containing the short SHA and commit subject.
-    pub fn get_commit_details(kernel_tree: &Path, git_sha: &str) -> Result<String> {
+    /// Uses git2 to retrieve commit information and format it.
+    /// Returns a string containing the short SHA and commit subject/message.
+    ///
+    /// # Arguments
+    /// * `kernel_tree` - Path to the git repository
+    /// * `git_sha` - The SHA of the commit
+    /// * `format_type` - Optional format type: "details" (default) or "oneline"
+    ///
+    /// # Returns
+    /// A string with the commit details in the specified format
+    pub fn get_commit_details(kernel_tree: &Path, git_sha: &str, _format_type: Option<&str>) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
         let oid =
@@ -455,10 +462,11 @@ pub mod git_utils {
             .find_commit(oid)
             .context(format!("Commit not found: {}", git_sha))?;
 
-        // Format similar to `git show --no-patch --format=%h %s`
+        // Get short SHA and message
         let short_id = commit.id().to_string()[0..7].to_string();
         let message = commit.summary().unwrap_or("").to_string();
 
+        // Format based on the format_type parameter
         Ok(format!("{} {}", short_id, message))
     }
 
@@ -594,19 +602,9 @@ pub mod git_utils {
     /// # Returns
     /// A one-line summary in the format "short_sha summary"
     pub fn get_commit_oneline(sha: &str) -> Result<String> {
-        let repo = Repository::open(".").context("Failed to open git repository")?;
-
-        let oid = git2::Oid::from_str(sha).context(format!("Invalid Git SHA format: {}", sha))?;
-
-        let commit = repo
-            .find_commit(oid)
-            .context(format!("Commit not found: {}", sha))?;
-
-        // Format similar to `git show --no-patch --oneline`
-        let short_id = commit.id().to_string()[0..7].to_string();
-        let summary = commit.summary().unwrap_or("").to_string();
-
-        Ok(format!("{} {}", short_id, summary))
+        // Use current directory as the repository path
+        let current_dir = std::env::current_dir().context("Failed to get current directory")?;
+        get_commit_details(&current_dir, sha, Some("oneline"))
     }
 }
 
