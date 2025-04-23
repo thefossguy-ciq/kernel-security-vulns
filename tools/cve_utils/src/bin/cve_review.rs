@@ -648,16 +648,7 @@ fn check_already_published(commit: &Commit) -> Result<Option<String>> {
 /// This is important for tracking commits across different kernel trees
 /// (e.g., stable vs mainline) to prevent duplicate CVE assignments.
 fn get_mainline_sha(sha: &str) -> Result<String> {
-    let output = Command::new("git")
-        .args(["--no-pager", "log", "-n1", sha])
-        .output()
-        .context("Failed to execute git command")?;
-
-    if !output.status.success() {
-        return Err(anyhow!("Git command failed"));
-    }
-
-    let log_text = String::from_utf8_lossy(&output.stdout);
+    let log_text = git_utils::get_commit_message(sha)?;
 
     // Look for "upstream: <sha>" or similar
     let re = Regex::new(r"(?i)upstream.*?([a-f0-9]{40})")?;
