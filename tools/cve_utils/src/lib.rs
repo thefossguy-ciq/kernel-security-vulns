@@ -16,7 +16,7 @@ use walkdir::WalkDir;
 // Re-export specific functions from submodules for easier access
 // Common utilities for finding and working with CVE data
 pub use self::common::{
-    find_cve_by_sha, find_sha_by_cve, find_vulns_dir, get_cve_root, get_full_git_sha,
+    find_cve_by_sha, find_sha_by_cve, find_vulns_dir, get_cve_root,
     get_kernel_tree, verify_commit,
 };
 // Git repository operations using the git2 library
@@ -142,30 +142,6 @@ pub mod common {
         // Check if the commit exists in the repository
         let exists = repo.find_commit(oid).is_ok();
         Ok(exists)
-    }
-
-    /// Gets the full SHA from a git repo given a partial SHA
-    ///
-    /// Uses git2 to resolve a partial SHA to its full form.
-    /// Returns the full SHA as a string if found, None otherwise
-    pub fn get_full_git_sha(kernel_tree: &Path, sha: &str) -> Option<String> {
-        let repo = Repository::open(kernel_tree).ok()?;
-
-        // Try exact match first
-        if let Ok(oid) = Oid::from_str(sha) {
-            if let Ok(commit) = repo.find_commit(oid) {
-                return Some(commit.id().to_string());
-            }
-        }
-
-        // Try prefix lookup with git2's revparse functionality
-        match repo.revparse_single(&format!("{}^{{commit}}", sha)) {
-            Ok(object) => match repo.find_commit(object.id()) {
-                Ok(commit) => Some(commit.id().to_string()),
-                Err(_) => None,
-            },
-            Err(_) => None,
-        }
     }
 
     /// Finds a CVE ID by its associated git SHA
