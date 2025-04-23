@@ -9,7 +9,7 @@ edition = "2024"
 env_logger = "0.11.6"
 gumdrop = { version = "0.8.1" }
 log = "0.4.26"
-rusqlite = "0.34.0"
+rusqlite = "0.35.0"
 colored = "3"
 git2 = "0.20"
 # Voting results dependencies
