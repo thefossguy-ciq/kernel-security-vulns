@@ -420,10 +420,10 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cve_utils::cve_validation::extract_year_from_cve;
     use tempfile::tempdir;
-    use std::fs::File;
     use std::io::Write;
+    use std::fs::File;
+    use cve_utils::cve_validation::extract_year_from_cve;
 
     #[test]
     fn test_is_valid_year() {
@@ -436,9 +436,9 @@ mod tests {
 
     #[test]
     fn test_extract_year_from_cve() {
-        assert_eq!(extract_year_from_cve("CVE-2023-12345"), Some("2023".to_string()));
-        assert_eq!(extract_year_from_cve("CVE-2021-1234"), Some("2021".to_string()));
-        assert_eq!(extract_year_from_cve("InvalidCVE"), None);
+        assert_eq!(extract_year_from_cve("CVE-2023-12345").unwrap(), "2023");
+        assert_eq!(extract_year_from_cve("CVE-2021-1234").unwrap(), "2021");
+        assert!(extract_year_from_cve("InvalidCVE").is_err());
     }
 
     #[test]
@@ -496,11 +496,11 @@ mod tests {
     #[test]
     fn test_real_cve_ids() {
         // Test with various real CVE IDs
-        assert_eq!(extract_year_from_cve("CVE-2022-0847"), Some("2022".to_string())); // Dirty Pipe
-        assert_eq!(extract_year_from_cve("CVE-2023-0179"), Some("2023".to_string())); // OverlayFS bug
-        assert_eq!(extract_year_from_cve("CVE-2021-33909"), Some("2021".to_string())); // Sequoia
-        assert_eq!(extract_year_from_cve("CVE-2018-17182"), Some("2018".to_string())); // Mutagen Astronomy
-        assert_eq!(extract_year_from_cve("CVE-2016-5195"), Some("2016".to_string())); // Dirty COW
+        assert_eq!(extract_year_from_cve("CVE-2022-0847").unwrap(), "2022"); // Dirty Pipe
+        assert_eq!(extract_year_from_cve("CVE-2023-0179").unwrap(), "2023"); // OverlayFS bug
+        assert_eq!(extract_year_from_cve("CVE-2021-33909").unwrap(), "2021"); // Sequoia
+        assert_eq!(extract_year_from_cve("CVE-2018-17182").unwrap(), "2018"); // Mutagen Astronomy
+        assert_eq!(extract_year_from_cve("CVE-2016-5195").unwrap(), "2016"); // Dirty COW
     }
 
     #[test]

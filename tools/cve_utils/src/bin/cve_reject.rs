@@ -63,7 +63,7 @@ fn main() -> Result<()> {
     }
 
     // Extract year from CVE
-    let year = match cve_validation::year_from_cve(&args.cve_entry) {
+    let year = match cve_validation::extract_year_from_cve(&args.cve_entry) {
         Ok(year) => year,
         Err(e) => {
             eprintln!("Error extracting year from CVE: {}", e);
@@ -261,10 +261,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_year_from_cve() {
-        assert_eq!(cve_validation::year_from_cve("CVE-2023-12345").unwrap(), "2023");
-        assert_eq!(cve_validation::year_from_cve("CVE-2024-67890").unwrap(), "2024");
-        assert!(cve_validation::year_from_cve("INVALID").is_err());
+    fn test_extract_year_from_cve() {
+        assert_eq!(cve_validation::extract_year_from_cve("CVE-2023-12345").unwrap(), "2023");
+        assert_eq!(cve_validation::extract_year_from_cve("CVE-2024-67890").unwrap(), "2024");
+        assert!(cve_validation::extract_year_from_cve("INVALID").is_err());
     }
 
     #[test]
@@ -400,7 +400,7 @@ In-Reply-To: {}
         // Create a complete mock CVE environment
         let temp_dir = tempfile::tempdir().unwrap();
         let cve_root = temp_dir.path();
-        let cve_id = "CVE-2023-WORKFLOW";
+        let cve_id = "CVE-2023-12345";
         let year = "2023";
 
         // Set up directory structure
@@ -415,7 +415,7 @@ In-Reply-To: {}
         // Create a fake mbox file with the necessary headers
         let mbox_content = "From: Test User <test@example.com>
 To: <linux-cve-announce@vger.kernel.org>
-Subject: CVE-2023-WORKFLOW: Test vulnerability
+Subject: CVE-2023-12345: Test vulnerability
 Message-Id: <workflow-message-id@example.com>
 
 This is a test CVE entry for workflow testing.
@@ -430,7 +430,7 @@ This is a test CVE entry for workflow testing.
         assert!(is_valid, "CVE should be valid");
 
         // 2. Extract year
-        let extracted_year = cve_validation::year_from_cve(cve_id).unwrap();
+        let extracted_year = cve_validation::extract_year_from_cve(cve_id).unwrap();
         assert_eq!(extracted_year, year, "Year should be extracted correctly");
 
         // 3. Find the files
@@ -495,7 +495,7 @@ In-Reply-To: {}
         // Create a mock CVE environment with a reserved CVE
         let temp_dir = tempfile::tempdir().unwrap();
         let cve_root = temp_dir.path();
-        let cve_id = "CVE-2023-RESERVED";
+        let cve_id = "CVE-2023-54321";
         let year = "2023";
 
         // Set up directory structure
@@ -511,7 +511,7 @@ In-Reply-To: {}
         assert!(is_valid, "CVE should be valid");
 
         // 2. Extract year
-        let extracted_year = cve_validation::year_from_cve(cve_id).unwrap();
+        let extracted_year = cve_validation::extract_year_from_cve(cve_id).unwrap();
         assert_eq!(extracted_year, year, "Year should be extracted correctly");
 
         // 3. Create rejected directory if it doesn't exist

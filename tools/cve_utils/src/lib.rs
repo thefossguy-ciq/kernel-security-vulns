@@ -30,7 +30,7 @@ pub use self::cve_utils::{extract_cve_id_from_path, find_next_free_cve_id};
 // Git configuration utilities
 pub use self::git_config::{get_git_config, set_git_config};
 // CVE validation and processing
-pub use self::cve_validation::{extract_year_from_cve, find_cve_id, is_valid_cve, year_from_cve};
+pub use self::cve_validation::{extract_year_from_cve, find_cve_id, is_valid_cve};
 // Command execution utilities
 pub use self::cmd_utils::run_command;
 // Year-based utilities
@@ -779,13 +779,14 @@ pub mod cve_validation {
     use std::path::{Path, PathBuf};
     use walkdir::WalkDir;
 
-    /// Extracts the year from a CVE ID
-    pub fn year_from_cve(cve: &str) -> Result<String> {
-        let parts: Vec<&str> = cve.split('-').collect();
-        if parts.len() != 3 || parts[0] != "CVE" {
-            return Err(anyhow!("Invalid CVE format: {}", cve));
-        }
-        Ok(parts[1].to_string())
+    /// Extracts the year from a CVE ID using regex
+    pub fn extract_year_from_cve(cve_id: &str) -> Result<String> {
+        let re = Regex::new(r"(?i)CVE-(\d{4})-\d+")
+            .context("Failed to compile CVE regex pattern")?;
+
+        re.captures(cve_id)
+            .and_then(|caps| caps.get(1).map(|m| m.as_str().to_string()))
+            .ok_or_else(|| anyhow!("Invalid CVE format: {}", cve_id))
     }
 
     /// Checks if a CVE ID is valid and exists in the repository
@@ -806,13 +807,6 @@ pub mod cve_validation {
         Ok(false)
     }
 
-    /// Extracts year from CVE ID using regex
-    pub fn extract_year_from_cve(cve_id: &str) -> Option<String> {
-        let re = Regex::new(r"(?i)CVE-(\d{4})-\d+").ok()?;
-        re.captures(cve_id)
-            .and_then(|caps| caps.get(1).map(|m| m.as_str().to_string()))
-    }
-
     /// Finds a CVE ID by name in the CVE directory structure
     ///
     /// Returns the path to the CVE file if found, or an error if not found
@@ -825,7 +819,7 @@ pub mod cve_validation {
         }
 
         // Try building path based on CVE year
-        if let Some(year) = extract_year_from_cve(cve_id) {
+        if let Ok(year) = extract_year_from_cve(cve_id) {
             // First priority: Check published directory
             let published_path = cve_root
                 .join("published")
