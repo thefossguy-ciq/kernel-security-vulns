@@ -81,7 +81,7 @@ impl Kernel {
 
         let verhaal = Verhaal::new()?;
         let version = verhaal.get_version(&full_id)?;
-        return Self::new(version, full_id);
+        Self::new(version, full_id)
     }
 
     pub fn git_id(&self) -> String {

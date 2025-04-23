@@ -70,7 +70,7 @@ impl DyadState {
             // Init with some "blank" default, the command line and
             // environment variables will override them
             kernel_tree: String::new(),
-            verhaal: verhaal,
+            verhaal,
             vulnerable_sha: vec![],
             git_sha_full: vec![],
             fixed_set: vec![],
@@ -112,7 +112,7 @@ fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String)
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
 /// and stable kernel releases, if any.
 fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
-    return state.verhaal.found_in(git_sha, &state.fixed_set);
+    state.verhaal.found_in(git_sha, &state.fixed_set)
 }
 
 fn main() {
@@ -592,7 +592,7 @@ fn main() {
         if !create && !mainline_vulns.is_empty() {
             // Find the best mainline vulnerability match based on version proximity
             let mut best_match: Option<&Kernel> = None;
-            let mut best_match_score = std::i32::MAX;
+            let mut best_match_score = i32::MAX;
 
             for v in &mainline_vulns {
                 // Convert versions to components for comparison
@@ -672,7 +672,7 @@ fn main() {
         if !create {
             // Find the best matching vulnerability for this fix based on version proximity
             let mut best_match: Option<&Kernel> = None;
-            let mut best_match_score = std::i32::MAX;
+            let mut best_match_score = i32::MAX;
 
             // We have some vulnerable entries, so let's try to match them up
             for v in &sorted_vulnerabilities {
@@ -788,12 +788,8 @@ fn main() {
                 // Check if this is a mainline fix for a mainline vulnerability
                 if v.is_mainline() && fix.is_mainline() {
                     // For mainline vulnerable and fixed, pick the closest future release
-                    if fix.compare(v) == std::cmp::Ordering::Greater {
-                        if best_fix.is_none()
-                            || fix.compare(&best_fix.as_ref().unwrap()) == std::cmp::Ordering::Less
-                        {
-                            best_fix = Some(fix.clone());
-                        }
+                    if fix.compare(v) == std::cmp::Ordering::Greater && (best_fix.is_none() || fix.compare(best_fix.as_ref().unwrap()) == std::cmp::Ordering::Less) {
+                        best_fix = Some(fix.clone());
                     }
                 }
             }
@@ -842,7 +838,7 @@ fn main() {
         let vuln_id = pair.vulnerable.git_id();
         pairs_by_vuln_id
             .entry(vuln_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(pair.clone());
     }
 

@@ -148,7 +148,7 @@ impl Verhaal {
     /// Determines the list of kernels where a specific git sha has been backported to, both
     /// mainline and stable kernel releases, if any.
     /// If an error happened, or there are no fixes, an "empty" vector is returned.
-    pub fn found_in(&self, git_sha: &String, fixed_set: &Vec<Kernel>) -> Vec<Kernel> {
+    pub fn found_in(&self, git_sha: &String, fixed_set: &[Kernel]) -> Vec<Kernel> {
         let mut kernels = Vec::new();
 
         // Find backported commits that aren't reverted in a single query
@@ -255,7 +255,7 @@ impl Verhaal {
     }
 
     fn verhaal_database_file() -> &'static String {
-        VERHAAL_DB.get_or_init(|| Self::lookup_verhaal_database_file())
+        VERHAAL_DB.get_or_init(Self::lookup_verhaal_database_file)
     }
 
 }
