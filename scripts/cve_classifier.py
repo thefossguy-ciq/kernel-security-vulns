@@ -351,36 +351,19 @@ class CommitDataCollector:
         """Extract relevant features from a commit"""
         commit = self.repo.commit(commit_sha)
 
-        # Convert diff objects to string representation
+        # Retrieve the diff as text using git show command
         diff_text = ""
-        if commit.parents:
-            parent = commit.parents[0]
-            diffs = parent.diff(commit, create_patch=True)
-            for diff in diffs:
-                try:
-                    # Get the actual diff text
-                    if diff.a_path and diff.b_path:
-                        diff_text += f"--- a/{diff.a_path}\n+++ b/{diff.b_path}\n"
-                    elif diff.a_path:
-                        diff_text += f"--- a/{diff.a_path}\n+++ /dev/null\n"
-                    elif diff.b_path:
-                        diff_text += f"--- /dev/null\n+++ b/{diff.b_path}\n"
 
-                    # Add the diff content
-                    if hasattr(diff, 'diff'):
-                        try:
-                            diff_content = diff.diff.decode('utf-8', errors='replace')
-                            diff_text += diff_content + "\n\n"
-                        except (UnicodeDecodeError, AttributeError):
-                            diff_text += "[Binary diff not shown]\n\n"
-                except Exception as e:
-                    logging.warning(f"Error processing diff: {e}")
-                    diff_text += f"[Error processing diff: {e}]\n\n"
+        try:
+            cmd = ['git', 'show', f'-U10', '--format=', commit_sha]
+            diff_text = self._safe_git_command(cmd, timeout=30) or ""
+        except Exception as e:
+            logging.warning(f"Failed to get diff via git show: {e}")
 
         return {
             'sha': commit.hexsha,
             'message': commit.message,
-            'diff': diff_text,  # Use the converted text instead of diff objects
+            'diff': diff_text,
             'author': commit.author.name,
             'date': commit.authored_datetime,
             'files_changed': list(commit.stats.files.keys())
