@@ -311,17 +311,16 @@ class CommitDataCollector:
         self.seen_commit_messages = set()  # Track unique commit messages
         self.seen_subject_lines = set()  # Track unique subject lines
 
-    def get_cve_commits(self) -> dict:
+    def get_cve_commits(self) -> set:
         """Read CVE-assigned commit SHAs from the published directory
-        Returns a dictionary with:
-            - 'cve_fixes': set of commits that fix CVEs
-            - 'cve_vulns': set of commits that introduce vulnerabilities
+        Returns a set of commits that fix CVEs
         """
         cve_fixes = set()
-        cve_vulns = set()
-        logging.debug(f"Searching for .dyad files in {self.cve_commits_path}")
 
-        for file_path in self.cve_commits_path.rglob('*.dyad'):
+        logging.debug(f"Searching for .sha1 files in {self.cve_commits_path}")
+
+        # Only look at .sha1 files for fixing commits
+        for file_path in self.cve_commits_path.rglob('*.sha1'):
             try:
                 with open(file_path) as f:
                     for line in f:
@@ -329,23 +328,14 @@ class CommitDataCollector:
                         # Skip comments and empty lines
                         if not line or line.startswith('#'):
                             continue
-                        # Parse the dyad line format: vuln_ver:vuln_commit:fix_ver:fix_commit
-                        parts = line.split(':')
-                        if len(parts) == 4:
-                            vuln_commit = parts[1]
-                            fix_commit = parts[3]
-                            # Add non-zero commits
-                            if vuln_commit != '0':
-                                cve_vulns.add(vuln_commit)
-                            if fix_commit != '0':
-                                cve_fixes.add(fix_commit)
+                        # Add the SHA1 to fixing commits
+                        cve_fixes.add(line)
             except Exception as e:
                 logging.warning(f"Error reading {file_path}: {e}")
                 continue
 
         logging.info(f"Total CVE fix commits found: {len(cve_fixes)}")
-        logging.info(f"Total CVE vulnerable commits found: {len(cve_vulns)}")
-        return {'cve_fixes': cve_fixes, 'cve_vulns': cve_vulns}
+        return cve_fixes
 
     def get_commit_features(self, commit_sha: str) -> dict:
         """Extract relevant features from a commit"""
@@ -355,7 +345,7 @@ class CommitDataCollector:
         diff_text = ""
 
         try:
-            cmd = ['git', 'show', f'-U10', '--format=', commit_sha]
+            cmd = ['git', 'show', f'-U20', '--format=', commit_sha]
             diff_text = self._safe_git_command(cmd, timeout=30) or ""
         except Exception as e:
             logging.warning(f"Failed to get diff via git show: {e}")
@@ -545,28 +535,18 @@ class CommitDataCollector:
         logging.info("Getting CVE commits...")
         cve_commits = self.get_cve_commits()
 
-        # Create a set of all commits that were ever assigned a CVE (either as fix or vulnerability)
-        all_cve_shas = cve_commits['cve_fixes'] | cve_commits['cve_vulns']
+        # Now cve_commits is just a set of fixing commits
+        all_cve_shas = cve_commits
 
         # Reset seen commit messages
         self.seen_commit_messages = set()
 
         # If in test mode, limit CVE commits
         if max_cve is not None:
-            # Since max_cve is applied per dictionary entry (for both cve_fixes and cve_vulns),
-            # we need to calculate how many to take from each to get max_cve total
-            total_cve_count = sum(len(v) for v in cve_commits.values())
-            if total_cve_count > 0:
-                # Calculate proportion for each key to maintain original ratio but limit total to max_cve
-                cve_per_key = {k: int(max_cve * len(v) / total_cve_count) for k, v in cve_commits.items()}
-                # Ensure we get exactly max_cve by adding any remainder to the largest set
-                remainder = max_cve - sum(cve_per_key.values())
-                if remainder > 0:
-                    max_key = max(cve_per_key.keys(), key=lambda k: cve_per_key[k])
-                    cve_per_key[max_key] += remainder
-                # Apply the calculated limits
-                cve_commits = {k: set(list(v)[:cve_per_key[k]]) for k, v in cve_commits.items()}
-                logging.info(f"Limited to {sum(len(v) for v in cve_commits.values())} CVE commits for testing")
+            # Limit the total number of CVE commits
+            if len(cve_commits) > max_cve:
+                cve_commits = set(list(cve_commits)[:max_cve])
+                logging.info(f"Limited to {len(cve_commits)} CVE commits for testing")
 
         # Process CVE commits in parallel, filtering duplicates
         all_commits = []
@@ -577,12 +557,11 @@ class CommitDataCollector:
             futures = []
             # Process in smaller chunks to show progress
             shas_to_process = []
-            for k, shas in cve_commits.items():
-                for sha in shas:
-                    if not self._is_duplicate_commit(sha):
-                        shas_to_process.append(sha)
-                    else:
-                        duplicates_found += 1
+            for sha in cve_commits:
+                if not self._is_duplicate_commit(sha):
+                    shas_to_process.append(sha)
+                else:
+                    duplicates_found += 1
 
             # Submit all tasks to the executor
             sha_to_future = {sha: executor.submit(self.process_cve_commit, sha) for sha in shas_to_process}
@@ -2248,7 +2227,7 @@ def main():
         logging.info("Building dataset...")
         logging.debug("Reading CVE commits...")
         cve_commits = collector.get_cve_commits()
-        logging.debug(f"Found {sum(len(v) for v in cve_commits.values())} CVE commits")
+        logging.debug(f"Found {len(cve_commits)} CVE commits")
 
         # If in test mode, limit the dataset size
         if args.test:
