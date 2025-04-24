@@ -54,8 +54,8 @@ class ClaudeLLM(BaseLLM):
         Args:
             model: The Claude model to use
             temperature: Controls randomness in responses
-            thinking_enabled: Not currently supported for Claude 3.7
-            thinking_budget: Not currently supported for Claude 3.7
+            thinking_enabled: Whether to enable thinking mode for Claude
+            thinking_budget: Number of tokens to allocate for thinking (used for older Claude models)
             max_tokens: Maximum tokens for the response
             debug_logging: Enable detailed debug logging
         """
@@ -63,10 +63,9 @@ class ClaudeLLM(BaseLLM):
         self.user_temperature = temperature
         self.debug_logging = debug_logging
 
-        # Note: Claude 3.7 does not support the thinking feature in the way we previously handled it
-        # We keep these parameters for backward compatibility with existing code
-        self.thinking_enabled = False  # Force to False as it's not supported
-        self.thinking_budget = 0  # Not used
+        # Enable thinking mode if requested
+        self.thinking_enabled = thinking_enabled
+        self.thinking_budget = thinking_budget
 
         self.llm = ChatAnthropic(
             model=model,
@@ -739,8 +738,8 @@ class CVEClassifier:
             "claude": {
                 "model": "claude-3-7-sonnet-20250219",
                 "temperature": 0,
-                "thinking_enabled": False,  # Not supported for Claude 3.7
-                "thinking_budget": 0,       # Not used
+                "thinking_enabled": True,  # Enable thinking for Claude 3.7
+                "thinking_budget": 1000,
                 "max_tokens": 4000,
                 "debug_logging": False      # Disable detailed debug logging by default
             },
