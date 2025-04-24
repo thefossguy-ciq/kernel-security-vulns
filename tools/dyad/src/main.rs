@@ -112,7 +112,16 @@ fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String)
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
 /// and stable kernel releases, if any.
 fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
-    state.verhaal.found_in(git_sha, &state.fixed_set)
+    let kernels = state.verhaal.found_in(git_sha, &state.fixed_set);
+    match kernels {
+        Ok(k) => {
+            return k;
+        }
+        Err(e) => {
+            debug!("{:?}", e);
+            return vec![];
+        }
+    };
 }
 
 fn main() {
@@ -264,8 +273,7 @@ fn main() {
         // Only try to derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
         for git_sha in &state.git_sha_full {
             // Get the list of all valid "Fixes:" entries for this commit
-            let fix_ids = state.verhaal.get_fixes(&git_sha.git_id());
-            if !fix_ids.is_empty() {
+            if let Ok(fix_ids) = state.verhaal.get_fixes(&git_sha.git_id()) {
                 for fix_id in fix_ids {
                     // Find all places this fix commit was backported to
                     let backports = found_in(&state, &fix_id.git_id());
@@ -297,48 +305,45 @@ fn main() {
                 let revert_result = state.verhaal.get_revert(&git_sha.git_id());
                 match revert_result {
                     Ok(revert) => {
-                        debug!("Revert: '{}'", revert);
-                        if !revert.is_empty() {
-                            debug!("{:?} is a revert of {}", git_sha, revert.clone());
-                            if let Ok(version) = state.verhaal.get_version(&revert) {
-                                debug!("R\t{:<12}{}", version, revert);
+                        debug!("{:?} is a revert of {}", git_sha, revert.clone());
+                        if let Ok(version) = state.verhaal.get_version(&revert) {
+                            debug!("R\t{:<12}{}", version, revert);
 
-                                // Save off this commit
-                                // FIXME make revert a Kernel structure
-                                if let Ok(k) = Kernel::from_id(revert.clone()) {
-                                    vulnerable_kernels.push(k);
-                                }
+                            // Save off this commit
+                            // FIXME make revert a Kernel structure
+                            if let Ok(k) = Kernel::from_id(revert.clone()) {
+                                vulnerable_kernels.push(k);
+                            }
 
-                                // Find all backports of this revert
-                                let backports = found_in(&state, &revert);
+                            // Find all backports of this revert
+                            let backports = found_in(&state, &revert);
 
-                                for kernel in backports {
-                                    let kernel_is_mainline = kernel.is_mainline();
-                                    if !kernel_is_mainline {
-                                        // For non-mainline kernels, use the backported ID
-                                        debug!(
-                                            "Creating vulnerable set for revert (stable): {}:{}",
-                                            kernel.version(),
-                                            kernel.git_id()
-                                        );
-                                        all_vulnerable_candidates
-                                            .push((kernel.version(), kernel.git_id()));
-                                    } else {
-                                        // For mainline kernels, use the original revert ID
-                                        debug!(
-                                            "Creating vulnerable set for revert (mainline): {}:{}",
-                                            kernel.version(),
-                                            revert
-                                        );
-                                        all_vulnerable_candidates
-                                            .push((kernel.version(), revert.clone()));
-                                    }
+                            for kernel in backports {
+                                let kernel_is_mainline = kernel.is_mainline();
+                                if !kernel_is_mainline {
+                                    // For non-mainline kernels, use the backported ID
+                                    debug!(
+                                        "Creating vulnerable set for revert (stable): {}:{}",
+                                        kernel.version(),
+                                        kernel.git_id()
+                                    );
+                                    all_vulnerable_candidates
+                                        .push((kernel.version(), kernel.git_id()));
+                                } else {
+                                    // For mainline kernels, use the original revert ID
+                                    debug!(
+                                        "Creating vulnerable set for revert (mainline): {}:{}",
+                                        kernel.version(),
+                                        revert
+                                    );
+                                    all_vulnerable_candidates
+                                        .push((kernel.version(), revert.clone()));
                                 }
                             }
                         }
                     }
                     Err(e) => {
-                        debug!("Error getting revert info: {:?}", e);
+                        debug!("{:?}", e);
                     }
                 }
             }
@@ -788,7 +793,10 @@ fn main() {
                 // Check if this is a mainline fix for a mainline vulnerability
                 if v.is_mainline() && fix.is_mainline() {
                     // For mainline vulnerable and fixed, pick the closest future release
-                    if fix.compare(v) == std::cmp::Ordering::Greater && (best_fix.is_none() || fix.compare(best_fix.as_ref().unwrap()) == std::cmp::Ordering::Less) {
+                    if fix.compare(v) == std::cmp::Ordering::Greater
+                        && (best_fix.is_none()
+                            || fix.compare(best_fix.as_ref().unwrap()) == std::cmp::Ordering::Less)
+                    {
                         best_fix = Some(fix.clone());
                     }
                 }

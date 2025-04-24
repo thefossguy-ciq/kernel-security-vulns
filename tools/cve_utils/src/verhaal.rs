@@ -91,14 +91,14 @@ impl Verhaal {
         }
 
         debug!("\t\tget_version: '{}' => VERSION NOT FOUND", git_sha);
-        Err(anyhow!("Version not found"))
+        Err(anyhow!("Version {} not found", git_sha))
     }
 
     /// Returns a vector of kernels that are fixes for this specific git id as listed in the database.
     /// All kernels returned are actual commits, they are validated before returned as the database can
     /// contain "bad" data for fixes lines.
-    /// If an error happened, or there are no fixes, an "empty" vector is returned.
-    pub fn get_fixes(&self, git_sha: &String) -> Vec<Kernel> {
+    /// If no fixes were found, an error is returned
+    pub fn get_fixes(&self, git_sha: &String) -> Result<Vec<Kernel>> {
         let mut fixed_kernels: Vec<Kernel> = vec![];
 
         let sql = "
@@ -124,14 +124,17 @@ impl Verhaal {
             }
         }
 
+        if fixed_kernels.is_empty() {
+            return Err(anyhow!("No fixes for {} were found", git_sha))
+        }
+
         // Sort the list to be deterministic
         fixed_kernels.sort();
-        fixed_kernels
+        Ok(fixed_kernels)
     }
 
     /// Returns a sha for the revert if present
-    /// If no revert is found, "" is returned, NOT an error, to make code flow easier.
-    /// Errors are only returned if something went wrong with the sql stuff
+    /// If no revert is found, an error is returned
     pub fn get_revert(&self, git_sha: &String) -> Result<String> {
         debug!("\tget_revert: '{}'", git_sha);
 
@@ -142,13 +145,16 @@ impl Verhaal {
             &[&git_sha as &dyn ToSql],
         );
 
+        if revert.is_empty() {
+            return Err(anyhow!("No revert for {} was found", git_sha));
+        }
         Ok(revert)
     }
 
     /// Determines the list of kernels where a specific git sha has been backported to, both
     /// mainline and stable kernel releases, if any.
     /// If an error happened, or there are no fixes, an "empty" vector is returned.
-    pub fn found_in(&self, git_sha: &String, fixed_set: &[Kernel]) -> Vec<Kernel> {
+    pub fn found_in(&self, git_sha: &String, fixed_set: &[Kernel]) -> Result<Vec<Kernel>> {
         let mut kernels = Vec::new();
 
         // Find backported commits that aren't reverted in a single query
@@ -163,8 +169,7 @@ impl Verhaal {
         let mut stmt = match self.conn.prepare(sql) {
             Ok(s) => s,
             Err(e) => {
-                debug!("SQL prepare error: {:?} for query: {}", e, sql);
-                return vec![];
+                return Err(anyhow!("SQL prepare error: {:?} for query: {}", e, sql));
             }
         };
 
@@ -222,11 +227,15 @@ impl Verhaal {
             }
         }
 
+        if kernels.is_empty() {
+            return Err(anyhow!("git id {} was not backported anywhere", git_sha));
+        }
+
         // Sort for deterministic results
         kernels.sort();
         debug!("\t\tfound_in: {:?}", kernels);
 
-        kernels
+        Ok(kernels)
     }
 
     // Helper function to get the path to the database
@@ -307,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Version not found")]
+    #[should_panic(expected = "Version 00000000 not found")]
     fn get_invalid_version_test() {
         assert_eq!(get_version("00000000".to_string()), "0.0");
     }
