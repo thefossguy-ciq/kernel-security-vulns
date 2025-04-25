@@ -135,7 +135,7 @@ impl Verhaal {
 
     /// Returns a sha for the revert if present
     /// If no revert is found, an error is returned
-    pub fn get_revert(&self, git_sha: &String) -> Result<String> {
+    pub fn get_revert(&self, git_sha: &String) -> Result<Kernel> {
         debug!("\tget_revert: '{}'", git_sha);
 
         // Use our query_string function to get a single result
@@ -148,7 +148,11 @@ impl Verhaal {
         if revert.is_empty() {
             return Err(anyhow!("No revert for {} was found", git_sha));
         }
-        Ok(revert)
+        let k = match Kernel::from_id(revert) {
+            Ok(k) => k,
+            Err(err) => return Err(anyhow!("{:?}", err)),
+        };
+        Ok(k)
     }
 
     /// Determines the list of kernels where a specific git sha has been backported to, both

@@ -87,15 +87,6 @@ fn validate_env_vars(state: &mut DyadState) {
     debug!("kernel_tree = {}", state.kernel_tree);
 }
 
-fn create_vulnerable_set(state: &mut DyadState, git_id: String) {
-    if let Ok(k) = Kernel::from_id(git_id.clone()) {
-        state.vulnerable_set.push(k.clone());
-        debug!("create_vulnerable_set: {:?}", k);
-    } else {
-        panic!("create_vulnerable_set: id {} is invalid, unable to create a kernel from it!", git_id);
-    }
-}
-
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
 /// and stable kernel releases, if any.
 fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
@@ -253,9 +244,6 @@ fn main() {
         }
     }
 
-    // Only derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
-    let mut all_vulnerable_candidates = Vec::new();
-
     if state.vulnerable_sha.is_empty() {
         // Only try to derive vulnerabilities from the fixing SHA1s if no explicit vulnerable commits were provided
         for git_sha in &state.git_sha_full {
@@ -270,20 +258,12 @@ fn main() {
 
                         if !kernel_is_mainline {
                             // For non-mainline kernels, use the backported ID
-                            debug!(
-                                "Creating vulnerable set (stable): {}:{}",
-                                kernel.version(),
-                                kernel.git_id()
-                            );
-                            all_vulnerable_candidates.push((kernel.version(), kernel.git_id()));
+                            debug!("Creating vulnerable set (stable): {:?}", kernel);
+                            state.vulnerable_set.push(kernel);
                         } else {
                             // For mainline kernels, use the original fix ID
-                            debug!(
-                                "Creating vulnerable set (mainline): {}:{}",
-                                kernel.version(),
-                                fix_id.git_id()
-                            );
-                            all_vulnerable_candidates.push((kernel.version(), fix_id.git_id()));
+                            debug!("Creating vulnerable set (mainline): {:?}", fix_id);
+                            state.vulnerable_set.push(fix_id.clone());
                         }
                     }
                 }
@@ -292,40 +272,27 @@ fn main() {
                 let revert_result = state.verhaal.get_revert(&git_sha.git_id());
                 match revert_result {
                     Ok(revert) => {
-                        debug!("{:?} is a revert of {}", git_sha, revert.clone());
-                        if let Ok(version) = state.verhaal.get_version(&revert) {
-                            debug!("R\t{:<12}{}", version, revert);
+                        debug!("{:?} is a revert of {:?}", git_sha, revert);
 
-                            // Save off this commit
-                            // FIXME make revert a Kernel structure
-                            if let Ok(k) = Kernel::from_id(revert.clone()) {
-                                vulnerable_kernels.push(k);
-                            }
+                        // Save off this commit
+                        vulnerable_kernels.push(revert.clone());
 
-                            // Find all backports of this revert
-                            let backports = found_in(&state, &revert);
+                        // Find all backports of this revert
+                        let backports = found_in(&state, &revert.git_id());
 
-                            for kernel in backports {
-                                let kernel_is_mainline = kernel.is_mainline();
-                                if !kernel_is_mainline {
-                                    // For non-mainline kernels, use the backported ID
-                                    debug!(
-                                        "Creating vulnerable set for revert (stable): {}:{}",
-                                        kernel.version(),
-                                        kernel.git_id()
-                                    );
-                                    all_vulnerable_candidates
-                                        .push((kernel.version(), kernel.git_id()));
-                                } else {
-                                    // For mainline kernels, use the original revert ID
-                                    debug!(
-                                        "Creating vulnerable set for revert (mainline): {}:{}",
-                                        kernel.version(),
-                                        revert
-                                    );
-                                    all_vulnerable_candidates
-                                        .push((kernel.version(), revert.clone()));
-                                }
+                        for kernel in backports {
+                            let kernel_is_mainline = kernel.is_mainline();
+                            if !kernel_is_mainline {
+                                // For non-mainline kernels, use the backported ID
+                                debug!("Creating vulnerable set for revert (stable): {:?}", kernel);
+                                state.vulnerable_set.push(kernel);
+                            } else {
+                                // For mainline kernels, use the original revert ID
+                                debug!(
+                                    "Creating vulnerable set for revert (mainline): {:?}",
+                                    revert
+                                );
+                                state.vulnerable_set.push(revert.clone());
                             }
                         }
                     }
@@ -334,11 +301,6 @@ fn main() {
                     }
                 }
             }
-        }
-
-        // Now add all candidates to the state
-        for (version, git_id) in all_vulnerable_candidates {
-            create_vulnerable_set(&mut state, git_id);
         }
     } else {
         // When --vulnerable is provided, only use those specific commits
