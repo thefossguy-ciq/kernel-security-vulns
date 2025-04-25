@@ -17,7 +17,6 @@ use log::{debug, error};
 use std::cmp::Ordering;
 use std::env;
 extern crate cve_utils;
-use cve_utils::version_utils;
 use cve_utils::Kernel;
 use cve_utils::KernelPair;
 use cve_utils::Verhaal;
@@ -88,24 +87,12 @@ fn validate_env_vars(state: &mut DyadState) {
     debug!("kernel_tree = {}", state.kernel_tree);
 }
 
-fn create_vulnerable_set(state: &mut DyadState, version: String, git_id: String) {
-    let mainline = version_utils::version_is_mainline(&version);
-
-    if let Ok(k) = Kernel::new(version.clone(), git_id.clone()) {
-        state.vulnerable_set.push(k);
-        debug!(
-            "create_vulnerable_set: version: {}\tgit_id: {}\tmainline: {}",
-            version.clone(),
-            git_id.clone(),
-            mainline
-        );
+fn create_vulnerable_set(state: &mut DyadState, git_id: String) {
+    if let Ok(k) = Kernel::from_id(git_id.clone()) {
+        state.vulnerable_set.push(k.clone());
+        debug!("create_vulnerable_set: {:?}", k);
     } else {
-        debug!(
-            "create_vulnerable_set FAILED!: version: {}\tgit_id: {}\tmainline: {}",
-            version.clone(),
-            git_id.clone(),
-            mainline
-        );
+        panic!("create_vulnerable_set: id {} is invalid, unable to create a kernel from it!", git_id);
     }
 }
 
@@ -351,7 +338,7 @@ fn main() {
 
         // Now add all candidates to the state
         for (version, git_id) in all_vulnerable_candidates {
-            create_vulnerable_set(&mut state, version, git_id);
+            create_vulnerable_set(&mut state, git_id);
         }
     } else {
         // When --vulnerable is provided, only use those specific commits
@@ -386,15 +373,11 @@ fn main() {
             if !kernel_is_mainline {
                 // For non-mainline kernels, use the kernel_git_id from found_in (the backported ID)
                 debug!("Creating vulnerable set for stable: {:?}", kernel);
-                create_vulnerable_set(&mut state, kernel.version(), kernel.git_id());
+                state.vulnerable_set.push(kernel.clone());
             } else {
                 // For mainline kernels, use the original full git ID that we're looking at
-                debug!(
-                    "Creating vulnerable set for mainline: {}:{}",
-                    kernel.version(),
-                    k.git_id()
-                );
-                create_vulnerable_set(&mut state, kernel.version(), k.git_id());
+                debug!("Creating vulnerable set for mainline: {:?}", k);
+                state.vulnerable_set.push(k.clone());
             }
         }
     }
