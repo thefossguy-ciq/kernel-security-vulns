@@ -42,8 +42,7 @@ enum BippyError {
 #[derive(Debug, Clone)]
 struct DyadEntry {
     vulnerable: Kernel,
-    fixed_version: String,
-    fixed_git: String,
+    fixed: Kernel,
 }
 
 impl DyadEntry {
@@ -54,21 +53,33 @@ impl DyadEntry {
             return Err(BippyError::InvalidDyadEntry(s.to_string()));
         }
 
-        // Create the vulnerable kernel by the git id, verifying that this is a valid git id AND
-        // that the version number is what dyad gave us so that we don't go off of crazy
+        let vulnerable_version = parts[0].to_string();
+        let vulnerable_git = parts[1].to_string();
+        let fixed_version = parts[2].to_string();
+        let fixed_git = parts[3].to_string();
+
+        // Create the vulnerable and fixed kernels by the git id, verifying that this is a valid
+        // git id AND that the version number is what dyad gave us so that we don't go off of crazy
         // information somehow.
-        let vulnerable_kernel = match Kernel::from_id(parts[1].to_string()) {
+        let vulnerable_kernel = match Kernel::from_id(vulnerable_git.clone()) {
             Ok(v) => v,
-            Err(_e) => return Err(BippyError::InvalidDyadGitId(parts[1].to_string())),
+            Err(_e) => return Err(BippyError::InvalidDyadGitId(vulnerable_git)),
         };
-        if vulnerable_kernel.version() != parts[0].to_string() {
-            return Err(BippyError::InvalidDyadVersion(parts[0].to_string()));
+        if vulnerable_kernel.version() != vulnerable_version {
+            return Err(BippyError::InvalidDyadVersion(vulnerable_version));
+        }
+
+        let fixed_kernel = match Kernel::from_id(fixed_git.clone()) {
+            Ok(v) => v,
+            Err(_e) => return Err(BippyError::InvalidDyadGitId(fixed_git)),
+        };
+        if fixed_kernel.version() != fixed_version {
+            return Err(BippyError::InvalidDyadVersion(fixed_version));
         }
 
         Ok(DyadEntry {
             vulnerable: vulnerable_kernel,
-            fixed_version: parts[2].to_string(),
-            fixed_git: parts[3].to_string(),
+            fixed: fixed_kernel,
         })
     }
 
@@ -78,21 +89,21 @@ impl DyadEntry {
     }
 
     /// Getter for the fixed_git field
-    fn fixed_git(&self) -> &str {
-        &self.fixed_git
+    fn fixed_git(&self) -> String {
+        self.fixed.git_id()
     }
 
     /// Check if this vulnerability has been fixed
     #[cfg(test)]
     fn is_fixed(&self) -> bool {
-        self.fixed_version != "0" && self.fixed_git() != "0"
+        self.fixed.version() != "0" && self.fixed_git() != "0"
     }
 
     /// Check if vulnerability spans across different kernel versions
     #[cfg(test)]
     fn is_cross_version(&self) -> bool {
-        self.vulnerable.version() != "0" && self.fixed_version != "0" &&
-        self.vulnerable.version() != self.fixed_version
+        self.vulnerable.version() != "0" && self.fixed.version() != "0" &&
+        self.vulnerable.version() != self.fixed.version()
     }
 }
 
@@ -158,7 +169,7 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // status should be "affected"
     if entries.iter().any(|entry|
         version_is_mainline(&entry.vulnerable.version()) &&
-        entry.vulnerable.version() != entry.fixed_version
+        entry.vulnerable.version() != entry.fixed.version()
     ) {
         return "affected";
     }
@@ -180,14 +191,14 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
     for (i, entry) in entries.iter().enumerate() {
         eprintln!("DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
             i, entry.vulnerable.version(), entry.vulnerable_git(),
-            entry.fixed_version, entry.fixed_git());
+            entry.fixed.version(), entry.fixed_git());
     }
 
     // First pass: Collect all affected and fixed mainline versions
     for entry in entries {
         // Skip entries where the vulnerability is in the same version it was fixed
         // These versions are not actually affected in any released version
-        if entry.vulnerable.version() == entry.fixed_version {
+        if entry.vulnerable.version() == entry.fixed.version() {
             eprintln!("DEBUG: Skipping version {} as it was fixed in the same version", entry.vulnerable.version());
             continue;
         }
@@ -196,9 +207,9 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             affected_mainline_versions.insert(entry.vulnerable.version().clone());
             eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable.version());
         }
-        if entry.fixed_version != "0" && version_is_mainline(&entry.fixed_version) {
-            fixed_mainline_versions.insert(entry.fixed_version.clone());
-            eprintln!("DEBUG: Adding fixed version: {}", entry.fixed_version);
+        if entry.fixed.version() != "0" && entry.fixed.is_mainline() {
+            fixed_mainline_versions.insert(entry.fixed.version().clone());
+            eprintln!("DEBUG: Adding fixed version: {}", entry.fixed.version());
         }
     }
 
@@ -380,7 +391,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         }
 
         // Skip entries where the vulnerability is in the same version it was fixed
-        if entry.vulnerable.version() == entry.fixed_version {
+        if entry.vulnerable.version() == entry.fixed.version() {
             continue;
         }
 
@@ -413,28 +424,29 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             }
 
             // Add fixed versions as unaffected
-            if entry.fixed_version != "0" {
+            if entry.fixed.version() != "0" {
+                let fixed_version = entry.fixed.version();
                 // For stable kernels, determine the wildcard pattern
-                let version_parts: Vec<&str> = entry.fixed_version.split('.').collect();
+                let version_parts: Vec<&str> = fixed_version.split('.').collect();
                 let wildcard = if version_parts.len() >= 2 {
                     format!("{}.{}.*", version_parts[0], version_parts[1])
                 } else {
-                    entry.fixed_version.clone() + ".*"
+                    entry.fixed.version().clone() + ".*"
                 };
 
                 // Create a unique key for this version
                 let key = format!("kernel:unaffected:{}::{}",
-                    entry.fixed_version,
+                    entry.fixed.version(),
                     wildcard);
 
                 if !seen_versions.contains(&key) {
                     seen_versions.insert(key.clone());
 
                     // Add fixed version as unaffected
-                    if !version_is_mainline(&entry.fixed_version) {
+                    if !version_is_mainline(&entry.fixed.version()) {
                         // For stable kernels with a patch version (e.g., 5.10.234)
                         kernel_versions.push(VersionRange {
-                            version: entry.fixed_version.clone(),
+                            version: entry.fixed.version().clone(),
                             less_than: None,
                             less_than_or_equal: Some(wildcard),
                             status: "unaffected".to_string(),
@@ -445,14 +457,14 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                         // Check if there are any affected versions after this fixed version
                         let has_later_affected = affected_mainline_versions.iter().any(|v| {
                             // Use the shared comparison function
-                            match compare_kernel_versions(&entry.fixed_version, v) {
+                            match compare_kernel_versions(&entry.fixed.version(), v) {
                                 std::cmp::Ordering::Less => true,  // Current fixed version is less than this affected version
                                 _ => false
                             }
                         });
 
                         // Handle RC versions as mainline versions
-                        let is_rc_version = entry.fixed_version.contains("-rc");
+                        let is_rc_version = entry.fixed.is_rc_version();
 
                         if has_later_affected && !is_rc_version {
                             // If there's a later affected version, we need to be precise
@@ -460,8 +472,8 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                             let mut next_affected_version: Option<String> = None;
 
                             for v in &affected_mainline_versions {
-                                if compare_kernel_versions(&entry.fixed_version, v) == std::cmp::Ordering::Less {
-                                    // v is later than entry.fixed_version
+                                if compare_kernel_versions(&entry.fixed.version(), v) == std::cmp::Ordering::Less {
+                                    // v is later than entry.fixed.version()
                                     if let Some(ref candidate) = next_affected_version {
                                         if compare_kernel_versions(candidate, v) == std::cmp::Ordering::Greater {
                                             next_affected_version = Some(v.clone());
@@ -476,7 +488,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                             if let Some(next_version) = next_affected_version {
                                 // Add a range for versions between the fixed version and the next affected version
                                 kernel_versions.push(VersionRange {
-                                    version: entry.fixed_version.clone(),
+                                    version: entry.fixed.version().clone(),
                                     less_than: Some(next_version),
                                     less_than_or_equal: None,
                                     status: "unaffected".to_string(),
@@ -485,7 +497,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                             } else {
                                 // Fallback - should not normally happen
                                 kernel_versions.push(VersionRange {
-                                    version: entry.fixed_version.clone(),
+                                    version: entry.fixed.version().clone(),
                                     less_than: None,
                                     less_than_or_equal: None,
                                     status: "unaffected".to_string(),
@@ -495,7 +507,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                         } else {
                             // No later affected versions or this is an RC version, so we can use the original_commit_for_fix entry
                             kernel_versions.push(VersionRange {
-                                version: entry.fixed_version.clone(),
+                                version: entry.fixed.version().clone(),
                                 less_than: None,
                                 less_than_or_equal: Some("*".to_string()),
                                 status: "unaffected".to_string(),
@@ -507,10 +519,10 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             }
         } else {
             // For unaffected default status, add affected ranges
-            if entry.vulnerable.version() != "0" && entry.fixed_version != "0" {
+            if entry.vulnerable.version() != "0" && entry.fixed.version() != "0" {
                 let ver_range = VersionRange {
                     version: entry.vulnerable.version().clone(),
-                    less_than: Some(entry.fixed_version.clone()),
+                    less_than: Some(entry.fixed.version().clone()),
                     less_than_or_equal: None,
                     status: "affected".to_string(),
                     version_type: Some("semver".to_string()),
@@ -1167,7 +1179,7 @@ fn generate_mbox(
         // Try to parse the line as a DyadEntry
         if let Ok(entry) = DyadEntry::from_str(line) {
             // Handle unfixed vulnerabilities
-            if entry.fixed_version == "0" {
+            if entry.fixed.version() == "0" {
                 // Issue is not fixed, so say that:
                 vuln_array_mbox.push(format!(
                     "Issue introduced in {} with commit {}",
@@ -1178,7 +1190,7 @@ fn generate_mbox(
             }
 
             // Skip entries where the vulnerability is in the same version it was fixed
-            if entry.vulnerable.version() == entry.fixed_version {
+            if entry.vulnerable.version() == entry.fixed.version() {
                 continue;
             }
 
@@ -1187,7 +1199,7 @@ fn generate_mbox(
                 // We do not know when it showed up, so just say it is fixed
                 vuln_array_mbox.push(format!(
                     "Fixed in {} with commit {}",
-                    entry.fixed_version,
+                    entry.fixed.version(),
                     entry.fixed_git()
                 ));
             } else {
@@ -1196,7 +1208,7 @@ fn generate_mbox(
                     "Issue introduced in {} with commit {} and fixed in {} with commit {}",
                     entry.vulnerable.version(),
                     entry.vulnerable_git(),
-                    entry.fixed_version,
+                    entry.fixed.version(),
                     entry.fixed_git()
                 ));
             }
@@ -1225,10 +1237,10 @@ fn generate_mbox(
         }
 
         if let Ok(entry) = DyadEntry::from_str(line) {
-            if entry.fixed_version != "0" && entry.fixed_git() != "0" && entry.fixed_git() != git_sha_full {
+            if entry.fixed.version() != "0" && entry.fixed_git() != "0" && entry.fixed_git() != git_sha_full {
                 let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
                 if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
-                    version_url_pairs.push((entry.fixed_version.clone(), fix_url));
+                    version_url_pairs.push((entry.fixed.version().clone(), fix_url));
                 }
             }
         }
@@ -1686,7 +1698,7 @@ mod tests {
         let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
         assert_eq!(entry.vulnerable_git(), "11c52d250b34a0862edc29db03fbec23b30db6da");
-        assert_eq!(entry.fixed_version, "5.16");
+        assert_eq!(entry.fixed.version(), "5.16");
         assert_eq!(entry.fixed_git(), "2b503c8598d1b232e7fc7526bce9326d92331541");
         assert!(entry.is_fixed());
         assert!(entry.is_cross_version());
@@ -1695,7 +1707,7 @@ mod tests {
         let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
         assert_eq!(entry.vulnerable_git(), "11c52d250b34a0862edc29db03fbec23b30db6da");
-        assert_eq!(entry.fixed_version, "0");
+        assert_eq!(entry.fixed.version(), "0");
         assert_eq!(entry.fixed_git(), "0");
         assert!(!entry.is_fixed());
 
@@ -1703,7 +1715,7 @@ mod tests {
         let entry = DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "0");
         assert_eq!(entry.vulnerable_git(), "0");
-        assert_eq!(entry.fixed_version, "5.16");
+        assert_eq!(entry.fixed.version(), "5.16");
         assert_eq!(entry.fixed_git(), "2b503c8598d1b232e7fc7526bce9326d92331541");
         assert!(entry.is_fixed());
         assert!(!entry.is_cross_version());
