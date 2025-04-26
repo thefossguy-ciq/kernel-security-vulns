@@ -35,7 +35,6 @@ pub struct Kernel {
     version: String,
     git_id: String,
     mainline: bool,
-    rc: bool,
 }
 
 impl Kernel {
@@ -44,12 +43,10 @@ impl Kernel {
     //#[deprecated(note = "Should use from_id() instead")]
     pub fn new(v: String, g: String) -> Result<Self> {
         let mainline = version_utils::version_is_mainline(&v);
-        let rc = version_utils::version_is_rc(&v);
         Ok(Self {
             version: v,
             git_id: g,
             mainline,
-            rc,
         })
     }
 
@@ -65,7 +62,6 @@ impl Kernel {
             version: "0".to_string(),
             git_id: "0".to_string(),
             mainline: false, // This MUST be false, we rely on it elsewhere...
-            rc: false,
         }
     }
 
@@ -106,7 +102,7 @@ impl Kernel {
 
     /// Check if a kernel commit is in a RC version
     pub fn is_rc_version(&self) -> bool {
-        self.rc
+        version_utils::version_is_rc(&self.version)
     }
 
     fn git_dir() -> &'static String {
@@ -352,13 +348,11 @@ mod tests {
             version: "5.1.12".to_string(),
             git_id: "1234".to_string(),
             mainline: false,
-            rc: false,
         };
         let mut k2: Kernel = Kernel {
             version: "5.1.24".to_string(),
             git_id: "5678".to_string(),
             mainline: false,
-            rc: false,
         };
 
         assert!(k1.version_major_match(&k2));
@@ -393,13 +387,11 @@ mod tests {
             version: "4.19".to_string(),
             git_id: "1234".to_string(),
             mainline: false,
-            rc: false,
         };
         let mut k2: Kernel = Kernel {
             version: "4.19.1".to_string(),
             git_id: "5678".to_string(),
             mainline: false,
-            rc: false,
         };
 
         assert_eq!(k1.compare(&k2), Ordering::Less);
