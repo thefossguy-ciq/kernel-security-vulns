@@ -167,7 +167,7 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // If any entry has a mainline vulnerable version AND it's not fixed in the same version,
     // status should be "affected"
     if entries.iter().any(|entry| {
-        version_is_mainline(&entry.vulnerable.version())
+        entry.vulnerable.is_mainline()
             && entry.vulnerable.version() != entry.fixed.version()
     }) {
         return "affected";
@@ -217,14 +217,11 @@ fn generate_version_ranges(
             continue;
         }
 
-        if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version()) {
+        if entry.vulnerable.is_mainline() {
             affected_mainline_versions.insert(entry.vulnerable.version().clone());
-            eprintln!(
-                "DEBUG: Adding affected version: {}",
-                entry.vulnerable.version()
-            );
+            eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable.version());
         }
-        if entry.fixed.version() != "0" && entry.fixed.is_mainline() {
+        if entry.fixed.is_mainline() {
             fixed_mainline_versions.insert(entry.fixed.version().clone());
             eprintln!("DEBUG: Adding fixed version: {}", entry.fixed.version());
         }
@@ -456,8 +453,7 @@ fn generate_version_ranges(
         // Handle kernel version ranges
         if default_status == "affected" {
             // Only add versions before affected as unaffected if no other versions before this are affected
-            if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version())
-            {
+            if entry.vulnerable.is_mainline() {
                 let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable.version());
                 if !seen_versions.contains(&unaffected_key) {
                     // Check if any version before this one is already marked as affected
@@ -500,7 +496,7 @@ fn generate_version_ranges(
                     seen_versions.insert(key.clone());
 
                     // Add fixed version as unaffected
-                    if !version_is_mainline(&entry.fixed.version()) {
+                    if !entry.fixed.is_mainline() {
                         // For stable kernels with a patch version (e.g., 5.10.234)
                         kernel_versions.push(VersionRange {
                             version: entry.fixed.version().clone(),
