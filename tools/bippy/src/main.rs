@@ -85,20 +85,10 @@ impl DyadEntry {
         })
     }
 
-    /// Getter for the vulnerable_git field
-    fn vulnerable_git(&self) -> String {
-        self.vulnerable.git_id()
-    }
-
-    /// Getter for the fixed_git field
-    fn fixed_git(&self) -> String {
-        self.fixed.git_id()
-    }
-
     /// Check if this vulnerability has been fixed
     #[cfg(test)]
     fn is_fixed(&self) -> bool {
-        self.fixed.version() != "0" && self.fixed_git() != "0"
+        self.fixed.version() != "0" && self.fixed.git_id() != "0"
     }
 
     /// Check if vulnerability spans across different kernel versions
@@ -209,9 +199,9 @@ fn generate_version_ranges(
             "DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
             i,
             entry.vulnerable.version(),
-            entry.vulnerable_git(),
+            entry.vulnerable.git_id(),
             entry.fixed.version(),
-            entry.fixed_git()
+            entry.fixed.git_id()
         );
     }
 
@@ -424,20 +414,20 @@ fn generate_version_ranges(
 
     for entry in entries {
         // Handle git version ranges
-        if entry.fixed_git() != "0" {
+        if entry.fixed.git_id() != "0" {
             // For git version ranges, determine the vulnerable git ID
             // If vulnerable_version is 0, use the first Linux commit ID
             let vulnerable_git =
-                if entry.vulnerable.version() == "0" || entry.vulnerable_git() == "0" {
+                if entry.vulnerable.version() == "0" || entry.vulnerable.git_id() == "0" {
                     "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
                 } else {
-                    entry.vulnerable_git().to_string()
+                    entry.vulnerable.git_id().to_string()
                 };
 
             // Create a version range for Git
             let ver_range = VersionRange {
                 version: vulnerable_git,
-                less_than: Some(entry.fixed_git().to_string()),
+                less_than: Some(entry.fixed.git_id().to_string()),
                 less_than_or_equal: None,
                 status: "affected".to_string(),
                 version_type: Some("git".to_string()),
@@ -1089,8 +1079,8 @@ fn generate_json_record(
     // Add references for all entries
     for entry in dyad_entries {
         // Add fixed commit reference if available
-        if entry.fixed_git() != "0" {
-            let url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
+        if entry.fixed.git_id() != "0" {
+            let url = format!("https://git.kernel.org/stable/c/{}", entry.fixed.git_id());
             if !seen_refs.contains(&url) {
                 seen_refs.insert(url.clone());
                 references.push(Reference { url });
@@ -1249,7 +1239,7 @@ fn generate_mbox(
             vuln_array_mbox.push(format!(
                 "Issue introduced in {} with commit {}",
                 entry.vulnerable.version(),
-                entry.vulnerable_git()
+                entry.vulnerable.git_id()
             ));
             continue;
         }
@@ -1265,16 +1255,16 @@ fn generate_mbox(
             vuln_array_mbox.push(format!(
                 "Fixed in {} with commit {}",
                 entry.fixed.version(),
-                entry.fixed_git()
+                entry.fixed.git_id()
             ));
         } else {
             // Report when it was introduced and when it was fixed
             vuln_array_mbox.push(format!(
                 "Issue introduced in {} with commit {} and fixed in {} with commit {}",
                 entry.vulnerable.version(),
-                entry.vulnerable_git(),
+                entry.vulnerable.git_id(),
                 entry.fixed.version(),
-                entry.fixed_git()
+                entry.fixed.git_id()
             ));
         }
     }
@@ -1297,10 +1287,10 @@ fn generate_mbox(
     let mut version_url_pairs = Vec::new();
     for entry in dyad_entries {
         if entry.fixed.version() != "0"
-            && entry.fixed_git() != "0"
-            && entry.fixed_git() != git_sha_full
+            && entry.fixed.git_id() != "0"
+            && entry.fixed.git_id() != git_sha_full
         {
-            let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
+            let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed.git_id());
             if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
                 version_url_pairs.push((entry.fixed.version().clone(), fix_url));
             }
@@ -1812,12 +1802,12 @@ mod tests {
         let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
         assert_eq!(
-            entry.vulnerable_git(),
+            entry.vulnerable.git_id(),
             "11c52d250b34a0862edc29db03fbec23b30db6da"
         );
         assert_eq!(entry.fixed.version(), "5.16");
         assert_eq!(
-            entry.fixed_git(),
+            entry.fixed.git_id(),
             "2b503c8598d1b232e7fc7526bce9326d92331541"
         );
         assert!(entry.is_fixed());
@@ -1828,21 +1818,21 @@ mod tests {
             DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
         assert_eq!(
-            entry.vulnerable_git(),
+            entry.vulnerable.git_id(),
             "11c52d250b34a0862edc29db03fbec23b30db6da"
         );
         assert_eq!(entry.fixed.version(), "0");
-        assert_eq!(entry.fixed_git(), "0");
+        assert_eq!(entry.fixed.git_id(), "0");
         assert!(!entry.is_fixed());
 
         // Test with an unknown introduction point
         let entry =
             DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "0");
-        assert_eq!(entry.vulnerable_git(), "0");
+        assert_eq!(entry.vulnerable.git_id(), "0");
         assert_eq!(entry.fixed.version(), "5.16");
         assert_eq!(
-            entry.fixed_git(),
+            entry.fixed.git_id(),
             "2b503c8598d1b232e7fc7526bce9326d92331541"
         );
         assert!(entry.is_fixed());
