@@ -34,7 +34,6 @@ static GIT_DIR: OnceLock<String> = OnceLock::new();
 pub struct Kernel {
     version: String,
     git_id: String,
-    mainline: bool,
 }
 
 impl Kernel {
@@ -42,11 +41,9 @@ impl Kernel {
     /// `mainline` and `rc` attributes will be determined when created
     //#[deprecated(note = "Should use from_id() instead")]
     pub fn new(v: String, g: String) -> Result<Self> {
-        let mainline = version_utils::version_is_mainline(&v);
         Ok(Self {
             version: v,
             git_id: g,
-            mainline,
         })
     }
 
@@ -61,7 +58,6 @@ impl Kernel {
         Self {
             version: "0".to_string(),
             git_id: "0".to_string(),
-            mainline: false, // This MUST be false, we rely on it elsewhere...
         }
     }
 
@@ -97,7 +93,12 @@ impl Kernel {
 
     /// Check if a kernel commit is in a mainline branch (i.e. Linus's), or in a stable branch
     pub fn is_mainline(&self) -> bool {
-        self.mainline
+        // for a "NULL" kernel, we treat that as "not mainline"
+        if self.git_id == "0" {
+            return false;
+        }
+
+        version_utils::version_is_mainline(&self.version)
     }
 
     /// Check if a kernel commit is in a RC version
@@ -347,12 +348,10 @@ mod tests {
         let mut k1: Kernel = Kernel {
             version: "5.1.12".to_string(),
             git_id: "1234".to_string(),
-            mainline: false,
         };
         let mut k2: Kernel = Kernel {
             version: "5.1.24".to_string(),
             git_id: "5678".to_string(),
-            mainline: false,
         };
 
         assert!(k1.version_major_match(&k2));
@@ -361,7 +360,6 @@ mod tests {
         assert!(!k1.version_major_match(&k2));
 
         k1.version = "5.1".to_string();
-        k1.mainline = true;
         assert!(k1.version_major_match(&k2));
 
         k1.version = "2.6.31.1".to_string();
@@ -386,12 +384,10 @@ mod tests {
         let mut k1: Kernel = Kernel {
             version: "4.19".to_string(),
             git_id: "1234".to_string(),
-            mainline: false,
         };
         let mut k2: Kernel = Kernel {
             version: "4.19.1".to_string(),
             git_id: "5678".to_string(),
-            mainline: false,
         };
 
         assert_eq!(k1.compare(&k2), Ordering::Less);
