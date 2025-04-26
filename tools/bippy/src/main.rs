@@ -921,7 +921,7 @@ fn generate_json_record(
     commit_subject: &str,
     _user_name: &str,
     user_email: &str,
-    dyad_data: &str,
+    mut dyad_entries: Vec<DyadEntry>,
     script_name: &str,
     script_version: &str,
     additional_references: &[String],
@@ -953,24 +953,6 @@ fn generate_json_record(
 
     // Get affected files
     let affected_files = get_affected_files(&repo, &git_ref)?;
-
-    // Parse dyad output into DyadEntry objects
-    let mut dyad_entries = Vec::new();
-
-    // Process dyad data to create entries
-    if !dyad_data.is_empty() {
-        for line in dyad_data.lines() {
-            // Skip comments and empty lines
-            if line.starts_with('#') || line.trim().is_empty() {
-                continue;
-            }
-
-            // Parse the line directly as DyadEntry
-            if let Ok(entry) = DyadEntry::from_str(line) {
-                dyad_entries.push(entry);
-            }
-        }
-    }
 
     // If no entries were created, use the fix commit as a fallback
     if dyad_entries.is_empty() {
@@ -1010,7 +992,7 @@ fn generate_json_record(
     let mut seen_refs: HashSet<String> = HashSet::new();
 
     // Add references for all entries
-    for entry in &dyad_entries {
+    for entry in dyad_entries {
         // Add fixed commit reference if available
         if entry.fixed_git() != "0" {
             let url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
@@ -1544,6 +1526,24 @@ fn main() -> Result<()> {
         }
     };
 
+    // Parse dyad output into DyadEntry objects
+    let mut dyad_entries :Vec<DyadEntry> = Vec::new();
+
+    // Process dyad data to create entries
+    if !dyad_data.is_empty() {
+        for line in dyad_data.lines() {
+            // Skip comments and empty lines
+            if line.starts_with('#') || line.trim().is_empty() {
+                continue;
+            }
+
+            // Parse the line directly as DyadEntry
+            if let Ok(entry) = DyadEntry::from_str(line) {
+                dyad_entries.push(entry);
+            }
+        }
+    }
+
     // First check for the reference file explicitly specified with --reference
     let mut reference_path: Option<PathBuf> = args.reference.clone();
 
@@ -1616,7 +1616,7 @@ fn main() -> Result<()> {
             &commit_subject,
             &user_name,
             &user_email,
-            &dyad_data,
+            dyad_entries,
             &script_name,
             &script_version,
             &additional_references,
