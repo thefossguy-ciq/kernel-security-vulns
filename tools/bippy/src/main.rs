@@ -1103,7 +1103,7 @@ fn generate_mbox(
     commit_subject: &str,
     user_name: &str,
     user_email: &str,
-    dyad_data: &str,
+    dyad_entries: &Vec<DyadEntry>,
     script_name: &str,
     script_version: &str,
     additional_references: &[String],
@@ -1153,47 +1153,40 @@ fn generate_mbox(
     };
 
     // Parse the dyad output
-    for line in dyad_data.lines() {
-        if line.starts_with('#') || line.trim().is_empty() {
+    for entry in dyad_entries {
+        // Handle unfixed vulnerabilities
+        if entry.fixed.version() == "0" {
+            // Issue is not fixed, so say that:
+            vuln_array_mbox.push(format!(
+                "Issue introduced in {} with commit {}",
+                entry.vulnerable.version(),
+                entry.vulnerable_git()
+            ));
             continue;
         }
 
-        // Try to parse the line as a DyadEntry
-        if let Ok(entry) = DyadEntry::from_str(line) {
-            // Handle unfixed vulnerabilities
-            if entry.fixed.version() == "0" {
-                // Issue is not fixed, so say that:
-                vuln_array_mbox.push(format!(
-                    "Issue introduced in {} with commit {}",
-                    entry.vulnerable.version(),
-                    entry.vulnerable_git()
-                ));
-                continue;
-            }
+        // Skip entries where the vulnerability is in the same version it was fixed
+        if entry.vulnerable.version() == entry.fixed.version() {
+            continue;
+        }
 
-            // Skip entries where the vulnerability is in the same version it was fixed
-            if entry.vulnerable.version() == entry.fixed.version() {
-                continue;
-            }
-
-            // Handle different types of entries
-            if entry.vulnerable.version() == "0" {
-                // We do not know when it showed up, so just say it is fixed
-                vuln_array_mbox.push(format!(
-                    "Fixed in {} with commit {}",
-                    entry.fixed.version(),
-                    entry.fixed_git()
-                ));
-            } else {
-                // Report when it was introduced and when it was fixed
-                vuln_array_mbox.push(format!(
-                    "Issue introduced in {} with commit {} and fixed in {} with commit {}",
-                    entry.vulnerable.version(),
-                    entry.vulnerable_git(),
-                    entry.fixed.version(),
-                    entry.fixed_git()
-                ));
-            }
+        // Handle different types of entries
+        if entry.vulnerable.version() == "0" {
+            // We do not know when it showed up, so just say it is fixed
+            vuln_array_mbox.push(format!(
+                "Fixed in {} with commit {}",
+                entry.fixed.version(),
+                entry.fixed_git()
+            ));
+        } else {
+            // Report when it was introduced and when it was fixed
+            vuln_array_mbox.push(format!(
+                "Issue introduced in {} with commit {} and fixed in {} with commit {}",
+                entry.vulnerable.version(),
+                entry.vulnerable_git(),
+                entry.fixed.version(),
+                entry.fixed_git()
+            ));
         }
     }
 
@@ -1213,17 +1206,11 @@ fn generate_mbox(
 
     // First add all fix commit URLs from dyad entries (except the main fix)
     let mut version_url_pairs = Vec::new();
-    for line in dyad_data.lines() {
-        if line.starts_with('#') || line.trim().is_empty() {
-            continue;
-        }
-
-        if let Ok(entry) = DyadEntry::from_str(line) {
-            if entry.fixed.version() != "0" && entry.fixed_git() != "0" && entry.fixed_git() != git_sha_full {
-                let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
-                if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
-                    version_url_pairs.push((entry.fixed.version().clone(), fix_url));
-                }
+    for entry in dyad_entries {
+        if entry.fixed.version() != "0" && entry.fixed_git() != "0" && entry.fixed_git() != git_sha_full {
+            let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
+            if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
+                version_url_pairs.push((entry.fixed.version().clone(), fix_url));
             }
         }
     }
@@ -1616,7 +1603,7 @@ fn main() -> Result<()> {
             &commit_subject,
             &user_name,
             &user_email,
-            dyad_entries,
+            dyad_entries.clone(),
             &script_name,
             &script_version,
             &additional_references,
@@ -1644,7 +1631,7 @@ fn main() -> Result<()> {
             &commit_subject,
             &user_name,
             &user_email,
-            &dyad_data,
+            &dyad_entries,
             &script_name,
             &script_version,
             &additional_references,
