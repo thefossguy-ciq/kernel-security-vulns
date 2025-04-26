@@ -64,8 +64,17 @@ impl Kernel {
     /// Create a new Kernel object based on a git id
     /// Will verify, AND turn the id passed in into a "full" sha1 value, and properly populate the
     /// `mainline` and `rc` attributes as needed
+    ///
+    /// If "0" is used as the git id, an "empty" kernel object will be created (i.e. the same
+    /// output of Kernel::empty_kernel()
+    ///
     /// Should be always used, new() will be deprecated soon.
     pub fn from_id(id: String) -> Result<Self> {
+        // Allow "0" as an "empty kernel" so that bippy can work properly.
+        if id == "0" {
+            return Ok(Self::empty_kernel());
+        }
+
         // Verify, AND turn the id given to us into a "full" sha1
         let kernel_tree = Self::git_dir();
         let repo_path = Path::new(&kernel_tree);
@@ -284,6 +293,13 @@ mod tests {
         k = alloc_kernel_id("22207fd5c80177b860279653d017474b2812af5e".to_string());
         assert_eq!(k.version(), "6.9");
         assert!(k.is_mainline());
+    }
+
+    #[test]
+    fn constructor_empty_kernel() {
+        let k = alloc_kernel_id("0".to_string());
+        assert_eq!(k.version(), "0");
+        assert_eq!(k.git_id(), "0");
     }
 
     #[test]
