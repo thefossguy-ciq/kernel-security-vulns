@@ -88,14 +88,14 @@ impl DyadEntry {
     /// Check if this vulnerability has been fixed
     #[cfg(test)]
     fn is_fixed(&self) -> bool {
-        self.fixed.version() != "0" && self.fixed.git_id() != "0"
+        !self.fixed.is_empty()
     }
 
     /// Check if vulnerability spans across different kernel versions
     #[cfg(test)]
     fn is_cross_version(&self) -> bool {
-        self.vulnerable.version() != "0"
-            && self.fixed.version() != "0"
+        !self.vulnerable.is_empty()
+            && !self.fixed.is_empty()
             && self.vulnerable.version() != self.fixed.version()
     }
 }
@@ -159,7 +159,7 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // If any entry has vulnerable_version = 0, status should be "affected"
     if entries
         .iter()
-        .any(|entry| entry.vulnerable.version() == "0")
+        .any(|entry| entry.vulnerable.is_empty())
     {
         return "affected";
     }
@@ -418,7 +418,7 @@ fn generate_version_ranges(
             // For git version ranges, determine the vulnerable git ID
             // If vulnerable_version is 0, use the first Linux commit ID
             let vulnerable_git =
-                if entry.vulnerable.version() == "0" || entry.vulnerable.git_id() == "0" {
+                if entry.vulnerable.is_empty() {
                     "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
                 } else {
                     entry.vulnerable.git_id().to_string()
@@ -1079,7 +1079,7 @@ fn generate_json_record(
     // Add references for all entries
     for entry in dyad_entries {
         // Add fixed commit reference if available
-        if entry.fixed.git_id() != "0" {
+        if !entry.fixed.is_empty() {
             let url = format!("https://git.kernel.org/stable/c/{}", entry.fixed.git_id());
             if !seen_refs.contains(&url) {
                 seen_refs.insert(url.clone());
@@ -1234,7 +1234,7 @@ fn generate_mbox(
     // Parse the dyad output
     for entry in dyad_entries {
         // Handle unfixed vulnerabilities
-        if entry.fixed.version() == "0" {
+        if entry.fixed.is_empty() {
             // Issue is not fixed, so say that:
             vuln_array_mbox.push(format!(
                 "Issue introduced in {} with commit {}",
@@ -1250,7 +1250,7 @@ fn generate_mbox(
         }
 
         // Handle different types of entries
-        if entry.vulnerable.version() == "0" {
+        if entry.vulnerable.is_empty() {
             // We do not know when it showed up, so just say it is fixed
             vuln_array_mbox.push(format!(
                 "Fixed in {} with commit {}",
@@ -1286,10 +1286,7 @@ fn generate_mbox(
     // First add all fix commit URLs from dyad entries (except the main fix)
     let mut version_url_pairs = Vec::new();
     for entry in dyad_entries {
-        if entry.fixed.version() != "0"
-            && entry.fixed.git_id() != "0"
-            && entry.fixed.git_id() != git_sha_full
-        {
+        if !entry.fixed.is_empty() && entry.fixed.git_id() != git_sha_full {
             let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed.git_id());
             if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
                 version_url_pairs.push((entry.fixed.version().clone(), fix_url));
@@ -1821,6 +1818,7 @@ mod tests {
             entry.vulnerable.git_id(),
             "11c52d250b34a0862edc29db03fbec23b30db6da"
         );
+        assert!(entry.fixed.is_empty());
         assert_eq!(entry.fixed.version(), "0");
         assert_eq!(entry.fixed.git_id(), "0");
         assert!(!entry.is_fixed());
@@ -1828,6 +1826,7 @@ mod tests {
         // Test with an unknown introduction point
         let entry =
             DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
+        assert!(entry.vulnerable.is_empty());
         assert_eq!(entry.vulnerable.version(), "0");
         assert_eq!(entry.vulnerable.git_id(), "0");
         assert_eq!(entry.fixed.version(), "5.16");
