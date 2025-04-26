@@ -13,6 +13,7 @@ use std::collections::HashSet;
 use cve_utils::version_utils::{version_is_mainline, compare_kernel_versions};
 use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
 use cve_utils::git_config;
+use cve_utils::Kernel;
 use serde_json::ser::{PrettyFormatter, Serializer};
 
 /// Error types for the bippy tool
@@ -21,6 +22,12 @@ enum BippyError {
     /// Error when parsing a dyad entry
     #[error("Invalid dyad entry: {0}")]
     InvalidDyadEntry(String),
+
+    #[error("Invalid dyad git_id: {0}")]
+    InvalidDyadGitId(String),
+
+    #[error("Invalid dyad version: {0}")]
+    InvalidDyadVersion(String),
 
     /// Error in git2 library
     #[error("Git error: {0}")]
@@ -34,8 +41,7 @@ enum BippyError {
 /// DyadEntry represents a kernel vulnerability range entry from the dyad script
 #[derive(Debug, Clone)]
 struct DyadEntry {
-    vulnerable_version: String,
-    vulnerable_git: String,
+    vulnerable: Kernel,
     fixed_version: String,
     fixed_git: String,
 }
@@ -48,17 +54,27 @@ impl DyadEntry {
             return Err(BippyError::InvalidDyadEntry(s.to_string()));
         }
 
+        // Create the vulnerable kernel by the git id, verifying that this is a valid git id AND
+        // that the version number is what dyad gave us so that we don't go off of crazy
+        // information somehow.
+        let vulnerable_kernel = match Kernel::from_id(parts[1].to_string()) {
+            Ok(v) => v,
+            Err(_e) => return Err(BippyError::InvalidDyadGitId(parts[1].to_string())),
+        };
+        if vulnerable_kernel.version() != parts[0].to_string() {
+            return Err(BippyError::InvalidDyadVersion(parts[0].to_string()));
+        }
+
         Ok(DyadEntry {
-            vulnerable_version: parts[0].to_string(),
-            vulnerable_git: parts[1].to_string(),
+            vulnerable: vulnerable_kernel,
             fixed_version: parts[2].to_string(),
             fixed_git: parts[3].to_string(),
         })
     }
 
     /// Getter for the vulnerable_git field
-    fn vulnerable_git(&self) -> &str {
-        &self.vulnerable_git
+    fn vulnerable_git(&self) -> String {
+        self.vulnerable.git_id()
     }
 
     /// Getter for the fixed_git field
@@ -75,8 +91,8 @@ impl DyadEntry {
     /// Check if vulnerability spans across different kernel versions
     #[cfg(test)]
     fn is_cross_version(&self) -> bool {
-        self.vulnerable_version != "0" && self.fixed_version != "0" &&
-        self.vulnerable_version != self.fixed_version
+        self.vulnerable.version() != "0" && self.fixed_version != "0" &&
+        self.vulnerable.version() != self.fixed_version
     }
 }
 
@@ -134,15 +150,15 @@ fn strip_commit_text(text: &str, tags: &[String]) -> Result<String> {
 /// Determine the default status for CVE entries based on the dyad entries
 fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // If any entry has vulnerable_version = 0, status should be "affected"
-    if entries.iter().any(|entry| entry.vulnerable_version == "0") {
+    if entries.iter().any(|entry| entry.vulnerable.version() == "0") {
         return "affected";
     }
 
     // If any entry has a mainline vulnerable version AND it's not fixed in the same version,
     // status should be "affected"
     if entries.iter().any(|entry|
-        version_is_mainline(&entry.vulnerable_version) &&
-        entry.vulnerable_version != entry.fixed_version
+        version_is_mainline(&entry.vulnerable.version()) &&
+        entry.vulnerable.version() != entry.fixed_version
     ) {
         return "affected";
     }
@@ -163,7 +179,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
     eprintln!("DEBUG: Processing {} dyad entries with default_status={}", entries.len(), default_status);
     for (i, entry) in entries.iter().enumerate() {
         eprintln!("DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
-            i, entry.vulnerable_version, entry.vulnerable_git(),
+            i, entry.vulnerable.version(), entry.vulnerable_git(),
             entry.fixed_version, entry.fixed_git());
     }
 
@@ -171,14 +187,14 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
     for entry in entries {
         // Skip entries where the vulnerability is in the same version it was fixed
         // These versions are not actually affected in any released version
-        if entry.vulnerable_version == entry.fixed_version {
-            eprintln!("DEBUG: Skipping version {} as it was fixed in the same version", entry.vulnerable_version);
+        if entry.vulnerable.version() == entry.fixed_version {
+            eprintln!("DEBUG: Skipping version {} as it was fixed in the same version", entry.vulnerable.version());
             continue;
         }
 
-        if entry.vulnerable_version != "0" && version_is_mainline(&entry.vulnerable_version) {
-            affected_mainline_versions.insert(entry.vulnerable_version.clone());
-            eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable_version);
+        if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version()) {
+            affected_mainline_versions.insert(entry.vulnerable.version().clone());
+            eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable.version());
         }
         if entry.fixed_version != "0" && version_is_mainline(&entry.fixed_version) {
             fixed_mainline_versions.insert(entry.fixed_version.clone());
@@ -335,7 +351,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         if entry.fixed_git() != "0" {
             // For git version ranges, determine the vulnerable git ID
             // If vulnerable_version is 0, use the first Linux commit ID
-            let vulnerable_git = if entry.vulnerable_version == "0" || entry.vulnerable_git() == "0" {
+            let vulnerable_git = if entry.vulnerable.version() == "0" || entry.vulnerable_git() == "0" {
                 "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
             } else {
                 entry.vulnerable_git().to_string()
@@ -364,20 +380,20 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         }
 
         // Skip entries where the vulnerability is in the same version it was fixed
-        if entry.vulnerable_version == entry.fixed_version {
+        if entry.vulnerable.version() == entry.fixed_version {
             continue;
         }
 
         // Handle kernel version ranges
         if default_status == "affected" {
             // Only add versions before affected as unaffected if no other versions before this are affected
-            if entry.vulnerable_version != "0" && version_is_mainline(&entry.vulnerable_version) {
-                let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable_version);
+            if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version()) {
+                let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable.version());
                 if !seen_versions.contains(&unaffected_key) {
                     // Check if any version before this one is already marked as affected
                     let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
                         // Use the shared comparison function
-                        match compare_kernel_versions(v, &entry.vulnerable_version) {
+                        match compare_kernel_versions(v, &entry.vulnerable.version()) {
                             std::cmp::Ordering::Less => true,  // This affected version is less than current version
                             _ => false
                         }
@@ -387,7 +403,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                         seen_versions.insert(unaffected_key);
                         kernel_versions.push(VersionRange {
                             version: "0".to_string(),
-                            less_than: Some(entry.vulnerable_version.clone()),
+                            less_than: Some(entry.vulnerable.version().clone()),
                             less_than_or_equal: None,
                             status: "unaffected".to_string(),
                             version_type: Some("semver".to_string()),
@@ -491,9 +507,9 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             }
         } else {
             // For unaffected default status, add affected ranges
-            if entry.vulnerable_version != "0" && entry.fixed_version != "0" {
+            if entry.vulnerable.version() != "0" && entry.fixed_version != "0" {
                 let ver_range = VersionRange {
-                    version: entry.vulnerable_version.clone(),
+                    version: entry.vulnerable.version().clone(),
                     less_than: Some(entry.fixed_version.clone()),
                     less_than_or_equal: None,
                     status: "affected".to_string(),
@@ -1155,19 +1171,19 @@ fn generate_mbox(
                 // Issue is not fixed, so say that:
                 vuln_array_mbox.push(format!(
                     "Issue introduced in {} with commit {}",
-                    entry.vulnerable_version,
+                    entry.vulnerable.version(),
                     entry.vulnerable_git()
                 ));
                 continue;
             }
 
             // Skip entries where the vulnerability is in the same version it was fixed
-            if entry.vulnerable_version == entry.fixed_version {
+            if entry.vulnerable.version() == entry.fixed_version {
                 continue;
             }
 
             // Handle different types of entries
-            if entry.vulnerable_version == "0" {
+            if entry.vulnerable.version() == "0" {
                 // We do not know when it showed up, so just say it is fixed
                 vuln_array_mbox.push(format!(
                     "Fixed in {} with commit {}",
@@ -1178,7 +1194,7 @@ fn generate_mbox(
                 // Report when it was introduced and when it was fixed
                 vuln_array_mbox.push(format!(
                     "Issue introduced in {} with commit {} and fixed in {} with commit {}",
-                    entry.vulnerable_version,
+                    entry.vulnerable.version(),
                     entry.vulnerable_git(),
                     entry.fixed_version,
                     entry.fixed_git()
@@ -1667,28 +1683,28 @@ mod tests {
 
     #[test]
     fn test_dyad_entry_parsing() {
-        let entry = DyadEntry::from_str("5.15:abcdef123456:5.16:789abcdef012").unwrap();
-        assert_eq!(entry.vulnerable_version, "5.15");
-        assert_eq!(entry.vulnerable_git(), "abcdef123456");
+        let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
+        assert_eq!(entry.vulnerable.version(), "5.15");
+        assert_eq!(entry.vulnerable_git(), "11c52d250b34a0862edc29db03fbec23b30db6da");
         assert_eq!(entry.fixed_version, "5.16");
-        assert_eq!(entry.fixed_git(), "789abcdef012");
+        assert_eq!(entry.fixed_git(), "2b503c8598d1b232e7fc7526bce9326d92331541");
         assert!(entry.is_fixed());
         assert!(entry.is_cross_version());
 
         // Test with a vulnerability that isn't fixed
-        let entry = DyadEntry::from_str("5.15:abcdef123456:0:0").unwrap();
-        assert_eq!(entry.vulnerable_version, "5.15");
-        assert_eq!(entry.vulnerable_git(), "abcdef123456");
+        let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
+        assert_eq!(entry.vulnerable.version(), "5.15");
+        assert_eq!(entry.vulnerable_git(), "11c52d250b34a0862edc29db03fbec23b30db6da");
         assert_eq!(entry.fixed_version, "0");
         assert_eq!(entry.fixed_git(), "0");
         assert!(!entry.is_fixed());
 
         // Test with an unknown introduction point
-        let entry = DyadEntry::from_str("0:0:5.16:789abcdef012").unwrap();
-        assert_eq!(entry.vulnerable_version, "0");
+        let entry = DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
+        assert_eq!(entry.vulnerable.version(), "0");
         assert_eq!(entry.vulnerable_git(), "0");
         assert_eq!(entry.fixed_version, "5.16");
-        assert_eq!(entry.fixed_git(), "789abcdef012");
+        assert_eq!(entry.fixed_git(), "2b503c8598d1b232e7fc7526bce9326d92331541");
         assert!(entry.is_fixed());
         assert!(!entry.is_cross_version());
     }
@@ -1730,34 +1746,45 @@ mod tests {
     fn test_determine_default_status() {
         // Test with vulnerable_version = 0
         let entries = vec![
-            DyadEntry::from_str("0:abcdef123456:5.15:fedcba654321").unwrap(),
+            DyadEntry::from_str("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
         ];
         assert_eq!(determine_default_status(&entries), "affected");
 
+        // Test with invalid git id
+        /* FIXME, does not build, but you get the idea of what we should be testing...
+        match DyadEntry::from_str("5.10:abcdef123456:5.15:11c52d250b34a0862edc29db03fbec23b30db6da") {
+            Ok(d) => {
+                assert_eq!(0, 0);
+            }
+            Err(e) => {
+                assert_eq!(e, Err(InvalidDyadGitId("abcdef123456")));
+            }
+        } */
+
         // Test with mainline vulnerable version that's different from the fixed version
         let entries = vec![
-            DyadEntry::from_str("5.10:abcdef123456:5.15:fedcba654321").unwrap(),
+            DyadEntry::from_str("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
         ];
         assert_eq!(determine_default_status(&entries), "affected");
 
         // Test with mainline version that's both vulnerable and fixed in the same version
         // This should be "unaffected" because no actually released version was affected
         let entries = vec![
-            DyadEntry::from_str("6.0:abcdef123456:6.0:fedcba654321").unwrap(),
+            DyadEntry::from_str("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(determine_default_status(&entries), "unaffected");
 
         // Test with multiple entries, one with vulnerable_version = 0
         let entries = vec![
-            DyadEntry::from_str("5.10:abcdef123456:5.15:fedcba654321").unwrap(),
-            DyadEntry::from_str("0:123456abcdef:6.0:654321fedcba").unwrap(),
+            DyadEntry::from_str("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
+            DyadEntry::from_str("0:0:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(determine_default_status(&entries), "affected");
 
         // Test with multiple entries, mix of same-version fixes and different-version fixes
         let entries = vec![
-            DyadEntry::from_str("5.15.1:abcdef123456:5.15.2:fedcba654321").unwrap(),
-            DyadEntry::from_str("6.0:123456abcdef:6.0:654321fedcba").unwrap(),
+            DyadEntry::from_str("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a").unwrap(),
+            DyadEntry::from_str("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(determine_default_status(&entries), "unaffected");
     }
@@ -1766,15 +1793,15 @@ mod tests {
     fn test_generate_version_ranges() {
         // Test with a single entry for a stable kernel
         let entries = vec![
-            DyadEntry::from_str("5.15:abcdef123456:5.16:fedcba654321").unwrap(),
+            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
         ];
 
         let (kernel_versions, git_versions) = generate_version_ranges(&entries, "unaffected");
 
         // Check git versions
         assert_eq!(git_versions.len(), 1);
-        assert_eq!(git_versions[0].version, "abcdef123456");
-        assert_eq!(git_versions[0].less_than, Some("fedcba654321".to_string()));
+        assert_eq!(git_versions[0].version, "11c52d250b34a0862edc29db03fbec23b30db6da");
+        assert_eq!(git_versions[0].less_than, Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string()));
         assert_eq!(git_versions[0].status, "affected");
 
         // Check kernel versions - expect 2 entries based on the implementation
@@ -1789,7 +1816,7 @@ mod tests {
 
         // Test with default status "affected"
         let entries = vec![
-            DyadEntry::from_str("6.0:abcdef123456:6.1:fedcba654321").unwrap(),
+            DyadEntry::from_str("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
         let (kernel_versions, git_versions) = generate_version_ranges(&entries, "affected");
@@ -1810,8 +1837,8 @@ mod tests {
 
         // Test with multiple entries
         let entries = vec![
-            DyadEntry::from_str("5.15:abcdef123456:5.16:fedcba654321").unwrap(),
-            DyadEntry::from_str("6.0:123456abcdef:6.1:654321fedcba").unwrap(),
+            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
+            DyadEntry::from_str("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
         let (kernel_versions, git_versions) = generate_version_ranges(&entries, "unaffected");
