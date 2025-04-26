@@ -2,19 +2,21 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-use std::path::{Path, PathBuf};
-use git2::{Repository, Object};
-use clap::Parser;
 use anyhow::{Context, Result};
-use thiserror::Error;
-use std::env;
-use serde::{Serialize, Deserialize};
-use std::collections::HashSet;
-use cve_utils::version_utils::{version_is_mainline, compare_kernel_versions};
-use cve_utils::git_utils::{resolve_reference, get_object_full_sha, get_short_sha, get_affected_files};
+use clap::Parser;
 use cve_utils::git_config;
+use cve_utils::git_utils::{
+    get_affected_files, get_object_full_sha, get_short_sha, resolve_reference,
+};
+use cve_utils::version_utils::{compare_kernel_versions, version_is_mainline};
 use cve_utils::Kernel;
+use git2::{Object, Repository};
+use serde::{Deserialize, Serialize};
 use serde_json::ser::{PrettyFormatter, Serializer};
+use std::collections::HashSet;
+use std::env;
+use std::path::{Path, PathBuf};
+use thiserror::Error;
 
 /// Error types for the bippy tool
 #[derive(Error, Debug)]
@@ -102,15 +104,17 @@ impl DyadEntry {
     /// Check if vulnerability spans across different kernel versions
     #[cfg(test)]
     fn is_cross_version(&self) -> bool {
-        self.vulnerable.version() != "0" && self.fixed.version() != "0" &&
-        self.vulnerable.version() != self.fixed.version()
+        self.vulnerable.version() != "0"
+            && self.fixed.version() != "0"
+            && self.vulnerable.version() != self.fixed.version()
     }
 }
 
 /// Strip commit text to only keep the relevant parts
 /// Removes Signed-off-by and other tags from the commit message
 fn strip_commit_text(text: &str, tags: &[String]) -> Result<String> {
-    let mut result = String::from("In the Linux kernel, the following vulnerability has been resolved:\n\n");
+    let mut result =
+        String::from("In the Linux kernel, the following vulnerability has been resolved:\n\n");
 
     // Split the commit message by lines
     let lines: Vec<&str> = text.lines().collect();
@@ -141,7 +145,9 @@ fn strip_commit_text(text: &str, tags: &[String]) -> Result<String> {
         // Skip only if the line actually starts with a recognized tag
         let is_tag_line = tags.iter().any(|tag| {
             let tag_with_colon = format!("{}:", tag);
-            trimmed.to_lowercase().starts_with(&tag_with_colon.to_lowercase())
+            trimmed
+                .to_lowercase()
+                .starts_with(&tag_with_colon.to_lowercase())
         });
 
         if !is_tag_line {
@@ -161,16 +167,19 @@ fn strip_commit_text(text: &str, tags: &[String]) -> Result<String> {
 /// Determine the default status for CVE entries based on the dyad entries
 fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // If any entry has vulnerable_version = 0, status should be "affected"
-    if entries.iter().any(|entry| entry.vulnerable.version() == "0") {
+    if entries
+        .iter()
+        .any(|entry| entry.vulnerable.version() == "0")
+    {
         return "affected";
     }
 
     // If any entry has a mainline vulnerable version AND it's not fixed in the same version,
     // status should be "affected"
-    if entries.iter().any(|entry|
-        version_is_mainline(&entry.vulnerable.version()) &&
-        entry.vulnerable.version() != entry.fixed.version()
-    ) {
+    if entries.iter().any(|entry| {
+        version_is_mainline(&entry.vulnerable.version())
+            && entry.vulnerable.version() != entry.fixed.version()
+    }) {
         return "affected";
     }
 
@@ -179,7 +188,10 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
 }
 
 /// Generate version ranges for the CVE JSON format
-fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<VersionRange>, Vec<VersionRange>) {
+fn generate_version_ranges(
+    entries: &[DyadEntry],
+    default_status: &str,
+) -> (Vec<VersionRange>, Vec<VersionRange>) {
     let mut kernel_versions = Vec::new();
     let mut git_versions = Vec::new();
     let mut seen_versions = HashSet::new();
@@ -187,11 +199,20 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
     let mut fixed_mainline_versions = HashSet::new();
 
     // Add debugging output for the dyad entries we're processing
-    eprintln!("DEBUG: Processing {} dyad entries with default_status={}", entries.len(), default_status);
+    eprintln!(
+        "DEBUG: Processing {} dyad entries with default_status={}",
+        entries.len(),
+        default_status
+    );
     for (i, entry) in entries.iter().enumerate() {
-        eprintln!("DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
-            i, entry.vulnerable.version(), entry.vulnerable_git(),
-            entry.fixed.version(), entry.fixed_git());
+        eprintln!(
+            "DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
+            i,
+            entry.vulnerable.version(),
+            entry.vulnerable_git(),
+            entry.fixed.version(),
+            entry.fixed_git()
+        );
     }
 
     // First pass: Collect all affected and fixed mainline versions
@@ -199,13 +220,19 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         // Skip entries where the vulnerability is in the same version it was fixed
         // These versions are not actually affected in any released version
         if entry.vulnerable.version() == entry.fixed.version() {
-            eprintln!("DEBUG: Skipping version {} as it was fixed in the same version", entry.vulnerable.version());
+            eprintln!(
+                "DEBUG: Skipping version {} as it was fixed in the same version",
+                entry.vulnerable.version()
+            );
             continue;
         }
 
         if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version()) {
             affected_mainline_versions.insert(entry.vulnerable.version().clone());
-            eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable.version());
+            eprintln!(
+                "DEBUG: Adding affected version: {}",
+                entry.vulnerable.version()
+            );
         }
         if entry.fixed.version() != "0" && entry.fixed.is_mainline() {
             fixed_mainline_versions.insert(entry.fixed.version().clone());
@@ -234,7 +261,11 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
 
     eprintln!("DEBUG: Sorted versions (version, is_affected):");
     for (v, affected) in &all_versions {
-        eprintln!("DEBUG:   {} => {}", v, if *affected { "affected" } else { "unaffected" });
+        eprintln!(
+            "DEBUG:   {} => {}",
+            v,
+            if *affected { "affected" } else { "unaffected" }
+        );
     }
 
     if !all_versions.is_empty() {
@@ -246,12 +277,19 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                 continue;
             }
 
-            let status = if *is_affected { "affected" } else { "unaffected" };
+            let status = if *is_affected {
+                "affected"
+            } else {
+                "unaffected"
+            };
 
             // Skip versions that match the default status (redundant)
             // EXCEPT for affected versions, which we always include for clarity
             if status == default_status && !is_affected {
-                eprintln!("DEBUG: Skipping explicit version {} (matches default status '{}')", version, default_status);
+                eprintln!(
+                    "DEBUG: Skipping explicit version {} (matches default status '{}')",
+                    version, default_status
+                );
                 continue;
             }
 
@@ -275,9 +313,21 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             let (current_version, current_affected) = &all_versions[i];
             let (next_version, next_affected) = &all_versions[i + 1];
 
-            eprintln!("DEBUG: Checking for intermediate versions between {} ({}) and {} ({})",
-                current_version, if *current_affected { "affected" } else { "unaffected" },
-                next_version, if *next_affected { "affected" } else { "unaffected" });
+            eprintln!(
+                "DEBUG: Checking for intermediate versions between {} ({}) and {} ({})",
+                current_version,
+                if *current_affected {
+                    "affected"
+                } else {
+                    "unaffected"
+                },
+                next_version,
+                if *next_affected {
+                    "affected"
+                } else {
+                    "unaffected"
+                }
+            );
 
             // Check if they're in the same major version
             let current_parts: Vec<&str> = current_version.split('.').collect();
@@ -287,14 +337,19 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                 current_parts.first().unwrap_or(&"0").parse::<u32>(),
                 next_parts.first().unwrap_or(&"0").parse::<u32>(),
                 current_parts.get(1).unwrap_or(&"0").parse::<u32>(),
-                next_parts.get(1).unwrap_or(&"0").parse::<u32>()
+                next_parts.get(1).unwrap_or(&"0").parse::<u32>(),
             ) {
-                eprintln!("DEBUG: Parsed version components: {}.{} and {}.{}",
-                    current_major, current_minor, next_major, next_minor);
+                eprintln!(
+                    "DEBUG: Parsed version components: {}.{} and {}.{}",
+                    current_major, current_minor, next_major, next_minor
+                );
 
                 // Only process if they're in the same major version and there's a gap
                 if current_major == next_major && next_minor - current_minor > 1 {
-                    eprintln!("DEBUG: Found gap of {} versions", next_minor - current_minor - 1);
+                    eprintln!(
+                        "DEBUG: Found gap of {} versions",
+                        next_minor - current_minor - 1
+                    );
 
                     // Process each intermediate version
                     for minor in (current_minor + 1)..next_minor {
@@ -302,8 +357,8 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
 
                         // Determine status based on surrounding versions
                         let status = match (*current_affected, *next_affected) {
-                            (true, true) => "affected",    // Both surrounding versions affected
-                            (false, true) => "affected",   // Current fixed, next affected - intermediate is likely affected
+                            (true, true) => "affected",  // Both surrounding versions affected
+                            (false, true) => "affected", // Current fixed, next affected - intermediate is likely affected
                             (true, false) => {
                                 // Current affected, next fixed
                                 // If we're processing consecutive versions, the last affected version
@@ -315,18 +370,25 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                                     eprintln!("DEBUG: Setting status to default_status to skip redundant entry");
                                     default_status
                                 } else {
-                                    "affected"  // Only add explicit entries if default is not affected
+                                    "affected" // Only add explicit entries if default is not affected
                                 }
-                            },
+                            }
                             (false, false) => "unaffected", // Both surrounding versions fixed
                         };
 
-                        eprintln!("DEBUG: Inferring intermediate version {} => {}", intermediate_version, status);
+                        eprintln!(
+                            "DEBUG: Inferring intermediate version {} => {}",
+                            intermediate_version, status
+                        );
 
                         // Explicitly check if the status equals the default_status string value
                         let is_default = status == default_status;
-                        eprintln!("DEBUG: Status '{}' is {} to default '{}'",
-                                  status, if is_default { "equal" } else { "not equal" }, default_status);
+                        eprintln!(
+                            "DEBUG: Status '{}' is {} to default '{}'",
+                            status,
+                            if is_default { "equal" } else { "not equal" },
+                            default_status
+                        );
 
                         // Only add intermediate version if its status differs from the default status
                         // This prevents adding redundant entries
@@ -341,7 +403,10 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                                     status: status.to_string(),
                                     version_type: None,
                                 });
-                                eprintln!("DEBUG: Added intermediate version: {} => {}", intermediate_version, status);
+                                eprintln!(
+                                    "DEBUG: Added intermediate version: {} => {}",
+                                    intermediate_version, status
+                                );
                             }
                         } else {
                             eprintln!("DEBUG: Skipping redundant intermediate version {} (matches default status '{}')",
@@ -362,11 +427,12 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         if entry.fixed_git() != "0" {
             // For git version ranges, determine the vulnerable git ID
             // If vulnerable_version is 0, use the first Linux commit ID
-            let vulnerable_git = if entry.vulnerable.version() == "0" || entry.vulnerable_git() == "0" {
-                "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
-            } else {
-                entry.vulnerable_git().to_string()
-            };
+            let vulnerable_git =
+                if entry.vulnerable.version() == "0" || entry.vulnerable_git() == "0" {
+                    "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
+                } else {
+                    entry.vulnerable_git().to_string()
+                };
 
             // Create a version range for Git
             let ver_range = VersionRange {
@@ -378,10 +444,12 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
             };
 
             // Create a unique key that represents the entire range
-            let key = format!("git:{}:{}:{}",
+            let key = format!(
+                "git:{}:{}:{}",
                 ver_range.version,
                 ver_range.less_than.as_deref().unwrap_or(""),
-                ver_range.less_than_or_equal.as_deref().unwrap_or(""));
+                ver_range.less_than_or_equal.as_deref().unwrap_or("")
+            );
 
             // Only add if we haven't seen this exact range before
             if !seen_versions.contains(&key) {
@@ -398,15 +466,16 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
         // Handle kernel version ranges
         if default_status == "affected" {
             // Only add versions before affected as unaffected if no other versions before this are affected
-            if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version()) {
+            if entry.vulnerable.version() != "0" && version_is_mainline(&entry.vulnerable.version())
+            {
                 let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable.version());
                 if !seen_versions.contains(&unaffected_key) {
                     // Check if any version before this one is already marked as affected
                     let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
                         // Use the shared comparison function
                         match compare_kernel_versions(v, &entry.vulnerable.version()) {
-                            std::cmp::Ordering::Less => true,  // This affected version is less than current version
-                            _ => false
+                            std::cmp::Ordering::Less => true, // This affected version is less than current version
+                            _ => false,
                         }
                     });
 
@@ -435,9 +504,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                 };
 
                 // Create a unique key for this version
-                let key = format!("kernel:unaffected:{}::{}",
-                    entry.fixed.version(),
-                    wildcard);
+                let key = format!("kernel:unaffected:{}::{}", entry.fixed.version(), wildcard);
 
                 if !seen_versions.contains(&key) {
                     seen_versions.insert(key.clone());
@@ -458,8 +525,8 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                         let has_later_affected = affected_mainline_versions.iter().any(|v| {
                             // Use the shared comparison function
                             match compare_kernel_versions(&entry.fixed.version(), v) {
-                                std::cmp::Ordering::Less => true,  // Current fixed version is less than this affected version
-                                _ => false
+                                std::cmp::Ordering::Less => true, // Current fixed version is less than this affected version
+                                _ => false,
                             }
                         });
 
@@ -472,10 +539,14 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                             let mut next_affected_version: Option<String> = None;
 
                             for v in &affected_mainline_versions {
-                                if compare_kernel_versions(&entry.fixed.version(), v) == std::cmp::Ordering::Less {
+                                if compare_kernel_versions(&entry.fixed.version(), v)
+                                    == std::cmp::Ordering::Less
+                                {
                                     // v is later than entry.fixed.version()
                                     if let Some(ref candidate) = next_affected_version {
-                                        if compare_kernel_versions(candidate, v) == std::cmp::Ordering::Greater {
+                                        if compare_kernel_versions(candidate, v)
+                                            == std::cmp::Ordering::Greater
+                                        {
                                             next_affected_version = Some(v.clone());
                                         }
                                     } else {
@@ -528,9 +599,11 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> (Vec<
                     version_type: Some("semver".to_string()),
                 };
 
-                let key = format!("kernel:affected:{}:{}:",
+                let key = format!(
+                    "kernel:affected:{}:{}:",
                     ver_range.version,
-                    ver_range.less_than.as_deref().unwrap_or(""));
+                    ver_range.less_than.as_deref().unwrap_or("")
+                );
 
                 if !seen_versions.contains(&key) {
                     seen_versions.insert(key);
@@ -582,9 +655,10 @@ fn read_tags_file(script_dir: &Path) -> Result<Vec<String>> {
     let content = std::fs::read_to_string(&tags_path)
         .with_context(|| format!("Failed to read tags file at {:?}", tags_path))?;
 
-    Ok(content.lines()
+    Ok(content
+        .lines()
         .map(|line| line.trim().to_string())
-        .filter(|line| !line.is_empty() && !line.starts_with('#'))  // Added filter for comments
+        .filter(|line| !line.is_empty() && !line.starts_with('#')) // Added filter for comments
         .collect())
 }
 
@@ -596,21 +670,28 @@ fn read_uuid(script_dir: &Path) -> Result<String> {
 
     let uuid = content.trim();
     if uuid.is_empty() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            "UUID file is empty"
-        ).into());
+        return Err(
+            std::io::Error::new(std::io::ErrorKind::InvalidData, "UUID file is empty").into(),
+        );
     }
 
     Ok(uuid.to_string())
 }
 
 /// Run the dyad script to get version range information
-fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[String], verbose: bool) -> Result<String> {
+fn run_dyad(
+    script_dir: &Path,
+    git_shas: &[String],
+    vulnerable_shas: &[String],
+    verbose: bool,
+) -> Result<String> {
     // Ensure dyad script exists
     let dyad_script = script_dir.join("dyad");
     if !dyad_script.exists() {
-        return Err(anyhow::anyhow!("Dyad script not found at {}", dyad_script.display()));
+        return Err(anyhow::anyhow!(
+            "Dyad script not found at {}",
+            dyad_script.display()
+        ));
     }
 
     // Change directory to the scripts directory
@@ -659,7 +740,8 @@ fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[String], 
     }
 
     // Execute the command
-    let output = command.output()
+    let output = command
+        .output()
         .with_context(|| format!("Failed to execute dyad script at {}", dyad_script.display()))?;
 
     // Restore original directory
@@ -739,7 +821,8 @@ struct Args {
 
 /// Get the commit subject for a git reference
 fn get_commit_subject(_repo: &Repository, obj: &Object) -> Result<String> {
-    let commit = obj.as_commit()
+    let commit = obj
+        .as_commit()
         .ok_or_else(|| anyhow::anyhow!("Object is not a commit"))?;
 
     Ok(commit.summary().unwrap_or("").to_string())
@@ -747,7 +830,8 @@ fn get_commit_subject(_repo: &Repository, obj: &Object) -> Result<String> {
 
 /// Get the full commit message text
 fn get_commit_text(_repo: &Repository, obj: &Object) -> Result<String> {
-    let commit = obj.as_commit()
+    let commit = obj
+        .as_commit()
         .ok_or_else(|| anyhow::anyhow!("Object is not a commit"))?;
 
     // Get the raw commit message - don't truncate
@@ -775,10 +859,18 @@ fn apply_diff_to_text(text: &str, diff_file: &Path) -> Result<String> {
         .arg(temp_path)
         .arg(diff_file)
         .status()
-        .with_context(|| format!("Failed to execute patch command with diff file {:?}", diff_file))?;
+        .with_context(|| {
+            format!(
+                "Failed to execute patch command with diff file {:?}",
+                diff_file
+            )
+        })?;
 
     if !status.success() {
-        return Err(anyhow::anyhow!("Patch command failed with status: {}", status));
+        return Err(anyhow::anyhow!(
+            "Patch command failed with status: {}",
+            status
+        ));
     }
 
     // Read the modified content
@@ -928,13 +1020,16 @@ fn generate_json_record(
     commit_text: &str,
 ) -> Result<String> {
     // Get vulns directory using cve_utils
-    let vulns_dir = cve_utils::find_vulns_dir()
-        .with_context(|| "Failed to find vulns directory")?;
+    let vulns_dir =
+        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
 
     // Get the script directory from vulns directory
     let script_dir = vulns_dir.join("scripts");
     if !script_dir.exists() {
-        return Err(anyhow::anyhow!("Scripts directory not found at {}", script_dir.display()));
+        return Err(anyhow::anyhow!(
+            "Scripts directory not found at {}",
+            script_dir.display()
+        ));
     }
 
     // Read the UUID from the linux.uuid file
@@ -998,9 +1093,7 @@ fn generate_json_record(
             let url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
             if !seen_refs.contains(&url) {
                 seen_refs.insert(url.clone());
-                references.push(Reference {
-                    url,
-                });
+                references.push(Reference { url });
             }
         }
     }
@@ -1009,18 +1102,14 @@ fn generate_json_record(
     for url in additional_references {
         if !seen_refs.contains(url) {
             seen_refs.insert(url.clone());
-            references.push(Reference {
-                url: url.clone(),
-            });
+            references.push(Reference { url: url.clone() });
         }
     }
 
     // If no references were found, add the main fix commit
     if references.is_empty() {
         let main_fix_url = format!("https://git.kernel.org/stable/c/{}", git_sha_full);
-        references.push(Reference {
-            url: main_fix_url,
-        });
+        references.push(Reference { url: main_fix_url });
     }
 
     // Use the provided commit_text, which might have been modified by the diff
@@ -1057,7 +1146,7 @@ fn generate_json_record(
                     value: truncated_description,
                 }],
                 affected: vec![git_product, kernel_product],
-                cpe_applicability: vec![],  // FIXME
+                cpe_applicability: vec![], // FIXME
                 references,
                 title: commit_subject.to_string(),
                 x_generator: Generator {
@@ -1080,7 +1169,8 @@ fn generate_json_record(
     let formatter = PrettyFormatter::with_indent(b"   ");
     let mut output = Vec::new();
     let mut serializer = Serializer::with_formatter(&mut output, formatter);
-    cve_record.serialize(&mut serializer)
+    cve_record
+        .serialize(&mut serializer)
         .map_err(|e| anyhow::anyhow!("Error serializing JSON: {}", e))?;
 
     let json_string = String::from_utf8(output)
@@ -1110,7 +1200,10 @@ fn generate_mbox(
     commit_text: &str,
 ) -> String {
     // For the From line we need the script name and version
-    let from_line = format!("From {}-{} Mon Sep 17 00:00:00 2001", script_name, script_version);
+    let from_line = format!(
+        "From {}-{} Mon Sep 17 00:00:00 2001",
+        script_name, script_version
+    );
 
     // Parse dyad output to generate vulnerability information
     let mut vuln_array_mbox = Vec::new();
@@ -1126,9 +1219,7 @@ fn generate_mbox(
                 Subject: {}: {}\n\
                 \n\
                 Error: CVEKERNELTREE environment variable is not set",
-                from_line,
-                user_name, user_email,
-                cve_number, commit_subject
+                from_line, user_name, user_email, cve_number, commit_subject
             );
         }
     };
@@ -1145,9 +1236,7 @@ fn generate_mbox(
                 Subject: {}: {}\n\
                 \n\
                 Error: Failed to open kernel repository",
-                from_line,
-                user_name, user_email,
-                cve_number, commit_subject
+                from_line, user_name, user_email, cve_number, commit_subject
             );
         }
     };
@@ -1207,7 +1296,10 @@ fn generate_mbox(
     // First add all fix commit URLs from dyad entries (except the main fix)
     let mut version_url_pairs = Vec::new();
     for entry in dyad_entries {
-        if entry.fixed.version() != "0" && entry.fixed_git() != "0" && entry.fixed_git() != git_sha_full {
+        if entry.fixed.version() != "0"
+            && entry.fixed_git() != "0"
+            && entry.fixed_git() != git_sha_full
+        {
             let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed_git());
             if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
                 version_url_pairs.push((entry.fixed.version().clone(), fix_url));
@@ -1222,7 +1314,10 @@ fn generate_mbox(
     });
 
     // Build the URL array from the sorted pairs
-    let mut url_array = version_url_pairs.into_iter().map(|(_, url)| url).collect::<Vec<_>>();
+    let mut url_array = version_url_pairs
+        .into_iter()
+        .map(|(_, url)| url)
+        .collect::<Vec<_>>();
 
     // Add the main fix commit URL at the end
     url_array.push(format!("https://git.kernel.org/stable/c/{}", git_sha_full));
@@ -1303,9 +1398,11 @@ fn generate_mbox(
          issue can be found at these commits:\n\
          {}",
         from_line,
-        user_name, user_email,
-        cve_number, commit_subject,
-        commit_message.trim_end(),  // Trim any trailing newlines
+        user_name,
+        user_email,
+        cve_number,
+        commit_subject,
+        commit_message.trim_end(), // Trim any trailing newlines
         cve_number,
         vuln_section,
         cve_number,
@@ -1343,7 +1440,9 @@ fn main() -> Result<()> {
     }
 
     // Check if one of the trailing args might be a reference file path
-    let reference_from_trailing = args.trailing_args.iter()
+    let reference_from_trailing = args
+        .trailing_args
+        .iter()
         .find(|arg| arg.contains(".reference"))
         .map(|s| s.to_string());
 
@@ -1351,13 +1450,17 @@ fn main() -> Result<()> {
     let reference_from_raw_args = find_reference_in_args();
 
     if args.verbose && reference_from_trailing.is_some() {
-        eprintln!("Found potential reference file in trailing args: '{}'",
-            reference_from_trailing.as_ref().unwrap());
+        eprintln!(
+            "Found potential reference file in trailing args: '{}'",
+            reference_from_trailing.as_ref().unwrap()
+        );
     }
 
     if args.verbose && reference_from_raw_args.is_some() {
-        eprintln!("Found potential reference file in raw args: '{}'",
-            reference_from_raw_args.as_ref().unwrap());
+        eprintln!(
+            "Found potential reference file in raw args: '{}'",
+            reference_from_raw_args.as_ref().unwrap()
+        );
     }
 
     // Check for required arguments
@@ -1369,15 +1472,13 @@ fn main() -> Result<()> {
     // Check for CVE_USER environment variable if user is not specified
     let user_email = match args.user {
         Some(ref email) => email.clone(),
-        None => {
-            match env::var("CVE_USER") {
-                Ok(val) => val,
-                Err(_) => {
-                    eprintln!("Missing required argument: user (-u/--user) and CVE_USER environment variable is not set");
-                    std::process::exit(1);
-                }
+        None => match env::var("CVE_USER") {
+            Ok(val) => val,
+            Err(_) => {
+                eprintln!("Missing required argument: user (-u/--user) and CVE_USER environment variable is not set");
+                std::process::exit(1);
             }
-        }
+        },
     };
 
     // Check for CVEKERNELTREE environment variable
@@ -1389,24 +1490,32 @@ fn main() -> Result<()> {
 
     // Extract values from args
     let cve_number = args.cve.as_ref().unwrap();
-    let git_shas: Vec<String> = args.sha.iter().filter(|s| !s.trim().is_empty()).cloned().collect();
+    let git_shas: Vec<String> = args
+        .sha
+        .iter()
+        .filter(|s| !s.trim().is_empty())
+        .cloned()
+        .collect();
     if git_shas.is_empty() {
         eprintln!("Missing required argument: sha");
         std::process::exit(1);
     }
 
     // Use all provided vulnerable SHAs (if any)
-    let vulnerable_shas: Vec<String> = args.vulnerable.iter().filter(|s| !s.trim().is_empty()).cloned().collect();
+    let vulnerable_shas: Vec<String> = args
+        .vulnerable
+        .iter()
+        .filter(|s| !s.trim().is_empty())
+        .cloned()
+        .collect();
 
     // Dig into git if the user name is not set
     let user_name = match args.name {
         Some(ref name) => name.clone(),
-        None => {
-            match git_config::get_git_config("user.name") {
-                Ok(val) => val,
-                Err(_) => "".to_string(),
-            }
-        }
+        None => match git_config::get_git_config("user.name") {
+            Ok(val) => val,
+            Err(_) => "".to_string(),
+        },
     };
 
     // Debug output if verbose is enabled
@@ -1423,13 +1532,16 @@ fn main() -> Result<()> {
     }
 
     // Get vulns directory using cve_utils
-    let vulns_dir = cve_utils::find_vulns_dir()
-        .with_context(|| "Failed to find vulns directory")?;
+    let vulns_dir =
+        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
 
     // Get scripts directory
     let script_dir = vulns_dir.join("scripts");
     if !script_dir.exists() {
-        return Err(anyhow::anyhow!("Scripts directory not found at {}", script_dir.display()));
+        return Err(anyhow::anyhow!(
+            "Scripts directory not found at {}",
+            script_dir.display()
+        ));
     }
 
     // Get the script name
@@ -1447,15 +1559,16 @@ fn main() -> Result<()> {
         .with_context(|| format!("Failed to open Git repository at {:?}", kernel_tree))?;
 
     // Resolve Git references for all main commits
-    let git_refs: Vec<_> = git_shas.iter().filter_map(|sha| {
-        match resolve_reference(&repo, sha) {
+    let git_refs: Vec<_> = git_shas
+        .iter()
+        .filter_map(|sha| match resolve_reference(&repo, sha) {
             Ok(reference) => Some(reference),
             Err(err) => {
                 eprintln!("Warning: Could not resolve SHA reference: {}", err);
                 None
             }
-        }
-    }).collect();
+        })
+        .collect();
     if git_refs.is_empty() {
         eprintln!("None of the provided SHAs could be resolved");
         std::process::exit(1);
@@ -1464,12 +1577,12 @@ fn main() -> Result<()> {
     let main_git_ref = &git_refs[0];
 
     // Get SHA information for the main commit
-    let git_sha_full = get_object_full_sha(&repo, main_git_ref)
-        .with_context(|| "Failed to get full SHA")?;
-    let git_sha_short = get_short_sha(&repo, main_git_ref)
-        .with_context(|| "Failed to get short SHA")?;
-    let commit_subject = get_commit_subject(&repo, main_git_ref)
-        .with_context(|| "Failed to get commit subject")?;
+    let git_sha_full =
+        get_object_full_sha(&repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
+    let git_sha_short =
+        get_short_sha(&repo, main_git_ref).with_context(|| "Failed to get short SHA")?;
+    let commit_subject =
+        get_commit_subject(&repo, main_git_ref).with_context(|| "Failed to get commit subject")?;
 
     // Get the full commit message text for the main commit
     let kernel_tree = std::env::var("CVEKERNELTREE")
@@ -1479,25 +1592,32 @@ fn main() -> Result<()> {
     let mut commit_text = get_commit_text(&repo, &git_ref)?;
 
     // Read the tags file to strip from commit message
-    let vulns_dir = cve_utils::find_vulns_dir()
-        .with_context(|| "Failed to find vulns directory")?;
+    let vulns_dir =
+        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
     let script_dir = vulns_dir.join("scripts");
     let tags = read_tags_file(&script_dir).unwrap_or_default();
 
     // Strip tags from commit text
-    commit_text = strip_commit_text(&commit_text, &tags)
-        .unwrap_or_else(|_| format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{}", commit_text));
+    commit_text = strip_commit_text(&commit_text, &tags).unwrap_or_else(|_| {
+        format!(
+            "In the Linux kernel, the following vulnerability has been resolved:\n\n{}",
+            commit_text
+        )
+    });
 
     // Apply diff file to the commit text if provided
     if let Some(diff_path) = args.diff.as_ref() {
         match apply_diff_to_text(&commit_text, diff_path) {
             Ok(modified_text) => {
                 if args.verbose {
-                    println!("Applied diff from {} to the commit text", diff_path.display());
+                    println!(
+                        "Applied diff from {} to the commit text",
+                        diff_path.display()
+                    );
                 }
                 // The apply_diff_to_text function handles newline preservation
                 commit_text = modified_text;
-            },
+            }
             Err(err) => {
                 eprintln!("Warning: Failed to apply diff to commit text: {}", err);
             }
@@ -1514,7 +1634,7 @@ fn main() -> Result<()> {
     };
 
     // Parse dyad output into DyadEntry objects
-    let mut dyad_entries :Vec<DyadEntry> = Vec::new();
+    let mut dyad_entries: Vec<DyadEntry> = Vec::new();
 
     // Process dyad data to create entries
     if !dyad_data.is_empty() {
@@ -1570,7 +1690,8 @@ fn main() -> Result<()> {
                 }
             }
 
-            contents.lines()
+            contents
+                .lines()
                 .map(|line| line.trim().to_string())
                 .filter(|line| !line.is_empty())
                 .collect()
@@ -1611,11 +1732,14 @@ fn main() -> Result<()> {
         ) {
             Ok(json_record) => {
                 if let Err(err) = std::fs::write(json_path, json_record) {
-                    eprintln!("Warning: Failed to write JSON file to {:?}: {}", json_path, err);
+                    eprintln!(
+                        "Warning: Failed to write JSON file to {:?}: {}",
+                        json_path, err
+                    );
                 } else if args.verbose {
                     println!("Wrote JSON file to {}", json_path.display());
                 }
-            },
+            }
             Err(err) => {
                 eprintln!("Error: Failed to generate JSON record: {}", err);
             }
@@ -1639,7 +1763,10 @@ fn main() -> Result<()> {
         );
 
         if let Err(err) = std::fs::write(mbox_path, mbox_content) {
-            eprintln!("Warning: Failed to write mbox file to {:?}: {}", mbox_path, err);
+            eprintln!(
+                "Warning: Failed to write mbox file to {:?}: {}",
+                mbox_path, err
+            );
         } else if args.verbose {
             println!("Wrote mbox file to {}", mbox_path.display());
         }
@@ -1651,7 +1778,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cve_utils::version_utils::{version_is_rc, version_is_queue, version_is_mainline};
+    use cve_utils::version_utils::{version_is_mainline, version_is_queue, version_is_rc};
     use std::fs::File;
     use std::io::Write;
     use tempfile::tempdir;
@@ -1684,26 +1811,40 @@ mod tests {
     fn test_dyad_entry_parsing() {
         let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
-        assert_eq!(entry.vulnerable_git(), "11c52d250b34a0862edc29db03fbec23b30db6da");
+        assert_eq!(
+            entry.vulnerable_git(),
+            "11c52d250b34a0862edc29db03fbec23b30db6da"
+        );
         assert_eq!(entry.fixed.version(), "5.16");
-        assert_eq!(entry.fixed_git(), "2b503c8598d1b232e7fc7526bce9326d92331541");
+        assert_eq!(
+            entry.fixed_git(),
+            "2b503c8598d1b232e7fc7526bce9326d92331541"
+        );
         assert!(entry.is_fixed());
         assert!(entry.is_cross_version());
 
         // Test with a vulnerability that isn't fixed
-        let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
+        let entry =
+            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
-        assert_eq!(entry.vulnerable_git(), "11c52d250b34a0862edc29db03fbec23b30db6da");
+        assert_eq!(
+            entry.vulnerable_git(),
+            "11c52d250b34a0862edc29db03fbec23b30db6da"
+        );
         assert_eq!(entry.fixed.version(), "0");
         assert_eq!(entry.fixed_git(), "0");
         assert!(!entry.is_fixed());
 
         // Test with an unknown introduction point
-        let entry = DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
+        let entry =
+            DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "0");
         assert_eq!(entry.vulnerable_git(), "0");
         assert_eq!(entry.fixed.version(), "5.16");
-        assert_eq!(entry.fixed_git(), "2b503c8598d1b232e7fc7526bce9326d92331541");
+        assert_eq!(
+            entry.fixed_git(),
+            "2b503c8598d1b232e7fc7526bce9326d92331541"
+        );
         assert!(entry.is_fixed());
         assert!(!entry.is_cross_version());
     }
@@ -1744,9 +1885,8 @@ mod tests {
     #[test]
     fn test_determine_default_status() {
         // Test with vulnerable_version = 0
-        let entries = vec![
-            DyadEntry::from_str("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
-        ];
+        let entries =
+            vec![DyadEntry::from_str("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap()];
         assert_eq!(determine_default_status(&entries), "affected");
 
         // Test with invalid git id
@@ -1799,8 +1939,14 @@ mod tests {
 
         // Check git versions
         assert_eq!(git_versions.len(), 1);
-        assert_eq!(git_versions[0].version, "11c52d250b34a0862edc29db03fbec23b30db6da");
-        assert_eq!(git_versions[0].less_than, Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string()));
+        assert_eq!(
+            git_versions[0].version,
+            "11c52d250b34a0862edc29db03fbec23b30db6da"
+        );
+        assert_eq!(
+            git_versions[0].less_than,
+            Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string())
+        );
         assert_eq!(git_versions[0].status, "affected");
 
         // Check kernel versions - expect 2 entries based on the implementation
@@ -1827,11 +1973,17 @@ mod tests {
         assert!(kernel_versions.len() >= 2);
 
         // Find the affected version
-        let affected = kernel_versions.iter().find(|v| v.status == "affected").unwrap();
+        let affected = kernel_versions
+            .iter()
+            .find(|v| v.status == "affected")
+            .unwrap();
         assert_eq!(affected.version, "6.0");
 
         // Find the unaffected version
-        let unaffected = kernel_versions.iter().find(|v| v.status == "unaffected" && v.version == "6.1").unwrap();
+        let unaffected = kernel_versions
+            .iter()
+            .find(|v| v.status == "unaffected" && v.version == "6.1")
+            .unwrap();
         assert_eq!(unaffected.version, "6.1");
 
         // Test with multiple entries
@@ -1885,7 +2037,7 @@ mod tests {
 
         // Read tags file - our implementation should ignore empty lines and comments
         let tags = read_tags_file(dir.path()).unwrap();
-        assert_eq!(tags.len(), 3);  // Changed from 4 to 3 to match implementation
+        assert_eq!(tags.len(), 3); // Changed from 4 to 3 to match implementation
     }
 
     #[test]
@@ -1922,11 +2074,16 @@ mod tests {
         let version = env!("CARGO_PKG_VERSION");
 
         // Check that it's a valid semver format
-        assert!(version.split('.').count() >= 2, "Version should have at least major.minor format");
+        assert!(
+            version.split('.').count() >= 2,
+            "Version should have at least major.minor format"
+        );
 
         // Check that it contains only valid semver characters
-        assert!(version.chars().all(|c| c.is_digit(10) || c == '.'),
-                "Version should only contain digits and dots");
+        assert!(
+            version.chars().all(|c| c.is_digit(10) || c == '.'),
+            "Version should only contain digits and dots"
+        );
     }
 }
 
