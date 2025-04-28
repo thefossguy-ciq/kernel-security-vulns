@@ -1,0 +1,171 @@
+6cce0cc38613 smack: ipv4/ipv6: tcp/dccp/sctp: fix incorrect child socket label
+426db24d4db2 cpufreq/amd-pstate: Add missing NULL ptr check in amd_pstate_update
+5d3b81d4d852 x86/fpu: Avoid copying dynamic FP state from init_task in arch_dup_task_struct()
+d6834d9c9903 watchdog/hardlockup/perf: Fix perf_event memory leak
+a121798ae669 x86/resctrl: Fix allocation of cleanest CLOSID on platforms with no monitors
+2542a3f70e56 thermal: int340x: Add NULL check for adev
+2d117e67f318 RISC-V: KVM: Teardown riscv specific bits after kvm_exit
+c2b96a681815 media: platform: allgro-dvt: unregister v4l2_device on the error path
+de74ec718e07 ASoC: simple-card-utils: Don't use __free(device_node) at graph_util_parse_dai()
+3424c8f53bc6 ALSA: timer: Don't take register_mutex with copy_from/to_user()
+28a9972e0f06 wifi: ath12k: fix skb_ext_desc leak in ath12k_dp_tx() error path
+933ab187e679 wifi: ath11k: update channel list in reg notifier instead reg worker
+eb85c2410d6f f2fs: quota: fix to avoid warning in dquot_writeback_dquots()
+8e2bad543eca dlm: prevent NPD when writing a positive value to event_done
+16c6c35c03ea wifi: ath11k: fix RCU stall while reaping monitor destination ring
+63b7af49496d wifi: ath11k: add srng->lock for ath11k_hal_srng_* in monitor mode
+b9c7299a3341 wifi: ath12k: Fix locking in "QMI firmware ready" error paths
+48ea8b200414 f2fs: fix to avoid panic once fallocation fails for pinfile
+5fbcf76e0dfe md/raid1: fix memory leak in raid1_run() if no active rdev
+c733741ae1c3 scsi: mpi3mr: Fix locking in an error path
+38afcf0660f5 scsi: mpt3sas: Fix a locking bug in an error path
+8c3f9a70d2d4 jfs: reject on-disk inodes of an unsupported type
+0176e69743ec jfs: add check read-only before txBeginAnon() call
+b5799dd77054 jfs: add check read-only before truncation in jfs_truncate_nolock()
+68410c5bd381 wifi: ath11k: Clear affinity hint before calling ath11k_pcic_free_irq() in error path
+b43b1e2c52db wifi: ath12k: Clear affinity hint before calling ath12k_pci_free_irq() in error path
+81edb983b3f5 f2fs: add check for deleted inode
+3147ee567dd9 f2fs: fix potential deadloop in prepare_compress_overwrite()
+8542870237c3 md: fix mddev uaf while iterating all_mddevs list
+986c50f6bca1 f2fs: fix to avoid accessing uninitialized curseg
+26064d3e2b4d block: fix adding folio to bio
+5f920d5d6083 ext4: verify fast symlink length
+5701875f9609 ext4: fix out-of-bound read in ext4_xattr_inode_dec_ref_all()
+7e91ae31e2d2 ext4: goto right label 'out_mmap_sem' in ext4_setattr()
+fc88dee89d7b wifi: cfg80211: init wiphy_work before allocating rfkill fails
+680811c67906 idpf: check error for register_netdev() on init
+2d8e5168d48a btrfs: fix block group refcount race in btrfs_create_pending_block_groups()
+919f9f497dbc eth: bnxt: fix out-of-range access of vnic_info array
+ed3ba9b6e280 net: Remove RTNL dance for SIOCBRADDIF and SIOCBRDELIF.
+2f6efbabceb6 ax25: Remove broken autobind
+5f2b28b79d2d net: dsa: sja1105: fix kasan out-of-bounds warning in sja1105_table_delete_entry()
+0dd765fae295 vmxnet3: unregister xdp rxq info in the reset path
+094ee6017ea0 bonding: check xdp prog when set bond mode
+d93a6caab5d7 ibmvnic: Use kernel helpers for hex dumps
+0032c99e83b9 net: fix NULL pointer dereference in l3mdev_l3_rcv
+1f77c05408c9 Bluetooth: btnxpuart: Fix kernel panic during FW release
+c7d82913d5f9 net: libwx: fix Tx L4 checksum
+47a60391ae0e rwonce: fix crash by removing READ_ONCE() for unaligned read
+0590c94c3596 drm/panthor: Fix race condition when gathering fdinfo group samples
+d0660f9c588a drm: xlnx: zynqmp_dpsub: Add NULL check in zynqmp_audio_init
+f887685ee0eb drm: zynqmp_dp: Fix a deadlock in zynqmp_dp_ignore_hpd_set()
+ed15511a773d drm/vkms: Fix use after free and double free on init error
+dc0297f3198b drm/amdgpu: Replace Mutex with Spinlock for RLCG register access to avoid Priority Inversion in SRIOV
+cbf937dcadfd PCI/ASPM: Fix link state exit during switch upstream function removal
+0b305b7cadce drm/msm/gem: Fix error code msm_parse_deps()
+fddc45026311 drm/amdkfd: Fix Circular Locking Dependency in 'svm_range_cpu_invalidate_pagetables'
+3651ad5249c5 PCI: brcmstb: Fix error path after a call to regulator_bulk_get()
+c63c3bfdde26 drm/panthor: Avoid sleep locking in the internal BO size path
+ff99d5b6a246 powerpc/perf: Fix ref-counting on the PMU 'vpa_pmu'
+57b030224074 PCI: xilinx-cpm: Fix IRQ domain leak in error path of probe
+106a6de46cf4 drm/mediatek: dp: drm_err => dev_err in HPD path to avoid NULL ptr
+42d9d7bed270 drm/amd/display: avoid NPD when ASIC does not support DMUB
+04d50d953ab4 PCI: Fix NULL dereference in SR-IOV VF creation error path
+f0c2427412b4 RDMA/mlx5: Fix page_size variable overflow
+efdde3d73ab2 remoteproc: core: Clear table_sz when rproc_shutdown
+dc84bc2aba85 x86/mm/pat: Fix VM_PAT handling when fork() fails in copy_page_range()
+d19d7345a7bc clk: samsung: Fix UBSAN panic in samsung_clk_init()
+b4a8b5bba712 bpf: Use preempt_count() directly in bpf_send_signal_common()
+a1ecb30f9085 RDMA/core: Don't expose hw_counters outside of init net namespace
+83437689249e RDMA/erdma: Prevent use-after-free in erdma_accept_newconn()
+00153c64a72d clk: mmp: Fix NULL vs IS_ERR() check
+6ebc5030e0c5 bpf: Fix array bounds error with may_goto
+5ed3b0cb3f82 RDMA/mlx5: Fix mlx5_poll_one() cur_qp update flow
+1d6a9e7449e2 RDMA/core: Fix use-after-free when rename device name
+0dd6770a72f1 w1: fix NULL pointer dereference in probe
+1d1a7e252549 fs/ntfs3: Fix 'proc_info_root' leak when init ntfs failed
+c1baf6528bcf staging: gpib: Fix cb7210 pcmcia Oops
+5dd639a1646e vhost-scsi: Fix handling of multiple calls to vhost_scsi_set_endpoint
+035b4989211d iio: backend: make sure to NULL terminate stack buffer
+5ad414f4df22 fs/ntfs3: Fix a couple integer overflows on 32bit systems
+6bb81b94f7a9 fs/ntfs3: Prevent integer overflow in hdr_first_de()
+c9c59da76ce9 dmaengine: fsl-edma: cleanup chan after dma_async_device_unregister
+fa70c4c3c580 dmaengine: fsl-edma: free irq correctly in remove path
+ee735aa33db1 iio: light: Add check for array bounds in veml6075_read_int_time_ms
+a406aff8c051 ocfs2: validate l_tree_depth to avoid out-of-bounds access
+47acca884f71 NFSv4: Don't trigger uneccessary scans for return-on-close delegations
+35a566a24e58 NFSv4: Avoid unnecessary scans of filesystems for returning delegations
+f163aa81a799 NFSv4: Avoid unnecessary scans of filesystems for expired delegations
+e767b59e29b8 NFSv4: Avoid unnecessary scans of filesystems for delayed delegations
+3db89bc6d973 staging: vchiq_arm: Fix possible NPR of keep-alive thread
+cfb320d99091 staging: vchiq_arm: Stop kthreads if vchiq cdev register fails
+76e51db43fe4 objtool, spi: amd: Fix out-of-bounds stack access in amd_set_spi_freq()
+107a23185d99 objtool, nvmet: Fix out-of-bounds stack access in nvmet_ctrl_state_show()
+e63d465f5901 objtool, media: dib8000: Prevent divide-by-zero in dib8000_set_dds()
+4e7f1644f2ac smb: client: Fix netns refcount imbalance causing leaks and use-after-free
+b0522303f672 exfat: fix the infinite loop in exfat_find_last_cluster()
+47e35366bc6f exfat: fix missing shutdown check
+23f00807619d rtnetlink: Allocate vfinfo size for VF GUIDs when supported
+6171063e9d04 ksmbd: use aead_request_free to match aead_request_alloc
+ddb7ea36ba71 ksmbd: fix r_count dec/increment mismatch
+2e3bc71e4f39 LoongArch: Fix device node refcount leak in fdt_cpu_clk_init()
+8e5419d6542f nfs: Add missing release on error in nfs_lock_and_join_requests()
+d1ca8698ca13 spufs: fix a leak on spufs_new_file() failure
+c134deabf478 spufs: fix gang directory lifetimes
+0f5cce3fc55b spufs: fix a leak in spufs_create_context()
+3f61ac7c65bd fs/9p: fix NULL pointer dereference on mkdir
+33981b1c4e49 riscv: Fix missing __free_pages() in check_vector_unaligned_access()
+de203da734fa ntb_hw_switchtec: Fix shift-out-of-bounds in switchtec_ntb_mw_set_trans
+67a5ba8f742f riscv: fgraph: Fix stack layout to match __arch_ftrace_regs argument of ftrace_return_to_handler
+8741d0737921 ublk: make sure ubq->canceling is set when queue is frozen
+7ba0847fa1c2 spi: cadence: Fix out-of-bounds array access in cdns_mrvl_xspi_setup_clock()
+eada75467fca nvme/ioctl: don't warn on vectorized uring_cmd with fixed buffer
+93d34608fd16 ASoC: imx-card: Add NULL check in imx_card_probe()
+4c9106f4906a idpf: fix adapter NULL pointer dereference on reboot
+688c15017d5c netfilter: nf_tables: don't unregister hook when table is dormant
+078aabd567de netlabel: Fix NULL pointer exception caused by CALIPSO on IPv4 sockets
+ce8fe975fd99 net_sched: skbprio: Remove overly strict queue assertions
+10206302af85 sctp: add mutual exclusion in proc_sctp_do_udp_port()
+57b290d97c61 net: airoha: Fix qid report in airoha_tc_get_htb_get_leaf_queue()
+96844075226b net: mvpp2: Prevent parser TCAM memory corruption
+1b7fdc702c03 rtnetlink: Use register_pernet_subsys() in rtnl_net_debug_init().
+5a465a0da13e udp: Fix multiple wraparounds of sk->sk_rmem_alloc.
+df207de9d9e7 udp: Fix memory accounting leak.
+3a0a3ff6593d net: decrease cached dst counters in dst_release
+1b755d8eb1ac netfilter: nft_tunnel: fix geneve_opt type confusion addition
+8241ecec1cdc sfc: fix NULL dereferences in ef100_process_design_param()
+a58d882841a0 net: dsa: mv88e6xxx: propperly shutdown PPU re-enable timer on destroy
+b27055a08ad4 net: fix geneve_opt length integer overflow
+fda8c491db2a arcnet: Add NULL check in com20020pci_probe()
+053f3ff67d7f net: ibmveth: make veth_pool_store stop hanging
+a239c6e91b66 staging: gpib: Fix Oops after disconnect in ni_usb
+8491e73a5223 staging: gpib: Fix Oops after disconnect in agilent usb
+51de36000934 usbnet:fix NPE during rx_complete
+4103cfe9dcb8 LoongArch: Increase ARCH_DMA_MINALIGN up to 16
+7e2586991e36 LoongArch: BPF: Fix off-by-one error in build_prologue()
+60f3caff1492 LoongArch: BPF: Don't override subprog's return value
+31ab12df7235 x86/microcode/AMD: Fix __apply_microcode_amd()'s return value
+1a15bb8303b6 x86/mce: use is_copy_from_user() to determine copy-from-user context
+f9bdf1f95339 perf/x86/intel: Avoid disable PMU if !cpuc->enabled in sample read
+fa6192adc32f uprobes/x86: Harden uretprobe syscall trampoline check
+707549600c4a bcachefs: bch2_ioctl_subvolume_destroy() fixes
+d90c9de9de2f x86/tsc: Always save/restore TSC sched_clock() on suspend/resume
+3ef938c35035 x86/mm: Fix flush_tlb_range() when used for zapping normal PMDs
+2ff0e408db36 acpi: nfit: fix narrowing conversion in acpi_nfit_ctl
+3834a759afb8 mmc: omap: Fix memory leak in mmc_omap_new_slot
+542027e123fc ksmbd: add bounds check for durable handle context
+bab703ed8472 ksmbd: add bounds check for create lease context
+15a9605f8d69 ksmbd: fix use-after-free in ksmbd_sessions_deregister()
+fa4cdb8cbca7 ksmbd: fix session use-after-free in multichannel connection
+beff0bc9d69b ksmbd: fix overflow in dacloffset bounds check
+bf21e29d78cd ksmbd: validate zero num_subauth before sub_auth is accessed
+c8b5b7c5da7d ksmbd: fix null pointer dereference in alloc_preauth_hash()
+1bb7ff4204b6 exfat: fix random stack corruption after get_block
+7f81f27b1093 tracing: Fix use-after-free in print_graph_function_flags during tracer switching
+7e6b3fcc9c52 tracing/osnoise: Fix possible recursive locking for cpus_read_lock()
+ea8d7647f9dd tracing: Verify event formats that have "%*p.."
+8977752c8056 mm/gup: reject FOLL_SPLIT_PMD with hugetlb VMAs
+c28f31deeacd arm64: Don't call NULL in do_compat_alignment_fixup()
+adc3fd2a2277 wifi: mt76: mt7921: fix kernel panic due to null pointer dereference
+d5e206778e96 ext4: fix OOB read when checking dotdot dir
+667f053b05f0 PCI/bwctrl: Fix NULL pointer dereference on bus number exhaustion
+fdf480da5837 jfs: fix slab-out-of-bounds read in ea_get()
+a8dfb2168906 jfs: add index corruption check to DT_GETPAGE()
+c11bcbc0a517 mm: zswap: fix crypto_free_acomp() deadlock in zswap_cpu_comp_dead()
+af7bb0d2ca45 exec: fix the racy usage of fs_struct->in_exec
+36cef585e2a3 media: vimc: skip .s_stream() for stopped entities
+f656cfbc7a29 media: streamzap: fix race between device disconnection and urb callback
+930b64ca0c51 nfsd: don't ignore the return code of svc_proc_register()
+d1bc15b147d3 nfsd: allow SC_STATUS_FREEABLE when searching via nfs4_lookup_stateid()
+230ca758453c nfsd: put dl_stid if fail to queue dl_recall
+d093c9089260 nfsd: fix management of listener transports
