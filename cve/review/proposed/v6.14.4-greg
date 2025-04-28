@@ -1,0 +1,44 @@
+27c7e63b3cb1 wifi: at76c50x: fix use after free access in at76_disconnect
+8bf108d7161f net: dsa: free routing table on probe failure
+21a4e47578d4 ksmbd: fix use-after-free in __smb2_lease_break_noti()
+18b4fac5ef17 ksmbd: fix use-after-free in smb_break_all_levII_oplock()
+52024cd6ec71 net: mctp: Set SOCK_RCU_FREE
+752e2217d789 smc: Fix lockdep false-positive for IPPROTO_SMC.
+65d91192aa66 net: openvswitch: fix nested key length validation in the set() action
+bb5e07cb9277 hfs/hfsplus: fix slab-out-of-bounds in hfs_bnode_read_key
+0405d4b63d08 isofs: Prevent the use of too small fid
+41e6ddcaa0f1 mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
+a104042e2bf6 wifi: mac80211: Update skb's control block key in ieee80211_tx_dequeue()
+378677eb8f44 wifi: mac80211: Purge vif txq in ieee80211_do_stop()
+4ba2abe154ef drm/imagination: take paired job reference
+7349c9e99793 net: ti: icss-iep: Fix possible NULL pointer dereference for perout request
+424eafe65647 i2c: cros-ec-tunnel: defer probe if parent EC is not present
+eb3a04a8516e ovl: don't allow datadir only
+d2f5819b6ed3 slab: ensure slab->obj_exts is clear in a newly allocated slab page
+8ec0fbb28d04 drm/nouveau: prime: fix ttm_bo_delayed_delete oops
+5cb1b130e1cd drm/msm/dpu: Fix error pointers in dpu_plane_virtual_atomic_check
+7d641c2b8327 drm/amd/pm: Prevent division by zero
+4b8c3c0d17c0 drm/amd/pm: Prevent division by zero
+7ba88b5cccc1 drm/amd/pm/smu11: Prevent division by zero
+7c246a05df51 drm/amd/pm: Prevent division by zero
+f23e9116ebb7 drm/amd/pm: Prevent division by zero
+4e3d9508c056 drm/amd/pm: Prevent division by zero
+a5b230e7f3a5 drm/imagination: fix firmware memory leaks
+395cc80051f8 drm/virtio: Fix missed dmabuf unpinning in error path of prepare_fb()
+7bcfeddb36b7 drm/xe: Fix an out-of-bounds shift when invalidating TLB
+858c7bfcb35e arm64/boot: Enable EL2 requirements for FEAT_PMUv3p9
+f3fdd4fba16c ethtool: cmis_cdb: use correct rpl size in ethtool_cmis_module_poll()
+00ffb3724ce7 cxgb4: fix memory leak in cxgb4_init_ethtool_filters() error path
+a94fd938df2b virtiofs: add filesystem context source name check
+45f5dcdd0497 RDMA/cma: Fix workqueue crash in cma_netevent_work_handler
+770c8d55c428 lib/iov_iter: fix to increase non slab folio refcount
+9a0e6f15029e RDMA/core: Silence oversized kvmalloc() warning
+b129005ddfc0 mlxbf-bootctl: use sysfs_emit_at() in secure_boot_fuse_state_show()
+b37f2f332b40 ksmbd: fix the warning from __kernel_write_iter
+324dddea3210 Bluetooth: btrtl: Prevent potential NULL dereference
+c84f6ce918a9 net: dsa: mv88e6xxx: avoid unregistering devlink regions which were never registered
+1e440d5b25b7 ksmbd: Fix dangling pointer in krb_authenticate
+a93ff742820f ksmbd: Prevent integer overflow in calculation of deadtime
+95f723cf141b ASoC: Intel: avs: Fix null-ptr-deref in avs_component_probe()
+ea08dfc35f83 net: dsa: mv88e6xxx: fix -ENOENT when deleting VLANs and MST is unsupported
+7afb5fb42d49 net: dsa: clean up FDB, MDB, VLAN entries on unbind
