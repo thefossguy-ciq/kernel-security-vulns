@@ -10,6 +10,7 @@ use cve_utils::git_utils::{
 };
 use cve_utils::version_utils::{compare_kernel_versions, version_is_mainline};
 use cve_utils::Kernel;
+use log::{debug, warn, error};
 use git2::{Object, Repository};
 use serde::{Deserialize, Serialize};
 use serde_json::ser::{PrettyFormatter, Serializer};
@@ -714,9 +715,7 @@ fn run_dyad(
     for git_sha in git_shas {
         if !git_sha.trim().is_empty() {
             command.arg("--sha1").arg(git_sha);
-            if verbose {
-                println!("Using fix SHA: {}", git_sha);
-            }
+            debug!("Using fix SHA: {}", git_sha);
         }
     }
 
@@ -1403,22 +1402,33 @@ fn generate_mbox(
 
 /// Main function
 fn main() -> Result<()> {
+    let mut logging_level: log::LevelFilter = log::LevelFilter::Error;
+
     // Parse command line arguments
     let args = Args::parse();
 
+    // Set the logging level based on the command line option and turn on the logger
+    if args.verbose {
+        logging_level = log::LevelFilter::max();
+    }
+    env_logger::builder()
+        .format_timestamp(None)
+        .filter_level(logging_level)
+        .init();
+
     // Debug all raw command line arguments if verbose is enabled
-    if args.verbose && std::env::args().len() > 0 {
-        eprintln!("Raw command line arguments:");
+    if std::env::args().len() > 0 {
+        debug!("Raw command line arguments:");
         for (i, arg) in std::env::args().enumerate() {
-            eprintln!("  Arg[{}]: '{}'", i, arg);
+            debug!("  Arg[{}]: '{}'", i, arg);
         }
     }
 
     // Debug trailing args in verbose mode
-    if args.verbose && !args.trailing_args.is_empty() {
-        eprintln!("Trailing arguments detected:");
+    if !args.trailing_args.is_empty() {
+        debug!("Trailing arguments detected:");
         for (i, arg) in args.trailing_args.iter().enumerate() {
-            eprintln!("  trailing_arg[{}]: '{}'", i, arg);
+            debug!("  trailing_arg[{}]: '{}'", i, arg);
         }
     }
 
@@ -1432,15 +1442,15 @@ fn main() -> Result<()> {
     // Also look for reference file in any position in the command line
     let reference_from_raw_args = find_reference_in_args();
 
-    if args.verbose && reference_from_trailing.is_some() {
-        eprintln!(
+    if reference_from_trailing.is_some() {
+        debug!(
             "Found potential reference file in trailing args: '{}'",
             reference_from_trailing.as_ref().unwrap()
         );
     }
 
-    if args.verbose && reference_from_raw_args.is_some() {
-        eprintln!(
+    if reference_from_raw_args.is_some() {
+        debug!(
             "Found potential reference file in raw args: '{}'",
             reference_from_raw_args.as_ref().unwrap()
         );
@@ -1448,7 +1458,7 @@ fn main() -> Result<()> {
 
     // Check for required arguments
     if args.cve.is_none() || args.sha.is_empty() || (args.json.is_none() && args.mbox.is_none()) {
-        eprintln!("Missing required arguments: cve, sha, or one of json/mbox");
+        error!("Missing required arguments: cve, sha, or one of json/mbox");
         std::process::exit(1);
     }
 
@@ -1458,7 +1468,7 @@ fn main() -> Result<()> {
         None => match env::var("CVE_USER") {
             Ok(val) => val,
             Err(_) => {
-                eprintln!("Missing required argument: user (-u/--user) and CVE_USER environment variable is not set");
+                error!("Missing required argument: user (-u/--user) and CVE_USER environment variable is not set");
                 std::process::exit(1);
             }
         },
@@ -1466,8 +1476,8 @@ fn main() -> Result<()> {
 
     // Check for CVEKERNELTREE environment variable
     if env::var("CVEKERNELTREE").is_err() {
-        eprintln!("CVEKERNELTREE environment variable is not set");
-        eprintln!("It needs to be set to the stable repo directory");
+        error!("CVEKERNELTREE environment variable is not set");
+        error!("It needs to be set to the stable repo directory");
         std::process::exit(1);
     }
 
@@ -1480,7 +1490,7 @@ fn main() -> Result<()> {
         .cloned()
         .collect();
     if git_shas.is_empty() {
-        eprintln!("Missing required argument: sha");
+        error!("Missing required argument: sha");
         std::process::exit(1);
     }
 
@@ -1502,17 +1512,15 @@ fn main() -> Result<()> {
     };
 
     // Debug output if verbose is enabled
-    if args.verbose {
-        println!("CVE_NUMBER={}", cve_number);
-        println!("GIT_SHAS={:?}", git_shas);
-        println!("JSON_FILE={:?}", args.json);
-        println!("MBOX_FILE={:?}", args.mbox);
-        println!("DIFF_FILE={:?}", args.diff);
-        println!("REFERENCE_FILE={:?}", args.reference);
-        println!("REF_FROM_TRAILING={:?}", reference_from_trailing);
-        println!("REF_FROM_RAW_ARGS={:?}", reference_from_raw_args);
-        println!("GIT_VULNERABLE={:?}", vulnerable_shas);
-    }
+    debug!("CVE_NUMBER={}", cve_number);
+    debug!("GIT_SHAS={:?}", git_shas);
+    debug!("JSON_FILE={:?}", args.json);
+    debug!("MBOX_FILE={:?}", args.mbox);
+    debug!("DIFF_FILE={:?}", args.diff);
+    debug!("REFERENCE_FILE={:?}", args.reference);
+    debug!("REF_FROM_TRAILING={:?}", reference_from_trailing);
+    debug!("REF_FROM_RAW_ARGS={:?}", reference_from_raw_args);
+    debug!("GIT_VULNERABLE={:?}", vulnerable_shas);
 
     // Get vulns directory using cve_utils
     let vulns_dir =
@@ -1547,13 +1555,13 @@ fn main() -> Result<()> {
         .filter_map(|sha| match resolve_reference(&repo, sha) {
             Ok(reference) => Some(reference),
             Err(err) => {
-                eprintln!("Warning: Could not resolve SHA reference: {}", err);
+                warn!("Warning: Could not resolve SHA reference: {}", err);
                 None
             }
         })
         .collect();
     if git_refs.is_empty() {
-        eprintln!("None of the provided SHAs could be resolved");
+        error!("None of the provided SHAs could be resolved");
         std::process::exit(1);
     }
     // Use the first as the main one for output fields
@@ -1592,17 +1600,12 @@ fn main() -> Result<()> {
     if let Some(diff_path) = args.diff.as_ref() {
         match apply_diff_to_text(&commit_text, diff_path) {
             Ok(modified_text) => {
-                if args.verbose {
-                    println!(
-                        "Applied diff from {} to the commit text",
-                        diff_path.display()
-                    );
-                }
+                debug!("Applied diff from {} to the commit text", diff_path.display());
                 // The apply_diff_to_text function handles newline preservation
                 commit_text = modified_text;
             }
             Err(err) => {
-                eprintln!("Warning: Failed to apply diff to commit text: {}", err);
+                error!("Warning: Failed to apply diff to commit text: {}", err);
             }
         }
     }
@@ -1611,7 +1614,7 @@ fn main() -> Result<()> {
     let dyad_data = match run_dyad(&script_dir, &git_shas, &vulnerable_shas, args.verbose) {
         Ok(data) => data,
         Err(err) => {
-            eprintln!("Warning: Failed to run dyad: {:?}", err);
+            warn!("Warning: Failed to run dyad: {:?}", err);
             String::new()
         }
     };
@@ -1642,9 +1645,7 @@ fn main() -> Result<()> {
         // Extract just the path part from the argument
         let arg = reference_from_trailing.unwrap();
         let path = extract_path_from_arg(&arg);
-        if args.verbose {
-            println!("Extracted path from trailing arg: '{}'", path);
-        }
+        debug!("Extracted path from trailing arg: '{}'", path);
         reference_path = Some(PathBuf::from(path));
     }
 
@@ -1654,9 +1655,7 @@ fn main() -> Result<()> {
     }
 
     let additional_references: Vec<String> = if let Some(ref_path) = reference_path {
-        if args.verbose {
-            println!("Attempting to read references from {:?}", ref_path);
-        }
+        debug!("Attempting to read references from {:?}", ref_path);
 
         if let Ok(contents) = std::fs::read_to_string(&ref_path) {
             if args.verbose {
