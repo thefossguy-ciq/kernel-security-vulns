@@ -10,8 +10,8 @@ use cve_utils::git_utils::{
 };
 use cve_utils::version_utils::{compare_kernel_versions, version_is_mainline};
 use cve_utils::Kernel;
-use log::{debug, warn, error};
 use git2::{Object, Repository};
+use log::{debug, error, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::ser::{PrettyFormatter, Serializer};
 use std::collections::HashSet;
@@ -158,18 +158,14 @@ fn strip_commit_text(text: &str, tags: &[String]) -> Result<String> {
 /// Determine the default status for CVE entries based on the dyad entries
 fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // If any entry has vulnerable_version = 0, status should be "affected"
-    if entries
-        .iter()
-        .any(|entry| entry.vulnerable.is_empty())
-    {
+    if entries.iter().any(|entry| entry.vulnerable.is_empty()) {
         return "affected";
     }
 
     // If any entry has a mainline vulnerable version AND it's not fixed in the same version,
     // status should be "affected"
     if entries.iter().any(|entry| {
-        entry.vulnerable.is_mainline()
-            && entry.vulnerable.version() != entry.fixed.version()
+        entry.vulnerable.is_mainline() && entry.vulnerable.version() != entry.fixed.version()
     }) {
         return "affected";
     }
@@ -220,7 +216,10 @@ fn generate_version_ranges(
 
         if entry.vulnerable.is_mainline() {
             affected_mainline_versions.insert(entry.vulnerable.version().clone());
-            eprintln!("DEBUG: Adding affected version: {}", entry.vulnerable.version());
+            eprintln!(
+                "DEBUG: Adding affected version: {}",
+                entry.vulnerable.version()
+            );
         }
         if entry.fixed.is_mainline() {
             fixed_mainline_versions.insert(entry.fixed.version().clone());
@@ -415,12 +414,11 @@ fn generate_version_ranges(
         if entry.fixed.git_id() != "0" {
             // For git version ranges, determine the vulnerable git ID
             // If vulnerable_version is 0, use the first Linux commit ID
-            let vulnerable_git =
-                if entry.vulnerable.is_empty() {
-                    "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
-                } else {
-                    entry.vulnerable.git_id().to_string()
-                };
+            let vulnerable_git = if entry.vulnerable.is_empty() {
+                "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
+            } else {
+                entry.vulnerable.git_id().to_string()
+            };
 
             // Create a version range for Git
             let ver_range = VersionRange {
@@ -1600,7 +1598,10 @@ fn main() -> Result<()> {
     if let Some(diff_path) = args.diff.as_ref() {
         match apply_diff_to_text(&commit_text, diff_path) {
             Ok(modified_text) => {
-                debug!("Applied diff from {} to the commit text", diff_path.display());
+                debug!(
+                    "Applied diff from {} to the commit text",
+                    diff_path.display()
+                );
                 // The apply_diff_to_text function handles newline preservation
                 commit_text = modified_text;
             }
