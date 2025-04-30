@@ -5,10 +5,10 @@
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use colored::Colorize;
-use cve_utils::common::{get_cve_root, get_kernel_tree, find_cve_by_sha};
+use cve_utils::common::{find_cve_by_sha, get_cve_root, get_kernel_tree};
+use cve_utils::cve_utils::find_next_free_cve_id;
 use cve_utils::git_utils::get_full_sha;
 use cve_utils::git_utils::{get_commit_details, get_commit_year};
-use cve_utils::cve_utils::find_next_free_cve_id;
 use cve_utils::print_git_error_details;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -70,11 +70,16 @@ fn main() -> Result<()> {
 fn process_batch_file(batch_file: &Path) -> Result<()> {
     // Check if file exists
     if !batch_file.exists() {
-        return Err(anyhow!("Batch file does not exist: {}", batch_file.display()));
+        return Err(anyhow!(
+            "Batch file does not exist: {}",
+            batch_file.display()
+        ));
     }
 
-    let file = fs::File::open(batch_file)
-        .context(format!("Failed to open batch file: {}", batch_file.display()))?;
+    let file = fs::File::open(batch_file).context(format!(
+        "Failed to open batch file: {}",
+        batch_file.display()
+    ))?;
 
     let reader = BufReader::new(file);
     let mut shas = Vec::new();
@@ -90,8 +95,10 @@ fn process_batch_file(batch_file: &Path) -> Result<()> {
         }
 
         // Extract the first word that looks like a Git SHA (at least 7 hex characters)
-        if let Some(sha) = line.split_whitespace()
-            .find(|word| word.len() >= 7 && word.chars().all(|c| c.is_ascii_hexdigit())) {
+        if let Some(sha) = line
+            .split_whitespace()
+            .find(|word| word.len() >= 7 && word.chars().all(|c| c.is_ascii_hexdigit()))
+        {
             shas.push(sha.to_string());
         }
     }
@@ -100,7 +107,10 @@ fn process_batch_file(batch_file: &Path) -> Result<()> {
         return Err(anyhow!("No valid Git SHAs found in batch file"));
     }
 
-    println!("Found {} Git SHAs to process", shas.len().to_string().cyan());
+    println!(
+        "Found {} Git SHAs to process",
+        shas.len().to_string().cyan()
+    );
 
     // Process each SHA
     for sha in shas {
@@ -108,7 +118,12 @@ fn process_batch_file(batch_file: &Path) -> Result<()> {
 
         // Handle errors but continue processing the batch
         if let Err(e) = create_cve(&sha, None) {
-            eprintln!("{} Failed to create CVE for SHA {}: {}", "WARNING:".yellow(), sha.cyan(), e);
+            eprintln!(
+                "{} Failed to create CVE for SHA {}: {}",
+                "WARNING:".yellow(),
+                sha.cyan(),
+                e
+            );
         }
     }
 
@@ -130,8 +145,10 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     let cve_root = get_cve_root()?;
 
     // Get the full SHA and validate it exists in the kernel tree
-    let git_sha_full = get_full_sha(&kernel_tree, git_sha)
-        .context(format!("Git SHA {} not found in kernel tree", git_sha.cyan()))?;
+    let git_sha_full = get_full_sha(&kernel_tree, git_sha).context(format!(
+        "Git SHA {} not found in kernel tree",
+        git_sha.cyan()
+    ))?;
 
     // Get the commit details for display
     let git_commit = get_commit_details(&kernel_tree, &git_sha_full, None)?;
@@ -141,8 +158,11 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
 
     // Check if a CVE already exists for this SHA
     if let Some(existing_cve) = find_existing_cve(&git_sha_full)? {
-        return Err(anyhow!("The Git SHA {} is already assigned to {}",
-            git_sha_full.cyan(), existing_cve.green()));
+        return Err(anyhow!(
+            "The Git SHA {} is already assigned to {}",
+            git_sha_full.cyan(),
+            existing_cve.green()
+        ));
     }
 
     // Set up directories
@@ -151,31 +171,39 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
 
     // Check if reserved directory exists
     if !reserved_dir.exists() {
-        return Err(anyhow!("Directory {} not found, should you allocate more for that year?",
-            reserved_dir.display().to_string().cyan()));
+        return Err(anyhow!(
+            "Directory {} not found, should you allocate more for that year?",
+            reserved_dir.display().to_string().cyan()
+        ));
     }
 
     // Get or find a CVE ID
     let cve_id = match requested_id {
         Some(id) => id.to_string(),
-        None => find_next_free_cve_id(&reserved_dir)?
+        None => find_next_free_cve_id(&reserved_dir)?,
     };
 
     // Create the published directory if needed
-    fs::create_dir_all(&published_dir)
-        .context(format!("Failed to create published directory: {}", published_dir.display()))?;
+    fs::create_dir_all(&published_dir).context(format!(
+        "Failed to create published directory: {}",
+        published_dir.display()
+    ))?;
 
     // Move the CVE ID from reserved to published
     let reserved_file = reserved_dir.join(&cve_id);
     let published_file = published_dir.join(&cve_id);
 
-    fs::rename(&reserved_file, &published_file)
-        .context(format!("Failed to move CVE ID from reserved to published: {}", cve_id))?;
+    fs::rename(&reserved_file, &published_file).context(format!(
+        "Failed to move CVE ID from reserved to published: {}",
+        cve_id
+    ))?;
 
     // Create the SHA1 file
     let sha1_file = published_dir.join(format!("{}.sha1", cve_id));
-    fs::write(&sha1_file, &git_sha_full)
-        .context(format!("Failed to create SHA1 file: {}", sha1_file.display()))?;
+    fs::write(&sha1_file, &git_sha_full).context(format!(
+        "Failed to create SHA1 file: {}",
+        sha1_file.display()
+    ))?;
 
     // Check for .vulnerable file and collect SHAs
     let vulnerable_file = published_dir.join(format!("{}.vulnerable", cve_id));
@@ -204,39 +232,57 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
 
     // Build bippy command
     let mut bippy_cmd = Command::new(&bippy_path);
-    bippy_cmd.arg("--verbose")
+    bippy_cmd
+        .arg("--verbose")
         .arg(format!("--cve={}", cve_id))
         .arg(format!("--sha={}", git_sha_full))
         .arg(format!("--json={}", json_file.display()))
         .arg(format!("--mbox={}", mbox_file.display()));
-    
+
     // Add vulnerable SHAs if any
     for sha in &vulnerable_shas {
         bippy_cmd.arg(format!("--vulnerable={}", sha));
     }
 
     println!("Running bippy command:");
-    println!("  {} --verbose --cve={} --sha={} --json={} --mbox={}", 
-        bippy_path.display(), cve_id, git_sha_full, json_file.display(), mbox_file.display());
-    
-    let result = bippy_cmd.status()
+    println!(
+        "  {} --verbose --cve={} --sha={} --json={} --mbox={}",
+        bippy_path.display(),
+        cve_id,
+        git_sha_full,
+        json_file.display(),
+        mbox_file.display()
+    );
+
+    let result = bippy_cmd
+        .status()
         .context(format!("Failed to execute bippy: {}", bippy_path_str))?;
 
     // Handle bippy failure
     if !result.success() {
         // Revert changes
-        fs::rename(&published_file, &reserved_file)
-            .context(format!("Failed to revert CVE ID move after bippy failure: {}", cve_id))?;
+        fs::rename(&published_file, &reserved_file).context(format!(
+            "Failed to revert CVE ID move after bippy failure: {}",
+            cve_id
+        ))?;
 
-        fs::remove_file(sha1_file)
-            .context("Failed to remove SHA1 file after bippy failure")?;
+        fs::remove_file(sha1_file).context("Failed to remove SHA1 file after bippy failure")?;
 
-        return Err(anyhow!("bippy execution failed for {} (exit code: {})",
-            cve_id.cyan(), result.code().map_or_else(|| "unknown".to_string(), |c| c.to_string())));
+        return Err(anyhow!(
+            "bippy execution failed for {} (exit code: {})",
+            cve_id.cyan(),
+            result
+                .code()
+                .map_or_else(|| "unknown".to_string(), |c| c.to_string())
+        ));
     }
 
     // Success
-    println!("{} is now allocated for commit {}", cve_id.cyan(), git_commit.green());
+    println!(
+        "{} is now allocated for commit {}",
+        cve_id.cyan(),
+        git_commit.green()
+    );
 
     Ok(())
 }
@@ -308,10 +354,10 @@ mod tests {
                 continue;
             }
 
-            if let Some(sha) = line.split_whitespace()
-                .find(|word| {
-                    word.len() >= 7 && word.chars().all(|c| c.is_ascii_hexdigit())
-                }) {
+            if let Some(sha) = line
+                .split_whitespace()
+                .find(|word| word.len() >= 7 && word.chars().all(|c| c.is_ascii_hexdigit()))
+            {
                 shas.push(sha.to_string());
             }
         }
@@ -364,10 +410,10 @@ mod tests {
             }
 
             // Extract the first word that looks like a Git SHA (at least 7 hex characters)
-            if let Some(sha) = line.split_whitespace()
-                .find(|word| {
-                    word.len() >= 7 && word.chars().all(|c| c.is_ascii_hexdigit())
-                }) {
+            if let Some(sha) = line
+                .split_whitespace()
+                .find(|word| word.len() >= 7 && word.chars().all(|c| c.is_ascii_hexdigit()))
+            {
                 shas.push(sha.to_string());
             }
         }
