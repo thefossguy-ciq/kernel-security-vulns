@@ -186,14 +186,14 @@ fn generate_version_ranges(
     let mut fixed_mainline_versions = HashSet::new();
 
     // Add debugging output for the dyad entries we're processing
-    eprintln!(
-        "DEBUG: Processing {} dyad entries with default_status={}",
+    debug!(
+        "Processing {} dyad entries with default_status={}",
         entries.len(),
         default_status
     );
     for (i, entry) in entries.iter().enumerate() {
-        eprintln!(
-            "DEBUG: Dyad entry {}: v:{} vg:{} f:{} fg:{}",
+        debug!(
+            "Dyad entry {}: v:{} vg:{} f:{} fg:{}",
             i,
             entry.vulnerable.version(),
             entry.vulnerable.git_id(),
@@ -207,8 +207,8 @@ fn generate_version_ranges(
         // Skip entries where the vulnerability is in the same version it was fixed
         // These versions are not actually affected in any released version
         if entry.vulnerable.version() == entry.fixed.version() {
-            eprintln!(
-                "DEBUG: Skipping version {} as it was fixed in the same version",
+            debug!(
+                "Skipping version {} as it was fixed in the same version",
                 entry.vulnerable.version()
             );
             continue;
@@ -216,14 +216,11 @@ fn generate_version_ranges(
 
         if entry.vulnerable.is_mainline() {
             affected_mainline_versions.insert(entry.vulnerable.version().clone());
-            eprintln!(
-                "DEBUG: Adding affected version: {}",
-                entry.vulnerable.version()
-            );
+            debug!("Adding affected version: {}", entry.vulnerable.version());
         }
         if entry.fixed.is_mainline() {
             fixed_mainline_versions.insert(entry.fixed.version().clone());
-            eprintln!("DEBUG: Adding fixed version: {}", entry.fixed.version());
+            debug!("Adding fixed version: {}", entry.fixed.version());
         }
     }
 
@@ -246,10 +243,10 @@ fn generate_version_ranges(
     // Sort all versions using the shared compare_kernel_versions function
     all_versions.sort_by(|(a, _), (b, _)| compare_kernel_versions(a, b));
 
-    eprintln!("DEBUG: Sorted versions (version, is_affected):");
+    debug!("Sorted versions (version, is_affected):");
     for (v, affected) in &all_versions {
-        eprintln!(
-            "DEBUG:   {} => {}",
+        debug!(
+            "   {} => {}",
             v,
             if *affected { "affected" } else { "unaffected" }
         );
@@ -260,7 +257,7 @@ fn generate_version_ranges(
         for (version, is_affected) in all_versions.iter() {
             // Don't add individual unaffected mainline versions - they'll be added later with range information
             if !is_affected && version_is_mainline(version) {
-                eprintln!("DEBUG: Skipping individual unaffected mainline version {} - will be added with range info later", version);
+                debug!("Skipping individual unaffected mainline version {} - will be added with range info later", version);
                 continue;
             }
 
@@ -273,8 +270,8 @@ fn generate_version_ranges(
             // Skip versions that match the default status (redundant)
             // EXCEPT for affected versions, which we always include for clarity
             if status == default_status && !is_affected {
-                eprintln!(
-                    "DEBUG: Skipping explicit version {} (matches default status '{}')",
+                debug!(
+                    "Skipping explicit version {} (matches default status '{}')",
                     version, default_status
                 );
                 continue;
@@ -290,7 +287,7 @@ fn generate_version_ranges(
                     status: status.to_string(),
                     version_type: None,
                 });
-                eprintln!("DEBUG: Added explicit version: {} => {}", version, status);
+                debug!("Added explicit version: {} => {}", version, status);
             }
         }
 
@@ -300,8 +297,8 @@ fn generate_version_ranges(
             let (current_version, current_affected) = &all_versions[i];
             let (next_version, next_affected) = &all_versions[i + 1];
 
-            eprintln!(
-                "DEBUG: Checking for intermediate versions between {} ({}) and {} ({})",
+            debug!(
+                "Checking for intermediate versions between {} ({}) and {} ({})",
                 current_version,
                 if *current_affected {
                     "affected"
@@ -326,17 +323,14 @@ fn generate_version_ranges(
                 current_parts.get(1).unwrap_or(&"0").parse::<u32>(),
                 next_parts.get(1).unwrap_or(&"0").parse::<u32>(),
             ) {
-                eprintln!(
-                    "DEBUG: Parsed version components: {}.{} and {}.{}",
+                debug!(
+                    "Parsed version components: {}.{} and {}.{}",
                     current_major, current_minor, next_major, next_minor
                 );
 
                 // Only process if they're in the same major version and there's a gap
                 if current_major == next_major && next_minor - current_minor > 1 {
-                    eprintln!(
-                        "DEBUG: Found gap of {} versions",
-                        next_minor - current_minor - 1
-                    );
+                    debug!("Found gap of {} versions", next_minor - current_minor - 1);
 
                     // Process each intermediate version
                     for minor in (current_minor + 1)..next_minor {
@@ -354,7 +348,9 @@ fn generate_version_ranges(
                                 // Prevent redundant entries if default status is already "affected"
                                 if default_status == "affected" {
                                     // Skip explicit entry by using default status
-                                    eprintln!("DEBUG: Setting status to default_status to skip redundant entry");
+                                    debug!(
+                                        "Setting status to default_status to skip redundant entry"
+                                    );
                                     default_status
                                 } else {
                                     "affected" // Only add explicit entries if default is not affected
@@ -363,15 +359,15 @@ fn generate_version_ranges(
                             (false, false) => "unaffected", // Both surrounding versions fixed
                         };
 
-                        eprintln!(
-                            "DEBUG: Inferring intermediate version {} => {}",
+                        debug!(
+                            "Inferring intermediate version {} => {}",
                             intermediate_version, status
                         );
 
                         // Explicitly check if the status equals the default_status string value
                         let is_default = status == default_status;
-                        eprintln!(
-                            "DEBUG: Status '{}' is {} to default '{}'",
+                        debug!(
+                            "Status '{}' is {} to default '{}'",
                             status,
                             if is_default { "equal" } else { "not equal" },
                             default_status
@@ -390,21 +386,21 @@ fn generate_version_ranges(
                                     status: status.to_string(),
                                     version_type: None,
                                 });
-                                eprintln!(
-                                    "DEBUG: Added intermediate version: {} => {}",
+                                debug!(
+                                    "Added intermediate version: {} => {}",
                                     intermediate_version, status
                                 );
                             }
                         } else {
-                            eprintln!("DEBUG: Skipping redundant intermediate version {} (matches default status '{}')",
+                            debug!("Skipping redundant intermediate version {} (matches default status '{}')",
                                       intermediate_version, default_status);
                         }
                     }
                 } else {
-                    eprintln!("DEBUG: No gap found or different major versions");
+                    debug!("No gap found or different major versions");
                 }
             } else {
-                eprintln!("DEBUG: Failed to parse version components");
+                debug!("Failed to parse version components");
             }
         }
     }
@@ -620,7 +616,7 @@ fn generate_version_ranges(
     });
 
     // Before returning, print out the final ranges for debugging
-    eprintln!("DEBUG: Final kernel version ranges:");
+    debug!("Final kernel version ranges:");
     for v in &kernel_versions {
         let range_desc = match (&v.less_than, &v.less_than_or_equal) {
             (Some(lt), None) => format!(" < {}", lt),
@@ -628,7 +624,7 @@ fn generate_version_ranges(
             (Some(lt), Some(lte)) => format!(" < {} OR <= {}", lt, lte),
             (None, None) => "".to_string(),
         };
-        eprintln!("DEBUG:   {} ({}){}", v.version, v.status, range_desc);
+        debug!("   {} ({}){}", v.version, v.status, range_desc);
     }
 
     (kernel_versions, git_versions)
@@ -664,12 +660,7 @@ fn read_uuid(script_dir: &Path) -> Result<String> {
 }
 
 /// Run the dyad script to get version range information
-fn run_dyad(
-    script_dir: &Path,
-    git_shas: &[String],
-    vulnerable_shas: &[String],
-    verbose: bool,
-) -> Result<String> {
+fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[String]) -> Result<String> {
     // Ensure dyad script exists
     let dyad_script = script_dir.join("dyad");
     if !dyad_script.exists() {
@@ -697,12 +688,10 @@ fn run_dyad(
     for vuln_sha in vulnerable_shas {
         if !vuln_sha.trim().is_empty() {
             command.arg("-v").arg(vuln_sha);
-            if verbose {
-                if let Ok(repo) = Repository::open(&kernel_tree) {
-                    if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
-                        if let Ok(short_sha) = get_short_sha(&repo, &obj) {
-                            println!("Using vulnerable SHA: {}", short_sha);
-                        }
+            if let Ok(repo) = Repository::open(&kernel_tree) {
+                if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
+                    if let Ok(short_sha) = get_short_sha(&repo, &obj) {
+                        debug!("Using vulnerable SHA: {}", short_sha);
                     }
                 }
             }
@@ -717,10 +706,7 @@ fn run_dyad(
         }
     }
 
-    // Only print the command when verbose mode is enabled
-    if verbose {
-        println!("Running command: {:?}", command);
-    }
+    debug!("Running command: {:?}", command);
 
     // Execute the command
     let output = command
@@ -1193,7 +1179,7 @@ fn generate_mbox(
     let kernel_tree = match std::env::var("CVEKERNELTREE") {
         Ok(path) => path,
         Err(_) => {
-            eprintln!("CVEKERNELTREE environment variable is not set");
+            error!("CVEKERNELTREE environment variable is not set");
             return format!(
                 "{}\n\
                 From: {} <{}>\n\
@@ -1210,7 +1196,7 @@ fn generate_mbox(
     let repo = match Repository::open(&kernel_tree) {
         Ok(r) => r,
         Err(e) => {
-            eprintln!("Failed to open kernel repo at {}: {}", kernel_tree, e);
+            error!("Failed to open kernel repo at {}: {}", kernel_tree, e);
             return format!(
                 "{}\n\
                 From: {} <{}>\n\
@@ -1612,7 +1598,7 @@ fn main() -> Result<()> {
     }
 
     // Run dyad with all main SHAs and all vulnerable SHAs
-    let dyad_data = match run_dyad(&script_dir, &git_shas, &vulnerable_shas, args.verbose) {
+    let dyad_data = match run_dyad(&script_dir, &git_shas, &vulnerable_shas) {
         Ok(data) => data,
         Err(err) => {
             warn!("Warning: Failed to run dyad: {:?}", err);
@@ -1659,18 +1645,16 @@ fn main() -> Result<()> {
         debug!("Attempting to read references from {:?}", ref_path);
 
         if let Ok(contents) = std::fs::read_to_string(&ref_path) {
-            if args.verbose {
-                println!("Successfully read reference file");
-                if !contents.is_empty() {
-                    println!("Reference file contains {} lines", contents.lines().count());
-                    for (i, line) in contents.lines().enumerate() {
-                        if !line.trim().is_empty() {
-                            println!("  Reference[{}]: {}", i, line.trim());
-                        }
+            debug!("Successfully read reference file");
+            if !contents.is_empty() {
+                debug!("Reference file contains {} lines", contents.lines().count());
+                for (i, line) in contents.lines().enumerate() {
+                    if !line.trim().is_empty() {
+                        debug!("  Reference[{}]: {}", i, line.trim());
                     }
-                } else {
-                    println!("Reference file is empty");
                 }
+            } else {
+                debug!("Reference file is empty");
             }
 
             contents
@@ -1679,22 +1663,18 @@ fn main() -> Result<()> {
                 .filter(|line| !line.is_empty())
                 .collect()
         } else {
-            eprintln!("Warning: Failed to read reference file from {:?}", ref_path);
-            if args.verbose {
-                if !ref_path.exists() {
-                    eprintln!("  File does not exist");
-                } else if !ref_path.is_file() {
-                    eprintln!("  Path exists but is not a regular file");
-                } else {
-                    eprintln!("  File exists but could not be read (permissions issue?)");
-                }
+            warn!("Warning: Failed to read reference file from {:?}", ref_path);
+            if !ref_path.exists() {
+                debug!("  File does not exist");
+            } else if !ref_path.is_file() {
+                debug!("  Path exists but is not a regular file");
+            } else {
+                debug!("  File exists but could not be read (permissions issue?)");
             }
             Vec::new()
         }
     } else {
-        if args.verbose {
-            println!("No reference file specified");
-        }
+        debug!("No reference file specified");
         Vec::new()
     };
 
@@ -1715,16 +1695,16 @@ fn main() -> Result<()> {
         ) {
             Ok(json_record) => {
                 if let Err(err) = std::fs::write(json_path, json_record) {
-                    eprintln!(
+                    error!(
                         "Warning: Failed to write JSON file to {:?}: {}",
                         json_path, err
                     );
-                } else if args.verbose {
-                    println!("Wrote JSON file to {}", json_path.display());
+                } else {
+                    debug!("Wrote JSON file to {}", json_path.display());
                 }
             }
             Err(err) => {
-                eprintln!("Error: Failed to generate JSON record: {}", err);
+                error!("Error: Failed to generate JSON record: {}", err);
             }
         }
     }
@@ -1746,12 +1726,12 @@ fn main() -> Result<()> {
         );
 
         if let Err(err) = std::fs::write(mbox_path, mbox_content) {
-            eprintln!(
+            error!(
                 "Warning: Failed to write mbox file to {:?}: {}",
                 mbox_path, err
             );
-        } else if args.verbose {
-            println!("Wrote mbox file to {}", mbox_path.display());
+        } else {
+            debug!("Wrote mbox file to {}", mbox_path.display());
         }
     }
 
