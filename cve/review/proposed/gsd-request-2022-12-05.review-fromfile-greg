@@ -1,5 +1,4 @@
 63095f4f3af5 ntfs: check overflow when iterating ATTR_RECORDs
-36a4d82dddbb ntfs: fix out-of-bounds read in ntfs_attr_find()
 d85a1bec8e8d ntfs: fix use-after-free in ntfs_attr_find()
 05b24ff9b2cf bpf: Prevent bpf program recursion for raw tracepoint probes
 296ab4a81384 net/9p: use a dedicated spinlock for trans_fd
@@ -11,7 +10,6 @@ ef575281b21e 9p/trans_fd: always use O_NONBLOCK read/write
 4fe1ec995483 dm ioctl: fix misbehavior if list_versions races with module loading
 ad72c3c3f6eb ALSA: usb-audio: Drop snd_BUG_ON() from snd_usbmidi_output_open()
 e7e4f77c991c drm/amd/display: Fix optc2_configure warning on dcn314
-ec7eede369fe kcm: avoid potential race in kcm_tx_work
 7353633814f6 KVM: x86/xen: Fix eventfd error handling in kvm_xen_eventfd_assign()
 72e560cb8c6f tcp: cdg: allow tcp_cdg_release() to be called multiple times
 b64085b00044 macvlan: enforce a consistent minimal mtu
@@ -106,7 +104,6 @@ ac2b9f34f020 dmaengine: ti: k3-udma-glue: fix memory leak when register device f
 5b994354af3c drm/amdkfd: Fix NULL pointer dereference in svm_migrate_to_ram()
 c23fb2c82267 ipv6: addrlabel: fix infoleak when sending struct ifaddrlblmsg to network
 668205b9c9f9 net: wwan: mhi: fix memory leak in mhi_mbim_dellink
-6788ba8aed4e wifi: brcmfmac: Fix potential buffer overflow in brcmf_fweh_event_worker()
 f25caaca4247 net: wwan: iosm: fix memory leak in ipc_wwan_dellink
 819b885cd886 phy: ralink: mt7621-pci: add sentinel to quirks table
 6d81ea3765df bnxt_en: Fix possible crash in bnxt_hwrm_set_coal()
@@ -125,7 +122,6 @@ b5bcb94b0954 HID: hyperv: fix possible memory leak in mousevsc_probe()
 ecbcf030b456 KVM: Reject attempts to consume or refresh inactive gfn_to_pfn_cache
 696db303e54f KVM: x86: smm: number of GPRs in the SMRAM image depends on the image format
 52491a38b2c2 KVM: Initialize gfn_to_pfn_cache locks in dedicated helper
-b1a2cd50c035 Bluetooth: L2CAP: Fix attempting to access uninitialized memory
 43d2748394c3 ACPI: APEI: Fix integer overflow in ghes_estatus_pool_init()
 373e715e31bf x86/tdx: Panic on bad configs that #VE on "private" memory access
 771899935623 media: meson: vdec: fix possible refcount leak in vdec_probe()
@@ -162,7 +158,6 @@ e97c089d7a49 rose: Fix NULL pointer dereference in rose_send_frame()
 3d00c6a0da8d ipvs: fix WARNING in __ip_vs_cleanup_batch()
 26b5934ff419 netfilter: nf_tables: release flow rule object from commit path
 d4bc8271db21 netfilter: nf_tables: netlink notifier might race to release objects
-363a5328f4b0 net: tun: fix bugs for oversize packet when napi frags enabled
 8bdc2acd420c net: sched: Fix use after free in red_enqueue()
 93d904a734a7 nfc: nfcmrvl: Fix potential memory leak in nfcmrvl_i2c_nci_send()
 7bf1ed6aff0f nfc: nxp-nci: Fix potential memory leak in nxp_nci_send()
