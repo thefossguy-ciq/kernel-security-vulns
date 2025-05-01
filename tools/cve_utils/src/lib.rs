@@ -710,14 +710,12 @@ pub mod cve_utils {
         }
 
         // Get all reserved CVE IDs
-        let entries = fs::read_dir(reserved_dir).context(format!(
-            "Failed to read reserved directory: {}",
-            reserved_dir.display()
-        ))?;
+        let mut entries: Vec<_> = fs::read_dir(reserved_dir).unwrap().map(|r| r.unwrap()).collect();
+        // Sort them so that we always pick the lowest number first
+        entries.sort_by_key(|dir| dir.path());
 
         // Find the first available CVE ID (empty file)
         for entry in entries {
-            let entry = entry.context("Failed to read directory entry")?;
             let path = entry.path();
 
             if path.is_file() {
