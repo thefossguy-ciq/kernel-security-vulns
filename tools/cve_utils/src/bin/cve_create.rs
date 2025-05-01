@@ -233,7 +233,7 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     // Build bippy command
     let mut bippy_cmd = Command::new(&bippy_path);
     bippy_cmd
-        .arg("--verbose")
+        //.arg("--verbose")
         .arg(format!("--cve={}", cve_id))
         .arg(format!("--sha={}", git_sha_full))
         .arg(format!("--json={}", json_file.display()))
@@ -244,15 +244,15 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
         bippy_cmd.arg(format!("--vulnerable={}", sha));
     }
 
-    println!("Running bippy command:");
-    println!(
-        "  {} --verbose --cve={} --sha={} --json={} --mbox={}",
-        bippy_path.display(),
-        cve_id,
-        git_sha_full,
-        json_file.display(),
-        mbox_file.display()
-    );
+//    println!("Running bippy command:");
+//    println!(
+//        "  {} --verbose --cve={} --sha={} --json={} --mbox={}",
+//        bippy_path.display(),
+//        cve_id,
+//        git_sha_full,
+//        json_file.display(),
+//        mbox_file.display()
+//    );
 
     let result = bippy_cmd
         .status()
