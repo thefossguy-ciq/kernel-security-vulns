@@ -742,7 +742,7 @@ pub mod cve_utils {
             }
         }
 
-        Err(anyhow!("No available CVE IDs found in reserved directory"))
+        Err(anyhow!("No available CVE IDs found in {}", reserved_dir.display()))
     }
 }
 
