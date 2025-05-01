@@ -1,0 +1,65 @@
+aa1ac98268cd s390/cpumf: Fix double free on error in cpumf_pmu_event_init()
+56799bc03565 perf: Fix hang while freeing sigtrap event
+c60d101a226f net: stmmac: Fix accessing freed irq affinity_hint
+767e22001dfc iommu/tegra241-cmdqv: Fix warnings due to dmam_free_coherent()
+f1a69a940de5 sctp: detect and prevent references to a freed transport in sendmsg
+e3f88665a780 HSI: ssi_protocol: Fix use after free vulnerability in ssi_protocol Driver Due to Race Condition
+5071a1e606b3 net: tls: explicitly disallow disconnect
+b3bf8f63e617 net_sched: sch_sfq: move the limit validation
+aabc6596ffb3 net: ppp: Add bound checking for skb data on ppp_sync_txmung
+52323ed1444e PM: hibernate: Avoid deadlock in hibernate_compressor_param_set()
+9629d7d66c62 jfs: Fix uninit-value access of imap allocated in the diMount() function
+b61e69bb1c04 jfs: Prevent copying of nlink with value 0 from disk inode
+ddf2846f22e8 jfs: add sanity check for agwidth in dbMount
+e6494977bd4a f2fs: fix to avoid out-of-bounds access in f2fs_truncate_inode_blocks()
+c8e008b60492 ext4: ignore xattrs past end
+27b918007d96 net: vlan: don't propagate flags on open
+5df5dafc171b Bluetooth: hci_uart: Fix another race during initialization
+6ee6bd5d4fce ublk: fix handling recovery & reissue in ublk_abort_queue()
+0bb2f7a1ad1f net: Fix null-ptr-deref by sock_lock_init_class_and_name() and rmmod.
+e3ea2eae7069 drm/i915/huc: Fix fence not released on early probe errors
+9502dd5c7029 smb: client: fix UAF in decryption with multichannel
+18056a48669a PCI: vmd: Make vmd_dev::cfg_lock a raw_spinlock_t type
+94824ac9a8aa ext4: fix off-by-one error in do_split
+459777724d30 drm/xe/vf: Don't try to trigger a full GT reset if VF
+ddc210cf8b8a mtd: rawnand: brcmnand: fix PM resume warning
+6889ae1b4df1 io_uring/net: fix io_req_post_cqe abuse by send bundle
+17d253af4c2c tpm: do not start chip while suspended
+276822a00db3 backlight: led_bl: Hold led_access lock when calling led_sysfs_disable()
+ef01cac401f1 KVM: x86: Acquire SRCU in KVM_GET_MP_STATE to protect guest memory accesses
+f6cb7828c8e1 misc: pci_endpoint_test: Avoid issue of interrupts remaining after request_irq error
+7f35b429802a perf/dwc_pcie: fix duplicate pci_dev devices
+69ae94725f4f tipc: fix memory leak in tipc_link_xmit
+efb24b1f0d29 wifi: ath11k: fix memory leak in ath11k_xxx_remove()
+1b24394ed5c8 wifi: ath12k: fix memory leak in ath12k_pci_remove()
+ecfc13138992 wifi: ath12k: Avoid memory leak while enabling statistics
+4936cd5817af media: mediatek: vcodec: Fix a resource leak related to the scp device in FW initialization
+ed554da65abd media: hi556: Fix memory leak (on error) in hi556_check_hwcfg()
+009ca358486d btrfs: tests: fix chunk map leak after failure to add it to the tree
+da47605e43af gpio: mpc8xxx: Fix wakeup source leaks on device unbind
+c5672e310ad9 gpio: zynq: Fix wakeup source leaks on device unbind
+0cb58d6c7b55 of/irq: Fix device node refcount leakage in API of_irq_parse_one()
+ff93e7213d6c of/irq: Fix device node refcount leakage in API of_irq_parse_raw()
+bbf71f44aaf2 of/irq: Fix device node refcount leakages in of_irq_count()
+962a2805e47b of/irq: Fix device node refcount leakage in API irq_of_parse_and_map()
+708124d9e6e7 of/irq: Fix device node refcount leakages in of_irq_init()
+1f2768b6a3ee PCI: Fix reference leak in pci_alloc_child_bus()
+804443c1f278 PCI: Fix reference leak in pci_register_host_bridge()
+38e8844005e6 iommu/mediatek: Fix NULL pointer deference in mtk_iommu_device_group
+ad320e408a8c ata: pata_pxa: Fix potential NULL pointer dereference in pxa_ata_probe()
+208baa3ec904 pm: cpupower: bench: Prevent NULL dereference on malloc failure
+4cdf1d2a816a mfd: ene-kb3930: Fix a potential NULL pointer dereference
+0686a818d77a bus: mhi: host: Fix race between unprepare and queue_buf
+c8222ef6cf29 soc: samsung: exynos-chipid: Add NULL pointer check in exynos_chipid_probe()
+443041deb5ef mptcp: fix NULL pointer in can_accept_new_subflow
+f4b211714bcc media: venus: hfi: add a check to handle OOB in sfr region
+69baf245b23e media: venus: hfi: add check to handle incorrect queue size
+172bf5a9ef70 media: venus: hfi_parser: add check to avoid out of bound access
+9edaaa8e3e15 media: venus: hfi_parser: refactor hfi packet parsing logic
+3371f569223c arm/crc-t10dif: fix use of out-of-scope array in crc_t10dif_arch()
+d48b663f410f arm64/crc-t10dif: fix use of out-of-scope array in crc_t10dif_arch()
+8e1ddfada453 drivers: base: devres: Allow to release group on device release
+bd496a44f041 i3c: Add NULL pointer check in i3c_master_queue_ibi()
+e6eff39dd0fe jbd2: remove wrong sb->s_sequence check
+7f1ff1b38a7c net: libwx: handle page_pool_dev_alloc_pages error
+f0df00ebc57f x86/cpu: Avoid running off the end of an AMD erratum table
