@@ -10,6 +10,7 @@ use cve_utils::cve_utils::find_next_free_cve_id;
 use cve_utils::git_utils::get_full_sha;
 use cve_utils::git_utils::{get_commit_details, get_commit_year};
 use cve_utils::print_git_error_details;
+use log::error;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -33,19 +34,26 @@ struct Args {
 }
 
 fn main() -> Result<()> {
+    let logging_level: log::LevelFilter = log::LevelFilter::Error;
     let args = Args::parse();
+
+    env_logger::builder()
+        .format_timestamp(None)
+        .filter_level(logging_level)
+        .init();
 
     // Validate we have either a git_sha or a batch file
     if args.git_sha.is_none() && args.batch.is_none() {
-        return Err(anyhow!("Either a Git SHA or --batch file must be provided"));
+        error!("Either a Git SHA or --batch file must be provided");
+        std::process::exit(1);
     }
 
     // Process a batch file if provided
     if let Some(batch_file) = args.batch {
         if let Err(e) = process_batch_file(&batch_file) {
-            eprintln!("Error processing batch file: {}", e);
+            error!("Error processing batch file: {}", e);
             print_git_error_details(&e);
-            return Err(e);
+            std::process::exit(1);
         }
         return Ok(());
     }
@@ -53,9 +61,9 @@ fn main() -> Result<()> {
     // Process a single Git SHA
     if let Some(git_sha) = args.git_sha {
         if let Err(e) = create_cve(&git_sha, args.cve_id.as_deref()) {
-            eprintln!("Error creating CVE: {}", e);
+            error!("Error creating CVE: {}", e);
             print_git_error_details(&e);
-            return Err(e);
+            std::process::exit(1);
         }
     }
 
@@ -244,15 +252,15 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
         bippy_cmd.arg(format!("--vulnerable={}", sha));
     }
 
-//    println!("Running bippy command:");
-//    println!(
-//        "  {} --verbose --cve={} --sha={} --json={} --mbox={}",
-//        bippy_path.display(),
-//        cve_id,
-//        git_sha_full,
-//        json_file.display(),
-//        mbox_file.display()
-//    );
+    //    println!("Running bippy command:");
+    //    println!(
+    //        "  {} --verbose --cve={} --sha={} --json={} --mbox={}",
+    //        bippy_path.display(),
+    //        cve_id,
+    //        git_sha_full,
+    //        json_file.display(),
+    //        mbox_file.display()
+    //    );
 
     let result = bippy_cmd
         .status()
