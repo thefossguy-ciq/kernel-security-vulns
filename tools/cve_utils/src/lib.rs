@@ -452,6 +452,8 @@ pub mod git_utils {
     ///
     /// # Returns
     /// A string with the commit details in the specified format
+    ///
+    /// Note, format_type is currently ignored, "details" is the output for now
     pub fn get_commit_details(kernel_tree: &Path, git_sha: &str, _format_type: Option<&str>) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
@@ -463,11 +465,12 @@ pub mod git_utils {
             .context(format!("Commit not found: {}", git_sha))?;
 
         // Get short SHA and message
-        let short_id = commit.id().to_string()[0..7].to_string();
+        let short_id = commit.id().to_string()[0..12].to_string();
         let message = commit.summary().unwrap_or("").to_string();
 
-        // Format based on the format_type parameter
-        Ok(format!("{} {}", short_id, message))
+        // Format based on the common kernel commit output of:
+        // git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n" "${GIT_SHA_FULL}")
+        Ok(format!("{} (\"{}\")", short_id, message))
     }
 
     /// Gets the commit year from a SHA
