@@ -1,0 +1,119 @@
+003587000276 nilfs2: fix kernel-infoleak in nilfs_ioctl_wrap_copy()
+93bb18d2a873 drm/amdgpu: Fix call trace warning and hang when removing amdgpu device
+8e45183978d6 scsi: mpi3mr: Bad drive in topology results kernel crash
+312320b0e0ec scsi: lpfc: Check kzalloc() in lpfc_sli4_cgn_params_read()
+8ae2f2b0a284 HID: intel-ish-hid: ipc: Fix potential use-after-free in work function
+6c993779ea1d ca8210: fix mac_len negative array access
+0367076b0817 scsi: qla2xxx: Perform lockless command completion in abort path
+56574f89dbd8 drm/amd/display: Do not set DRR on pipe Commit
+8a63441e8372 arm64: dts: qcom: sc7280: Mark PCIe controller as cache coherent
+d3aa3e060c4a dm stats: check for and propagate alloc_percpu failure
+92fbb6d1296f i2c: xgene-slimpro: Fix out-of-bounds bug in xgene_slimpro_i2c_xfer()
+6c67ed9ad9b8 usb: gadget: u_audio: don't let userspace block driver unbind
+1c66bee492a5 Bluetooth: Fix race condition in hci_cmd_sync_clear
+f8502fba45bd tee: amdtee: fix race condition in amdtee_open_session
+abfc4fa28f01 usb: typec: tcpm: fix warning when handle discover_identity message
+f87fb985452a usb: ucsi: Fix NULL pointer deref in ucsi_connector_change()
+acec72647382 thunderbolt: Fix memory leak in margining
+fb294b1c0ba9 dm crypt: add cond_resched() to dmcrypt_write()
+396935de1455 cifs: fix use-after-free bug in refresh_cache_worker()
+8e50ed774554 erspan: do not use skb_mac_header() in ndo_start_xmit()
+f747313249b7 usb: dwc2: fix a devres leak in hw_enable upon suspend resume
+ccb820dc7d22 fscrypt: destroy keyring after security_sb_delete()
+d3affdeb400f scsi: qla2xxx: Synchronize the IOCB count to be in order
+bce564052011 Bluetooth: HCI: Fix global-out-of-bounds
+640fcdbcf27f net/mlx5: E-Switch, Fix an Oops in error handling code
+b20cf3f89c56 platform/chrome: cros_ec_chardev: fix kernel data leak from ioctl
+65f69851e44d igb: revert rtnl_lock() that causes deadlock
+2624b445544f ksmbd: fix possible refcount leak in smb2_open()
+02a4d923e440 io_uring/rsrc: fix null-ptr-deref in io_file_bitmap_get()
+ff821092cf02 net: usb: smsc95xx: Limit packet length to skb->len
+1e9ac114c442 Bluetooth: btsdio: fix use after free bug in btsdio_remove due to unfinished work
+06615d11cc78 power: supply: da9150: Fix use after free bug in da9150_charger_remove due to race condition
+4e264be98b88 iavf: fix hang on reboot with ice
+eb81a2ed4f52 perf/core: Fix perf_output_begin parameter is incorrectly invoked in perf_event_bpf_output
+25143b6a01d0 qed/qed_sriov: guard against NULL derefs from qed_iov_get_vf_info
+6b6bc5b8bd2d net: qcom/emac: Fix use after free bug in emac_remove due to race condition
+bb7a78e34346 LoongArch: Only call get_timer_irq() once in constant_clockevent_init()
+7f247f5a2c18 net: usb: lan78xx: Limit packet length to skb->len
+f038f3917baf octeontx2-vf: Add missing free for alloc_percpu
+91d7b60a65d9 ACPI: PPTT: Fix to avoid sleep in the atomic context when PPTT is absent
+41130c32f3a1 wifi: mt76: do not run mt76_unregister_device() on unregistered hw
+b6985b9b8295 mptcp: use the workqueue to destroy unaccepted sockets
+47c29d692129 power: supply: bq24190: Fix use after free bug in bq24190_remove due to race condition
+263f5ecaf708 perf/x86/amd/core: Always clear status for idx
+23f4a2d29ba5 drm/amdgpu: fix ttm_bo calltrace warning in psp_hw_fini
+ee92fa443358 ftrace: Fix invalid address access in lookup_rec() when index is 0
+10ec8ca8ec1a bpf: Adjust insufficient default bpf_jit_limit
+031f196d1b1b drm/amd/display: fix shift-out-of-bounds in CalculateVMAndRowBytes
+a13faca032ac scsi: scsi_dh_alua: Fix memleak for 'qdata' in alua_activate()
+922f56e9a795 net/mlx5: Fix steering rules cleanup
+c7df4813b149 xsk: Add missing overflow check in xdp_umem_reg
+90410bcf873c ocfs2: fix data corruption after failed write
+aed8efddd39b vp_vdpa: fix the crash in hot unplug with vp_vdpa
+27c934dd8832 nfsd: don't replace page in rq_pages if it's a continuation of last page
+ee9adb7a4551 drm/shmem-helper: Remove another errant put in error path
+4d8457fe0eb9 drm/edid: fix info leak when failing to get panel id
+5683e1488aa9 wifi: mt76: connac: do not check WED status for non-mmio devices
+e0e6b416b25e drm/i915/active: Fix misuse of non-idle barriers as fence trackers
+0a3f4f1f9c27 mptcp: fix UaF in listener shutdown
+0f7bfd6f8164 ext4: fix task hung in ext4_xattr_delete_inode
+4fc8fff378b2 drm/amdkfd: Fix an illegal memory access
+3039d8b86924 ext4: update s_journal_inum if it changes after journal replay
+3aab264875bf interconnect: exynos: fix node leak in probe PM QoS error path
+e0213434fe3e tracing: Do not let histogram values have some modifiers
+1be6f2b15f90 tty: serial: fsl_lpuart: fix race on RX DMA shutdown
+9a9a8fe26751 drm/ttm: Fix a NULL pointer dereference
+a5904f415e1a interconnect: fix mem leak when freeing nodes
+b505063910c1 powerpc/iommu: fix memory leak with using debugfs_lookup()
+30040818b338 media: rc: gpio-ir-recv: add remove function
+38ed310c22e7 firmware: xilinx: don't make a sleepable memory allocation from an atomic context
+e32b120071ea KVM: VMX: Do _all_ initialization before exposing /dev/kvm to userspace
+2916b70fc342 KVM: VMX: Reset eVMCS controls in VP assist page during hardware disabling
+2b96b4a5d944 ext4: fix WARNING in ext4_update_inline_data
+f5361da1e60d ext4: zero i_disksize when initializing the bootloader inode
+cb090e64cf25 hwmon: (xgene) Fix use after free bug in xgene_hwmon_remove due to race condition
+b830c9642386 ice: xsk: disable txq irq before flushing hw
+e667d4690986 bonding: restore bond's IFF_SLAVE flag if a non-eth dev enslave fails
+43ffe6caccc7 net: usb: smsc75xx: Move packet length check to prevent kernel panic in skb_pull
+c9668f0b1d28 net/mlx5e: Fix cleanup null-ptr deref on encap lock
+5000fe6c2782 nfc: st-nci: Fix use after free bug in ndlc_remove due to race condition
+7c10131803e4 veth: Fix use after free in XDP_REDIRECT
+3d87debb8ed2 net/iucv: Fix size of interrupt data
+4b397c06cb98 net: tunnels: annotate lockless accesses to dev->needed_headroom
+22a825c541d7 net/smc: fix NULL sndbuf_desc in smc_cdc_tx_handler()
+9b0cb770f5d7 loop: Fix use-after-free issues
+193c41926d15 drm/i915/sseu: fix max_subslices array-index-out-of-bounds access
+f624bb6fad23 wifi: nl80211: fix NULL-ptr deref in offchan check
+7e4f8a0c4954 i40e: Fix kernel crash during reboot when adapter is in recovery mode
+c798304470ca scsi: mpi3mr: Fix memory leaks in mpi3mr_init_ioc()
+6173a77b7e9d nvmet: avoid potential UAF in nvmet_req_complete()
+609d54441493 fs: prevent out-of-bounds array speculation when closing a file descriptor
+be03df3d4bfe scsi: core: Fix a procfs host directory removal regression
+484b7059796e nfc: pn533: initialize struct pn533_out_arg properly
+7d2b02172b6a scsi: mpi3mr: Fix config page DMA memory leak
+bced3f7db95f tcp: tcp_make_synack() can be called from process context
+bf89b7ee52af RISC-V: fix taking the text_mutex twice during sifive errata patching
+ab909509850b PCI: s390: Fix use-after-free of PCI resources with per-function hotplug
+d3c57724f156 scsi: mpt3sas: Fix NULL pointer access in mpt3sas_transport_port_add()
+d8b228318935 net: usb: smsc75xx: Limit packet length to skb->len
+d4caa1a4255c scsi: mpi3mr: Fix sas_hba.phy memory leak in mpi3mr_remove()
+ce756daa36e1 scsi: mpi3mr: Fix expander node leak in mpi3mr_remove()
+f305a7b6ca21 scsi: mpi3mr: Fix throttle_groups memory leak
+3c92792da850 ext4: Fix deadlock during directory rename
+428913bce1e6 block: fix wrong mode for blkdev_put() from disk_scan_partitions()
+9ca6705d9d60 SUNRPC: Fix a server shutdown leak
+d0f3c3728da8 scsi: mpi3mr: Fix mpi3mr_hba_port memory leak in mpi3mr_remove()
+49c47cc21b5b net: tls: fix possible race condition between do_tls_getsockopt_conf() and do_tls_setsockopt_conf()
+d900f3d20cc3 bpf, sockmap: Fix an infinite loop error when len is 0 in tcp_bpf_recvmsg_parser()
+accd7e23693a bnxt_en: Avoid order-5 memory allocation for TPA data
+76950340cf03 riscv: Use READ_ONCE_NOCHECK in imprecise unwinding stack mode
+2aab4b969002 af_unix: fix struct pid leaks in OOB support
+0813299c586b ext4: Fix possible corruption when moving a directory
+9781e98a9711 net: caif: Fix use-after-free in cfusbl_device_notify()
+11f180a5d62a nfc: fdp: add null check of devm_kmalloc_array in fdp_nci_i2c_read_device_properties
+fc663711b944 scsi: core: Remove the /proc/scsi/${proc_name} directory earlier
+693aa2c0d9b6 ila: do not generate empty messages in ila_xlat_nl_cmd_get_mapping()
+84cba1840e68 ice: copy last block omitted in ice_get_module_eeprom()
+c993799baf9c ext4: fix another off-by-one fsmap error on 1k block filesystems
+8f121dfb15f7 erofs: fix wrong kunmap when using LZMA on HIGHMEM platforms
