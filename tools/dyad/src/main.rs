@@ -150,15 +150,34 @@ fn main() {
     // Calculate full git sha for each fixing SHA1 that was passed to us
     state.git_sha_full.clear(); // Clear any existing values
     for git_sha in &args.sha1 {
+        let mut found_valid_sha = false;
         match Kernel::from_id(git_sha.to_string()) {
-            Ok(kernel) => state.git_sha_full.push(kernel),
-            Err(_) => {
-                error!(
-                    "Error: The provided git SHA1 '{}' could not be found in the repository",
-                    git_sha
-                );
-                std::process::exit(1);
+            Ok(kernel) => {
+                state.git_sha_full.push(kernel);
+                found_valid_sha = true;
             }
+            Err(_) => {
+                // Sometimes the git id is in stable kernels but is NOT in a released Linus tree
+                // just yet, so verhaal will not have the data.  So let's check the git repo to see
+                // if that's the case
+                if let Ok(path) = cve_utils::common::get_kernel_tree() {
+                    if let Ok(git_sha_full) = cve_utils::get_full_sha(&path, git_sha) {
+                        // It is valid, so let's make an "empty" kernel object and fill it in by hand
+                        // without a valid version number just yet.
+                        if let Ok(kernel) = Kernel::new("0".to_string(), git_sha_full) {
+                            state.git_sha_full.push(kernel);
+                            found_valid_sha = true;
+                        }
+                    }
+                }
+            }
+        }
+        if found_valid_sha == false {
+            error!(
+                "Error: The provided git SHA1 '{}' could not be found in the repository",
+                git_sha
+            );
+            std::process::exit(1);
         }
     }
 
