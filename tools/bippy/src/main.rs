@@ -920,18 +920,40 @@ struct Generator {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CpeMatch {
+    // boolean value, must be "true" or "false"
     vulnerable: String,
-    // critera is always going to be: "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*"
+
+    // critera for us is always going to be: "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*"
     criteria: String,
+
     #[serde(rename = "versionStartIncluding")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     version_start_including: String,
+
     #[serde(rename = "versionEndExcluding")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     version_end_excluding: String,
+
+    // Odds are we will not use the following fields, but they are here
+    // just to round out the documentation of the schema
+    #[serde(rename = "matchCriteriaId")]
+    #[serde(skip_serializing_if = "String::is_empty")]
+    match_criteria_id: String,
+
+    #[serde(rename = "versionStartExcluding")]
+    #[serde(skip_serializing_if = "String::is_empty")]
+    version_start_excluding: String,
+
+    #[serde(rename = "versionEndIncluding")]
+    #[serde(skip_serializing_if = "String::is_empty")]
+    version_end_including: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CpeNodes {
+    // must be "OR" or "AND"
     operator: String,
+    // boolean value, must be "true" or "false"
     negate: String,
     #[serde(rename = "cpeMatch")]
     cpe_match: Vec<CpeMatch>,
