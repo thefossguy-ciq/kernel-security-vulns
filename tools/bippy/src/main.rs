@@ -174,6 +174,34 @@ fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     "unaffected"
 }
 
+/// Generate CPE ranges for the CVE JSON format
+fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
+    let mut cpe_nodes: Vec<CpeNodes> = vec![];
+    let mut node = CpeNodes {
+        operator: "OR".to_string(),
+        negate: "false".to_string(),
+        cpe_match: vec![],
+    };
+
+    for entry in entries {
+        let mut cpe_match: CpeMatch = CpeMatch::default();
+
+        cpe_match.vulnerable = "true".to_string();
+        cpe_match.criteria = "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*".to_string();
+
+        if entry.vulnerable.version() != "0" {
+            cpe_match.version_start_including = entry.vulnerable.version().clone();
+        }
+        if entry.fixed.version() != "0" {
+            cpe_match.version_end_excluding = entry.fixed.version();
+        }
+        node.cpe_match.push(cpe_match);
+    }
+
+    cpe_nodes.push(node);
+    cpe_nodes
+}
+
 /// Generate version ranges for the CVE JSON format
 fn generate_version_ranges(
     entries: &[DyadEntry],
@@ -918,7 +946,7 @@ struct Generator {
     engine: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 struct CpeMatch {
     // boolean value, must be "true" or "false"
     vulnerable: String,
@@ -1073,6 +1101,9 @@ fn generate_json_record(
         versions: kernel_versions,
     };
 
+    // Generate CPE ranges
+    let _cpe_nodes = generate_cpe_ranges(&dyad_entries);
+
     // Create references
     let mut references = Vec::new();
     let mut seen_refs: HashSet<String> = HashSet::new();
@@ -1138,6 +1169,7 @@ fn generate_json_record(
                 }],
                 affected: vec![git_product, kernel_product],
                 cpe_applicability: vec![], // FIXME
+                // cpe_applicability: vec![CpeApplicability { nodes: cpe_nodes }],
                 references,
                 title: commit_subject.to_string(),
                 x_generator: Generator {
