@@ -184,6 +184,13 @@ fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
     };
 
     for entry in entries {
+        // Skip entries where the vulnerability is in the same version it was fixed
+        // These versions are not actually affected in any released version so CVE.org
+        // doesn't like to see them.
+        if entry.vulnerable.version() == entry.fixed.version() {
+            continue;
+        }
+
         let mut cpe_match: CpeMatch = CpeMatch::default();
 
         cpe_match.vulnerable = "true".to_string();
