@@ -179,7 +179,7 @@ fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
     let mut cpe_nodes: Vec<CpeNodes> = vec![];
     let mut node = CpeNodes {
         operator: "OR".to_string(),
-        negate: "false".to_string(),
+        negate: false,
         cpe_match: vec![],
     };
 
@@ -191,13 +191,16 @@ fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
             continue;
         }
 
-        let mut cpe_match: CpeMatch = CpeMatch::default();
-
-        cpe_match.vulnerable = "true".to_string();
-        cpe_match.criteria = "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*".to_string();
+        // Our CPE ranges are very simple, if we have a starting point of the vulnerability, we
+        // document that, and if we have an end point, we document that.  Nothing fancy.
+        let mut cpe_match: CpeMatch = CpeMatch {
+            vulnerable: true,
+            criteria: "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*".to_string(),
+            ..Default::default()
+        };
 
         if entry.vulnerable.version() != "0" {
-            cpe_match.version_start_including = entry.vulnerable.version().clone();
+            cpe_match.version_start_including = entry.vulnerable.version();
         }
         if entry.fixed.version() != "0" {
             cpe_match.version_end_excluding = entry.fixed.version();
@@ -956,7 +959,7 @@ struct Generator {
 #[derive(Debug, Serialize, Deserialize, Default)]
 struct CpeMatch {
     // boolean value, must be "true" or "false"
-    vulnerable: String,
+    vulnerable: bool,
 
     // critera for us is always going to be: "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*"
     criteria: String,
@@ -989,7 +992,7 @@ struct CpeNodes {
     // must be "OR" or "AND"
     operator: String,
     // boolean value, must be "true" or "false"
-    negate: String,
+    negate: bool,
     #[serde(rename = "cpeMatch")]
     cpe_match: Vec<CpeMatch>,
 }
@@ -1109,7 +1112,7 @@ fn generate_json_record(
     };
 
     // Generate CPE ranges
-    let _cpe_nodes = generate_cpe_ranges(&dyad_entries);
+    let cpe_nodes = generate_cpe_ranges(&dyad_entries);
 
     // Create references
     let mut references = Vec::new();
@@ -1175,8 +1178,8 @@ fn generate_json_record(
                     value: truncated_description,
                 }],
                 affected: vec![git_product, kernel_product],
-                cpe_applicability: vec![], // FIXME
-                // cpe_applicability: vec![CpeApplicability { nodes: cpe_nodes }],
+                //cpe_applicability: vec![], // FIXME
+                cpe_applicability: vec![CpeApplicability { nodes: cpe_nodes }],
                 references,
                 title: commit_subject.to_string(),
                 x_generator: Generator {

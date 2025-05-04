@@ -1,6 +1,6 @@
 [package]
 name = "vuln_utils"
-version = "1.1.0"
+version = "1.2.0"
 authors = ["Greg Kroah-Hartman <gregkh@linuxfoundation.org>", "Sasha Levin <sashal@kernel.org>" ]
 license = "GPL-2.0"
 edition = "2024"
