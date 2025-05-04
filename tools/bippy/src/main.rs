@@ -215,7 +215,6 @@ fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
 /// Generate git ranges for the CVE JSON format
 fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
     let mut git_versions = Vec::new();
-    let mut seen_versions = HashSet::new();
 
     for entry in entries {
         // Handle git version ranges
@@ -236,20 +235,7 @@ fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
                 status: "affected".to_string(),
                 version_type: Some("git".to_string()),
             };
-
-            // Create a unique key that represents the entire range
-            let key = format!(
-                "git:{}:{}:{}",
-                ver_range.version,
-                ver_range.less_than.as_deref().unwrap_or(""),
-                ver_range.less_than_or_equal.as_deref().unwrap_or("")
-            );
-
-            // Only add if we haven't seen this exact range before
-            if !seen_versions.contains(&key) {
-                seen_versions.insert(key);
-                git_versions.push(ver_range);
-            }
+            git_versions.push(ver_range);
         }
     }
     git_versions
