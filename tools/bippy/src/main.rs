@@ -232,13 +232,13 @@ fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
             ..Default::default()
         };
 
-        // Handle git version ranges
+        // If this entry is fixed, report where it is fixed
         if entry.fixed.git_id() != "0" {
             // This entry is a fixed one, so set the place where it is resolved
             ver_range.less_than = Some(entry.fixed.git_id().to_string());
-
-            git_versions.push(ver_range);
         }
+
+        git_versions.push(ver_range);
     }
     git_versions
 }
