@@ -212,13 +212,52 @@ fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
     cpe_nodes
 }
 
-/// Generate version ranges for the CVE JSON format
-fn generate_version_ranges(
-    entries: &[DyadEntry],
-    default_status: &str,
-) -> (Vec<VersionRange>, Vec<VersionRange>) {
-    let mut kernel_versions = Vec::new();
+/// Generate git ranges for the CVE JSON format
+fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
     let mut git_versions = Vec::new();
+    let mut seen_versions = HashSet::new();
+
+    for entry in entries {
+        // Handle git version ranges
+        if entry.fixed.git_id() != "0" {
+            // For git version ranges, determine the vulnerable git ID
+            // If vulnerable_version is 0, use the first Linux commit ID
+            let vulnerable_git = if entry.vulnerable.is_empty() {
+                "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
+            } else {
+                entry.vulnerable.git_id().to_string()
+            };
+
+            // Create a version range for Git
+            let ver_range = VersionRange {
+                version: vulnerable_git,
+                less_than: Some(entry.fixed.git_id().to_string()),
+                less_than_or_equal: None,
+                status: "affected".to_string(),
+                version_type: Some("git".to_string()),
+            };
+
+            // Create a unique key that represents the entire range
+            let key = format!(
+                "git:{}:{}:{}",
+                ver_range.version,
+                ver_range.less_than.as_deref().unwrap_or(""),
+                ver_range.less_than_or_equal.as_deref().unwrap_or("")
+            );
+
+            // Only add if we haven't seen this exact range before
+            if !seen_versions.contains(&key) {
+                seen_versions.insert(key);
+                git_versions.push(ver_range);
+            }
+        }
+    }
+    git_versions
+}
+
+/// Generate version ranges for the CVE JSON format
+fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> Vec<VersionRange> {
+    let mut kernel_versions = Vec::new();
     let mut seen_versions = HashSet::new();
     let mut affected_mainline_versions = HashSet::new();
     let mut fixed_mainline_versions = HashSet::new();
@@ -444,41 +483,8 @@ fn generate_version_ranges(
     }
 
     for entry in entries {
-        // Handle git version ranges
-        if entry.fixed.git_id() != "0" {
-            // For git version ranges, determine the vulnerable git ID
-            // If vulnerable_version is 0, use the first Linux commit ID
-            let vulnerable_git = if entry.vulnerable.is_empty() {
-                "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
-            } else {
-                entry.vulnerable.git_id().to_string()
-            };
-
-            // Create a version range for Git
-            let ver_range = VersionRange {
-                version: vulnerable_git,
-                less_than: Some(entry.fixed.git_id().to_string()),
-                less_than_or_equal: None,
-                status: "affected".to_string(),
-                version_type: Some("git".to_string()),
-            };
-
-            // Create a unique key that represents the entire range
-            let key = format!(
-                "git:{}:{}:{}",
-                ver_range.version,
-                ver_range.less_than.as_deref().unwrap_or(""),
-                ver_range.less_than_or_equal.as_deref().unwrap_or("")
-            );
-
-            // Only add if we haven't seen this exact range before
-            if !seen_versions.contains(&key) {
-                seen_versions.insert(key);
-                git_versions.push(ver_range);
-            }
-        }
-
         // Skip entries where the vulnerability is in the same version it was fixed
+        // as CVE does NOT want us reporting that type of stuff.
         if entry.vulnerable.version() == entry.fixed.version() {
             continue;
         }
@@ -665,7 +671,7 @@ fn generate_version_ranges(
         debug!("   {} ({}){}", v.version, v.status, range_desc);
     }
 
-    (kernel_versions, git_versions)
+    kernel_versions
 }
 
 /// Reads the tags file from the script directory
@@ -1090,25 +1096,25 @@ fn generate_json_record(
     let default_status = determine_default_status(&dyad_entries);
 
     // Generate version ranges
-    let (kernel_versions, git_versions) = generate_version_ranges(&dyad_entries, default_status);
-
-    // Create affected products
-    let git_product = AffectedProduct {
-        product: "Linux".to_string(),
-        vendor: "Linux".to_string(),
-        default_status: "unaffected".to_string(),
-        repo: "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git".to_string(),
-        program_files: affected_files.clone(),
-        versions: git_versions,
-    };
-
+    let kernel_versions = generate_version_ranges(&dyad_entries, default_status);
     let kernel_product = AffectedProduct {
         product: "Linux".to_string(),
         vendor: "Linux".to_string(),
         default_status: default_status.to_string(),
         repo: "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git".to_string(),
-        program_files: affected_files,
+        program_files: affected_files.clone(),
         versions: kernel_versions,
+    };
+
+    // Generate git ranges
+    let git_versions = generate_git_ranges(&dyad_entries);
+    let git_product = AffectedProduct {
+        product: "Linux".to_string(),
+        vendor: "Linux".to_string(),
+        default_status: "unaffected".to_string(),
+        repo: "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git".to_string(),
+        program_files: affected_files,
+        versions: git_versions,
     };
 
     // Generate CPE ranges
@@ -1964,7 +1970,8 @@ mod tests {
             DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
         ];
 
-        let (kernel_versions, git_versions) = generate_version_ranges(&entries, "unaffected");
+        let kernel_versions = generate_version_ranges(&entries, "unaffected");
+        let git_versions = generate_git_ranges(&entries);
 
         // Check git versions
         assert_eq!(git_versions.len(), 1);
@@ -1993,7 +2000,8 @@ mod tests {
             DyadEntry::from_str("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
-        let (kernel_versions, git_versions) = generate_version_ranges(&entries, "affected");
+        let kernel_versions = generate_version_ranges(&entries, "affected");
+        let git_versions = generate_git_ranges(&entries);
 
         // Check git versions
         assert_eq!(git_versions.len(), 1);
@@ -2021,7 +2029,8 @@ mod tests {
             DyadEntry::from_str("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
-        let (kernel_versions, git_versions) = generate_version_ranges(&entries, "unaffected");
+        let kernel_versions = generate_version_ranges(&entries, "unaffected");
+        let git_versions = generate_git_ranges(&entries);
 
         // Check git versions (should have two entries)
         assert_eq!(git_versions.len(), 2);
