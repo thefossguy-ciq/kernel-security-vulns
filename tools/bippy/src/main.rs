@@ -217,24 +217,26 @@ fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
     let mut git_versions = Vec::new();
 
     for entry in entries {
+        // If the vulnerable version is 0, use the first Linux commit id as the "start of history"
+        let vulnerable_git = if entry.vulnerable.is_empty() {
+            // First Linux commit ID
+            "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string()
+        } else {
+            entry.vulnerable.git_id().to_string()
+        };
+
+        let mut ver_range = VersionRange {
+            version: vulnerable_git,
+            status: "affected".to_string(),
+            version_type: Some("git".to_string()),
+            ..Default::default()
+        };
+
         // Handle git version ranges
         if entry.fixed.git_id() != "0" {
-            // For git version ranges, determine the vulnerable git ID
-            // If vulnerable_version is 0, use the first Linux commit ID
-            let vulnerable_git = if entry.vulnerable.is_empty() {
-                "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string() // First Linux commit ID
-            } else {
-                entry.vulnerable.git_id().to_string()
-            };
+            // This entry is a fixed one, so set the place where it is resolved
+            ver_range.less_than = Some(entry.fixed.git_id().to_string());
 
-            // Create a version range for Git
-            let ver_range = VersionRange {
-                version: vulnerable_git,
-                less_than: Some(entry.fixed.git_id().to_string()),
-                less_than_or_equal: None,
-                status: "affected".to_string(),
-                version_type: Some("git".to_string()),
-            };
             git_versions.push(ver_range);
         }
     }
@@ -913,14 +915,24 @@ struct ProviderMetadata {
     org_id: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 struct VersionRange {
+    // Version string, in a specific type, see versionType below for the valid types
+    // 0 means "beginning of time"
     version: String,
+
     #[serde(rename = "lessThan", skip_serializing_if = "Option::is_none")]
     less_than: Option<String>,
+
     #[serde(rename = "lessThanOrEqual", skip_serializing_if = "Option::is_none")]
     less_than_or_equal: Option<String>,
+
+    // valid values are "affected", "unaffected", or "unknown"
     status: String,
+
+    // valid values are "custom", "git", "maven", "python", "rpm", or "semver"
+    // We will just stick with "git" or "semver" as that's the most sane for us, even though
+    // "semver" is NOT what Linux kernel release numbers represent at all.
     #[serde(rename = "versionType", skip_serializing_if = "Option::is_none")]
     version_type: Option<String>,
 }
