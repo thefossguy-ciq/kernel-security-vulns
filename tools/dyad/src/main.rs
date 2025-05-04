@@ -92,14 +92,12 @@ fn validate_env_vars(state: &mut DyadState) {
 fn found_in(state: &DyadState, git_sha: &String) -> Vec<Kernel> {
     let kernels = state.verhaal.found_in(git_sha, &state.fixed_set);
     match kernels {
-        Ok(k) => {
-            return k;
-        }
+        Ok(k) => k,
         Err(e) => {
             debug!("{:?}", e);
-            return vec![];
+            vec![]
         }
-    };
+    }
 }
 
 fn main() {
@@ -172,7 +170,7 @@ fn main() {
                 }
             }
         }
-        if found_valid_sha == false {
+        if !found_valid_sha {
             error!(
                 "Error: The provided git SHA1 '{}' could not be found in the repository",
                 git_sha
