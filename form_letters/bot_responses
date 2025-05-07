@@ -7,7 +7,7 @@ handle for the following reason(s):
 	- This alias, as per our documentation, is ONLY for assigning
 	  CVEs for potential issues in the Linux kernel, it is NOT for
 	  reporting potential bugs in the Linux kernel.  Please read the
-	  file Documentation/process/security_process.rst in the Linux
+	  file Documentation/process/security-bugs.rst in the Linux
 	  kernel source tree for who to contact about potential security
 	  bugs.
 
@@ -15,7 +15,7 @@ handle for the following reason(s):
 	  we have previously determined does not require such an
 	  assignment.  If you dispute this resolution, please see the
 	  documentation at:
-		  https://www.cve.org/Resources/General/Policies/CVE-Record-Dispute-Policy.pdf
+		https://www.cve.org/Resources/General/Policies/CVE-Record-Dispute-Policy.pdf
 	  for how to properly start this process.
 
 	- It seems that you are writing a message to dispute the
@@ -23,7 +23,7 @@ handle for the following reason(s):
 	  have assigned to the kernel, yet you failed to properly
 	  document your rationale for the dispute.  To correctly do
 	  this, please follow the documentation at:
-		  https://www.cve.org/Resources/General/Policies/CVE-Record-Dispute-Policy.pdf
+		https://www.cve.org/Resources/General/Policies/CVE-Record-Dispute-Policy.pdf
 	  and send us an email with the requested information to start
 	  the process.
 
