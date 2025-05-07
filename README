@@ -20,5 +20,5 @@ CVE-ToU license, as described at:
 	https://www.cve.org/Legal/TermsOfUse
 and copied in the LICENSES/cve-tou.txt file in this repository.
 
-The files in the scripts/ directory are licensed under the GPL-v2-only
-license, as documented in the files themselves.
+The files in the scripts/ and tools/ directories are licensed under the
+GPL-v2-only license, as documented in the files themselves.
