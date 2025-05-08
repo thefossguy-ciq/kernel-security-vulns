@@ -250,12 +250,12 @@ pub mod git_utils {
         Ok(obj.id().to_string())
     }
 
-    /// Gets the short SHA (7 characters) from an Object
+    /// Gets the short SHA (12 characters) from an Object
     ///
     /// Standardized implementation used by both dyad and bippy
     pub fn get_short_sha(_repo: &Repository, obj: &Object) -> Result<String> {
         let id = obj.id().to_string();
-        Ok(id[0..7].to_string())
+        Ok(id[0..12].to_string())
     }
 
     /// Resolves a reference (SHA, branch, etc.) to a git Object
