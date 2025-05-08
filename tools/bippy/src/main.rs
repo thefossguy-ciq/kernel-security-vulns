@@ -1476,36 +1476,13 @@ fn main() -> Result<()> {
         }
     }
 
-    // Debug trailing args in verbose mode
+    // We should not have ANY trailing arguments, so if we do, print them out and abort
     if !args.trailing_args.is_empty() {
-        debug!("Trailing arguments detected:");
+        error!("Trailing arguments detected:");
         for (i, arg) in args.trailing_args.iter().enumerate() {
-            debug!("  trailing_arg[{}]: '{}'", i, arg);
+            error!("  trailing_arg[{}]: '{}'", i, arg);
         }
-    }
-
-    // Check if one of the trailing args might be a reference file path
-    let reference_from_trailing = args
-        .trailing_args
-        .iter()
-        .find(|arg| arg.contains(".reference"))
-        .map(|s| s.to_string());
-
-    // Also look for reference file in any position in the command line
-    let reference_from_raw_args = find_reference_in_args();
-
-    if reference_from_trailing.is_some() {
-        debug!(
-            "Found potential reference file in trailing args: '{}'",
-            reference_from_trailing.as_ref().unwrap()
-        );
-    }
-
-    if reference_from_raw_args.is_some() {
-        debug!(
-            "Found potential reference file in raw args: '{}'",
-            reference_from_raw_args.as_ref().unwrap()
-        );
+        std::process::exit(1);
     }
 
     // Check for required arguments
@@ -1570,8 +1547,6 @@ fn main() -> Result<()> {
     debug!("MBOX_FILE={:?}", args.mbox);
     debug!("DIFF_FILE={:?}", args.diff);
     debug!("REFERENCE_FILE={:?}", args.reference);
-    debug!("REF_FROM_TRAILING={:?}", reference_from_trailing);
-    debug!("REF_FROM_RAW_ARGS={:?}", reference_from_raw_args);
     debug!("GIT_VULNERABLE={:?}", vulnerable_shas);
 
     // Get vulns directory using cve_utils
@@ -1692,23 +1667,8 @@ fn main() -> Result<()> {
         }
     }
 
-    // First check for the reference file explicitly specified with --reference
-    let mut reference_path: Option<PathBuf> = args.reference.clone();
-
-    // If not found, look in trailing arguments
-    if reference_path.is_none() && reference_from_trailing.is_some() {
-        // Extract just the path part from the argument
-        let arg = reference_from_trailing.unwrap();
-        let path = extract_path_from_arg(&arg);
-        debug!("Extracted path from trailing arg: '{}'", path);
-        reference_path = Some(PathBuf::from(path));
-    }
-
-    // If still not found, look in raw command line arguments
-    if reference_path.is_none() && reference_from_raw_args.is_some() {
-        reference_path = Some(PathBuf::from(reference_from_raw_args.unwrap()));
-    }
-
+    // Check for the reference file explicitly specified with --reference
+    let reference_path: Option<PathBuf> = args.reference.clone();
     let additional_references: Vec<String> = if let Some(ref_path) = reference_path {
         debug!("Attempting to read references from {:?}", ref_path);
 
@@ -2121,44 +2081,4 @@ mod tests {
             "Version should only contain digits and dots"
         );
     }
-}
-
-// Helper function to extract file path from an argument string
-fn extract_path_from_arg(arg: &str) -> String {
-    if arg.starts_with("--reference=") {
-        // Extract the part after --reference=
-        arg.trim_start_matches("--reference=").to_string()
-    } else if arg.contains('=') {
-        // Extract the part after the =
-        let parts: Vec<&str> = arg.split('=').collect();
-        if parts.len() >= 2 {
-            parts[1].to_string()
-        } else {
-            arg.to_string()
-        }
-    } else {
-        arg.to_string()
-    }
-}
-
-// Helper function to find a reference file path in command line arguments
-fn find_reference_in_args() -> Option<String> {
-    for arg in std::env::args() {
-        // Look for argument of the form '--reference=path/to/file.reference'
-        if arg.starts_with("--reference=") && arg.contains(".reference") {
-            return Some(extract_path_from_arg(&arg));
-        }
-        // Look for argument of the form 'something=path/to/file.reference'
-        else if arg.contains("=") && arg.contains(".reference") {
-            let parts: Vec<&str> = arg.split('=').collect();
-            if parts.len() == 2 && parts[1].contains(".reference") {
-                return Some(parts[1].to_string());
-            }
-        }
-        // Look for standalone '.reference' arguments
-        else if arg.contains(".reference") {
-            return Some(arg);
-        }
-    }
-    None
 }
