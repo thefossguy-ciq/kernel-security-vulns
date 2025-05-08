@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use cve_utils::git_config;
 use cve_utils::git_utils::{
-    get_affected_files, get_object_full_sha, get_short_sha, resolve_reference,
+    get_affected_files, get_object_full_sha, resolve_reference,
 };
 use cve_utils::version_utils::{compare_kernel_versions, version_is_mainline};
 use cve_utils::Kernel;
@@ -720,13 +720,7 @@ fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[String]) 
     for vuln_sha in vulnerable_shas {
         if !vuln_sha.trim().is_empty() {
             command.arg("-v").arg(vuln_sha);
-            if let Ok(repo) = Repository::open(&kernel_tree) {
-                if let Ok(obj) = resolve_reference(&repo, vuln_sha) {
-                    if let Ok(short_sha) = get_short_sha(&repo, &obj) {
-                        debug!("Using vulnerable SHA: {}", short_sha);
-                    }
-                }
-            }
+            debug!("Using vulnerable SHA: {}", vuln_sha);
         }
     }
 
@@ -1042,7 +1036,6 @@ struct CveRecord {
 fn generate_json_record(
     cve_number: &str,
     git_sha_full: &str,
-    _git_sha_short: &str,
     commit_subject: &str,
     _user_name: &str,
     user_email: &str,
@@ -1226,7 +1219,6 @@ fn generate_json_record(
 fn generate_mbox(
     cve_number: &str,
     git_sha_full: &str,
-    git_sha_short: &str,
     commit_subject: &str,
     user_name: &str,
     user_email: &str,
@@ -1318,7 +1310,7 @@ fn generate_mbox(
 
     // If no vulnerabilities were found, do NOT create a CVE at all!
     if vuln_array_mbox.is_empty() {
-        error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {}", git_sha_short);
+        error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {}", git_sha_full);
         std::process::exit(1);
     }
 
@@ -1595,8 +1587,6 @@ fn main() -> Result<()> {
     // Get SHA information for the main commit
     let git_sha_full =
         get_object_full_sha(&repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
-    let git_sha_short =
-        get_short_sha(&repo, main_git_ref).with_context(|| "Failed to get short SHA")?;
     let commit_subject =
         get_commit_subject(&repo, main_git_ref).with_context(|| "Failed to get commit subject")?;
 
@@ -1709,7 +1699,6 @@ fn main() -> Result<()> {
         match generate_json_record(
             cve_number,
             &git_sha_full,
-            &git_sha_short,
             &commit_subject,
             &user_name,
             &user_email,
@@ -1740,7 +1729,6 @@ fn main() -> Result<()> {
         let mbox_content = generate_mbox(
             cve_number,
             &git_sha_full,
-            &git_sha_short,
             &commit_subject,
             &user_name,
             &user_email,
