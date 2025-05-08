@@ -1316,12 +1316,10 @@ fn generate_mbox(
         }
     }
 
-    // If no vulnerabilities were found, add a default entry
+    // If no vulnerabilities were found, do NOT create a CVE at all!
     if vuln_array_mbox.is_empty() {
-        vuln_array_mbox.push(format!(
-            "Issue fixed in mainline with commit {}",
-            git_sha_short
-        ));
+        error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {}", git_sha_short);
+        std::process::exit(1);
     }
 
     // Get affected files from the commit
