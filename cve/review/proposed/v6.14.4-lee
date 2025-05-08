@@ -1,0 +1,50 @@
+27c7e63b3cb1 wifi: at76c50x: fix use after free access in at76_disconnect [auto: cve already created]
+a104042e2bf6 wifi: mac80211: Update skb's control block key in ieee80211_tx_dequeue() [auto: cve already created]
+378677eb8f44 wifi: mac80211: Purge vif txq in ieee80211_do_stop() [auto: cve already created]
+95f723cf141b ASoC: Intel: avs: Fix null-ptr-deref in avs_component_probe() [auto: cve already created]
+9a0e6f15029e RDMA/core: Silence oversized kvmalloc() warning
+324dddea3210 Bluetooth: btrtl: Prevent potential NULL dereference [auto: cve already created]
+b129005ddfc0 mlxbf-bootctl: use sysfs_emit_at() in secure_boot_fuse_state_show()
+8e404ad95d2c igc: fix PTM cycle trigger logic
+f3fdd4fba16c ethtool: cmis_cdb: use correct rpl size in ethtool_cmis_module_poll() [auto: cve already created]
+52024cd6ec71 net: mctp: Set SOCK_RCU_FREE [auto: cve already created]
+65d91192aa66 net: openvswitch: fix nested key length validation in the set() action [auto: cve already created]
+88fa80021b77 net: ngbe: fix memory leak in ngbe_probe() error path
+12f2d033fae9 eth: bnxt: fix missing ring index trim on error path
+00ffb3724ce7 cxgb4: fix memory leak in cxgb4_init_ethtool_filters() error path [auto: cve already created]
+b2727326d0a5 net: txgbe: fix memory leak in txgbe_probe() error path
+c84f6ce918a9 net: dsa: mv88e6xxx: avoid unregistering devlink regions which were never registered [auto: cve already created]
+ea08dfc35f83 net: dsa: mv88e6xxx: fix -ENOENT when deleting VLANs and MST is unsupported
+7afb5fb42d49 net: dsa: clean up FDB, MDB, VLAN entries on unbind
+8bf108d7161f net: dsa: free routing table on probe failure [auto: cve already created]
+7349c9e99793 net: ti: icss-iep: Fix possible NULL pointer dereference for perout request [auto: cve already created]
+0b4cce68efb9 riscv: module: Fix out-of-bounds relocation access
+5cb1b130e1cd drm/msm/dpu: Fix error pointers in dpu_plane_virtual_atomic_check [auto: cve already created]
+a1d14d931bf7 nfsd: decrease sc_count directly if fail to queue dl_recall
+bb5e07cb9277 hfs/hfsplus: fix slab-out-of-bounds in hfs_bnode_read_key [auto: cve already created]
+424eafe65647 i2c: cros-ec-tunnel: defer probe if parent EC is not present [auto: cve already created]
+0405d4b63d08 isofs: Prevent the use of too small fid [auto: cve already created]
+770c8d55c428 lib/iov_iter: fix to increase non slab folio refcount [auto: cve already created]
+eb3a04a8516e ovl: don't allow datadir only
+1e440d5b25b7 ksmbd: Fix dangling pointer in krb_authenticate [auto: cve already created]
+21a4e47578d4 ksmbd: fix use-after-free in __smb2_lease_break_noti() [auto: cve already created]
+18b4fac5ef17 ksmbd: fix use-after-free in smb_break_all_levII_oplock() [auto: cve already created]
+b37f2f332b40 ksmbd: fix the warning from __kernel_write_iter [auto: cve already created]
+d2f5819b6ed3 slab: ensure slab->obj_exts is clear in a newly allocated slab page [auto: cve already created]
+a94fd938df2b virtiofs: add filesystem context source name check [auto: cve already created]
+45f5dcdd0497 RDMA/cma: Fix workqueue crash in cma_netevent_work_handler [auto: cve already created]
+8058061ed9d6 drm/amd/display: prevent hang on link training fail
+7d641c2b8327 drm/amd/pm: Prevent division by zero [auto: cve already created]
+4b8c3c0d17c0 drm/amd/pm: Prevent division by zero
+7ba88b5cccc1 drm/amd/pm/smu11: Prevent division by zero [auto: cve already created]
+7c246a05df51 drm/amd/pm: Prevent division by zero
+f23e9116ebb7 drm/amd/pm: Prevent division by zero
+4e3d9508c056 drm/amd/pm: Prevent division by zero
+20659d3150f1 drm/xe: Use local fence in error path of xe_migrate_clear
+8ec0fbb28d04 drm/nouveau: prime: fix ttm_bo_delayed_delete oops [auto: cve already created]
+a5b230e7f3a5 drm/imagination: fix firmware memory leaks [auto: cve already created]
+4ba2abe154ef drm/imagination: take paired job reference [auto: cve already created]
+395cc80051f8 drm/virtio: Fix missed dmabuf unpinning in error path of prepare_fb() [auto: cve already created]
+7bcfeddb36b7 drm/xe: Fix an out-of-bounds shift when invalidating TLB [auto: cve already created]
+2577b202458c drm/xe/userptr: fix notifier vs folio deadlock
+41e6ddcaa0f1 mm/vma: add give_up_on_oom option on modify/merge, use in uffd release [auto: cve already created]
