@@ -86,6 +86,11 @@ impl DyadEntry {
         })
     }
 
+    /// Check if this vulnerability is found/fixed in the same kernel version
+    fn is_same_version(&self) -> bool {
+        self.vulnerable.version() == self.fixed.version()
+    }
+
     /// Check if this vulnerability has been fixed
     #[cfg(test)]
     fn is_fixed(&self) -> bool {
@@ -187,7 +192,7 @@ fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
         // Skip entries where the vulnerability is in the same version it was fixed
         // These versions are not actually affected in any released version so CVE.org
         // doesn't like to see them.
-        if entry.vulnerable.version() == entry.fixed.version() {
+        if entry.is_same_version() {
             continue;
         }
 
@@ -271,7 +276,7 @@ fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> Vec<V
     for entry in entries {
         // Skip entries where the vulnerability is in the same version it was fixed
         // These versions are not actually affected in any released version
-        if entry.vulnerable.version() == entry.fixed.version() {
+        if entry.is_same_version() {
             debug!(
                 "Skipping version {} as it was fixed in the same version",
                 entry.vulnerable.version()
