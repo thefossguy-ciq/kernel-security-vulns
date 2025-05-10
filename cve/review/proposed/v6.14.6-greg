@@ -1,0 +1,39 @@
+38a05c0b8783 irqchip/qcom-mpm: Prevent crash when trying to handle non-wake GPIOs
+fee4d171451c arm64: errata: Add missing sentinels to Spectre-BHB MIDR arrays
+a1f46c99d9ea ksmbd: fix use-after-free in ksmbd_session_rpc_open
+e86e9134e1d1 ksmbd: fix use-after-free in kerberos authentication
+2fc9feff45d9 ksmbd: fix use-after-free in session logoff
+dfd76010f8e8 pds_core: remove write-after-free of client_id
+be593d9d91c5 drm/amd/display: Fix slab-use-after-free in hdcp
+0a8f11f8569e tracing: Do not take trace_event_sem in print_event_fields()
+f5178c41bb43 tracing: Fix oob write in trace_seq_to_buffer()
+0fb15ae3b0a9 wifi: plfxlc: Remove erroneous assert in plfxlc_mac_release
+48c1d1bb525b btrfs: fix the inode leak in btrfs_iget()
+a3d8f0a7f5e8 dm-bufio: don't schedule in atomic context
+9cf7e13fecba book3s64/radix : Align section vmemmap start address to PAGE_SIZE
+8e4d3d8a5e51 spi: spi-mem: Add fix to avoid divide error
+f1aff4bc199c dm: fix copying after src array boundaries
+0317b033abcd Bluetooth: btusb: avoid NULL pointer dereference in skb_dequeue()
+6fe086601448 net: ethernet: mtk-star-emac: fix spinlock recursion issues on rx/tx poll
+6b87bd94f343 bnxt_en: Fix out-of-bound memcpy() during ethtool -w
+be8250786ca9 mm, slab: clean up slab->obj_exts always
+9ca67840c0dd firmware: arm_scmi: Balance device refcount when destroying devices
+f99a3fbf023e net_sched: drr: Fix double list add in class with netem as child qdisc
+141d34391abb net_sched: hfsc: Fix a UAF vulnerability in class with netem as child qdisc
+1a6d0c00fa07 net_sched: ets: Fix double list add in class with netem as child qdisc
+f139f37dcdf3 net_sched: qfq: Fix double list add in class with netem as child qdisc
+425c5f266b2e ice: Check VF VSI Pointer Value in ice_vc_add_fdir_fltr()
+30a3f2f3e4bd iommu: Fix two issues in iommu_copy_struct_from_user()
+e98386d79a23 ptp: ocp: Fix NULL dereference in Adva board SMA sysfs operations
+6d9b64156d84 ASoC: amd: acp: Fix NULL pointer deref in acp_i2s_set_tdm_slot
+ab680dc6c78a accel/ivpu: Fix locking order in ivpu_job_submit
+f40139fde527 ublk: fix race between io_uring_cmd_complete_in_task and ublk_cancel_cmd
+e08e49d986f8 btrfs: adjust subpage bit start based on sectorsize
+bbe5679f30d7 drm/nouveau: Fix WARN_ON in nouveau_fence_context_kill()
+8dee308e4c01 iommu/amd: Fix potential buffer overflow in parse_ivrs_acpihid
+9ab7a709c926 bnxt_en: Fix error handling path in bnxt_init_chip()
+534f5a8ba278 powerpc64/ftrace: fix module loading without patchable function entries
+087a9eb9e597 vxlan: vnifilter: Fix unlocked deletion of default FDB entry
+a1356ac7749c xsk: Fix race condition in AF_XDP generic RX path
+f920436a4429 net: use sock_gen_put() when sk_state is TCP_TIME_WAIT
+2d52e2e38b85 net: lan743x: Fix memleak issue when GSO enabled
