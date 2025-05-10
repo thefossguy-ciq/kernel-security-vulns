@@ -1699,6 +1699,35 @@ fn main() -> Result<()> {
         Vec::new()
     };
 
+    // Generate mbox file if requested
+    // This has to be done BEFORE the json file creation because sometimes we do not have a set of
+    // valid vulnerable:fixed pairs that are not in a single release which means we should not be
+    // creating anything at all.  The mbox generation catches this type of issue and will abort
+    // everything if it happens.
+    if let Some(mbox_path) = args.mbox.as_ref() {
+        let mbox_content = generate_mbox(
+            cve_number,
+            &git_sha_full,
+            &commit_subject,
+            &user_name,
+            &user_email,
+            &dyad_entries,
+            &script_name,
+            &script_version,
+            &additional_references,
+            &commit_text,
+        );
+
+        if let Err(err) = std::fs::write(mbox_path, mbox_content) {
+            error!(
+                "Warning: Failed to write mbox file to {:?}: {}",
+                mbox_path, err
+            );
+        } else {
+            debug!("Wrote mbox file to {}", mbox_path.display());
+        }
+    }
+
     // Generate JSON file if requested
     if let Some(json_path) = args.json.as_ref() {
         match generate_json_record(
@@ -1726,31 +1755,6 @@ fn main() -> Result<()> {
             Err(err) => {
                 error!("Error: Failed to generate JSON record: {}", err);
             }
-        }
-    }
-
-    // Generate mbox file if requested
-    if let Some(mbox_path) = args.mbox.as_ref() {
-        let mbox_content = generate_mbox(
-            cve_number,
-            &git_sha_full,
-            &commit_subject,
-            &user_name,
-            &user_email,
-            &dyad_entries,
-            &script_name,
-            &script_version,
-            &additional_references,
-            &commit_text,
-        );
-
-        if let Err(err) = std::fs::write(mbox_path, mbox_content) {
-            error!(
-                "Warning: Failed to write mbox file to {:?}: {}",
-                mbox_path, err
-            );
-        } else {
-            debug!("Wrote mbox file to {}", mbox_path.display());
         }
     }
 
