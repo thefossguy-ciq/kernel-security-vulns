@@ -1,5 +1,4 @@
 18daa52418e7 ("driver core: fix potential NULL pointer dereference in dev_uevent()")
-dc1771f71854 ("Revert "drivers: core: synchronize really_probe() and dev_uevent()"")
 7e26cb69c5e6 ("ublk: rely on ->canceling for dealing with ublk_nosrv_dev_should_queue_io")
 b7c178d9e57c ("md/raid1: Add check for missing source disk in process_checks()")
 021ba7f1babd ("udmabuf: fix a buf size overflow issue during udmabuf creation")
