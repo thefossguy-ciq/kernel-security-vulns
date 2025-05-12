@@ -48,7 +48,7 @@ struct Args {
 /// Finds the root directory of the vulns repository
 ///
 /// This function attempts to locate the vulns repository by:
-/// 1. Using the standard cve_utils implementation
+/// 1. Using the standard `cve_utils` implementation
 /// 2. If that fails, checking some common absolute paths
 fn find_vulns_dir() -> Result<PathBuf> {
     // First attempt to use the standard implementation from cve_utils
@@ -86,7 +86,7 @@ fn find_vulns_dir() -> Result<PathBuf> {
 
     for path in &common_paths {
         if path.exists() && path.is_dir() && path.file_name().is_some_and(|name| name == "vulns") {
-            return Ok(path.to_path_buf());
+            return Ok(path.clone());
         }
     }
 
@@ -133,7 +133,7 @@ impl VotingResults {
             println!("{}", format!("Fetching from {}", *STABLE_REMOTE).blue());
             if let Err(e) = repo.find_remote(&STABLE_REMOTE)
                 .and_then(|mut remote| remote.fetch(&[] as &[&str], None, None)) {
-                eprintln!("Warning: Failed to fetch from stable remote: {}", e);
+                eprintln!("Warning: Failed to fetch from stable remote: {e}");
             }
         }
 
@@ -178,10 +178,10 @@ impl VotingResults {
         println!("{}", format!("Primary reviewers: {}", PRIMARY_REVIEWERS.join(" ")).blue());
         println!("{}", format!("All reviewers found: {}", self.reviewers.join(" ")).blue());
 
-        if !self.guest_reviewers.is_empty() {
-            println!("{}", format!("Guest reviewers: {}", self.guest_reviewers.join(" ")).blue());
-        } else {
+        if self.guest_reviewers.is_empty() {
             println!("{}", "No guest reviewers found".blue());
+        } else {
+            println!("{}", format!("Guest reviewers: {}", self.guest_reviewers.join(" ")).blue());
         }
     }
 
@@ -264,7 +264,7 @@ impl VotingResults {
         // Two-reviewer combinations for primary reviewers
         for (i, r1) in PRIMARY_REVIEWERS.iter().enumerate() {
             for r2 in PRIMARY_REVIEWERS.iter().skip(i + 1) {
-                let pattern = format!("{},{}", r1, r2);
+                let pattern = format!("{r1},{r2}");
                 self.commits_by_pattern.insert(pattern, Vec::new());
             }
         }
@@ -272,7 +272,7 @@ impl VotingResults {
         // Combinations with guest reviewers
         for primary in PRIMARY_REVIEWERS.iter() {
             for guest in &self.guest_reviewers {
-                let pattern = format!("{},{}", primary, guest);
+                let pattern = format!("{primary},{guest}");
                 self.commits_by_pattern.insert(pattern, Vec::new());
             }
         }
@@ -302,7 +302,7 @@ impl VotingResults {
 
         // Display all commit outputs
         for output in all_commit_outputs {
-            print!("{}", output);
+            print!("{output}");
         }
 
         Ok(())
@@ -316,13 +316,13 @@ impl VotingResults {
         let short_stable_sha = format!("{}", stable_commit.id())[0..12].to_string();
 
         // Extract the upstream SHA
-        let mainline_long_sha = self.get_upstream_sha(&short_stable_sha, &stable_sha)?;
+        let mainline_long_sha = self.get_upstream_sha(&short_stable_sha, &stable_sha);
 
         // Get the short SHA and subject
         let (mainline_sha, subject, oneline) = self.get_commit_details(&mainline_long_sha)?;
 
         // Count votes from each reviewer
-        let reviewer_votes = self.tally_votes(&subject)?;
+        let reviewer_votes = self.tally_votes(&subject);
 
         // Count total votes
         let total_votes = reviewer_votes.values().filter(|&&v| v).count();
@@ -338,7 +338,7 @@ impl VotingResults {
         });
 
         // Check for CVE
-        let has_cve = self.check_for_cve(&mainline_sha)?;
+        let has_cve = self.check_for_cve(&mainline_sha);
 
         // Create output string
         let output = self.format_commit_output(&oneline, has_cve, &reviewer_votes);
@@ -348,29 +348,28 @@ impl VotingResults {
             Ok(Some((output, (oneline, has_cve, reviewer_votes))))
         } else {
             // Still return commit data for categorization
-            Ok(Some(("".to_string(), (oneline, has_cve, reviewer_votes))))
+            Ok(Some((String::new(), (oneline, has_cve, reviewer_votes))))
         }
     }
 
-    fn get_upstream_sha(&self, short_stable_sha: &str, stable_sha: &str) -> Result<String> {
+    fn get_upstream_sha(&self, short_stable_sha: &str, stable_sha: &str) -> String {
         // Try to find the commit using full SHA first
-        let commit = match git2::Oid::from_str(stable_sha) {
-            Ok(oid) => self.repo.find_commit(oid),
-            Err(_) => {
-                // If that fails, try to resolve the short SHA using git_utils
-                // First, we'll need to find the working directory to pass to get_full_sha
-                let repo_path = self.repo.path().parent().unwrap_or(self.repo.path());
-                match cve_utils::git_utils::get_full_sha(repo_path, short_stable_sha) {
-                    Ok(full_sha) => {
-                        match git2::Oid::from_str(&full_sha) {
-                            Ok(oid) => self.repo.find_commit(oid),
-                            Err(_) => return Ok(stable_sha.to_string())
-                        }
-                    },
-                    Err(_) => {
-                        // If git_utils fails, just return the original SHA
-                        return Ok(stable_sha.to_string());
+        let commit = if let Ok(oid) = git2::Oid::from_str(stable_sha) {
+            self.repo.find_commit(oid)
+        } else {
+            // If that fails, try to resolve the short SHA using git_utils
+            // First, we'll need to find the working directory to pass to get_full_sha
+            let repo_path = self.repo.path().parent().unwrap_or(self.repo.path());
+            match cve_utils::git_utils::get_full_sha(repo_path, short_stable_sha) {
+                Ok(full_sha) => {
+                    match git2::Oid::from_str(&full_sha) {
+                        Ok(oid) => self.repo.find_commit(oid),
+                        Err(_) => return stable_sha.to_string()
                     }
+                },
+                Err(_) => {
+                    // If git_utils fails, just return the original SHA
+                    return stable_sha.to_string();
                 }
             }
         };
@@ -383,13 +382,13 @@ impl VotingResults {
             // Use the existing UPSTREAM_REGEX to extract the SHA
             if let Some(captures) = UPSTREAM_REGEX.captures(message) {
                 if let Some(sha_match) = captures.get(0) {
-                    return Ok(sha_match.as_str().to_string());
+                    return sha_match.as_str().to_string();
                 }
             }
         }
 
         // If all else fails, return original SHA
-        Ok(stable_sha.to_string())
+        stable_sha.to_string()
     }
 
     fn get_commit_details(&self, sha: &str) -> Result<(String, String, String)> {
@@ -406,12 +405,12 @@ impl VotingResults {
         let summary = commit.summary().unwrap_or("").to_string();
 
         // Combine to match the format from the git command
-        let oneline = format!("{} {}", short_sha, summary);
+        let oneline = format!("{short_sha} {summary}");
 
         Ok((short_sha, summary, oneline))
     }
 
-    fn tally_votes(&self, subject: &str) -> Result<HashMap<String, bool>> {
+    fn tally_votes(&self, subject: &str) -> HashMap<String, bool> {
         let mut reviewer_votes = HashMap::new();
 
         // Initialize all reviewers to false (no vote)
@@ -431,9 +430,9 @@ impl VotingResults {
                         // 2. Subject in parentheses
                         // 3. Subject in quotes or other common delimiters
                         if line.contains(subject) ||
-                           line.contains(&format!("(\"{}\")", subject)) ||
-                           line.contains(&format!("({})", subject)) ||
-                           line.contains(&format!("\"{}\"", subject)) {
+                           line.contains(&format!("(\"{subject}\")")) ||
+                           line.contains(&format!("({subject})")) ||
+                           line.contains(&format!("\"{subject}\"")) {
                             reviewer_votes.insert(reviewer.to_string(), true);
                             break;
                         }
@@ -442,7 +441,7 @@ impl VotingResults {
             }
         }
 
-        Ok(reviewer_votes)
+        reviewer_votes
     }
 
     fn format_commit_output(&self, oneline: &str, has_cve: bool, reviewer_votes: &HashMap<String, bool>) -> String {
@@ -510,8 +509,8 @@ impl VotingResults {
                 for (i, r1) in reviewers_who_voted.iter().enumerate() {
                     for r2 in reviewers_who_voted.iter().skip(i + 1) {
                         // Try both pattern orders
-                        let pattern1 = format!("{},{}", r1, r2);
-                        let pattern2 = format!("{},{}", r2, r1);
+                        let pattern1 = format!("{r1},{r2}");
+                        let pattern2 = format!("{r2},{r1}");
 
                         if let Some(vec) = self.commits_by_pattern.get_mut(&pattern1) {
                             vec.push(oneline.clone());
@@ -524,7 +523,7 @@ impl VotingResults {
         }
     }
 
-    fn check_for_cve(&self, commit_sha: &str) -> Result<bool> {
+    fn check_for_cve(&self, commit_sha: &str) -> bool {
         // Get the path to the cve_search script
         let cve_search = self.script_dir.join("cve_search");
 
@@ -535,15 +534,15 @@ impl VotingResults {
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .status() {
-                Ok(status) => Ok(status.success()),
-                Err(_) => Ok(false) // Default to false if script execution fails
+                Ok(status) => status.success(),
+                Err(_) => false // Default to false if script execution fails
         }
     }
 
-    fn print_annotations(&self, oneline: &str) -> Result<()> {
+    fn print_annotations(&self, oneline: &str) {
         // Extract the commit SHA from the oneline format
         let Some(short_sha) = oneline.split_whitespace().next() else {
-            return Ok(());
+            return;
         };
 
         // Check each annotation file for this commit
@@ -558,7 +557,7 @@ impl VotingResults {
                         // If found, read and print the next line (annotation)
                         if let Some(Ok(annotation)) = lines.next() {
                             if !annotation.is_empty() {
-                                println!("  {}", annotation);
+                                println!("  {annotation}");
                             }
                         }
                         break;
@@ -566,11 +565,9 @@ impl VotingResults {
                 }
             }
         }
-
-        Ok(())
     }
 
-    fn display_results(&self) -> Result<()> {
+    fn display_results(&self) {
         // Helper function to capitalize first letter
         let capitalize = |s: &str| -> String {
             let mut chars = s.chars();
@@ -590,20 +587,20 @@ impl VotingResults {
         }
 
         // Print CVE results
-        self.display_commit_section("Already assigned a CVE", &self.commits_by_pattern.get("cve"))?;
+        self.display_commit_section("Already assigned a CVE", self.commits_by_pattern.get("cve"));
 
         // Print results where everyone agrees
-        self.display_commit_section("Everyone agrees", &self.commits_by_pattern.get("all"))?;
+        self.display_commit_section("Everyone agrees", self.commits_by_pattern.get("all"));
 
         // Print primary reviewer combinations
         for (i, r1) in PRIMARY_REVIEWERS.iter().enumerate() {
             for r2 in PRIMARY_REVIEWERS.iter().skip(i + 1) {
-                let pattern = format!("{},{}", r1, r2);
+                let pattern = format!("{r1},{r2}");
                 self.display_filtered_section(
                     &format!("{} and {} agree", capitalize(r1), capitalize(r2)),
-                    &self.commits_by_pattern.get(&pattern),
+                    self.commits_by_pattern.get(&pattern),
                     &excluded_commits
-                )?;
+                );
             }
         }
 
@@ -611,9 +608,9 @@ impl VotingResults {
         for reviewer in PRIMARY_REVIEWERS.iter() {
             self.display_filtered_section(
                 &format!("{} only", capitalize(reviewer)),
-                &self.commits_by_pattern.get(reviewer),
+                self.commits_by_pattern.get(reviewer),
                 &excluded_commits
-            )?;
+            );
         }
 
         // Print guest reviewer results
@@ -622,12 +619,12 @@ impl VotingResults {
         // Print combinations with guest reviewers
         for primary in PRIMARY_REVIEWERS.iter() {
             for guest in &self.guest_reviewers {
-                let pattern = format!("{},{}", primary, guest);
+                let pattern = format!("{primary},{guest}");
                 self.display_filtered_section(
                     &format!("{} and guest ({}) agree", capitalize(primary), capitalize(guest)),
-                    &self.commits_by_pattern.get(&pattern),
+                    self.commits_by_pattern.get(&pattern),
                     &excluded_commits
-                )?;
+                );
             }
         }
 
@@ -638,28 +635,25 @@ impl VotingResults {
 
             self.display_filtered_section_indented(
                 "",
-                &self.commits_by_pattern.get(guest),
+                self.commits_by_pattern.get(guest),
                 &excluded_commits
-            )?;
+            );
         }
-
-        Ok(())
     }
 
-    fn display_commit_section(&self, title: &str, commits: &Option<&Vec<String>>) -> Result<()> {
+    fn display_commit_section(&self, title: &str, commits: Option<&Vec<String>>) {
         println!("\n{}", title.blue());
         if let Some(commits_vec) = commits {
-            for commit in commits_vec.iter() {
+            for commit in commits_vec {
                 if !commit.is_empty() {
-                    println!("  {}", commit);
-                    self.print_annotations(commit)?;
+                    println!("  {commit}");
+                    self.print_annotations(commit);
                 }
             }
         }
-        Ok(())
     }
 
-    fn display_filtered_section(&self, title: &str, commits: &Option<&Vec<String>>, excluded: &HashSet<String>) -> Result<()> {
+    fn display_filtered_section(&self, title: &str, commits: Option<&Vec<String>>, excluded: &HashSet<String>) {
         if let Some(commits) = commits {
             let filtered_commits: Vec<&String> = commits.iter()
                 .filter(|commit| !excluded.contains(*commit))
@@ -668,14 +662,13 @@ impl VotingResults {
             println!("\n{}", title.blue());
 
             for commit in filtered_commits {
-                println!("  {}", commit);
-                self.print_annotations(commit)?;
+                println!("  {commit}");
+                self.print_annotations(commit);
             }
         }
-        Ok(())
     }
 
-    fn display_filtered_section_indented(&self, title: &str, commits: &Option<&Vec<String>>, excluded: &HashSet<String>) -> Result<()> {
+    fn display_filtered_section_indented(&self, title: &str, commits: Option<&Vec<String>>, excluded: &HashSet<String>) {
         if let Some(commits) = commits {
             let filtered_commits: Vec<&String> = commits.iter()
                 .filter(|commit| !excluded.contains(*commit))
@@ -687,17 +680,16 @@ impl VotingResults {
                 }
 
                 for commit in filtered_commits {
-                    println!("    {}", commit);
-                    self.print_annotations(commit)?;
+                    println!("    {commit}");
+                    self.print_annotations(commit);
                 }
             }
         }
-        Ok(())
     }
 
     fn run(&mut self) -> Result<()> {
         self.process_commits()?;
-        self.display_results()?;
+        self.display_results();
         Ok(())
     }
 }
@@ -866,8 +858,7 @@ mod tests {
         voting_results.annotated_files = vec![annotated_file_path];
 
         // Test that annotations are found correctly
-        let result = voting_results.print_annotations("abcdef1 Test commit");
-        assert!(result.is_ok(), "print_annotations should succeed");
+        voting_results.print_annotations("abcdef1 Test commit");
     }
 
     // Test reviewer setup
