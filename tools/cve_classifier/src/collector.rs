@@ -45,7 +45,7 @@ impl CVEDataCollector {
 
         let mut collector = CVEDataCollector {
             kernel_repo_path: kernel_repo_path.to_path_buf(),
-            cve_commits_path: cve_commits_path.map(|p| p.to_path_buf()),
+            cve_commits_path: cve_commits_path.map(Path::to_path_buf),
             seen_commit_messages: HashSet::new(),
             seen_subject_lines: HashSet::new(),
             cve_commits: HashSet::new(),
@@ -70,7 +70,7 @@ impl CVEDataCollector {
             for entry in WalkDir::new(cve_dir)
                 .follow_links(true)
                 .into_iter()
-                .filter_map(|e| e.ok())
+                .filter_map(Result::ok)
             {
                 let path = entry.path();
 
@@ -110,7 +110,7 @@ impl CVEDataCollector {
 
         if is_backport {
             // This might be a backport of a CVE fix
-            if let Some(upstream_sha) = self.extract_upstream_commit(&features.message) {
+            if let Some(upstream_sha) = Self::extract_upstream_commit(&features.message) {
                 if self.cve_commits.contains(&upstream_sha) {
                     // This is a backport of a CVE fix
                     features.upstream_sha = Some(upstream_sha);
@@ -128,7 +128,7 @@ impl CVEDataCollector {
         let mut features = self.get_commit_features(commit_sha)?;
 
         // Double-check if this might be a backported CVE commit that was missed
-        if let Some(upstream_sha) = self.extract_upstream_commit(&features.message) {
+        if let Some(upstream_sha) = Self::extract_upstream_commit(&features.message) {
             if self.cve_commits.contains(&upstream_sha) {
                 // This is actually a backported CVE commit
                 features.was_selected = Some(true);
@@ -145,7 +145,7 @@ impl CVEDataCollector {
         Some(features)
     }
 
-    pub fn extract_upstream_commit(&self, commit_message: &str) -> Option<String> {
+    pub fn extract_upstream_commit(commit_message: &str) -> Option<String> {
         // Common patterns for upstream commit references
         let patterns = [
             r"(?:commit|upstream commit|upstream|upstream:)\s+([a-f0-9]{40})",
@@ -174,12 +174,9 @@ impl CVEDataCollector {
         }
 
         // Try to get the commit message
-        let message = match self.safe_git_command(&["log", "-1", "--pretty=format:%B", commit_sha]) {
-            Some(msg) => msg,
-            None => {
-                warn!("Failed to retrieve commit message for SHA: {commit_sha}");
-                return None;
-            }
+        let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", commit_sha]) else {
+            warn!("Failed to retrieve commit message for SHA: {commit_sha}");
+            return None;
         };
 
         let author_name = match self.safe_git_command(&["log", "-1", "--pretty=format:%an", commit_sha]) {
@@ -187,12 +184,9 @@ impl CVEDataCollector {
             None => "Unknown".to_string(),
         };
 
-        let date_str = match self.safe_git_command(&["log", "-1", "--pretty=format:%aI", commit_sha]) {
-            Some(date) => date,
-            None => {
-                warn!("Failed to retrieve commit date for SHA: {commit_sha}");
-                return None;
-            }
+        let Some(date_str) = self.safe_git_command(&["log", "-1", "--pretty=format:%aI", commit_sha]) else {
+            warn!("Failed to retrieve commit date for SHA: {commit_sha}");
+            return None;
         };
 
         let datetime = match DateTime::parse_from_rfc3339(&date_str) {
@@ -211,7 +205,7 @@ impl CVEDataCollector {
         let files_changed: Vec<String> = files_output
             .lines()
             .filter(|line| !line.is_empty())
-            .map(|line| line.to_string())
+            .map(ToString::to_string)
             .collect();
 
         Some(CommitFeatures {
@@ -261,23 +255,19 @@ impl CVEDataCollector {
 
         // Get the branch tip
         let branch_tip_cmd = vec!["rev-parse", branch];
-        let branch_tip = match self.safe_git_command(&branch_tip_cmd) {
-            Some(output) => output.trim().to_string(),
-            None => {
-                warn!("Failed to get tip for branch {branch}");
-                return Vec::new();
-            }
+        let Some(output) = self.safe_git_command(&branch_tip_cmd) else {
+            warn!("Failed to get tip for branch {branch}");
+            return Vec::new();
         };
+        let branch_tip = output.trim().to_string();
 
         // Get merge-base with origin/master
         let merge_base_cmd = vec!["merge-base", "origin/master", branch];
-        let merge_base = match self.safe_git_command(&merge_base_cmd) {
-            Some(output) => output.trim().to_string(),
-            None => {
-                warn!("Failed to find merge-base for branch {branch}");
-                return Vec::new();
-            }
+        let Some(output) = self.safe_git_command(&merge_base_cmd) else {
+            warn!("Failed to find merge-base for branch {branch}");
+            return Vec::new();
         };
+        let merge_base = output.trim().to_string();
 
         debug!("Branch tip for {branch}: {branch_tip} (merge-base: {merge_base})");
 
@@ -290,19 +280,14 @@ impl CVEDataCollector {
             &range
         ];
 
-        match self.safe_git_command(&cmd) {
-            Some(output) => {
-                let branch_shas: Vec<String> = output.lines()
-                    .filter(|line| !line.is_empty())
-                    .map(|line| line.to_string())
-                    .collect();
-
-                branch_shas
-            },
-            None => {
-                warn!("Failed to get commits for branch {branch}");
-                Vec::new()
-            }
+        if let Some(output) = self.safe_git_command(&cmd) {
+            output.lines()
+                .filter(|line| !line.is_empty())
+                .map(ToString::to_string)
+                .collect()
+        } else {
+            warn!("Failed to get commits for branch {branch}");
+            Vec::new()
         }
     }
 
@@ -325,6 +310,7 @@ impl CVEDataCollector {
     }
 
 
+    #[allow(clippy::too_many_lines)]
     pub fn build_dataset(&mut self, max_workers: usize,
                max_cve: Option<usize>, max_non_cve: Option<usize>) -> Vec<CommitFeatures> {
         // Configure the thread pool with the specified number of workers
@@ -369,7 +355,7 @@ impl CVEDataCollector {
             .map(|sha| {
                 // Try to get the commit message to check if this is a backport
                 if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha]) {
-                    if let Some(upstream_sha) = self.extract_upstream_commit(&message) {
+                    if let Some(upstream_sha) = Self::extract_upstream_commit(&message) {
                         // This is a backport, return the SHA and upstream SHA
                         return (sha.clone(), Some(upstream_sha));
                     }
@@ -516,7 +502,7 @@ impl CVEDataCollector {
 
                 // Fetch commit message to check for upstream reference
                 if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha]) {
-                    if let Some(extracted_sha) = self.extract_upstream_commit(&message) {
+                    if let Some(extracted_sha) = Self::extract_upstream_commit(&message) {
                         // Check if this is a backport of a CVE commit
                         if self.cve_commits.contains(&extracted_sha) {
                             is_backport = true;

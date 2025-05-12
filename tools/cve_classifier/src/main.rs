@@ -19,6 +19,7 @@ use collector::CVEDataCollector;
 use classifier::CVEClassifier;
 use utils::{setup_logging, get_cve_root};
 
+#[allow(clippy::too_many_lines)]
 fn main() {
     let matches = Command::new("Linux Kernel CVE Classifier")
         .version("0.1.0")
@@ -109,9 +110,9 @@ fn main() {
     let model_dir = matches.get_one::<String>("model-dir").unwrap();
     let test_mode = matches.get_flag("test");
     let verbose = matches.get_flag("verbose");
-    let explanation_dir = matches.get_one::<String>("batch").map(|s| s.as_str());
-    let prompt_dir = matches.get_one::<String>("make-prompt").map(|s| s.as_str());
-    let prompt_file = matches.get_one::<String>("send-prompt").map(|s| s.as_str());
+    let explanation_dir = matches.get_one::<String>("batch").map(String::as_str);
+    let prompt_dir = matches.get_one::<String>("make-prompt").map(String::as_str);
+    let prompt_file = matches.get_one::<String>("send-prompt").map(String::as_str);
 
     let model_dir_path = Path::new(model_dir);
     if !model_dir_path.exists() {
@@ -151,7 +152,7 @@ fn main() {
         info!("Starting training process...");
 
         // Use the provided path or fall back to the default published directory
-        let cve_path = match matches.get_one::<String>("cve-commits").map(|s| s.as_str()) {
+        let cve_path = match matches.get_one::<String>("cve-commits").map(String::as_str) {
             Some(path) => PathBuf::from(path),
             None => {
                 match get_cve_root() {
@@ -244,7 +245,7 @@ fn main() {
         classifier.repo_path = Some(kernel_repo_path.to_path_buf());
 
         if matches.contains_id("models") {
-            classifier.llm_providers = llm_providers.clone();
+            classifier.llm_providers.clone_from(&llm_providers);
             classifier.llms = None;
 
             // Set debug logging for verbose mode
@@ -263,12 +264,12 @@ fn main() {
                 if let Some(config) = classifier.llm_configs.get_mut("ollama") {
                     if let Some(obj) = config.as_object_mut() {
                         // Set Ollama server URL if provided
-                        if let Some(ollama_server) = matches.get_one::<String>("ollama-server").map(|s| s.as_str()) {
+                        if let Some(ollama_server) = matches.get_one::<String>("ollama-server").map(String::as_str) {
                             obj.insert("api_host".to_string(), serde_json::json!(ollama_server));
                         }
 
                         // Set Ollama model if provided
-                        if let Some(ollama_model) = matches.get_one::<String>("ollama-model").map(|s| s.as_str()) {
+                        if let Some(ollama_model) = matches.get_one::<String>("ollama-model").map(String::as_str) {
                             // Check if it's a built-in model or custom
                             let is_builtin = ["llama3", "mistral", "gemma"].contains(&ollama_model);
 
@@ -285,7 +286,7 @@ fn main() {
 
             // Configure Exec parameters if provided
             if classifier.llm_providers.contains(&"exec".to_string()) {
-                if let Some(exec_path) = matches.get_one::<String>("exec").map(|s| s.as_str()) {
+                if let Some(exec_path) = matches.get_one::<String>("exec").map(String::as_str) {
                     // Create or get existing config for exec
                     let exec_config = classifier.llm_configs.entry("exec".to_string())
                         .or_insert_with(|| serde_json::json!({}));
@@ -298,7 +299,7 @@ fn main() {
                         obj.insert("debug_logging".to_string(), serde_json::json!(verbose));
 
                         // Parse and set exec parameters if provided
-                        if let Some(exec_params) = matches.get_one::<String>("exec-params").map(|s| s.as_str()) {
+                        if let Some(exec_params) = matches.get_one::<String>("exec-params").map(String::as_str) {
                             let params: Vec<String> = exec_params.split(',')
                                 .map(|s| s.trim().to_string())
                                 .collect();
@@ -317,15 +318,15 @@ fn main() {
         }
 
         let mut commits_to_analyze = Vec::new();
-        if let Some(commit) = matches.get_one::<String>("commit").map(|s| s.as_str()) {
+        if let Some(commit) = matches.get_one::<String>("commit").map(String::as_str) {
             commits_to_analyze.push(commit.to_string());
         }
         if let Some(commits) = matches.get_many::<String>("commits") {
-            commits_to_analyze.extend(commits.map(|s| s.to_string()));
+            commits_to_analyze.extend(commits.map(ToString::to_string));
         }
 
         // Use the provided path or fall back to the default published directory
-        let cve_path = match matches.get_one::<String>("cve-commits").map(|s| s.as_str()) {
+        let cve_path = match matches.get_one::<String>("cve-commits").map(String::as_str) {
             Some(path) => PathBuf::from(path),
             None => {
                 match get_cve_root() {
@@ -376,11 +377,11 @@ fn main() {
                             }
                         }
 
-                        let commit_text = classifier.format_commit_info(&features);
+                        let commit_text = CVEClassifier::format_commit_info(&features);
 
                         let similar_commits = classifier.find_similar_commits(&commit_text, 5);
 
-                        let prompt = classifier.construct_prompt(&commit_text, similar_commits);
+                        let prompt = CVEClassifier::construct_prompt(&commit_text, &similar_commits);
 
                         let prompt_dir_path = Path::new(dir);
                         if !prompt_dir_path.exists() {
@@ -457,7 +458,9 @@ fn main() {
 
         pb.finish_with_message("Processed commits");
 
-        if !results.is_empty() {
+        if results.is_empty() {
+            warn!("No results to display");
+        } else {
             if batch_mode {
                 // Results already printed as they were processed
             } else {
@@ -491,22 +494,20 @@ fn main() {
                 }
             }
 
-            if let Some(output_file) = matches.get_one::<String>("output").map(|s| s.as_str()) {
+            if let Some(output_file) = matches.get_one::<String>("output").map(String::as_str) {
                 let output_path = Path::new(output_file);
                 info!("Saving results to {}", output_path.display());
 
                 match serde_json::to_string_pretty(&results) {
                     Ok(json) => {
                         match fs::write(output_path, json) {
-                            Ok(_) => info!("Results saved successfully"),
+                            Ok(()) => info!("Results saved successfully"),
                             Err(e) => error!("Error writing results file: {e}"),
                         }
                     },
                     Err(e) => error!("Error serializing results: {e}"),
                 }
             }
-        } else {
-            warn!("No results to display");
         }
     }
 
@@ -533,12 +534,12 @@ fn main() {
 
                 if let Some(obj) = ollama_config.as_object_mut() {
                     // Set Ollama server URL if provided
-                    if let Some(ollama_server) = matches.get_one::<String>("ollama-server").map(|s| s.as_str()) {
+                    if let Some(ollama_server) = matches.get_one::<String>("ollama-server").map(String::as_str) {
                         obj.insert("api_host".to_string(), serde_json::json!(ollama_server));
                     }
 
                     // Set Ollama model if provided
-                    if let Some(ollama_model) = matches.get_one::<String>("ollama-model").map(|s| s.as_str()) {
+                    if let Some(ollama_model) = matches.get_one::<String>("ollama-model").map(String::as_str) {
                         // Check if it's a built-in model or custom
                         let is_builtin = ["llama3", "mistral", "gemma"].contains(&ollama_model);
 
@@ -556,7 +557,7 @@ fn main() {
 
             // Configure Exec parameters if provided
             if llm_providers.contains(&"exec".to_string()) {
-                if let Some(exec_path) = matches.get_one::<String>("exec").map(|s| s.as_str()) {
+                if let Some(exec_path) = matches.get_one::<String>("exec").map(String::as_str) {
                     let mut exec_config = serde_json::json!({
                         "debug_logging": verbose
                     });
@@ -566,7 +567,7 @@ fn main() {
                         obj.insert("executable_path".to_string(), serde_json::json!(exec_path));
 
                         // Parse and set exec parameters if provided
-                        if let Some(exec_params) = matches.get_one::<String>("exec-params").map(|s| s.as_str()) {
+                        if let Some(exec_params) = matches.get_one::<String>("exec-params").map(String::as_str) {
                             let params: Vec<String> = exec_params.split(',')
                                 .map(|s| s.trim().to_string())
                                 .collect();
@@ -630,7 +631,7 @@ fn main() {
                     }
                 }
 
-                if let Some(output_file) = matches.get_one::<String>("output").map(|s| s.as_str()) {
+                if let Some(output_file) = matches.get_one::<String>("output").map(String::as_str) {
                     let output_path = Path::new(output_file);
                     info!("Saving results to {}", output_path.display());
 

@@ -57,8 +57,8 @@ impl CVEClassifier {
         CVEClassifier {
             embeddings: HuggingFaceEmbeddings::new(),
             vectorstore: None,
-            persist_directory: persist_directory.map(|p| p.to_path_buf()),
-            repo_path: repo_path.map(|p| p.to_path_buf()),
+            persist_directory: persist_directory.map(Path::to_path_buf),
+            repo_path: repo_path.map(Path::to_path_buf),
             llm_providers,
             llm_configs: final_configs,
             llms: None,
@@ -104,7 +104,7 @@ impl CVEClassifier {
         configs
     }
 
-    /// Creates a new CVEClassifier instance optimized for processing prompts
+    /// Creates a new `CVEClassifier` instance optimized for processing prompts
     /// This is a lighter version that doesn't require a vectorstore
     pub fn new_for_prompt(
         llm_providers: Vec<String>,
@@ -115,14 +115,17 @@ impl CVEClassifier {
         Self::new(llm_providers, llm_configs, None, repo_path)
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn train(&mut self, commit_dataset: &[CommitFeatures]) -> Result<(), String> {
+        // Define constants at the beginning of the function
+        const BATCH_SIZE: usize = 1000;
+        const MAX_CHUNK_LENGTH: usize = 100_000; // Characters
+
         info!("Training classifier with {} commits", commit_dataset.len());
 
         // Process dataset into texts and metadata for vectorstore
         let mut texts = Vec::new();
         let mut metadatas = Vec::new();
-
-        let max_chunk_length = 100000; // Characters
 
         let pb = ProgressBar::new(commit_dataset.len() as u64);
         pb.set_style(ProgressStyle::default_bar()
@@ -131,7 +134,7 @@ impl CVEClassifier {
 
         for commit in commit_dataset {
             let message_lines: Vec<&str> = commit.message.trim().lines().collect();
-            let subject = message_lines.first().unwrap_or(&"").to_string();
+            let subject = (*message_lines.first().unwrap_or(&"")).to_string();
             let message_body = if message_lines.len() > 1 {
                 message_lines[1..].join("\n")
             } else {
@@ -145,8 +148,8 @@ impl CVEClassifier {
             commit_context.push(format!("Commit Message:\n{message_body}"));
 
             // Add code changes
-            let diff_text = if commit.diff.len() > max_chunk_length {
-                let truncated = commit.diff.chars().take(max_chunk_length).collect::<String>();
+            let diff_text = if commit.diff.len() > MAX_CHUNK_LENGTH {
+                let truncated = commit.diff.chars().take(MAX_CHUNK_LENGTH).collect::<String>();
                 warn!("Truncating large diff for commit {} (size: {})", commit.sha, commit.diff.len());
                 format!("{truncated}\n[... truncated due to size ...]")
             } else {
@@ -156,7 +159,9 @@ impl CVEClassifier {
             commit_context.push(format!("Changes:\n{diff_text}"));
 
             // Add files changed
-            let files_text = if !commit.files_changed.is_empty() {
+            let files_text = if commit.files_changed.is_empty() {
+                "Files: [none]".to_string()
+            } else {
                 let displayed_files = if commit.files_changed.len() > 5 {
                     let joined = commit.files_changed[0..5].join(", ");
                     format!("{} and {} more", joined, commit.files_changed.len() - 5)
@@ -164,8 +169,6 @@ impl CVEClassifier {
                     commit.files_changed.join(", ")
                 };
                 format!("Files: {displayed_files}")
-            } else {
-                "Files: [none]".to_string()
             };
 
             commit_context.push(files_text);
@@ -211,7 +214,6 @@ impl CVEClassifier {
         }
 
         // Process in reasonable batches
-        const BATCH_SIZE: usize = 1000;
         let mut start_idx = 0;
 
         if self.vectorstore.is_none() {
@@ -299,7 +301,7 @@ impl CVEClassifier {
         // Serialize and save
         match serde_json::to_string_pretty(&model_state) {
             Ok(json) => match std::fs::write(model_path, json) {
-                Ok(_) => Ok(()),
+                Ok(()) => Ok(()),
                 Err(e) => Err(format!("Failed to write model file: {e}")),
             },
             Err(e) => Err(format!("Failed to serialize model state: {e}")),
@@ -350,12 +352,12 @@ impl CVEClassifier {
         Ok(classifier)
     }
 
-    pub fn format_commit_info(&self, commit_info: &CommitFeatures) -> String {
+    pub fn format_commit_info(commit_info: &CommitFeatures) -> String {
         let mut commit_parts = Vec::new();
 
         // Extract subject (first line of commit message)
-        let message_lines: Vec<&str> = commit_info.message.trim().split('\n').collect();
-        let subject = message_lines.first().unwrap_or(&"No subject").to_string();
+        let message_lines: Vec<&str> = commit_info.message.trim().lines().collect();
+        let subject = (*message_lines.first().unwrap_or(&"No subject")).to_string();
 
         commit_parts.push(format!("Subject: {subject}"));
         commit_parts.push(format!("Commit Message:\n{}", commit_info.message));
@@ -369,7 +371,7 @@ impl CVEClassifier {
         if !commit_info.files_changed.is_empty() {
             let mut files_text = commit_info.files_changed.iter()
                 .take(10)
-                .map(|s| s.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(", ");
 
@@ -383,7 +385,7 @@ impl CVEClassifier {
         commit_parts.join("\n\n")
     }
 
-    pub fn construct_prompt(&self, commit_text: &str, similar_commits: Vec<(String, bool)>) -> String {
+    pub fn construct_prompt(commit_text: &str, similar_commits: &[(String, bool)]) -> String {
         // Template for the prompt
         let prompt_template = r#"You are a security expert analyzing kernel commits to determine if they should be assigned a CVE.
 Analyze both the commit message and the code changes carefully to identify security implications.
@@ -533,7 +535,7 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
                         info!("==========================================");
                     }
 
-                    let (should_assign_cve, explanation) = self.parse_llm_response(&response);
+                    let (should_assign_cve, explanation) = Self::parse_llm_response(&response);
                     return Ok((should_assign_cve, explanation, response));
                 },
                 Err(e) => {
@@ -581,13 +583,13 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
         }
 
         // Generate the vector database search for context
-        let commit_text = self.format_commit_info(commit_info);
+        let commit_text = Self::format_commit_info(commit_info);
 
         // Get similar commits for context
         let similar_commits = self.find_similar_commits(&commit_text, 5);
 
         // Construct prompt with context and commit info
-        let prompt = self.construct_prompt(&commit_text, similar_commits);
+        let prompt = Self::construct_prompt(&commit_text, &similar_commits);
 
         // Show full prompt when verbose is enabled
         if verbose {
@@ -614,7 +616,7 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
     }
 
     // Parse LLM response to extract decision and explanation
-    pub fn parse_llm_response(&self, response: &str) -> (bool, String) {
+    pub fn parse_llm_response(response: &str) -> (bool, String) {
         // First, filter out any content inside <think> blocks
         let filtered_response = if response.contains("<think>") && response.contains("</think>") {
             // Extract content outside of think blocks
@@ -775,14 +777,14 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
                             raw_response: Some(response),
                         });
 
-                        should_assign_cve_votes += if should_assign_cve { 1 } else { 0 };
+                        should_assign_cve_votes += i32::from(should_assign_cve);
                         provider_count += 1;
                     },
                     Err(e) => {
                         // Store our CVE assignment decision (default: no CVE)
                         results.insert(provider.clone(), ProviderResult {
                             should_select: false, // Default to false (no CVE) in error case
-                            explanation: "".to_string(),
+                            explanation: String::new(),
                             error: Some(e),
                             raw_response: None,
                         });
@@ -798,8 +800,8 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
         // Return a generic prediction result (will be enhanced by specific methods)
         // Return the CVE assignment decision
         Ok(PredictionResult {
-            sha: "".to_string(), // Will be overridden by the calling method
-            subject: "".to_string(), // Will be overridden by the calling method
+            sha: String::new(), // Will be overridden by the calling method
+            subject: String::new(), // Will be overridden by the calling method
             should_select: consensus_should_assign_cve,
             vote_ratio: format!("{should_assign_cve_votes}/{provider_count}"),
             provider_results: results,
