@@ -42,11 +42,11 @@ struct DyadEntry {
 }
 
 impl DyadEntry {
-    /// Create a new DyadEntry from a colon-separated string
+    /// Create a new `DyadEntry` from a colon-separated string
     fn from_str(s: &str) -> Result<Self> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 4 {
-            return Err(anyhow!("Invalid dyad entry: {}", s));
+            return Err(anyhow!("Invalid dyad entry: {s}"));
         }
 
         Ok(DyadEntry {
@@ -66,7 +66,7 @@ fn main() -> Result<()> {
     let kernel_tree = match env::var("CVEKERNELTREE") {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: CVEKERNELTREE environment variable must be set to the kernel tree directory: {}", e);
+            eprintln!("Error: CVEKERNELTREE environment variable must be set to the kernel tree directory: {e}");
             return Err(anyhow!("CVEKERNELTREE environment variable must be set to the kernel tree directory"));
         }
     };
@@ -74,8 +74,7 @@ fn main() -> Result<()> {
     // Validate the kernel tree exists
     if !Path::new(&kernel_tree).is_dir() {
         return Err(anyhow!(
-            "CVEKERNELTREE ({}) is not a valid directory",
-            kernel_tree
+            "CVEKERNELTREE ({kernel_tree}) is not a valid directory"
         ));
     }
 
@@ -83,7 +82,7 @@ fn main() -> Result<()> {
     let vulns_dir = match common::find_vulns_dir() {
         Ok(dir) => dir,
         Err(e) => {
-            eprintln!("Error finding vulns directory: {}", e);
+            eprintln!("Error finding vulns directory: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -93,7 +92,7 @@ fn main() -> Result<()> {
     if let Some(fixed_version) = &args.fixed {
         // Show CVEs fixed in a specific version
         if let Err(e) = list_fixed_version(fixed_version, &vulns_dir) {
-            eprintln!("Error listing fixed version: {}", e);
+            eprintln!("Error listing fixed version: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -105,8 +104,8 @@ fn main() -> Result<()> {
         let dir_result = match fs::read_dir(&published_dir) {
             Ok(result) => result,
             Err(e) => {
-                eprintln!("Error reading published directory: {}", e);
-                return Err(anyhow!("Failed to read published directory: {}", e));
+                eprintln!("Error reading published directory: {e}");
+                return Err(anyhow!("Failed to read published directory: {e}"));
             }
         };
 
@@ -114,7 +113,7 @@ fn main() -> Result<()> {
             let entry = match entry_result {
                 Ok(entry) => entry,
                 Err(e) => {
-                    eprintln!("Error reading directory entry: {}", e);
+                    eprintln!("Error reading directory entry: {e}");
                     continue;
                 }
             };
@@ -122,7 +121,7 @@ fn main() -> Result<()> {
             let file_type = match entry.file_type() {
                 Ok(ft) => ft,
                 Err(e) => {
-                    eprintln!("Error getting file type: {}", e);
+                    eprintln!("Error getting file type: {e}");
                     continue;
                 }
             };
@@ -133,7 +132,7 @@ fn main() -> Result<()> {
                     println!("{} Searching year {}", "#".cyan(), year_str);
                 }
                 if let Err(e) = search_year(git_sha, &year_str, &vulns_dir, &kernel_tree, debug) {
-                    eprintln!("Error searching year {}: {}", year_str, e);
+                    eprintln!("Error searching year {year_str}: {e}");
                     print_git_error_details(&e);
                     // Continue with other years instead of aborting
                 }
@@ -155,12 +154,12 @@ fn list_fixed_version(version: &str, vulns_dir: &Path) -> Result<()> {
     let found_cves = find_cves_with_fixed_version(version, &published_dir)?;
 
     if found_cves.is_empty() {
-        println!("{} does not have any CVE IDs assigned yet.", version);
+        println!("{version} does not have any CVE IDs assigned yet.");
         return Ok(());
     }
 
     for (cve_id, commit) in found_cves {
-        println!("{} is fixed in {} with commit {}", cve_id, version, commit);
+        println!("{cve_id} is fixed in {version} with commit {commit}");
     }
 
     Ok(())
@@ -172,7 +171,7 @@ fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<V
 
     // Use grep-like search to find mentions in all files, case insensitive
     let output = Command::new("grep")
-        .args(["-r", "-i", "-l", &format!("fixed in {}", version), "."])
+        .args(["-r", "-i", "-l", &format!("fixed in {version}"), "."])
         .current_dir(published_dir)
         .output()
         .context("Failed to execute grep command")?;
@@ -193,7 +192,7 @@ fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<V
 
                 // Get the corresponding SHA
                 if let Some(year) = cve_id.split('-').nth(1) {
-                    let sha_file = published_dir.join(year).join(format!("{}.sha1", cve_id));
+                    let sha_file = published_dir.join(year).join(format!("{cve_id}.sha1"));
 
                     if sha_file.exists() {
                         if let Ok(commit) = fs::read_to_string(&sha_file) {
@@ -288,7 +287,7 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     let root = parts[0];
 
     // Check for a vulnerable file (but just check existence, we load it if needed)
-    let vuln_file = vulns_dir.join(format!("{}.vulnerable", root));
+    let vuln_file = vulns_dir.join(format!("{root}.vulnerable"));
     let _vulnerable_sha = if vuln_file.exists() {
         fs::read_to_string(&vuln_file)?.trim().to_string()
     } else {
@@ -296,7 +295,7 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     };
 
     // Read the dyad file
-    let dyad_file = vulns_dir.join(format!("{}.dyad", root));
+    let dyad_file = vulns_dir.join(format!("{root}.dyad"));
     if !dyad_file.exists() {
         if debug {
             println!("  {} No dyad file for {}", "#".cyan(), cve_id);
@@ -312,7 +311,7 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
         .filter_map(|line| match DyadEntry::from_str(line) {
             Ok(entry) => Some(entry),
             Err(e) => {
-                eprintln!("Error parsing dyad entry '{}': {}", line, e);
+                eprintln!("Error parsing dyad entry '{line}': {e}");
                 None
             }
         })
@@ -374,18 +373,18 @@ fn is_commit_ancestor(ancestor: &str, descendant: &str, kernel_tree: &str) -> Re
 
     // Parse the commit IDs
     let ancestor_oid = Oid::from_str(ancestor)
-        .context(format!("Invalid ancestor git SHA: {}", ancestor))?;
+        .context(format!("Invalid ancestor git SHA: {ancestor}"))?;
 
     let descendant_oid = Oid::from_str(descendant)
-        .context(format!("Invalid descendant git SHA: {}", descendant))?;
+        .context(format!("Invalid descendant git SHA: {descendant}"))?;
 
     // Check if ancestor exists
     let _ancestor_commit = repo.find_commit(ancestor_oid)
-        .context(format!("Ancestor commit not found: {}", ancestor))?;
+        .context(format!("Ancestor commit not found: {ancestor}"))?;
 
     // Check if descendant exists
     let _descendant_commit = repo.find_commit(descendant_oid)
-        .context(format!("Descendant commit not found: {}", descendant))?;
+        .context(format!("Descendant commit not found: {descendant}"))?;
 
     // For git merge-base --is-ancestor A B, we need to check if A is an ancestor of B
     // Check if ancestor is actually an ancestor of descendant by using libgit2's graph_descendant_of
