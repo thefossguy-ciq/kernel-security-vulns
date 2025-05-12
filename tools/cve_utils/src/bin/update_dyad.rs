@@ -51,7 +51,7 @@ fn main() -> Result<()> {
         None => match env::var("CVE_USER") {
             Ok(user) => user,
             Err(e) => {
-                eprintln!("Error: CVE_USER must be set via environment variable or --cve-user option: {}", e);
+                eprintln!("Error: CVE_USER must be set via environment variable or --cve-user option: {e}");
                 return Err(anyhow!("CVE_USER must be set via environment variable or --cve-user option"));
             }
         },
@@ -69,7 +69,7 @@ fn main() -> Result<()> {
     let vulns_dir = match common::find_vulns_dir() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error finding vulns directory: {}", e);
+            eprintln!("Error finding vulns directory: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -77,7 +77,7 @@ fn main() -> Result<()> {
 
     let dyad_path = vulns_dir.join("scripts").join("dyad");
     if !dyad_path.exists() {
-        return Err(anyhow!("Dyad script not found at {}", dyad_path.display()));
+        return Err(anyhow!("Dyad script not found at {dyad_path:?}"));
     }
 
     // Process CVEs based on input
@@ -86,7 +86,7 @@ fn main() -> Result<()> {
             // Process all years, in sorted order
             let published_dir = vulns_dir.join("cve").join("published");
             let mut years: Vec<_> = fs::read_dir(&published_dir).unwrap().map(|r| r.unwrap()).collect();
-            years.sort_by_key(|dir| dir.path());
+            years.sort_by_key(std::fs::DirEntry::path);
             for entry in years {
                 if entry.file_type()?.is_dir() {
                     let year = entry.file_name().to_string_lossy().to_string();
@@ -118,7 +118,7 @@ fn main() -> Result<()> {
 fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> Result<bool> {
     let cve_root = vulns_dir.join("cve");
     if !cve_root.exists() {
-        return Err(anyhow!("CVE directory not found: {}", cve_root.display()));
+        return Err(anyhow!("CVE directory not found: {cve_root:?}"));
     }
 
     // Look for the CVE ID in the published directory
@@ -141,12 +141,9 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path, debug: b
     }
 
     // If the file wasn't found, report it but don't error out
-    let cve_path = match cve_file {
-        Some(path) => path,
-        None => {
-            println!("CVE {} not found in published directory", cve_id);
-            return Ok(false);
-        }
+    let Some(cve_path) = cve_file else {
+        println!("CVE {cve_id} not found in published directory");
+        return Ok(false);
     };
 
     // Generate dyad file
@@ -190,7 +187,7 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> 
             .unwrap()
             .progress_chars("#>-")
     );
-    progress_bar.set_message(format!("Year {}", year));
+    progress_bar.set_message(format!("Year {year}"));
 
     // Counter for error tracking
     let error_count = Arc::new(AtomicUsize::new(0));
@@ -198,12 +195,12 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> 
     // Process files in parallel
     sha_files.par_iter().for_each(|path| {
         let relative_path = path.strip_prefix(vulns_dir)
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| path.to_string_lossy().to_string());
+            .map_or_else(|_| path.to_string_lossy().to_string(),
+                         |p| p.to_string_lossy().to_string());
 
         if let Err(err) = process_single_file(&relative_path, vulns_dir, dyad_path, debug) {
             progress_bar.suspend(|| {
-                eprintln!("\nError processing {}: {}", relative_path, err);
+                eprintln!("\nError processing {relative_path}: {err}");
             });
             error_count.fetch_add(1, Ordering::Relaxed);
         }
@@ -237,19 +234,22 @@ fn process_single_file(
     let parts: Vec<&str> = relative_path.split('.').collect();
     let root = parts[0];
     let cve_id = root.split('/').nth(3)
-        .ok_or_else(|| anyhow!("Invalid path format for {}", relative_path))?;
+        .ok_or_else(|| anyhow!("Invalid path format for {relative_path}"))?;
 
     if debug {
-        println!("# processing {}", relative_path);
+        println!("# processing {relative_path}");
     }
 
     // Check for vulnerable file
-    let vuln_file = vulns_dir.join(format!("{}.vulnerable", root));
+    let vuln_file = vulns_dir.join(format!("{root}.vulnerable"));
     let vulnerable_options = if vuln_file.exists() {
         let vulnerable_sha = fs::read_to_string(&vuln_file)?;
         // Split the vulnerable SHA string in case it contains multiple space-separated values
         vulnerable_sha.split_whitespace()
-            .map(|sha| format!("-v {}", sha.trim()))
+            .map(|sha| {
+                let trimmed = sha.trim();
+                format!("-v {trimmed}")
+            })
             .collect::<Vec<String>>()
     } else {
         Vec::new()
@@ -284,13 +284,10 @@ fn process_single_file(
     tmp_dyad.write_all(&output.stdout)?;
 
     // Target dyad file
-    let dyad_file = vulns_dir.join(format!("{}.dyad", root));
+    let dyad_file = vulns_dir.join(format!("{root}.dyad"));
 
     // Compare and update if needed
-    if !dyad_file.exists() {
-        // No existing file, just use the new one
-        fs::copy(tmp_dyad.path(), &dyad_file)?;
-    } else {
+    if dyad_file.exists() {
         // Compare the files
         let diff_output = Command::new("diff")
             .args(["-u", &dyad_file.to_string_lossy(), &tmp_dyad.path().to_string_lossy()])
@@ -322,6 +319,9 @@ fn process_single_file(
                 fs::copy(tmp_dyad.path(), &dyad_file)?;
             }
         }
+    } else {
+        // No existing file, just use the new one
+        fs::copy(tmp_dyad.path(), &dyad_file)?;
     }
 
     // Let temp file clean itself up
