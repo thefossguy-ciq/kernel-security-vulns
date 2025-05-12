@@ -18,6 +18,7 @@ rusqlite = "0.35.0"
 colored = "3"
 owo-colors = "4"
 git2 = "0.20"
+grep = "0.3"
 # Voting results dependencies
 clap = { version = "4.4", features = ["derive"] }
 anyhow = "1.0"

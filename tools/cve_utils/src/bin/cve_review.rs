@@ -18,6 +18,10 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use cve_utils::cve_utils::extract_cve_id_from_path;
+use walkdir::WalkDir;
+use grep::regex::RegexMatcher;
+use grep::searcher::sinks::UTF8;
+use grep::searcher::{BinaryDetection, SearcherBuilder};
 
 /// Review commits to determine if they should be assigned a CVE
 #[derive(Parser, Debug)]
@@ -727,45 +731,50 @@ fn get_commit_oneline(sha: &str) -> Result<String> {
 ///
 /// Returns the filename and SHA of the previously reviewed commit if found.
 fn check_previously_reviewed(subject: &str, processed_dir: &Path) -> Result<Option<(String, String)>> {
-    // Use grep to search all processed files
-    let grep_output = Command::new("grep")
-        .args(["-r", "-l", "-F", subject, &processed_dir.to_string_lossy()])
-        .output()
-        .context("Failed to execute grep command")?;
+    let matcher = RegexMatcher::new(&regex::escape(subject))?;
+    let mut searcher = SearcherBuilder::new()
+        .binary_detection(BinaryDetection::quit(b'\x00'))
+        .build();
 
-    if !grep_output.status.success() || grep_output.stdout.is_empty() {
-        return Ok(None);
+    for entry in WalkDir::new(processed_dir).min_depth(1) {
+        let entry = entry?;
+        if !entry.file_type().is_file() {
+            continue;
+        }
+
+        let mut sha_line: Option<String> = None;
+
+        //Use UTF8 Searcher to find the first matching line
+        searcher.search_path(
+            &matcher,
+            entry.path(),
+            UTF8(|_lnum, line| {
+                if line.contains(subject) {
+                    sha_line = Some(line.to_string());
+                    return Ok(false);
+                }
+                Ok(true)
+            }),
+        )?;
+
+        if let Some(line) = sha_line {
+            let filename = entry.path()
+                .file_name()
+                .and_then(|name| name.to_str())
+                .ok_or_else(|| anyhow!("Invalid filename"))?
+                .to_string();
+
+            let sha = line
+                .split_whitespace()
+                .next()
+                .ok_or_else(|| anyhow!("Expcted SHA in line but got none"))?
+                .to_string();
+
+            return Ok(Some((filename, sha)));
+        }
     }
 
-    // Get the first file that contains this subject
-    let stdout_str = String::from_utf8_lossy(&grep_output.stdout).to_string();
-    let file_path = stdout_str.lines()
-        .next()
-        .ok_or_else(|| anyhow!("Expected grep output but got none"))?;
-
-    let filename = PathBuf::from(file_path)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| anyhow!("Invalid filename"))?
-        .to_string();
-
-    // Get the SHA from the file
-    let grep_sha_output = Command::new("grep")
-        .args(["-F", subject, file_path])
-        .output()
-        .context("Failed to execute grep command")?;
-
-    let output_str = String::from_utf8_lossy(&grep_sha_output.stdout).to_string();
-    let line = output_str.lines()
-        .next()
-        .ok_or_else(|| anyhow!("Expected grep output but got none"))?;
-
-    let sha = line.split_whitespace()
-        .next()
-        .ok_or_else(|| anyhow!("Expected SHA in line but got none"))?
-        .to_string();
-
-    Ok(Some((filename, sha)))
+    Ok(None)
 }
 
 /// Check if two patches have the same patch ID
@@ -828,28 +837,30 @@ fn check_proposed_votes(subject: &str, proposed_dir: &PathBuf) -> Result<Vec<Str
         return Ok(votes);
     }
 
-    // Use grep to find files with this subject
-    let grep_output = Command::new("grep")
-        .args(["-l", "-F", subject, &proposed_dir.to_string_lossy()])
-        .output()
-        .context(format!("Failed to execute grep command in directory: {}", proposed_dir.display()))?;
+    let matcher = RegexMatcher::new(&regex::escape(subject))?;
+    let mut searcher = SearcherBuilder::new()
+        .binary_detection(BinaryDetection::quit(b'\x00'))
+        .build();
 
-    // If grep didn't find anything or failed, return empty results
-    // (Not finding anything is not an error condition)
-    if !grep_output.status.success() || grep_output.stdout.is_empty() {
-        return Ok(votes);
-    }
+    for entry in WalkDir::new(proposed_dir).min_depth(1) {
+        let entry = entry?;
+        if !entry.file_type().is_file() {
+            continue;
+        }
 
-    // Collect the files containing votes
-    for file_path in String::from_utf8_lossy(&grep_output.stdout).lines() {
-        let path = PathBuf::from(file_path);
-        // Try to get a relative path for cleaner display
-        let filename = match path.strip_prefix(proposed_dir) {
-            Ok(relative) => relative.display().to_string(),
-            Err(_) => path.display().to_string(),
-        };
+        let mut found = false;
+        searcher.search_path(
+            &matcher,
+            entry.path(),
+            UTF8(|_lnum, _line| {
+                found = true;
+                Ok(false)
+        }))?;
 
-        votes.push(filename);
+        if found {
+            votes.push(entry.path().strip_prefix(proposed_dir)
+                .map_or_else(|_| entry.path().display().to_string(), |p| p.display().to_string()));
+        }
     }
 
     Ok(votes)
