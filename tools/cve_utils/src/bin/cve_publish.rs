@@ -13,35 +13,64 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Publication mode for CVE entries
+#[derive(Debug, Clone, Copy)]
+enum PublishMode {
+    /// Publish JSON files to the CVE database
+    Json,
+    /// Send mbox announcement emails
+    Mbox,
+    /// Publish both JSON files and send mbox emails
+    All,
+    /// No publication mode specified
+    None,
+}
+
 /// Publish CVE entries to the CVE database and/or send announcement emails
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 struct Args {
-    /// Publish JSON files to the CVE database
-    #[clap(long)]
-    json: bool,
-
-    /// Send mbox announcement emails
-    #[clap(long)]
-    mbox: bool,
-
-    /// Publish both JSON files and send mbox emails (equivalent to --json --mbox)
-    #[clap(long)]
-    all: bool,
+    /// Publication mode for CVE entries
+    #[clap(subcommand)]
+    mode: Option<ModeCommand>,
 
     /// Dry run - show what would be published/sent but don't actually do it
     #[clap(long)]
     dry_run: bool,
 }
 
+#[derive(Parser, Debug)]
+enum ModeCommand {
+    /// Publish JSON files to the CVE database
+    #[clap(name = "json")]
+    Json,
+
+    /// Send mbox announcement emails
+    #[clap(name = "mbox")]
+    Mbox,
+
+    /// Publish both JSON files and send mbox emails
+    #[clap(name = "all")]
+    All,
+}
+
+impl Args {
+    /// Determine the publish mode based on command-line arguments
+    fn get_publish_mode(&self) -> PublishMode {
+        match &self.mode {
+            Some(ModeCommand::All) => PublishMode::All,
+            Some(ModeCommand::Json) => PublishMode::Json,
+            Some(ModeCommand::Mbox) => PublishMode::Mbox,
+            None => PublishMode::None,
+        }
+    }
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
+    let publish_mode = args.get_publish_mode();
 
-    // Check if we should publish JSON, mbox, or both
-    let publish_json = args.json || args.all;
-    let publish_mbox = args.mbox || args.all;
-
-    if !publish_json && !publish_mbox {
+    if let PublishMode::None = publish_mode {
         println!("{} No action specified. Use --json, --mbox, or --all", "WARNING:".yellow());
         println!("Run with --help for more information.");
         return Ok(());
@@ -51,28 +80,33 @@ fn main() -> Result<()> {
     let _cve_root = match common::get_cve_root() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error getting CVE root path: {}", e);
+            eprintln!("Error getting CVE root path: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
     };
 
-    // Publish JSON files if requested
-    if publish_json {
-        println!("{}:", "Publishing JSON files to CVE database".green());
-        if args.dry_run {
-            println!("  {} Dry run mode - no actual publishing", "INFO:".blue());
-        }
-        publish_json_files(args.dry_run)?;
+    // Process according to the publish mode
+    match publish_mode {
+        PublishMode::Json | PublishMode::All => {
+            println!("{}:", "Publishing JSON files to CVE database".green());
+            if args.dry_run {
+                println!("  {} Dry run mode - no actual publishing", "INFO:".blue());
+            }
+            publish_json_files(args.dry_run)?;
+        },
+        _ => {}
     }
 
-    // Send mbox emails if requested
-    if publish_mbox {
-        println!("{}:", "Sending mbox announcement emails".green());
-        if args.dry_run {
-            println!("  {} Dry run mode - no actual emails sent", "INFO:".blue());
-        }
-        publish_mbox_files(args.dry_run)?;
+    match publish_mode {
+        PublishMode::Mbox | PublishMode::All => {
+            println!("{}:", "Sending mbox announcement emails".green());
+            if args.dry_run {
+                println!("  {} Dry run mode - no actual emails sent", "INFO:".blue());
+            }
+            publish_mbox_files(args.dry_run)?;
+        },
+        _ => {}
     }
 
     Ok(())
@@ -81,7 +115,7 @@ fn main() -> Result<()> {
 /// Finds and publishes modified JSON files to the CVE database
 ///
 /// Uses git status to identify modified JSON files and publishes each one
-/// using the `cve` command. If dry_run is true, only shows what would be done.
+/// using the `cve` command. If `dry_run` is true, only shows what would be done.
 fn publish_json_files(dry_run: bool) -> Result<()> {
     // Get a list of all modified JSON files using git status
     let modified_files = git_utils::get_modified_files(&["*.json"])?;
@@ -131,7 +165,7 @@ fn publish_json_files(dry_run: bool) -> Result<()> {
 /// Finds and sends modified mbox files as announcement emails
 ///
 /// Uses git status to identify modified mbox files, filters out rejected ones,
-/// and sends emails using git send-email. If dry_run is true, only shows what would be done.
+/// and sends emails using git send-email. If `dry_run` is true, only shows what would be done.
 fn publish_mbox_files(dry_run: bool) -> Result<()> {
     // Get a list of all modified mbox files using git status
     let modified_files = git_utils::get_modified_files(&["*.mbox"])?;
