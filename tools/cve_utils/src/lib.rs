@@ -47,12 +47,19 @@ pub use self::verhaal::Verhaal;
 
 /// Common functionality shared across all CVE utilities
 pub mod common {
-    use super::*;
+    use super::{anyhow, Context, Oid, Path, PathBuf, Repository, Result, WalkDir};
+    use super::{env, fs};
 
     /// Gets the kernel tree path from the CVEKERNELTREE environment variable
     ///
     /// Returns the validated path to the kernel tree or an error if the
     /// environment variable is not set or points to an invalid directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The CVEKERNELTREE environment variable is not set
+    /// - The directory specified by CVEKERNELTREE does not exist
     pub fn get_kernel_tree() -> Result<PathBuf> {
         let kernel_tree = env::var("CVEKERNELTREE")
             .map_err(|_| anyhow!("CVEKERNELTREE environment variable not set. It needs to be set to the stable repo directory"))?;
@@ -73,6 +80,12 @@ pub mod common {
     /// This function attempts to locate the vulns repository by traversing up from
     /// the current directory until it finds a directory named "vulns".
     /// Additional fallback methods implemented for robust directory discovery.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The current directory cannot be determined
+    /// - The 'vulns' directory cannot be found in the directory tree
     pub fn find_vulns_dir() -> Result<PathBuf> {
         // First attempt: Check current directory and its parents
         let mut current_dir = env::current_dir().context("Failed to get current directory")?;
@@ -122,6 +135,11 @@ pub mod common {
     }
 
     /// Gets the root CVE directory path
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The vulns directory cannot be found (propagates errors from `find_vulns_dir`)
     pub fn get_cve_root() -> Result<PathBuf> {
         let vulns_dir = find_vulns_dir()?;
         Ok(vulns_dir.join("cve"))
@@ -130,13 +148,17 @@ pub mod common {
     /// Verifies that a Git commit exists in the kernel tree
     ///
     /// Returns true if the commit exists, false otherwise
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened at the specified path
     pub fn verify_commit(kernel_tree: &Path, sha: &str) -> Result<bool> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
         // Check if the commit hash is valid format
-        let oid = match Oid::from_str(sha) {
-            Ok(oid) => oid,
-            Err(_) => return Ok(false),
+        let Ok(oid) = Oid::from_str(sha) else {
+            return Ok(false);
         };
 
         // Check if the commit exists in the repository
@@ -147,6 +169,12 @@ pub mod common {
     /// Finds a CVE ID by its associated git SHA
     ///
     /// Searches both published and rejected CVE directories for a match
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if:
+    /// - A file path doesn't have a valid file name (i.e., when `path.file_name()` returns None)
+    #[must_use]
     pub fn find_cve_by_sha(cve_root: &Path, sha: &str) -> Option<String> {
         let published_dir = cve_root.join("published");
         let rejected_dir = cve_root.join("rejected");
@@ -156,7 +184,7 @@ pub mod common {
                 continue;
             }
 
-            for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
+            for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
                 let path = entry.path();
 
                 // Only check .sha1 files
@@ -188,8 +216,9 @@ pub mod common {
     /// Finds a git SHA by its associated CVE ID
     ///
     /// Searches the CVE directory structure for a matching CVE ID and returns its associated SHA
+    #[must_use]
     pub fn find_sha_by_cve(cve_root: &Path, cve_id: &str) -> Option<String> {
-        for entry in WalkDir::new(cve_root).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(cve_root).into_iter().filter_map(Result::ok) {
             let path = entry.path();
 
             // Skip reserved and testing directories
@@ -228,12 +257,19 @@ pub mod git_utils {
     /// Uses git2 library to resolve a partial SHA to its full form.
     /// The function accepts a kernel tree path and a partial SHA, and returns
     /// the complete 40-character git commit hash if found.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened at the specified path
+    /// - The provided git SHA does not exist or cannot be resolved
+    /// - The resolved object is not a commit
     pub fn get_full_sha(kernel_tree: &Path, git_sha: &str) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
         let object = repo
-            .revparse_single(&format!("{}^{{commit}}", git_sha))
-            .context(format!("Git SHA '{}' not found in kernel tree", git_sha))?;
+            .revparse_single(&format!("{git_sha}^{{commit}}"))
+            .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
         let commit = repo
             .find_commit(object.id())
@@ -245,7 +281,12 @@ pub mod git_utils {
     /// Gets the full SHA from a git Object
     ///
     /// Simple utility to get the full SHA string from a git Object.
-    /// Unlike get_full_sha, this doesn't require resolving a reference first.
+    /// Unlike `get_full_sha`, this doesn't require resolving a reference first.
+    ///
+    /// # Errors
+    ///
+    /// This function should never fail as it's simply converting an Object ID to a string,
+    /// but it returns a Result for API consistency with other git functions.
     pub fn get_object_full_sha(_repo: &Repository, obj: &Object) -> Result<String> {
         Ok(obj.id().to_string())
     }
@@ -253,6 +294,11 @@ pub mod git_utils {
     /// Gets the short SHA (12 characters) from an Object
     ///
     /// Standardized implementation used by both dyad and bippy
+    ///
+    /// # Errors
+    ///
+    /// This function should never fail as it's simply extracting the first 12 characters
+    /// of an Object ID string, but it returns a Result for API consistency with other git functions.
     pub fn get_short_sha(_repo: &Repository, obj: &Object) -> Result<String> {
         let id = obj.id().to_string();
         Ok(id[0..12].to_string())
@@ -261,6 +307,12 @@ pub mod git_utils {
     /// Resolves a reference (SHA, branch, etc.) to a git Object
     ///
     /// Standardized implementation used across utilities
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The reference cannot be resolved in the repository
+    /// - The resolved object is not a commit
     pub fn resolve_reference<'a>(repo: &'a Repository, reference: &str) -> Result<Object<'a>> {
         // Try to resolve as a direct reference first
         let object = match repo.revparse_single(reference) {
@@ -286,6 +338,12 @@ pub mod git_utils {
     ///
     /// This function is used by the Kernel struct to sort git commit IDs by their
     /// chronological order in the repository.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if:
+    /// - A git ID string in the `remaining_ids` vector cannot be parsed as a valid Git Oid
+    #[must_use]
     pub fn git_sort_ids(kernel_tree: &Path, ids: &Vec<String>) -> Vec<String> {
         // For optimization: if we only have one ID, just return it
         if ids.len() <= 1 {
@@ -293,8 +351,7 @@ pub mod git_utils {
         }
 
         debug!(
-            "\t\tSorting git ids {:?} using repository {}",
-            ids,
+            "\t\tSorting git ids {ids:?} using repository {}",
             kernel_tree.display()
         );
 
@@ -302,7 +359,7 @@ pub mod git_utils {
         let repo = match Repository::open(kernel_tree) {
             Ok(repo) => repo,
             Err(e) => {
-                error!("Error opening repository: {}", e);
+                error!("Error opening repository: {e}");
                 // Keep original order for consistency
                 return ids.clone();
             }
@@ -324,15 +381,15 @@ pub mod git_utils {
                                 }
                             }
                             Err(_) => {
-                                debug!("Warning: git id {} not found in repository", id_str);
+                                debug!("Warning: git id {id_str} not found in repository");
                             }
                         }
                     } else {
-                        debug!("Warning: git id {} not found in repository", id_str);
+                        debug!("Warning: git id {id_str} not found in repository");
                     }
                 }
                 Err(e) => {
-                    debug!("Warning: invalid git id {}: {}", id_str, e);
+                    debug!("Warning: invalid git id {id_str}: {e}");
                 }
             }
         }
@@ -364,20 +421,13 @@ pub mod git_utils {
                     let oid_i = Oid::from_str(&remaining_ids[i]).unwrap();
                     let oid_j = Oid::from_str(&remaining_ids[j]).unwrap();
 
-                    match repo.graph_descendant_of(oid_j, oid_i) {
-                        Ok(true) => {
-                            // Found a descendant, so this one isn't the newest
-                            is_newest = false;
-                            break;
-                        }
-                        Ok(false) => {
-                            // Not a descendant, continue checking
-                        }
-                        Err(_) => {
-                            // Error determining relationship, assume not related
-                            // This can happen with unrelated history lines
-                        }
+                    if let Ok(true) = repo.graph_descendant_of(oid_j, oid_i) {
+                        // Found a descendant, so this one isn't the newest
+                        is_newest = false;
+                        break;
                     }
+                    // Not a descendant or error determining relationship
+                    // Continue checking (in case of unrelated history lines)
                 }
 
                 if is_newest {
@@ -398,13 +448,22 @@ pub mod git_utils {
             }
         }
 
-        debug!("git_sort_ids: sorted_ids = {:?}", result_order);
+        debug!("git_sort_ids: sorted_ids = {result_order:?}");
         result_order
     }
 
     /// Gets a list of files changed in a commit
     ///
     /// Used by bippy and other tools to find affected files
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The commit cannot be found in the repository
+    /// - The commit has no parent commit
+    /// - The tree cannot be retrieved for the commit or its parent
+    /// - The diff between the trees cannot be generated
+    /// - The diff cannot be processed
     pub fn get_affected_files<'a>(repo: &'a Repository, obj: &Object<'a>) -> Result<Vec<String>> {
         let commit = repo
             .find_commit(obj.id())
@@ -453,16 +512,23 @@ pub mod git_utils {
     /// # Returns
     /// A string with the commit details in the specified format
     ///
-    /// Note, format_type is currently ignored, "details" is the output for now
+    /// Note, `format_type` is currently ignored, "details" is the output for now
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened at the specified path
+    /// - The provided git SHA is not a valid format
+    /// - The commit cannot be found in the repository
     pub fn get_commit_details(kernel_tree: &Path, git_sha: &str, _format_type: Option<&str>) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
         let oid =
-            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {}", git_sha))?;
+            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {git_sha}"))?;
 
         let commit = repo
             .find_commit(oid)
-            .context(format!("Commit not found: {}", git_sha))?;
+            .context(format!("Commit not found: {git_sha}"))?;
 
         // Get short SHA and message
         let short_id = commit.id().to_string()[0..12].to_string();
@@ -470,7 +536,7 @@ pub mod git_utils {
 
         // Format based on the common kernel commit output of:
         // git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n" "${GIT_SHA_FULL}")
-        Ok(format!("{} (\"{}\")", short_id, message))
+        Ok(format!("{short_id} (\"{message}\")"))
     }
 
     /// Gets the commit year from a SHA
@@ -484,15 +550,23 @@ pub mod git_utils {
     ///
     /// # Returns
     /// The year of the commit as a string (e.g., "2023")
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened at the specified path
+    /// - The provided git SHA is not a valid format
+    /// - The commit cannot be found in the repository
+    /// - The commit timestamp cannot be converted to a `DateTime`
     pub fn get_commit_year(kernel_tree: &Path, git_sha: &str) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
         let oid =
-            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {}", git_sha))?;
+            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {git_sha}"))?;
 
         let commit = repo
             .find_commit(oid)
-            .context(format!("Commit not found: {}", git_sha))?;
+            .context(format!("Commit not found: {git_sha}"))?;
 
         let time = commit.time();
         let dt = DateTime::from_timestamp(time.seconds(), 0)
@@ -501,13 +575,13 @@ pub mod git_utils {
         Ok(dt.format("%Y").to_string())
     }
 
-    /// Prints detailed information about a git2::Error
+    /// Prints detailed information about a `git2::Error`
     ///
-    /// This utility function extracts and prints detailed information from a git2::Error
+    /// This utility function extracts and prints detailed information from a `git2::Error`
     /// object, including its error code, class, and message.
     ///
     /// # Arguments
-    /// * `error` - The error object that might contain a git2::Error
+    /// * `error` - The error object that might contain a `git2::Error`
     pub fn print_git_error_details(error: &anyhow::Error) {
         // Recursively check the chain of causes
         let mut current_err: Option<&dyn std::error::Error> = Some(error.root_cause());
@@ -528,6 +602,12 @@ pub mod git_utils {
     ///
     /// Searches the current git repository for modified files that match any of the
     /// provided patterns.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened in the current directory
+    /// - The repository status cannot be retrieved
     pub fn get_modified_files(patterns: &[&str]) -> Result<Vec<PathBuf>> {
         let repo = Repository::open(".").context("Failed to open git repository")?;
 
@@ -559,6 +639,7 @@ pub mod git_utils {
     /// Simple pattern matching for file paths
     ///
     /// Supports exact matches and *.ext patterns
+    #[must_use]
     pub fn match_pattern(path: &str, pattern: &str) -> bool {
         if let Some(suffix) = pattern.strip_prefix("*") {
             // Handle *.ext pattern
@@ -579,14 +660,21 @@ pub mod git_utils {
     ///
     /// # Returns
     /// The full commit message as a string
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened in the current directory
+    /// - The provided git SHA is not a valid format
+    /// - The commit cannot be found in the repository
     pub fn get_commit_message(sha: &str) -> Result<String> {
         let repo = Repository::open(".").context("Failed to open git repository")?;
 
-        let oid = git2::Oid::from_str(sha).context(format!("Invalid Git SHA format: {}", sha))?;
+        let oid = git2::Oid::from_str(sha).context(format!("Invalid Git SHA format: {sha}"))?;
 
         let commit = repo
             .find_commit(oid)
-            .context(format!("Commit not found: {}", sha))?;
+            .context(format!("Commit not found: {sha}"))?;
 
         // Get the full commit message
         let message = commit.message().unwrap_or("").to_string();
@@ -603,7 +691,16 @@ pub mod git_utils {
     /// * `sha` - The SHA of the commit to retrieve the summary for
     ///
     /// # Returns
-    /// A one-line summary in the format "short_sha summary"
+    /// A one-line summary in the format "`short_sha` summary"
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The current directory cannot be determined
+    /// - Any errors from `get_commit_details` are propagated:
+    ///   - The git repository cannot be opened
+    ///   - The provided git SHA is not a valid format
+    ///   - The commit cannot be found in the repository
     pub fn get_commit_oneline(sha: &str) -> Result<String> {
         // Use current directory as the repository path
         let current_dir = std::env::current_dir().context("Failed to get current directory")?;
@@ -626,7 +723,12 @@ pub mod cve_utils {
     /// - File paths with CVE ID as the filename (with or without extension)
     /// - Paths with CVE ID in the parent directory
     /// - Paths in various formats (absolute, relative, string slices)
-    /// - Support for both Path and String/&str inputs via AsRef<Path>
+    /// - Support for both Path and String/&str inputs via `AsRef<Path>`
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - No valid CVE ID pattern can be found in the file path or its components
     pub fn extract_cve_id_from_path<P: AsRef<Path>>(file_path: P) -> Result<String> {
         let path = file_path.as_ref();
 
@@ -704,6 +806,20 @@ pub mod cve_utils {
     ///
     /// Searches for the first empty file in the reserved directory, which
     /// indicates an available CVE ID.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if:
+    /// - Reading the directory entries fails but `unwrap()` is called on the result
+    /// - Processing a directory entry fails but `unwrap()` is called on the result
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The reserved directory does not exist
+    /// - A file path is invalid (missing file name)
+    /// - Cannot get metadata for a file
+    /// - No available (empty) CVE ID files are found
     pub fn find_next_free_cve_id(reserved_dir: &Path) -> Result<String> {
         if !reserved_dir.exists() {
             return Err(anyhow!(
@@ -715,7 +831,7 @@ pub mod cve_utils {
         // Get all reserved CVE IDs
         let mut entries: Vec<_> = fs::read_dir(reserved_dir).unwrap().map(|r| r.unwrap()).collect();
         // Sort them so that we always pick the lowest number first
-        entries.sort_by_key(|dir| dir.path());
+        entries.sort_by_key(std::fs::DirEntry::path);
 
         // Find the first available CVE ID (empty file)
         for entry in entries {
@@ -752,6 +868,12 @@ pub mod git_config {
     use git2::Config;
 
     /// Gets a value from git configuration
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git configuration cannot be opened
+    /// - The requested key does not exist in the configuration
     pub fn get_git_config(key: &str) -> Result<String> {
         let config = Config::open_default().context("Failed to open git config")?;
         let value = config
@@ -761,6 +883,12 @@ pub mod git_config {
     }
 
     /// Sets a value in git configuration
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git configuration cannot be opened
+    /// - Setting the value fails (e.g., insufficient permissions)
     pub fn set_git_config(key: &str, value: &str) -> Result<()> {
         let mut config = Config::open_default().context("Failed to open git config")?;
         config
@@ -772,13 +900,19 @@ pub mod git_config {
 
 /// CVE ID validation and processing
 pub mod cve_validation {
-    use super::*;
-    use anyhow::{anyhow, Result};
+    use super::common;
+    use anyhow::{anyhow, Context, Result};
     use regex::Regex;
     use std::path::{Path, PathBuf};
     use walkdir::WalkDir;
 
     /// Extracts the year from a CVE ID using regex
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The regex pattern fails to compile
+    /// - The CVE ID does not match the expected format (CVE-YYYY-NNNNN)
     pub fn extract_year_from_cve(cve_id: &str) -> Result<String> {
         let re = Regex::new(r"(?i)CVE-(\d{4})-\d+")
             .context("Failed to compile CVE regex pattern")?;
@@ -789,6 +923,12 @@ pub mod cve_validation {
     }
 
     /// Checks if a CVE ID is valid and exists in the repository
+    ///
+    /// # Errors
+    ///
+    /// This function returns a Result<bool> but should never fail,
+    /// as it only performs file existence checks. The Result type is
+    /// used for consistency with other CVE validation functions.
     pub fn is_valid_cve(cve_root: &Path, cve_entry: &str) -> Result<bool> {
         // Check if it's a valid file path
         let cve_path = Path::new(cve_entry);
@@ -809,6 +949,12 @@ pub mod cve_validation {
     /// Finds a CVE ID by name in the CVE directory structure
     ///
     /// Returns the path to the CVE file if found, or an error if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The CVE root directory cannot be found
+    /// - The specified CVE ID is not found in the repository
     pub fn find_cve_id(cve_id: &str) -> Result<Option<PathBuf>> {
         let cve_root = common::get_cve_root()?;
 
@@ -823,7 +969,7 @@ pub mod cve_validation {
             let published_path = cve_root
                 .join("published")
                 .join(&year)
-                .join(format!("{}.sha1", cve_id));
+                .join(format!("{cve_id}.sha1"));
             if published_path.exists() {
                 return Ok(Some(published_path));
             }
@@ -832,7 +978,7 @@ pub mod cve_validation {
             let rejected_path = cve_root
                 .join("rejected")
                 .join(&year)
-                .join(format!("{}.sha1", cve_id));
+                .join(format!("{cve_id}.sha1"));
             if rejected_path.exists() {
                 return Ok(Some(rejected_path));
             }
@@ -864,18 +1010,25 @@ pub mod cmd_utils {
     /// # Arguments
     /// * `cmd` - The command to run
     /// * `args` - Arguments to pass to the command
-    /// * `cwd` - Optional working directory
-    pub fn run_command(cmd: &str, args: &[&str], cwd: Option<&str>) -> Result<String> {
+    /// * `work_dir` - Optional working directory
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The command fails to execute
+    /// - The command exits with a non-zero status code
+    /// - The command output cannot be converted to a UTF-8 string
+    pub fn run_command(cmd: &str, args: &[&str], work_dir: Option<&str>) -> Result<String> {
         let mut command = Command::new(cmd);
         command.args(args);
 
-        if let Some(dir) = cwd {
+        if let Some(dir) = work_dir {
             command.current_dir(dir);
         }
 
         let output = command
             .output()
-            .context(format!("Failed to execute: {} {:?}", cmd, args))?;
+            .context(format!("Failed to execute: {cmd} {args:?}"))?;
 
         if !output.status.success() {
             let error = String::from_utf8_lossy(&output.stderr);
@@ -900,6 +1053,7 @@ pub mod year_utils {
     /// Checks if a string is a valid year (4 digits, reasonable range)
     ///
     /// A year is considered valid if it's 4 digits and between 2000 and current year + 1
+    #[must_use]
     pub fn is_valid_year(year: &str) -> bool {
         if year.len() != 4 || !year.chars().all(|c| c.is_ascii_digit()) {
             return false;
@@ -912,6 +1066,12 @@ pub mod year_utils {
     }
 
     /// Checks if a year directory exists in the CVE root
+    ///
+    /// # Errors
+    ///
+    /// This function returns a Result<bool> but should never fail,
+    /// as it only performs file existence checks. The Result type is
+    /// used for consistency with other CVE validation functions.
     pub fn is_year_dir_exists(cve_root: &Path, year: &str) -> Result<bool> {
         let published_year_dir = cve_root.join("published").join(year);
         let rejected_year_dir = cve_root.join("rejected").join(year);

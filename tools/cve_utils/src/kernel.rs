@@ -45,7 +45,7 @@ impl Kernel {
     ///
     /// Note that the kernel object created here will return false for both `is_mainline()` and
     /// `is_rc()`.
-    pub fn empty_kernel() -> Self {
+    #[must_use] pub fn empty_kernel() -> Self {
         Self {
             version: "0".to_string(),
             git_id: "0".to_string(),
@@ -57,10 +57,18 @@ impl Kernel {
     /// `mainline` and `rc` attributes as needed
     ///
     /// If "0" is used as the git id, an "empty" kernel object will be created (i.e. the same
-    /// output of Kernel::empty_kernel()
+    /// output of `Kernel::empty_kernel()`
     ///
-    /// Should be always used, new() will be deprecated soon.
-    pub fn from_id(id: String) -> Result<Self> {
+    /// Should be always used, `new()` will be deprecated soon.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git repository cannot be opened
+    /// - The provided git ID is invalid or doesn't exist in the repository
+    /// - The Verhaal database cannot be accessed
+    /// - The kernel version for the git ID cannot be determined
+    pub fn from_id(id: &str) -> Result<Self> {
         // Allow "0" as an "empty kernel" so that bippy can work properly.
         if id == "0" {
             return Ok(Self::empty_kernel());
@@ -69,7 +77,7 @@ impl Kernel {
         // Verify, AND turn the id given to us into a "full" sha1
         let kernel_tree = Self::git_dir();
         let repo_path = Path::new(&kernel_tree);
-        let full_id = git_utils::get_full_sha(repo_path, &id)?;
+        let full_id = git_utils::get_full_sha(repo_path, id)?;
 
         let verhaal = Verhaal::new()?;
         let version = verhaal.get_version(&full_id)?;
@@ -80,15 +88,15 @@ impl Kernel {
         })
     }
 
-    pub fn git_id(&self) -> String {
+    #[must_use] pub fn git_id(&self) -> String {
         self.git_id.clone()
     }
 
-    pub fn version(&self) -> String {
+    #[must_use] pub fn version(&self) -> String {
         self.version.clone()
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[must_use] pub fn is_empty(&self) -> bool {
         if self.version == "0" && self.git_id == "0" {
             return true;
         }
@@ -96,7 +104,7 @@ impl Kernel {
     }
 
     /// Check if a kernel commit is in a mainline branch (i.e. Linus's), or in a stable branch
-    pub fn is_mainline(&self) -> bool {
+    #[must_use] pub fn is_mainline(&self) -> bool {
         // for a "NULL" kernel, we treat that as "not mainline"
         if self.git_id == "0" {
             return false;
@@ -106,7 +114,7 @@ impl Kernel {
     }
 
     /// Check if a kernel commit is in a RC version
-    pub fn is_rc_version(&self) -> bool {
+    #[must_use] pub fn is_rc_version(&self) -> bool {
         version_utils::version_is_rc(&self.version)
     }
 
@@ -115,29 +123,29 @@ impl Kernel {
             // Use cve_utils to get and validate the kernel tree path
             match common::get_kernel_tree() {
                 Ok(path) => path.to_string_lossy().into_owned(),
-                Err(e) => panic!("Failed to get kernel tree: {}", e),
+                Err(e) => panic!("Failed to get kernel tree: {e}"),
             }
         })
     }
 
     /// Return the "major" string portion of a kernel version string
     /// Used internally and also can be used externally as it might be useful for others.
-    pub fn major(&self) -> String {
+    #[must_use] pub fn major(&self) -> String {
         version_utils::kernel_version_major(&self.version)
     }
 
     /// Return true if X.Y matches in a kernel version (i.e. the major is the same)
-    pub fn version_major_match(&self, k: &Kernel) -> bool {
+    #[must_use] pub fn version_major_match(&self, k: &Kernel) -> bool {
         version_utils::version_major_match(&self.version, &k.version)
     }
 
     /// Get the RC number if this is an RC version
-    pub fn rc_number(&self) -> Option<u32> {
+    #[must_use] pub fn rc_number(&self) -> Option<u32> {
         version_utils::get_rc_number(&self.version)
     }
 
     /// Returns git ids in reverse sorted order in time (i.e. newest first)
-    pub fn git_sort_ids(ids: &Vec<String>) -> Vec<String> {
+    #[must_use] pub fn git_sort_ids(ids: &Vec<String>) -> Vec<String> {
         let kernel_tree = Self::git_dir();
         let repo_path = Path::new(&kernel_tree);
         git_utils::git_sort_ids(repo_path, ids)
@@ -145,7 +153,7 @@ impl Kernel {
 
     /// Compare the version numbers of a kernel.
     /// Will look in git if the version string is the same
-    pub fn compare(&self, k: &Kernel) -> Ordering {
+    #[must_use] pub fn compare(&self, k: &Kernel) -> Ordering {
         // Fast path: exact same version
         if self.version == k.version {
             // If versions match exactly, check git IDs
@@ -214,7 +222,7 @@ mod tests {
         k
     }
 
-    fn alloc_kernel_id(git_id: String) -> Kernel {
+    fn alloc_kernel_id(git_id: &str) -> Kernel {
         let k = match Kernel::from_id(git_id) {
             Ok(k) => k,
             Err(err) => panic!("{}", err),
@@ -255,7 +263,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Git SHA '111111' not found in kernel tree")]
     fn constructor_invalid_id() {
-        let _k = match Kernel::from_id("111111".to_string()) {
+        let _k = match Kernel::from_id("111111") {
             Ok(k) => k,
             Err(err) => panic!("{}", err),
         };
@@ -263,7 +271,7 @@ mod tests {
 
     #[test]
     fn constructor_valid_id() {
-        let k = match Kernel::from_id("2e13f88e01ae7e28a7e83".to_string()) {
+        let k = match Kernel::from_id("2e13f88e01ae7e28a7e83") {
             Ok(k) => k,
             Err(err) => panic!("{}", err),
         };
@@ -273,26 +281,26 @@ mod tests {
 
     #[test]
     fn constructor_valid_id_2() {
-        let mut k = alloc_kernel_id("e87e08c94c9541b4e18c4c13f2f605935f512605".to_string());
+        let mut k = alloc_kernel_id("e87e08c94c9541b4e18c4c13f2f605935f512605");
         assert_eq!(k.version(), "6.6.24");
         assert!(!k.is_mainline());
 
-        k = alloc_kernel_id("af054a5fb24a144f99895afce9519d709891894c".to_string());
+        k = alloc_kernel_id("af054a5fb24a144f99895afce9519d709891894c");
         assert_eq!(k.version(), "6.7.12");
         assert!(!k.is_mainline());
 
-        k = alloc_kernel_id("22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string());
+        k = alloc_kernel_id("22f665ecfd1225afa1309ace623157d12bb9bb0c");
         assert_eq!(k.version(), "6.8.3");
         assert!(!k.is_mainline());
 
-        k = alloc_kernel_id("22207fd5c80177b860279653d017474b2812af5e".to_string());
+        k = alloc_kernel_id("22207fd5c80177b860279653d017474b2812af5e");
         assert_eq!(k.version(), "6.9");
         assert!(k.is_mainline());
     }
 
     #[test]
     fn constructor_empty_kernel() {
-        let k = alloc_kernel_id("0".to_string());
+        let k = alloc_kernel_id("0");
         assert_eq!(k.version(), "0");
         assert_eq!(k.git_id(), "0");
     }

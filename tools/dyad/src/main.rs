@@ -149,7 +149,7 @@ fn main() {
     state.git_sha_full.clear(); // Clear any existing values
     for git_sha in &args.sha1 {
         let mut found_valid_sha = false;
-        match Kernel::from_id(git_sha.to_string()) {
+        match Kernel::from_id(git_sha) {
             Ok(kernel) => {
                 state.git_sha_full.push(kernel);
                 found_valid_sha = true;
@@ -162,7 +162,7 @@ fn main() {
                     if let Ok(git_sha_full) = cve_utils::get_full_sha(&path, git_sha) {
                         // It is valid, so let's make an "empty" kernel object and fill it in by hand
                         // without a valid version number just yet.
-                        if let Ok(kernel) = Kernel::from_id(git_sha_full) {
+                        if let Ok(kernel) = Kernel::from_id(&git_sha_full) {
                             state.git_sha_full.push(kernel);
                             found_valid_sha = true;
                         }
@@ -186,7 +186,7 @@ fn main() {
     // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
     let vuln_ids = args.vulnerable.clone();
     for vuln_id in vuln_ids {
-        match Kernel::from_id(vuln_id.to_string()) {
+        match Kernel::from_id(&vuln_id) {
             Ok(kernel) => state.vulnerable_sha.push(kernel),
             Err(_) => {
                 error!(

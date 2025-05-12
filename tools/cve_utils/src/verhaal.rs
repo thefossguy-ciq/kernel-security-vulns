@@ -33,7 +33,7 @@ where
     let mut stmt = match conn.prepare(sql) {
         Ok(s) => s,
         Err(e) => {
-            debug!("SQL prepare error: {:?} for query: {}", e, sql);
+            debug!("SQL prepare error: {e:?} for query: {sql}");
             return vec![];
         }
     };
@@ -41,7 +41,7 @@ where
     let rows = match stmt.query(params) {
         Ok(r) => r,
         Err(e) => {
-            debug!("SQL query error: {:?} for query: {}", e, sql);
+            debug!("SQL query error: {e:?} for query: {sql}");
             return vec![];
         }
     };
@@ -68,6 +68,10 @@ fn query_string(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> String {
 impl Verhaal {
     /// Create a new Verhaal object
     /// Will attempt to open a database connection with the file given
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the verhaal database cannot be opened or accessed
     pub fn new() -> Result<Self> {
         // Attempt to open the database connection
         let conn = Connection::open(Self::verhaal_database_file())?;
@@ -77,7 +81,13 @@ impl Verhaal {
 
     /// Returns the kernel version that this git sha is in
     /// If this is an invalid git sha, an error is returned
-    pub fn get_version(&self, git_sha: &String) -> Result<String> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git SHA is not found in the database
+    /// - The database query fails
+    pub fn get_version(&self, git_sha: &str) -> Result<String> {
         // Use our generic query function
         let versions = query_strings(
             &self.conn,
@@ -86,11 +96,11 @@ impl Verhaal {
         );
 
         if let Some(version) = versions.first() {
-            debug!("\t\tget_version: '{}' => '{:?}'", git_sha, version);
+            debug!("\t\tget_version: '{git_sha}' => '{version:?}'");
             return Ok(version.clone());
         }
 
-        debug!("\t\tget_version: '{}' => VERSION NOT FOUND", git_sha);
+        debug!("\t\tget_version: '{git_sha}' => VERSION NOT FOUND");
         Err(anyhow!("Version {} not found", git_sha))
     }
 
@@ -98,7 +108,14 @@ impl Verhaal {
     /// All kernels returned are actual commits, they are validated before returned as the database can
     /// contain "bad" data for fixes lines.
     /// If no fixes were found, an error is returned
-    pub fn get_fixes(&self, git_sha: &String) -> Result<Vec<Kernel>> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - No fixes for the given git SHA are found in the database
+    /// - The database query fails
+    /// - Creating a Kernel object from any of the fix IDs fails
+    pub fn get_fixes(&self, git_sha: &str) -> Result<Vec<Kernel>> {
         let mut fixed_kernels: Vec<Kernel> = vec![];
 
         let sql = "
@@ -117,7 +134,7 @@ impl Verhaal {
                     rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
                 for result in mapped_rows.flatten() {
-                    if let Ok(k) = Kernel::from_id(result.0) {
+                    if let Ok(k) = Kernel::from_id(&result.0) {
                         fixed_kernels.push(k);
                     }
                 }
@@ -135,8 +152,15 @@ impl Verhaal {
 
     /// Returns a sha for the revert if present
     /// If no revert is found, an error is returned
-    pub fn get_revert(&self, git_sha: &String) -> Result<Kernel> {
-        debug!("\tget_revert: '{}'", git_sha);
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - No revert for the given git SHA is found in the database
+    /// - The database query fails
+    /// - Creating a Kernel object from the revert ID fails
+    pub fn get_revert(&self, git_sha: &str) -> Result<Kernel> {
+        debug!("\tget_revert: '{git_sha}'");
 
         // Use our query_string function to get a single result
         let revert = query_string(
@@ -148,7 +172,7 @@ impl Verhaal {
         if revert.is_empty() {
             return Err(anyhow!("No revert for {} was found", git_sha));
         }
-        let k = match Kernel::from_id(revert) {
+        let k = match Kernel::from_id(&revert) {
             Ok(k) => k,
             Err(err) => return Err(anyhow!("{:?}", err)),
         };
@@ -158,7 +182,14 @@ impl Verhaal {
     /// Determines the list of kernels where a specific git sha has been backported to, both
     /// mainline and stable kernel releases, if any.
     /// If an error happened, or there are no fixes, an "empty" vector is returned.
-    pub fn found_in(&self, git_sha: &String, fixed_set: &[Kernel]) -> Result<Vec<Kernel>> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git SHA was not backported anywhere (no kernel matches found)
+    /// - The database query fails
+    /// - Creating a Kernel object from any of the backport IDs fails
+    pub fn found_in(&self, git_sha: &str, fixed_set: &[Kernel]) -> Result<Vec<Kernel>> {
         let mut kernels = Vec::new();
 
         // Find backported commits that aren't reverted in a single query
@@ -203,16 +234,13 @@ impl Verhaal {
 
                     // Skip if this commit reverts a stable commit (mainline = 0)
                     if mainline_values.iter().any(|&mainline| mainline == 0) {
-                        debug!(
-                            "\t\tfound_in: skipping {:?} as it reverts a stable commit",
-                            id
-                        );
+                        debug!("\t\tfound_in: skipping {id:?} as it reverts a stable commit");
                         continue;
                     }
                 }
 
                 // Add valid commit to the list
-                if let Ok(k) = Kernel::from_id(id) {
+                if let Ok(k) = Kernel::from_id(&id) {
                     kernels.push(k);
                 }
             }
@@ -225,7 +253,7 @@ impl Verhaal {
                 Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
             }) {
                 for result in mainline_rows.flatten() {
-                    if let Ok(k) = Kernel::from_id(result.0) {
+                    if let Ok(k) = Kernel::from_id(&result.0) {
                         kernels.push(k);
                     }
                 }
@@ -238,7 +266,7 @@ impl Verhaal {
 
         // Sort for deterministic results
         kernels.sort();
-        debug!("\t\tfound_in: {:?}", kernels);
+        debug!("\t\tfound_in: {kernels:?}");
 
         Ok(kernels)
     }
@@ -251,7 +279,7 @@ impl Verhaal {
         // Find the path to the verhaal.db database file using vulns dir
         let vulns_dir = match common::find_vulns_dir() {
             Ok(dir) => dir,
-            Err(e) => panic!("Could not find vulns directory: {}", e),
+            Err(e) => panic!("Could not find vulns directory: {e}"),
         };
 
         let verhaal_db_path = vulns_dir.join("tools").join("verhaal").join("verhaal.db");

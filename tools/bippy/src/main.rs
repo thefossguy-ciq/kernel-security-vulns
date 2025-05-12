@@ -64,7 +64,7 @@ impl DyadEntry {
         // Create the vulnerable and fixed kernels by the git id, verifying that this is a valid
         // git id AND that the version number is what dyad gave us so that we don't go off of crazy
         // information somehow.
-        let vulnerable_kernel = match Kernel::from_id(vulnerable_git.clone()) {
+        let vulnerable_kernel = match Kernel::from_id(&vulnerable_git) {
             Ok(v) => v,
             Err(_e) => return Err(BippyError::InvalidDyadGitId(vulnerable_git)),
         };
@@ -72,7 +72,7 @@ impl DyadEntry {
             return Err(BippyError::InvalidDyadVersion(vulnerable_version));
         }
 
-        let fixed_kernel = match Kernel::from_id(fixed_git.clone()) {
+        let fixed_kernel = match Kernel::from_id(&fixed_git) {
             Ok(v) => v,
             Err(_e) => return Err(BippyError::InvalidDyadGitId(fixed_git)),
         };

@@ -22,7 +22,8 @@ pub struct KernelVersion {
 }
 
 impl KernelVersion {
-    /// Creates a new KernelVersion from parsed components
+    /// Creates a new `KernelVersion` from parsed components
+    #[must_use]
     pub fn new(
         components: Vec<u32>,
         rc_num: Option<u32>,
@@ -38,6 +39,7 @@ impl KernelVersion {
     }
 
     /// Returns whether this is a release candidate version
+    #[must_use]
     pub fn is_rc(&self) -> bool {
         // A version is considered an RC if it has "-rc" in its representation,
         // even if we couldn't parse a valid RC number
@@ -45,11 +47,13 @@ impl KernelVersion {
     }
 
     /// Returns whether this is a queue version
+    #[must_use]
     pub fn is_queue(&self) -> bool {
         self.is_queue
     }
 
     /// Returns whether this is a mainline version (e.g., 5.10, not 5.10.7)
+    #[must_use]
     pub fn is_mainline(&self) -> bool {
         if self.components.is_empty() || self.components[0] == 0 {
             return false;
@@ -78,6 +82,7 @@ impl KernelVersion {
     }
 
     /// Gets the major version (e.g., "5.10" from "5.10.7")
+    #[must_use]
     pub fn major_version(&self) -> String {
         if self.components.is_empty() {
             return String::new();
@@ -97,6 +102,7 @@ impl KernelVersion {
     }
 
     /// Checks if the major version matches another kernel version
+    #[must_use]
     pub fn major_matches(&self, other: &KernelVersion) -> bool {
         !self.major_version().is_empty()
             && !other.major_version().is_empty()
@@ -193,6 +199,7 @@ impl Ord for KernelVersion {
 // Wrapper functions to maintain backward compatibility
 
 /// Check if a kernel version is a release candidate (ends with -rc)
+#[must_use]
 pub fn version_is_rc(version: &str) -> bool {
     KernelVersion::from_str(version)
         .map(|v| v.is_rc())
@@ -200,6 +207,7 @@ pub fn version_is_rc(version: &str) -> bool {
 }
 
 /// Check if a kernel version is a queue (ends with -queue)
+#[must_use]
 pub fn version_is_queue(version: &str) -> bool {
     KernelVersion::from_str(version)
         .map(|v| v.is_queue())
@@ -207,6 +215,7 @@ pub fn version_is_queue(version: &str) -> bool {
 }
 
 /// Check if a version is a mainline kernel version
+#[must_use]
 pub fn version_is_mainline(version: &str) -> bool {
     KernelVersion::from_str(version)
         .map(|v| v.is_mainline())
@@ -214,6 +223,7 @@ pub fn version_is_mainline(version: &str) -> bool {
 }
 
 /// Extract the "major" portion of a kernel version string
+#[must_use]
 pub fn kernel_version_major(version: &str) -> String {
     KernelVersion::from_str(version)
         .map(|v| v.major_version())
@@ -221,6 +231,7 @@ pub fn kernel_version_major(version: &str) -> String {
 }
 
 /// Check if the major version components of two kernel versions match
+#[must_use]
 pub fn version_major_match(version1: &str, version2: &str) -> bool {
     match (
         KernelVersion::from_str(version1),
@@ -232,11 +243,13 @@ pub fn version_major_match(version1: &str, version2: &str) -> bool {
 }
 
 /// Get the RC number from a kernel version if present
+#[must_use]
 pub fn get_rc_number(version: &str) -> Option<u32> {
     KernelVersion::from_str(version).ok()?.rc_num
 }
 
 /// Compare two kernel versions
+#[must_use]
 pub fn compare_kernel_versions(version1: &str, version2: &str) -> Ordering {
     // Fast path: exact same version
     if version1 == version2 {
