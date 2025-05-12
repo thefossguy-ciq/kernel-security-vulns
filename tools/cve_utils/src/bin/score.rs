@@ -120,7 +120,7 @@ impl ReviewerData {
 }
 
 /// Collect all reviewer names and their reviewed files
-fn collect_reviewers_and_files(review_dir: &Path) -> Result<HashMap<String, Vec<PathBuf>>> {
+fn collect_reviewers_and_files(review_dir: &Path) -> HashMap<String, Vec<PathBuf>> {
     let mut reviewer_files: HashMap<String, Vec<PathBuf>> = HashMap::new();
 
     // Single pass through all files to collect reviewers and their files
@@ -150,7 +150,7 @@ fn collect_reviewers_and_files(review_dir: &Path) -> Result<HashMap<String, Vec<
             }
         });
 
-    Ok(reviewer_files)
+    reviewer_files
 }
 
 /// Extract version from filename
@@ -167,15 +167,15 @@ type ReviewMap = HashMap<String, HashMap<String, HashSet<String>>>;
 
 /// Process all reviewers in parallel and collect statistics
 fn process_reviewers(
-    reviewer_files: HashMap<String, Vec<PathBuf>>,
-    cve_database: Arc<CVEDatabase>,
-) -> Result<Vec<(String, ReviewerData)>> {
+    reviewer_files: &HashMap<String, Vec<PathBuf>>,
+    cve_database: &Arc<CVEDatabase>,
+) -> Vec<(String, ReviewerData)> {
     // Collect all reviews into shared data structure
     let all_reviews: Arc<Mutex<ReviewMap>> =
         Arc::new(Mutex::new(HashMap::new()));
 
     // Calculate total number of files to process for progress bar
-    let total_files: usize = reviewer_files.values().map(|files| files.len()).sum();
+    let total_files: usize = reviewer_files.values().map(Vec::len).sum();
     let progress = Arc::new(Mutex::new(ProgressBar::new(total_files as u64)));
     progress.lock().unwrap().set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
@@ -265,7 +265,7 @@ fn process_reviewers(
         })
         .collect();
 
-    Ok(reviewer_data_vec)
+    reviewer_data_vec
 }
 
 fn main() -> Result<()> {
@@ -289,7 +289,7 @@ fn main() -> Result<()> {
     let vulns_dir = match common::find_vulns_dir() {
         Ok(dir) => dir,
         Err(e) => {
-            eprintln!("Error finding vulns directory: {}", e);
+            eprintln!("Error finding vulns directory: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -325,7 +325,7 @@ fn main() -> Result<()> {
     let cve_database = match CVEDatabase::new(&published_dir) {
         Ok(db) => Arc::new(db),
         Err(e) => {
-            eprintln!("Error loading CVE database: {}", e);
+            eprintln!("Error loading CVE database: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -333,24 +333,28 @@ fn main() -> Result<()> {
 
     // Collect reviewers and their files
     println!("Collecting reviewer information...");
-    let reviewer_files = collect_reviewers_and_files(&review_dir)?;
+    let reviewer_files = collect_reviewers_and_files(&review_dir);
     println!("Found {} reviewers to process", reviewer_files.len());
     println!();
 
     // Process all reviewers in parallel
     println!("Processing reviewers...");
-    let mut results = process_reviewers(reviewer_files, cve_database)?;
+    let mut results = process_reviewers(&reviewer_files, &cve_database);
 
     // Sort by hit percentage (descending)
     results.sort_by(|(_, a), (_, b)| {
         let a_pct = if a.total_predictions > 0 {
-            a.correct_predictions as f64 / a.total_predictions as f64
+            #[allow(clippy::cast_precision_loss)]
+            let pct = a.correct_predictions as f64 / a.total_predictions as f64;
+            pct
         } else {
             0.0
         };
 
         let b_pct = if b.total_predictions > 0 {
-            b.correct_predictions as f64 / b.total_predictions as f64
+            #[allow(clippy::cast_precision_loss)]
+            let pct = b.correct_predictions as f64 / b.total_predictions as f64;
+            pct
         } else {
             0.0
         };
@@ -364,9 +368,13 @@ fn main() -> Result<()> {
             continue;
         }
 
+        #[allow(clippy::cast_precision_loss)]
         let hit_percentage = (data.correct_predictions as f64 / data.total_predictions as f64) * 100.0;
+
         let missed_percentage = if data.total_possible_consensus > 0 {
-            (data.missed_consensus as f64 / data.total_possible_consensus as f64) * 100.0
+            #[allow(clippy::cast_precision_loss)]
+            let pct = (data.missed_consensus as f64 / data.total_possible_consensus as f64) * 100.0;
+            pct
         } else {
             0.0
         };
@@ -438,7 +446,7 @@ mod tests {
         let cve_database = Arc::new(CVEDatabase::new(&published_dir).unwrap());
 
         // Collect reviewer information
-        let reviewer_files = collect_reviewers_and_files(&review_dir).unwrap();
+        let reviewer_files = collect_reviewers_and_files(&review_dir);
 
         if reviewer_files.is_empty() {
             return; // Skip if no reviewers found
@@ -450,7 +458,7 @@ mod tests {
         let test_data = HashMap::from([(test_reviewer, test_files)]);
 
         // Process the test reviewer
-        let results = process_reviewers(test_data, cve_database).unwrap();
+        let results = process_reviewers(&test_data, &cve_database);
 
         // Just verify we got a result
         assert!(!results.is_empty());
