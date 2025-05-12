@@ -1,0 +1,34 @@
+a0bf86a120d7 ASoC: renesas: rz-ssi: Use NOIRQ_SYSTEM_SLEEP_PM_OPS()
+396f40027100 btrfs: adjust subpage bit start based on sectorsize
+333579202f09 arm64: errata: Add missing sentinels to Spectre-BHB MIDR arrays
+df3592e493d7 parisc: Fix double SIGFPE crash
+d5c10448f411 irqchip/qcom-mpm: Prevent crash when trying to handle non-wake GPIOs
+69a37b3ba850 dm-bufio: don't schedule in atomic context
+0b7c1bf09dce dm: always update the array size in realloc_argv on success
+c8bdfc029796 iommu/amd: Fix potential buffer overflow in parse_ivrs_acpihid
+47a17be21a62 iommu/arm-smmu-v3: Fix iommu_device_probe bug due to duplicated stream ids
+6323fec65fe5 ksmbd: fix use-after-free in ksmbd_session_rpc_open
+28c756738af4 ksmbd: fix use-after-free in kerberos authentication
+02d16046cd11 ksmbd: fix use-after-free in session logoff
+c5d2b66c5ef5 tracing: Fix oob write in trace_seq_to_buffer()
+a1356ac7749c xsk: Fix race condition in AF_XDP generic RX path
+6d9b64156d84 ASoC: amd: acp: Fix NULL pointer deref in acp_i2s_set_tdm_slot
+0317b033abcd Bluetooth: btusb: avoid NULL pointer dereference in skb_dequeue()
+8548c84c004b octeon_ep_vf: Resolve netdevice usage count issue
+6fe086601448 net: ethernet: mtk-star-emac: fix spinlock recursion issues on rx/tx poll
+dfd76010f8e8 pds_core: remove write-after-free of client_id
+141d34391abb net_sched: hfsc: Fix a UAF vulnerability in class with netem as child qdisc
+56f1f30e6795 ALSA: ump: Fix buffer overflow at UMP SysEx message conversion
+48ccf21fa8dc drm/tests: shmem: Fix memleak
+8a558cbda51b idpf: fix potential memory leak on kcalloc() failure
+6e0490fc36cd net: ethernet: mtk_eth_soc: fix SER panic with 4GB+ RAM
+6b87bd94f343 bnxt_en: Fix out-of-bound memcpy() during ethtool -w
+927069d5c40c bnxt_en: fix module unload sequence
+f920436a4429 net: use sock_gen_put() when sk_state is TCP_TIME_WAIT
+e98386d79a23 ptp: ocp: Fix NULL dereference in Adva board SMA sysfs operations
+b9b70924a272 accel/ivpu: Fix locking order in ivpu_job_submit
+f40139fde527 ublk: fix race between io_uring_cmd_complete_in_task and ublk_cancel_cmd
+866bafae59ec btrfs: zoned: skip reporting zone for new block group
+48c1d1bb525b btrfs: fix the inode leak in btrfs_iget()
+be593d9d91c5 drm/amd/display: Fix slab-use-after-free in hdcp
+a27cbadb995f dm: fix copying after src array boundaries
