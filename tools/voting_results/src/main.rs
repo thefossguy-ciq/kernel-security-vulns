@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result, anyhow};
 use clap::Parser;
-use colored::*;
+use owo_colors::OwoColorize;
 use git2::Repository;
 use lazy_static::lazy_static;
 use regex::Regex;
