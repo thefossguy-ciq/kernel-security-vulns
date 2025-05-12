@@ -37,15 +37,6 @@ pub struct Kernel {
 }
 
 impl Kernel {
-    /// Create a new Kernel object
-    /// `mainline` and `rc` attributes will be determined when created
-    //#[deprecated(note = "Should use from_id() instead")]
-    pub fn new(v: String, g: String) -> Result<Self> {
-        Ok(Self {
-            version: v,
-            git_id: g,
-        })
-    }
 
     /// Creates an "empty" kernel object.
     ///
@@ -82,7 +73,11 @@ impl Kernel {
 
         let verhaal = Verhaal::new()?;
         let version = verhaal.get_version(&full_id)?;
-        Self::new(version, full_id)
+
+        Ok(Self {
+            version,
+            git_id: full_id,
+        })
     }
 
     pub fn git_id(&self) -> String {
@@ -207,16 +202,16 @@ mod tests {
     use crate::Kernel;
     use std::cmp::Ordering;
 
-    // Helper function to ALWAYS allocate a kernel object for testing.
+    // Helper function to create a kernel object for testing.
     // Not generally a good idea to do (allocation can fail if you provide
-    // an invalid git id, but good enough for testing, as we "know" what
+    // an invalid git id), but good enough for testing, as we "know" what
     // we are doing here.  Hopefully...
     fn alloc_kernel(version: String, git_id: String) -> Kernel {
-        if let Ok(k) = Kernel::new(version, git_id) {
-            return k;
-        } else {
-            return Kernel::empty_kernel();
-        }
+        // Create an empty kernel and set its fields directly
+        let mut k = Kernel::empty_kernel();
+        k.version = version;
+        k.git_id = git_id;
+        k
     }
 
     fn alloc_kernel_id(git_id: String) -> Kernel {

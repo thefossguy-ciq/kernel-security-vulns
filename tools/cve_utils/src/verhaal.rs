@@ -117,7 +117,7 @@ impl Verhaal {
                     rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
                 for result in mapped_rows.flatten() {
-                    if let Ok(k) = Kernel::new(result.1, result.0) {
+                    if let Ok(k) = Kernel::from_id(result.0) {
                         fixed_kernels.push(k);
                     }
                 }
@@ -187,6 +187,7 @@ impl Verhaal {
             for result in commit_rows.flatten() {
                 // Unpack the tuple
                 let (id, release, reverts) = result;
+                let _ = release; // Unused but needed for tuple deconstruction
 
                 // Skip if already in fixed set
                 if fixed_set.iter().any(|k| k.git_id() == id) {
@@ -211,7 +212,7 @@ impl Verhaal {
                 }
 
                 // Add valid commit to the list
-                if let Ok(k) = Kernel::new(release, id) {
+                if let Ok(k) = Kernel::from_id(id) {
                     kernels.push(k);
                 }
             }
@@ -224,7 +225,7 @@ impl Verhaal {
                 Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
             }) {
                 for result in mainline_rows.flatten() {
-                    if let Ok(k) = Kernel::new(result.1, result.0) {
+                    if let Ok(k) = Kernel::from_id(result.0) {
                         kernels.push(k);
                     }
                 }

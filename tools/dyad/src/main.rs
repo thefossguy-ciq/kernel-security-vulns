@@ -162,7 +162,7 @@ fn main() {
                     if let Ok(git_sha_full) = cve_utils::get_full_sha(&path, git_sha) {
                         // It is valid, so let's make an "empty" kernel object and fill it in by hand
                         // without a valid version number just yet.
-                        if let Ok(kernel) = Kernel::new("0".to_string(), git_sha_full) {
+                        if let Ok(kernel) = Kernel::from_id(git_sha_full) {
                             state.git_sha_full.push(kernel);
                             found_valid_sha = true;
                         }
