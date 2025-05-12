@@ -33,7 +33,7 @@ struct Args {
     batch: Option<PathBuf>,
 }
 
-fn main() -> Result<()> {
+fn main() {
     let logging_level: log::LevelFilter = log::LevelFilter::Error;
     let args = Args::parse();
 
@@ -51,23 +51,21 @@ fn main() -> Result<()> {
     // Process a batch file if provided
     if let Some(batch_file) = args.batch {
         if let Err(e) = process_batch_file(&batch_file) {
-            error!("Error processing batch file: {}", e);
+            error!("Error processing batch file: {e}");
             print_git_error_details(&e);
             std::process::exit(1);
         }
-        return Ok(());
+        return;
     }
 
     // Process a single Git SHA
     if let Some(git_sha) = args.git_sha {
         if let Err(e) = create_cve(&git_sha, args.cve_id.as_deref()) {
-            error!("Error creating CVE: {}", e);
+            error!("Error creating CVE: {e}");
             print_git_error_details(&e);
             std::process::exit(1);
         }
     }
-
-    Ok(())
 }
 
 /// Process a batch file containing Git SHAs
@@ -202,19 +200,18 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     let published_file = published_dir.join(&cve_id);
 
     fs::rename(&reserved_file, &published_file).context(format!(
-        "Failed to move CVE ID from reserved to published: {}",
-        cve_id
+        "Failed to move CVE ID from reserved to published: {cve_id}"
     ))?;
 
     // Create the SHA1 file
-    let sha1_file = published_dir.join(format!("{}.sha1", cve_id));
+    let sha1_file = published_dir.join(format!("{cve_id}.sha1"));
     fs::write(&sha1_file, &git_sha_full).context(format!(
         "Failed to create SHA1 file: {}",
         sha1_file.display()
     ))?;
 
     // Check for .vulnerable file and collect SHAs
-    let vulnerable_file = published_dir.join(format!("{}.vulnerable", cve_id));
+    let vulnerable_file = published_dir.join(format!("{cve_id}.vulnerable"));
     let mut vulnerable_shas = Vec::new();
     if vulnerable_file.exists() {
         let contents = fs::read_to_string(&vulnerable_file)?;
@@ -227,8 +224,8 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     }
 
     // Generate JSON and mbox files using bippy
-    let json_file = published_dir.join(format!("{}.json", cve_id));
-    let mbox_file = published_dir.join(format!("{}.mbox", cve_id));
+    let json_file = published_dir.join(format!("{cve_id}.json"));
+    let mbox_file = published_dir.join(format!("{cve_id}.mbox"));
 
     // Build bippy command with full path from vulns dir
     let vulns_dir = match cve_utils::common::find_vulns_dir() {
@@ -242,14 +239,14 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     let mut bippy_cmd = Command::new(&bippy_path);
     bippy_cmd
         //.arg("--verbose")
-        .arg(format!("--cve={}", cve_id))
-        .arg(format!("--sha={}", git_sha_full))
+        .arg(format!("--cve={cve_id}"))
+        .arg(format!("--sha={git_sha_full}"))
         .arg(format!("--json={}", json_file.display()))
         .arg(format!("--mbox={}", mbox_file.display()));
 
     // Add vulnerable SHAs if any
     for sha in &vulnerable_shas {
-        bippy_cmd.arg(format!("--vulnerable={}", sha));
+        bippy_cmd.arg(format!("--vulnerable={sha}"));
     }
 
     //    println!("Running bippy command:");
@@ -264,14 +261,13 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
 
     let result = bippy_cmd
         .status()
-        .context(format!("Failed to execute bippy: {}", bippy_path_str))?;
+        .context(format!("Failed to execute bippy: {bippy_path_str}"))?;
 
     // Handle bippy failure
     if !result.success() {
         // Revert changes
         fs::rename(&published_file, &reserved_file).context(format!(
-            "Failed to revert CVE ID move after bippy failure: {}",
-            cve_id
+            "Failed to revert CVE ID move after bippy failure: {cve_id}"
         ))?;
 
         fs::remove_file(sha1_file).context("Failed to remove SHA1 file after bippy failure")?;
@@ -297,7 +293,7 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
 
 /// Find if a CVE already exists for a given Git SHA
 ///
-/// Uses the common find_cve_by_sha function to check if a CVE exists for the given SHA.
+/// Uses the common `find_cve_by_sha` function to check if a CVE exists for the given SHA.
 fn find_existing_cve(git_sha: &str) -> Result<Option<String>> {
     let cve_root = get_cve_root()?;
     Ok(find_cve_by_sha(&cve_root, git_sha))
@@ -470,7 +466,7 @@ mod tests {
         assert!(published_file.exists());
 
         // Create a SHA1 file
-        let sha1_file = published_dir.join(format!("{}.sha1", cve_id));
+        let sha1_file = published_dir.join(format!("{cve_id}.sha1"));
         let git_sha = "abcdef1234567890abcdef1234567890abcdef12";
         fs::write(&sha1_file, git_sha).unwrap();
 
