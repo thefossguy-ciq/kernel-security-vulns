@@ -1,0 +1,15 @@
+58f6217e5d01 perf/x86/intel: KVM: Mask PEBS_ENABLE loaded for guest with vCPU's value.
+38a05c0b8783 irqchip/qcom-mpm: Prevent crash when trying to handle non-wake GPIOs
+30a3f2f3e4bd iommu: Fix two issues in iommu_copy_struct_from_user()
+2fc9feff45d9 ksmbd: fix use-after-free in session logoff
+534f5a8ba278 powerpc64/ftrace: fix module loading without patchable function entries
+0fb15ae3b0a9 wifi: plfxlc: Remove erroneous assert in plfxlc_mac_release
+8e4d3d8a5e51 spi: spi-mem: Add fix to avoid divide error
+56f1f30e6795 ALSA: ump: Fix buffer overflow at UMP SysEx message conversion
+6e0490fc36cd net: ethernet: mtk_eth_soc: fix SER panic with 4GB+ RAM
+9ab7a709c926 bnxt_en: Fix error handling path in bnxt_init_chip()
+3cc393d2232e ASoC: simple-card-utils: Fix pointer check in graph_util_parse_link_direction
+927069d5c40c bnxt_en: fix module unload sequence
+f920436a4429 net: use sock_gen_put() when sk_state is TCP_TIME_WAIT
+34f42736b325 octeon_ep: Fix host hang issue during device reboot
+5ba8b837b522 sch_htb: make htb_qlen_notify() idempotent
