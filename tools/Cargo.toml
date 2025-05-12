@@ -1,9 +1,14 @@
+
 [package]
 name = "vuln_utils"
 version = "1.2.0"
 authors = ["Greg Kroah-Hartman <gregkh@linuxfoundation.org>", "Sasha Levin <sashal@kernel.org>" ]
 license = "GPL-2.0"
 edition = "2024"
+
+[features]
+default = []
+cuda = ["commit-classifier/cuda"]
 
 [dependencies]
 env_logger = "0.11.6"
@@ -31,6 +36,11 @@ dialoguer = "0.11"
 rayon = "1.8"
 indicatif = "0.17.7"
 rand = "0.9"
+# CVE Classifier dependencies
+commit-classifier = { git = "https://git.sr.ht/~sashal/commit-classifier", default-features = false }
+shellexpand = "3.1"
+sha2 = "0.10"
+tokio = { version = "1.34", features = ["full"] }
 
 [dev-dependencies]
 assert_cmd = "2.0"
@@ -88,6 +98,10 @@ path = "cve_utils/src/bin/score.rs"
 [[bin]]
 name = "cve_stats"
 path = "cve_utils/src/bin/cve_stats.rs"
+
+[[bin]]
+name = "cve_classifier"
+path = "cve_classifier/src/main.rs"
 
 [[test]]
 name = "dyad"
