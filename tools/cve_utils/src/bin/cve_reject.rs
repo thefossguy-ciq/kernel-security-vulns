@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     let _kernel_tree = match common::get_kernel_tree() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -42,7 +42,7 @@ fn main() -> Result<()> {
     let cve_root = match common::get_cve_root() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -52,7 +52,7 @@ fn main() -> Result<()> {
     let is_valid = match cve_validation::is_valid_cve(&cve_root, &args.cve_entry) {
         Ok(valid) => valid,
         Err(e) => {
-            eprintln!("Error verifying CVE: {}", e);
+            eprintln!("Error verifying CVE: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -66,7 +66,7 @@ fn main() -> Result<()> {
     let year = match cve_validation::extract_year_from_cve(&args.cve_entry) {
         Ok(year) => year,
         Err(e) => {
-            eprintln!("Error extracting year from CVE: {}", e);
+            eprintln!("Error extracting year from CVE: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -81,7 +81,7 @@ fn main() -> Result<()> {
     let user_email = match git_config::get_git_config("user.email") {
         Ok(email) => email,
         Err(e) => {
-            eprintln!("Error getting git user email: {}", e);
+            eprintln!("Error getting git user email: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -89,16 +89,26 @@ fn main() -> Result<()> {
     let user_name = match git_config::get_git_config("user.name") {
         Ok(name) => name,
         Err(e) => {
-            eprintln!("Error getting git user name: {}", e);
+            eprintln!("Error getting git user name: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
     };
 
     // First check if the CVE is in the published directory
-    let published_files = find_cve_files(&published_dir, &args.cve_entry)?;
+    let published_files = find_cve_files(&published_dir, &args.cve_entry);
 
-    if !published_files.is_empty() {
+    if published_files.is_empty() {
+        // Check if the CVE is in the reserved directory
+        let reserved_files = find_cve_files(&reserved_dir, &args.cve_entry);
+
+        if reserved_files.is_empty() {
+            // Not found in published or reserved area
+            return Err(anyhow!("CVE entry {} not found in published or reserved directories",
+                               args.cve_entry.cyan()));
+        }
+        reject_reserved_cve(&args.cve_entry, &reserved_files, &rejected_dir)?;
+    } else {
         reject_published_cve(
             &args.cve_entry,
             &published_files,
@@ -106,17 +116,6 @@ fn main() -> Result<()> {
             &user_name,
             &user_email
         )?;
-    } else {
-        // Check if the CVE is in the reserved directory
-        let reserved_files = find_cve_files(&reserved_dir, &args.cve_entry)?;
-
-        if !reserved_files.is_empty() {
-            reject_reserved_cve(&args.cve_entry, &reserved_files, &rejected_dir)?;
-        } else {
-            // Not found in published or reserved area
-            return Err(anyhow!("CVE entry {} not found in published or reserved directories",
-                               args.cve_entry.cyan()));
-        }
     }
 
     // Print instructions for rejecting the CVE with cve.org
@@ -155,10 +154,10 @@ fn reject_published_cve(
     }
 
     // Create the rejection email message
-    let rejected_mbox_path = rejected_dir.join(format!("{}.mbox.rejected", cve_entry));
+    let rejected_mbox_path = rejected_dir.join(format!("{cve_entry}.mbox.rejected"));
 
     // Get necessary info from the original mbox file
-    let original_mbox_path = rejected_dir.join(format!("{}.mbox", cve_entry));
+    let original_mbox_path = rejected_dir.join(format!("{cve_entry}.mbox"));
     let original_mbox_content = fs::read_to_string(&original_mbox_path)
         .context(format!("Failed to read original mbox file at {}", original_mbox_path.display()))?;
 
@@ -177,17 +176,16 @@ fn reject_published_cve(
 
     // Create and write the rejection email
     let rejection_content = format!(
-        "From {}-version Mon Sep 17 00:00:00 2001
-From: {} <{}>
+        "From {script_path}-version Mon Sep 17 00:00:00 2001
+From: {user_name} <{user_email}>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: REJECTED:{}
-In-Reply-To: {}
+Subject: REJECTED:{subject}
+In-Reply-To: {message_id}
 
 
-{} has now been rejected and is no longer a valid CVE.
-",
-        script_path, user_name, user_email, subject, message_id, cve_entry
+{cve_entry} has now been rejected and is no longer a valid CVE.
+"
     );
 
     fs::write(&rejected_mbox_path, rejection_content)
@@ -225,11 +223,11 @@ fn reject_reserved_cve(
 }
 
 /// Find all files related to a CVE entry in a directory
-fn find_cve_files(dir: &Path, cve_entry: &str) -> Result<Vec<PathBuf>> {
+fn find_cve_files(dir: &Path, cve_entry: &str) -> Vec<PathBuf> {
     let mut files = Vec::new();
 
     if dir.exists() {
-        for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
             let path = entry.path();
             if path.is_file() {
                 // Try the consolidated extraction function
@@ -242,14 +240,14 @@ fn find_cve_files(dir: &Path, cve_entry: &str) -> Result<Vec<PathBuf>> {
         }
     }
 
-    Ok(files)
+    files
 }
 
 /// Extract a header value from mbox content
 fn extract_header<'a>(content: &'a str, header: &str) -> Result<&'a str> {
     for line in content.lines() {
-        if line.starts_with(&format!("{}: ", header)) {
-            return Ok(line.split_once(": ").map(|(_, v)| v).unwrap_or(""));
+        if line.starts_with(&format!("{header}: ")) {
+            return Ok(line.split_once(": ").map_or("", |(_, v)| v));
         }
     }
 
@@ -290,11 +288,11 @@ mod tests {
         fs::write(temp_path.join("unrelated.txt"), "").unwrap();
 
         // Test finding the files
-        let files = find_cve_files(temp_path, cve_id).unwrap();
+        let files = find_cve_files(temp_path, cve_id);
         assert_eq!(files.len(), 4, "Should find exactly 4 files");
 
         // Test with non-existent CVE
-        let files = find_cve_files(temp_path, "NON-EXISTENT").unwrap();
+        let files = find_cve_files(temp_path, "NON-EXISTENT");
         assert_eq!(files.len(), 0, "Should find 0 files for non-existent CVE");
     }
 
@@ -348,7 +346,7 @@ This is a test CVE entry.
 
         // Perform the rejection manually
         // 1. Move the files
-        let published_files = find_cve_files(&published_dir, cve_id).unwrap();
+        let published_files = find_cve_files(&published_dir, cve_id);
         assert_eq!(published_files.len(), 4, "Should have 4 published files");
 
         for file in &published_files {
@@ -380,11 +378,11 @@ In-Reply-To: {}
 
         // Verify the results
         // 1. Published directory should be empty
-        let published_files_after = find_cve_files(&published_dir, cve_id).unwrap();
+        let published_files_after = find_cve_files(&published_dir, cve_id);
         assert_eq!(published_files_after.len(), 0, "Published directory should be empty");
 
         // 2. Rejected directory should have 5 files (4 original + the rejection email)
-        let rejected_files = find_cve_files(&rejected_dir, cve_id).unwrap();
+        let rejected_files = find_cve_files(&rejected_dir, cve_id);
         assert_eq!(rejected_files.len(), 5, "Should have 5 files in rejected directory");
 
         // 3. Check if rejection email was created with the correct format
@@ -434,7 +432,7 @@ This is a test CVE entry for workflow testing.
         assert_eq!(extracted_year, year, "Year should be extracted correctly");
 
         // 3. Find the files
-        let files = find_cve_files(&published_dir, cve_id).unwrap();
+        let files = find_cve_files(&published_dir, cve_id);
         assert_eq!(files.len(), 4, "Should find exactly 4 files");
 
         // 4. Create rejected directory
@@ -476,11 +474,11 @@ In-Reply-To: {}
 
         // Verify the results
         // 1. All files should be moved
-        let published_files_after = find_cve_files(&published_dir, cve_id).unwrap();
+        let published_files_after = find_cve_files(&published_dir, cve_id);
         assert_eq!(published_files_after.len(), 0, "Published directory should be empty");
 
         // 2. Rejected directory should have the files
-        let rejected_files = find_cve_files(&rejected_dir, cve_id).unwrap();
+        let rejected_files = find_cve_files(&rejected_dir, cve_id);
         assert_eq!(rejected_files.len(), 5, "Should have 5 files in rejected directory (4 original + rejection)");
 
         // 3. Check rejection email content
