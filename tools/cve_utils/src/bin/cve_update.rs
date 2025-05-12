@@ -45,7 +45,7 @@ fn main() -> Result<()> {
     let cve_root = match common::get_cve_root() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
             print_git_error_details(&e);
             std::process::exit(1);
         }
@@ -73,7 +73,7 @@ fn main() -> Result<()> {
             // Check if target is a year
             Ok(None) if is_valid_year(target) && is_year_dir_exists(&cve_root, target).unwrap_or(false) => {
                 if let Err(e) = update_year(target, num_threads, args.dry_run) {
-                    eprintln!("Error updating year {}: {}", target, e);
+                    eprintln!("Error updating year {target}: {e}");
                     print_git_error_details(&e);
                     return Err(e);
                 }
@@ -82,7 +82,7 @@ fn main() -> Result<()> {
                 return Err(anyhow!("{} is not a valid CVE ID or year with published entries", target));
             }
             Err(e) => {
-                eprintln!("Error: {}", e);
+                eprintln!("Error: {e}");
                 print_git_error_details(&e);
                 return Err(e);
             }
@@ -91,7 +91,7 @@ fn main() -> Result<()> {
         // No target specified, update all years
         println!("Updating all published CVE entries");
         if let Err(e) = update_all_years(&cve_root, num_threads, args.dry_run) {
-            eprintln!("Error updating all years: {}", e);
+            eprintln!("Error updating all years: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -146,7 +146,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
     let sha1_files: Vec<PathBuf> = WalkDir::new(&year_dir)
         .max_depth(1)
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
         .filter(|e| e.path().extension().is_some_and(|ext| ext == "sha1"))
         .map(|e| e.path().to_path_buf())
         .collect();
@@ -160,7 +160,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
     }
 
     if total_count == 0 {
-        println!("  No CVEs found for year {}", year);
+        println!("  No CVEs found for year {year}");
         return Ok(());
     }
 
@@ -212,7 +212,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
                     if let Err(ref e) = result {
                         // Store errors for later display
                         let mut results = update_results.lock().unwrap();
-                        results.push((cve_id.to_string(), format!("ERROR: {}", e)));
+                        results.push((cve_id.to_string(), format!("ERROR: {e}")));
                     } else if let Ok(ref updated_files) = result {
                         if !updated_files.is_empty() {
                             // Store successful updates
@@ -255,6 +255,45 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
 
 /// Update a single CVE entry
 fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
+    // Process files and extract metadata
+    let cve_data = prepare_cve_files(sha1_file)?;
+
+    if dry_run {
+        return Ok(Vec::new());
+    }
+
+    // Run bippy on the files and collect updated file paths
+    let updated_files = run_bippy_and_update_files(
+        sha1_file,
+        &cve_data.cve_id,
+        &cve_data.shas,
+        &cve_data.vulnerable_shas,
+        &cve_data.root_path,
+        cve_data.has_diff_file,
+        cve_data.has_reference_file
+    )?;
+
+    Ok(updated_files)
+}
+
+/// Struct to hold CVE file preparation results
+struct CveFileData {
+    /// The CVE identifier
+    cve_id: String,
+    /// List of SHA values from the .sha1 file
+    shas: Vec<String>,
+    /// List of vulnerable SHA values from the .vulnerable file (if exists)
+    vulnerable_shas: Vec<String>,
+    /// Path to the CVE root directory
+    root_path: PathBuf,
+    /// Whether a .diff file exists
+    has_diff_file: bool,
+    /// Whether a .reference file exists
+    has_reference_file: bool,
+}
+
+/// Prepare CVE files and extract metadata
+fn prepare_cve_files(sha1_file: &Path) -> Result<CveFileData> {
     // Read the SHA1 file and split into individual SHAs
     let sha_content = fs::read_to_string(sha1_file)
         .context(format!("Failed to read SHA1 file: {}", sha1_file.display()))?;
@@ -300,10 +339,26 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
     let reference_file = sha1_file.with_extension("reference");
     let has_reference_file = reference_file.exists();
 
-    if dry_run {
-        return Ok(Vec::new());
-    }
+    Ok(CveFileData {
+        cve_id,
+        shas,
+        vulnerable_shas,
+        root_path,
+        has_diff_file,
+        has_reference_file,
+    })
+}
 
+/// Run bippy on a CVE and update the files if needed
+fn run_bippy_and_update_files(
+    sha1_file: &Path,
+    cve_id: &str,
+    shas: &[String],
+    vulnerable_shas: &[String],
+    root_path: &Path,
+    has_diff_file: bool,
+    has_reference_file: bool
+) -> Result<Vec<String>> {
     // Create temporary files for the new json and mbox content
     let tmp_json = NamedTempFile::new()
         .context("Failed to create temporary JSON file")?;
@@ -317,104 +372,150 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
     };
     let bippy_path = vulns_dir.join("scripts").join("bippy");
 
-    let mut bippy_cmd = Command::new(bippy_path);
-    bippy_cmd.arg(format!("--cve={}", cve_id))
-        .arg(format!("--json={}", tmp_json.path().display()))
-        .arg(format!("--mbox={}", tmp_mbox.path().display()));
-
-    // Add each SHA as a separate argument
-    for sha in &shas {
-        bippy_cmd.arg(format!("--sha={}", sha));
-    }
-
-    // Add vulnerable option if present
-    for sha in &vulnerable_shas {
-        bippy_cmd.arg(format!("--vulnerable={}", sha));
-    }
-
-    // Add diff option if present
-    if has_diff_file {
-        bippy_cmd.arg(format!("--diff={}", diff_file.display()));
-    }
-
-    // Add reference option if present
-    if has_reference_file {
-        bippy_cmd.arg(format!("--reference={}", reference_file.display()));
-    }
-
-    // Run bippy
-    let output = bippy_cmd.stdout(std::process::Stdio::piped())
-                         .stderr(std::process::Stdio::piped())
-                         .output()
-                         .context("Failed to execute bippy command")?;
+    // Build command and run bippy
+    let bippy_params = BippyCommandParams {
+        bippy_path: &bippy_path,
+        cve_id,
+        shas,
+        vulnerable_shas,
+        tmp_json: &tmp_json,
+        tmp_mbox: &tmp_mbox,
+        sha1_file,
+        has_diff_file,
+        has_reference_file,
+    };
+    let output = build_and_run_bippy_command(&bippy_params)?;
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr);
         return Err(anyhow!("bippy failed for {}: {}", cve_id, error));
     }
 
-    // Check if files have changed
+    // Check for changes and update files if needed
     let mut updated_files = Vec::new();
-
-    // Check JSON file
-    let json_file = root_path.with_extension("json");
-    if json_file.exists() {
-        let diff_output = Command::new("diff")
-            .args(["-u", &json_file.to_string_lossy(), &tmp_json.path().to_string_lossy()])
-            .output()
-            .context("Failed to execute diff command for JSON file")?;
-
-        let diff_text = String::from_utf8_lossy(&diff_output.stdout);
-
-        // Check if there are meaningful changes (ignoring bippy version, emails, etc.)
-        let meaningful_changes = diff_text.lines()
-            .filter(|line| line.starts_with("+") || line.starts_with("-"))
-            .filter(|line| !line.contains("bippy") &&
-                            !line.contains("@kernel.org") &&
-                            !line.contains("@linuxfoundation.org") &&
-                            !line.starts_with("+++ ") &&
-                            !line.starts_with("--- ") &&
-                            !line.starts_with("@@ "))
-            .count() > 0;
-
-        if meaningful_changes {
-            // Copy the new file over the old one
-            fs::copy(tmp_json.path(), &json_file)
-                .context(format!("Failed to update JSON file: {}", json_file.display()))?;
-            updated_files.push(json_file.display().to_string());
-        }
-    }
-
-    // Check mbox file
-    let mbox_file = root_path.with_extension("mbox");
-    if mbox_file.exists() {
-        let diff_output = Command::new("diff")
-            .args(["-u", &mbox_file.to_string_lossy(), &tmp_mbox.path().to_string_lossy()])
-            .output()
-            .context("Failed to execute diff command for mbox file")?;
-
-        let diff_text = String::from_utf8_lossy(&diff_output.stdout);
-
-        // Check if there are meaningful changes (ignoring bippy version, emails, etc.)
-        let meaningful_changes = diff_text.lines()
-            .filter(|line| line.starts_with("+") || line.starts_with("-"))
-            .filter(|line| !line.contains("bippy-") &&
-                            !line.contains("@kernel.org") &&
-                            !line.contains("@linuxfoundation.org") &&
-                            !line.starts_with("+++ ") &&
-                            !line.starts_with("--- ") &&
-                            !line.starts_with("@@ "))
-            .count() > 0;
-
-        if meaningful_changes {
-            // Copy the new file over the old one
-            fs::copy(tmp_mbox.path(), &mbox_file)
-                .context(format!("Failed to update mbox file: {}", mbox_file.display()))?;
-            updated_files.push(mbox_file.display().to_string());
-        }
-    }
+    check_and_update_json_file(root_path, &tmp_json, &mut updated_files)?;
+    check_and_update_mbox_file(root_path, &tmp_mbox, &mut updated_files)?;
 
     Ok(updated_files)
+}
+
+/// Parameters for building and running the bippy command
+struct BippyCommandParams<'a> {
+    bippy_path: &'a Path,
+    cve_id: &'a str,
+    shas: &'a [String],
+    vulnerable_shas: &'a [String],
+    tmp_json: &'a NamedTempFile,
+    tmp_mbox: &'a NamedTempFile,
+    sha1_file: &'a Path,
+    has_diff_file: bool,
+    has_reference_file: bool,
+}
+
+/// Build and run the bippy command
+fn build_and_run_bippy_command(params: &BippyCommandParams) -> Result<std::process::Output> {
+    let mut bippy_cmd = Command::new(params.bippy_path);
+    bippy_cmd.arg(format!("--cve={}", params.cve_id))
+        .arg(format!("--json={}", params.tmp_json.path().display()))
+        .arg(format!("--mbox={}", params.tmp_mbox.path().display()));
+
+    // Add each SHA as a separate argument
+    for sha in params.shas {
+        bippy_cmd.arg(format!("--sha={sha}"));
+    }
+
+    // Add vulnerable option if present
+    for sha in params.vulnerable_shas {
+        bippy_cmd.arg(format!("--vulnerable={sha}"));
+    }
+
+    // Add diff option if present
+    if params.has_diff_file {
+        let diff_file = params.sha1_file.with_extension("diff");
+        bippy_cmd.arg(format!("--diff={}", diff_file.display()));
+    }
+
+    // Add reference option if present
+    if params.has_reference_file {
+        let reference_file = params.sha1_file.with_extension("reference");
+        bippy_cmd.arg(format!("--reference={}", reference_file.display()));
+    }
+
+    // Run bippy
+    bippy_cmd.stdout(std::process::Stdio::piped())
+             .stderr(std::process::Stdio::piped())
+             .output()
+             .context("Failed to execute bippy command")
+}
+
+/// Check JSON file for changes and update if needed
+fn check_and_update_json_file(root_path: &Path, tmp_json: &NamedTempFile, updated_files: &mut Vec<String>) -> Result<()> {
+    let json_file = root_path.with_extension("json");
+    if !json_file.exists() {
+        return Ok(());
+    }
+
+    let diff_output = Command::new("diff")
+        .args(["-u", &json_file.to_string_lossy(), &tmp_json.path().to_string_lossy()])
+        .output()
+        .context("Failed to execute diff command for JSON file")?;
+
+    let diff_text = String::from_utf8_lossy(&diff_output.stdout);
+
+    // Check if there are meaningful changes (ignoring bippy version, emails, etc.)
+    let meaningful_changes = diff_text.lines()
+        .filter(|line| line.starts_with('+') || line.starts_with('-'))
+        .filter(|line| !line.contains("bippy") &&
+                        !line.contains("@kernel.org") &&
+                        !line.contains("@linuxfoundation.org") &&
+                        !line.starts_with("+++ ") &&
+                        !line.starts_with("--- ") &&
+                        !line.starts_with("@@ "))
+        .count() > 0;
+
+    if meaningful_changes {
+        // Copy the new file over the old one
+        fs::copy(tmp_json.path(), &json_file)
+            .context(format!("Failed to update JSON file: {}", json_file.display()))?;
+        updated_files.push(json_file.display().to_string());
+    }
+
+    Ok(())
+}
+
+/// Check mbox file for changes and update if needed
+fn check_and_update_mbox_file(root_path: &Path, tmp_mbox: &NamedTempFile, updated_files: &mut Vec<String>) -> Result<()> {
+    let mbox_file = root_path.with_extension("mbox");
+    if !mbox_file.exists() {
+        return Ok(());
+    }
+
+    let diff_output = Command::new("diff")
+        .args(["-u", &mbox_file.to_string_lossy(), &tmp_mbox.path().to_string_lossy()])
+        .output()
+        .context("Failed to execute diff command for mbox file")?;
+
+    let diff_text = String::from_utf8_lossy(&diff_output.stdout);
+
+    // Check if there are meaningful changes (ignoring bippy version, emails, etc.)
+    let meaningful_changes = diff_text.lines()
+        .filter(|line| line.starts_with('+') || line.starts_with('-'))
+        .filter(|line| !line.contains("bippy-") &&
+                        !line.contains("@kernel.org") &&
+                        !line.contains("@linuxfoundation.org") &&
+                        !line.starts_with("+++ ") &&
+                        !line.starts_with("--- ") &&
+                        !line.starts_with("@@ "))
+        .count() > 0;
+
+    if meaningful_changes {
+        // Copy the new file over the old one
+        fs::copy(tmp_mbox.path(), &mbox_file)
+            .context(format!("Failed to update mbox file: {}", mbox_file.display()))?;
+        updated_files.push(mbox_file.display().to_string());
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
