@@ -65,6 +65,77 @@ impl CVEClassifier {
         }
     }
 
+    /// Extract Fixes tag references from a commit message
+    /// Returns a vector of SHA1 hashes referenced in Fixes tags
+    pub fn extract_fixes_references(message: &str) -> Vec<String> {
+        let mut fixes = Vec::new();
+        let re = regex::Regex::new(r"(?i)Fixes:\s*([a-f0-9]{12,40})").unwrap();
+
+        for line in message.lines() {
+            if let Some(caps) = re.captures(line) {
+                if let Some(sha) = caps.get(1) {
+                    fixes.push(sha.as_str().to_string());
+                }
+            }
+        }
+
+        fixes
+    }
+
+    /// Retrieve the content of a commit referenced by a Fixes tag
+    /// Returns a tuple with (subject, full message, diff) for the fixed commit
+    pub fn get_fix_commit_content(&self, commit_sha: &str) -> Option<(String, String, String)> {
+        let repo_path = self.repo_path.as_ref()?;
+
+        // Create the git command to get commit message
+        let mut cmd = std::process::Command::new("git");
+        cmd.current_dir(repo_path)
+            .args(["log", "-1", "--pretty=format:%s", commit_sha]);
+
+        // Get the commit subject
+        let subject = match cmd.output() {
+            Ok(output) if output.status.success() => {
+                match String::from_utf8(output.stdout) {
+                    Ok(s) => s,
+                    Err(_) => return None,
+                }
+            },
+            _ => return None,
+        };
+
+        // Get the full commit message
+        let mut cmd = std::process::Command::new("git");
+        cmd.current_dir(repo_path)
+            .args(["log", "-1", "--pretty=format:%B", commit_sha]);
+
+        let message = match cmd.output() {
+            Ok(output) if output.status.success() => {
+                match String::from_utf8(output.stdout) {
+                    Ok(s) => s,
+                    Err(_) => return None,
+                }
+            },
+            _ => return None,
+        };
+
+        // Get the diff with 20 lines of context
+        let mut cmd = std::process::Command::new("git");
+        cmd.current_dir(repo_path)
+            .args(["show", "-U20", "--format=", commit_sha]);
+
+        let diff = match cmd.output() {
+            Ok(output) if output.status.success() => {
+                match String::from_utf8(output.stdout) {
+                    Ok(s) => s,
+                    Err(_) => return None,
+                }
+            },
+            _ => return None,
+        };
+
+        Some((subject, message, diff))
+    }
+
     // Helper function to create default LLM configurations
     fn create_default_llm_configs() -> HashMap<String, serde_json::Value> {
         let mut configs = HashMap::new();
@@ -385,7 +456,7 @@ impl CVEClassifier {
         commit_parts.join("\n\n")
     }
 
-    pub fn construct_prompt(commit_text: &str, similar_commits: &[(String, bool)]) -> String {
+    pub fn construct_prompt(commit_text: &str, similar_commits: &[(String, bool)], fixes_context: Option<&str>) -> String {
         // Template for the prompt
         let prompt_template = r#"You are a security expert analyzing kernel commits to determine if they should be assigned a CVE.
 Analyze both the commit message and the code changes carefully to identify security implications.
@@ -406,6 +477,8 @@ Consider:
 
 Historical similar commits and their CVE status for reference:
 {context}
+
+{fixes_context}
 
 IMPORTANT: Pay close attention to the CVE Status (YES/NO) of similar commits as they provide valuable reference points.
 Commits with similar characteristics to those marked with "CVE Status: YES" are more likely to need a CVE.
@@ -433,9 +506,13 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
 
         let context_text = context_parts.join("\n\n");
 
+        // Determine fixes context string
+        let fixes_context_text = fixes_context.unwrap_or("");
+
         // Replace placeholders in the template
         prompt_template
             .replace("{context}", &context_text)
+            .replace("{fixes_context}", fixes_context_text)
             .replace("{commit_info}", commit_text)
     }
 
@@ -588,8 +665,36 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
         // Get similar commits for context
         let similar_commits = self.find_similar_commits(&commit_text, 5);
 
+        // Generate fixes context if available
+        let fixes_context = if self.repo_path.is_some() {
+            // Extract fixed commits
+            let fixes_refs = Self::extract_fixes_references(&commit_info.message);
+            if fixes_refs.is_empty() {
+                None
+            } else {
+                let mut fixes_parts = Vec::new();
+                fixes_parts.push("Referenced Fixes commit(s):".to_string());
+
+                for fix_ref in &fixes_refs {
+                    if let Some((subject, message, diff)) = self.get_fix_commit_content(fix_ref) {
+                        fixes_parts.push(format!(
+                            "Fixes commit {fix_ref}: {subject}\n\nFull message:\n{message}\n\nDiff:\n{diff}"
+                        ));
+                    }
+                }
+
+                if fixes_parts.len() > 1 {
+                    Some(fixes_parts.join("\n\n"))
+                } else {
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         // Construct prompt with context and commit info
-        let prompt = Self::construct_prompt(&commit_text, &similar_commits);
+        let prompt = Self::construct_prompt(&commit_text, &similar_commits, fixes_context.as_deref());
 
         // Show full prompt when verbose is enabled
         if verbose {

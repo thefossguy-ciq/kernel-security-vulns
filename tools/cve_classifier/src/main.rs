@@ -381,7 +381,35 @@ fn main() {
 
                         let similar_commits = classifier.find_similar_commits(&commit_text, 5);
 
-                        let prompt = CVEClassifier::construct_prompt(&commit_text, &similar_commits);
+                        // Generate fixes context if available
+                        let fixes_context = if classifier.repo_path.is_some() {
+                            // Extract fixed commits
+                            let fixes_refs = CVEClassifier::extract_fixes_references(&features.message);
+                            if fixes_refs.is_empty() {
+                                None
+                            } else {
+                                let mut fixes_parts = Vec::new();
+                                fixes_parts.push("Referenced Fixes commit(s):".to_string());
+
+                                for fix_ref in &fixes_refs {
+                                    if let Some((subject, message, diff)) = classifier.get_fix_commit_content(fix_ref) {
+                                        fixes_parts.push(format!(
+                                            "Fixes commit {fix_ref}: {subject}\n\nFull message:\n{message}\n\nDiff:\n{diff}"
+                                        ));
+                                    }
+                                }
+
+                                if fixes_parts.len() > 1 {
+                                    Some(fixes_parts.join("\n\n"))
+                                } else {
+                                    None
+                                }
+                            }
+                        } else {
+                            None
+                        };
+
+                        let prompt = CVEClassifier::construct_prompt(&commit_text, &similar_commits, fixes_context.as_deref());
 
                         let prompt_dir_path = Path::new(dir);
                         if !prompt_dir_path.exists() {
