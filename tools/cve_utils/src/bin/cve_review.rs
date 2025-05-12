@@ -703,7 +703,8 @@ fn get_mainline_sha(sha: &str) -> Result<String> {
     let log_text = String::from_utf8_lossy(&output.stdout);
 
     // Look for "upstream: <sha>" or similar
-    let re = Regex::new(r"(?i)upstream.*?([a-f0-9]{40})")?;
+    // Modified to match both full and partial SHAs (minimum 7 hex chars)
+    let re = Regex::new(r"(?i)upstream.*?([a-f0-9]{7,40})")?;
     if let Some(caps) = re.captures(&log_text) {
         return Ok(caps[1].to_string());
     }

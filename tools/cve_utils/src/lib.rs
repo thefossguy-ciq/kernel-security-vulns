@@ -267,8 +267,9 @@ pub mod git_utils {
     pub fn get_full_sha(kernel_tree: &Path, git_sha: &str) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
+        // Use revparse_single directly without the ^{commit} suffix which will work for partial SHAs too
         let object = repo
-            .revparse_single(&format!("{git_sha}^{{commit}}"))
+            .revparse_single(git_sha)
             .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
         let commit = repo
@@ -523,15 +524,21 @@ pub mod git_utils {
     pub fn get_commit_details(kernel_tree: &Path, git_sha: &str, _format_type: Option<&str>) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
-        let oid =
-            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {git_sha}"))?;
+        // Try to resolve the reference instead of direct Oid parsing
+        let object = repo
+            .revparse_single(git_sha)
+            .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
         let commit = repo
-            .find_commit(oid)
+            .find_commit(object.id())
             .context(format!("Commit not found: {git_sha}"))?;
 
-        // Get short SHA and message
-        let short_id = commit.id().to_string()[0..12].to_string();
+        // Get short SHA and message - use the original SHA prefix if it's already short
+        let short_id = if git_sha.len() <= 12 {
+            git_sha.to_string() // Use the original SHA if it's already short
+        } else {
+            commit.id().to_string()[0..12].to_string() // Otherwise use the first 12 chars
+        };
         let message = commit.summary().unwrap_or("").to_string();
 
         // Format based on the common kernel commit output of:
@@ -561,11 +568,13 @@ pub mod git_utils {
     pub fn get_commit_year(kernel_tree: &Path, git_sha: &str) -> Result<String> {
         let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
-        let oid =
-            git2::Oid::from_str(git_sha).context(format!("Invalid Git SHA format: {git_sha}"))?;
+        // Try to resolve the reference instead of direct Oid parsing
+        let object = repo
+            .revparse_single(git_sha)
+            .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
         let commit = repo
-            .find_commit(oid)
+            .find_commit(object.id())
             .context(format!("Commit not found: {git_sha}"))?;
 
         let time = commit.time();
@@ -1109,5 +1118,23 @@ mod tests {
             cve_root.join("published").exists(),
             "published directory should exist in CVE root"
         );
+    }
+
+    #[test]
+    fn test_short_sha_handling() {
+        // This test will only work when run in a git repository
+        // It verifies that partial SHAs are handled correctly
+        let current_dir = std::env::current_dir().unwrap();
+
+        // Use a fake short SHA for testing - this should fail gracefully
+        // but not with a padding error.
+        let result = git_utils::get_commit_details(&current_dir, "b807b7c81a6d", None);
+
+        // We expect an error, but it should NOT contain zero padding
+        assert!(result.is_err(), "Result should be an error for invalid SHA");
+        let err = result.unwrap_err().to_string();
+        assert!(!err.contains("0000000000000000000000000000"),
+                "Error shouldn't contain zero padding");
+        // Don't assert on specific error message text as it may vary
     }
 }
