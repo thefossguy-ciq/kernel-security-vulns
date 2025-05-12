@@ -47,7 +47,7 @@ struct Commit {
     full_message: String,
 }
 
-/// Main entry point for the cve_review tool
+/// Main entry point for the `cve_review` tool
 ///
 /// This function:
 /// 1. Parses command line arguments
@@ -69,7 +69,7 @@ fn main() -> Result<()> {
         match get_commits_from_range(&args.target) {
             Ok(commits) => commits,
             Err(e) => {
-                eprintln!("Error getting commits from git range: {}", e);
+                eprintln!("Error getting commits from git range: {e}");
                 print_git_error_details(&e);
                 return Err(e);
             }
@@ -81,7 +81,7 @@ fn main() -> Result<()> {
             match get_commits_from_file(&path) {
                 Ok(commits) => commits,
                 Err(e) => {
-                    eprintln!("Error getting commits from file: {}", e);
+                    eprintln!("Error getting commits from file: {e}");
                     print_git_error_details(&e);
                     return Err(e);
                 }
@@ -101,7 +101,7 @@ fn main() -> Result<()> {
     let (_workdir, processed_file, result_file) = match setup_directories(&args.target, args.annotate) {
         Ok(dirs) => dirs,
         Err(e) => {
-            eprintln!("Error setting up directories: {}", e);
+            eprintln!("Error setting up directories: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -111,7 +111,7 @@ fn main() -> Result<()> {
     let processed_commits = match get_processed_commits(&processed_file) {
         Ok(commits) => commits,
         Err(e) => {
-            eprintln!("Error getting processed commits: {}", e);
+            eprintln!("Error getting processed commits: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -127,7 +127,7 @@ fn main() -> Result<()> {
         args.annotate,
         &args.target
     ) {
-        eprintln!("Error during commit review: {}", e);
+        eprintln!("Error during commit review: {e}");
         print_git_error_details(&e);
         return Err(e);
     }
@@ -270,16 +270,16 @@ fn setup_directories(target: &str, annotate: bool) -> Result<(PathBuf, PathBuf, 
 
         if annotate {
             // For annotation mode, just use tag with -annotated suffix
-            format!("{}-annotated", filename)
+            format!("{filename}-annotated")
         } else {
             // For normal mode, use -fromfile suffix
-            format!("{}-fromfile", filename)
+            format!("{filename}-fromfile")
         }
     };
 
     // If annotation mode is enabled and this is a git range, add -annotated suffix
     if annotate && target.contains("..") {
-        tag = format!("{}-annotated", tag);
+        tag = format!("{tag}-annotated");
     }
 
     // Set up directories
@@ -294,7 +294,7 @@ fn setup_directories(target: &str, annotate: bool) -> Result<(PathBuf, PathBuf, 
 
     // Determine file paths
     let processed_file = processed_dir.join(&tag);
-    let cveme_file = format!("{}-{}", tag, username);
+    let cveme_file = format!("{tag}-{username}");
     let result_file = results_dir.join(cveme_file);
 
     Ok((workdir, processed_file, result_file))
@@ -338,7 +338,23 @@ fn process_user_input(
 ) -> Result<Option<bool>> {
     let commit_lines: Vec<&str> = highlighted_message.lines().collect();
 
-    if !annotate {
+    if annotate {
+        println!("\n{} Please annotate <description/q>:", "QUESTION:".blue());
+        let annotation: String = Input::new()
+            .with_prompt(">")
+            .interact_text()?;
+
+        if annotation.to_lowercase() == "q" {
+            return Ok(None);
+        }
+
+        // Record annotation
+        let mainline_sha = get_mainline_sha(&commit.sha)?;
+        let mainline_oneline = get_commit_oneline(&mainline_sha)?;
+        writeln!(result_file_handle, "{mainline_oneline}")?;
+        writeln!(result_file_handle, "- [{username}] {annotation}")?;
+        Ok(Some(true))
+    } else {
         println!("\n{} Should this commit be assigned a CVE <y/N/q>?", "QUESTION:".blue());
         let mut choice = None;
         while choice.is_none() {
@@ -356,14 +372,13 @@ fn process_user_input(
                     if was_clipped {
                         println!();
                         for line in &commit_lines[clip_point..] {
-                            println!("{}", line);
+                            println!("{line}");
                         }
 
                         println!("\n{} Should this commit be assigned a CVE <y/N/q>?", "QUESTION:".blue());
                         continue;
-                    } else {
-                        choice = Some(false);
                     }
+                    choice = Some(false);
                 },
                 _ => {
                     println!("Invalid choice. Please enter y, n, q, or m.");
@@ -371,23 +386,83 @@ fn process_user_input(
             }
         }
         Ok(Some(choice.unwrap()))
-    } else {
-        println!("\n{} Please annotate <description/q>:", "QUESTION:".blue());
-        let annotation: String = Input::new()
-            .with_prompt(">")
-            .interact_text()?;
-
-        if annotation.to_lowercase() == "q" {
-            return Ok(None);
-        }
-
-        // Record annotation
-        let mainline_sha = get_mainline_sha(&commit.sha)?;
-        let mainline_oneline = get_commit_oneline(&mainline_sha)?;
-        writeln!(result_file_handle, "{}", mainline_oneline)?;
-        writeln!(result_file_handle, "- [{}] {}", username, annotation)?;
-        Ok(Some(true))
     }
+}
+
+/// Returns highlight patterns for good and bad commit messages
+fn get_highlight_patterns() -> (Vec<&'static str>, Vec<&'static str>) {
+    // Define highlight patterns
+    let good_patterns = vec![
+        r"Alex Hung", r"bad unlock balance detected!", r"bogus",
+        r"false(\s|[-_\n])*alarm", r"false(\s|[-_\n])*positive", r"integer",
+        r"locking dependency detected", r"Nested lock was not taken",
+        r"theory[a-z]*", r"theoretical[a-z]*", r" tools/.* \| .*",
+        r"selftests", r"unmet direct dependencies detected"
+    ];
+
+    let bad_patterns = vec![
+        r"call(\s|[-_\n])*trace", r"dead(\s|[-_\n])*lock", r"lock(\s|[-_\n])*up",
+        r"nul[l]*(\s|[-_\n])*p[a-z]*(\s|[-_\n])*deref[a-z]*", r"nul[l]*(\s|[-_\n])*p[a-z]*",
+        r"null", r"deref[a-z]*", r"div(\s|[-_\na-z])*by(\s|[-_\n])*zero",
+        r"divi(\s|[-_\na-z])*by(\s|[-_\n])*0", r"double(\s|[-_\n])*free",
+        r"kernel(\s|[-_\n])*bug", r"buffer(\s|[-_\n])*overflow", r"over(\s|[-_\n])*run",
+        r"over(\s|[-_\n])*flow", r"out(\s|[-_\n])*of(\s|[-_\n])*bound[s]*", r"bound[s]*",
+        r"use(\s|[-_\n])*after(\s|[-_\n])*free", r"use(\s|[-_\n])*after", r"after(\s|[-_\n])*free",
+        r"circular", r"crash[a-z]*", r"denial(\s|[-_\n])*of(\s|[-_\n])*service", r"denial",
+        r"dos", r"exploit", r"(\s|[-_\n])fault", r"kernel(\s|[-_\n])hang", r"system(\s|[-_\n])hang",
+        r"(\s|[-_\n])hang[a-z]*", r"hung", r"info(\s|[-_\na-z]).*leak", r"leak", r"malicious[a-z]*",
+        r"kernel(\s|[-_\n])*memory", r"memory", r"oob", r"oops", r"panic", r"permission",
+        r"possible recursive locking detected", r"reboot", r"refcount", r"system", r"syzkaller",
+        r"syzbot", r"uaf", r"underflow", r"uninitial[a-z]*", r"vuln[a-z]*", r"BUG:", r"KSPP", r"WARN[A-Z]*"
+    ];
+
+    (good_patterns, bad_patterns)
+}
+
+/// Handle a commit that has already been published as a CVE
+fn handle_published_commit(
+    commit: &Commit,
+    oneline: &str,
+    cve_id: &str,
+    processed_file_handle: &mut fs::File,
+    result_file_handle: &mut fs::File,
+) -> Result<()> {
+    println!("\n{} CVE already published as {} -- skipping", "WARNING:".red(), cve_id);
+
+    processed_file_handle.write_all(format!("{oneline}\n").as_bytes())?;
+
+    // Record the mainline SHA automatically
+    let mainline_sha = get_mainline_sha(&commit.sha)?;
+    let mainline_oneline = get_commit_oneline(&mainline_sha)?;
+    writeln!(result_file_handle, "{mainline_oneline} [auto: cve already created]")?;
+
+    Ok(())
+}
+
+/// Display a commit with appropriate highlighting and clipping for terminal
+fn display_commit(
+    commit_message: &str,
+    terminal_height: usize,
+    proposed_votes_len: usize,
+) -> (Vec<&str>, usize, bool) {
+    // Convert to lines for display
+    let commit_lines: Vec<&str> = commit_message.lines().collect();
+    let clip_point = terminal_height.saturating_sub(9 + proposed_votes_len);
+
+    let was_clipped = commit_lines.len() > clip_point;
+    if was_clipped {
+        // Commit is too long, clip it
+        for line in &commit_lines[0..min(clip_point, commit_lines.len())] {
+            println!("{line}");
+        }
+        println!("\n{} Commit has been clipped, press M to see the remainder", "INFO:".blue());
+    } else {
+        // Commit fits on screen
+        println!("{commit_message}");
+        println!("\n{} Commit not clipped", "INFO:".blue());
+    }
+
+    (commit_lines, clip_point, was_clipped)
 }
 
 /// Review the commits
@@ -426,35 +501,14 @@ fn review_commits(
     // Get username for annotations
     let username = env::var("USER").unwrap_or_else(|_| "user".to_string());
 
-    // Define highlight patterns
-    let good_patterns = [
-        r"Alex Hung", r"bad unlock balance detected!", r"bogus",
-        r"false(\s|[-_\n])*alarm", r"false(\s|[-_\n])*positive", r"integer",
-        r"locking dependency detected", r"Nested lock was not taken",
-        r"theory[a-z]*", r"theoretical[a-z]*", r" tools/.* \| .*",
-        r"selftests", r"unmet direct dependencies detected"
-    ];
-
-    let bad_patterns = [
-        r"call(\s|[-_\n])*trace", r"dead(\s|[-_\n])*lock", r"lock(\s|[-_\n])*up",
-        r"nul[l]*(\s|[-_\n])*p[a-z]*(\s|[-_\n])*deref[a-z]*", r"nul[l]*(\s|[-_\n])*p[a-z]*",
-        r"null", r"deref[a-z]*", r"div(\s|[-_\na-z])*by(\s|[-_\n])*zero",
-        r"divi(\s|[-_\na-z])*by(\s|[-_\n])*0", r"double(\s|[-_\n])*free",
-        r"kernel(\s|[-_\n])*bug", r"buffer(\s|[-_\n])*overflow", r"over(\s|[-_\n])*run",
-        r"over(\s|[-_\n])*flow", r"out(\s|[-_\n])*of(\s|[-_\n])*bound[s]*", r"bound[s]*",
-        r"use(\s|[-_\n])*after(\s|[-_\n])*free", r"use(\s|[-_\n])*after", r"after(\s|[-_\n])*free",
-        r"circular", r"crash[a-z]*", r"denial(\s|[-_\n])*of(\s|[-_\n])*service", r"denial",
-        r"dos", r"exploit", r"(\s|[-_\n])fault", r"kernel(\s|[-_\n])hang", r"system(\s|[-_\n])hang",
-        r"(\s|[-_\n])hang[a-z]*", r"hung", r"info(\s|[-_\na-z]).*leak", r"leak", r"malicious[a-z]*",
-        r"kernel(\s|[-_\n])*memory", r"memory", r"oob", r"oops", r"panic", r"permission",
-        r"possible recursive locking detected", r"reboot", r"refcount", r"system", r"syzkaller",
-        r"syzbot", r"uaf", r"underflow", r"uninitial[a-z]*", r"vuln[a-z]*", r"BUG:", r"KSPP", r"WARN[A-Z]*"
-    ];
+    // Get highlight patterns
+    let (good_patterns, bad_patterns) = get_highlight_patterns();
 
     // Iterate through commits
     for (i, commit) in commits.into_iter().enumerate() {
         let oneline = format!("{} {}", commit.sha, commit.subject);
-        let percentage = (i as f64 + 1.0) / (total_commits as f64) * 100.0;
+        #[allow(clippy::cast_precision_loss)]
+        let percentage = ((i + 1) as f64) / (total_commits as f64) * 100.0;
 
         // Check if commit has already been processed
         if processed_commits.contains(&oneline) {
@@ -469,15 +523,13 @@ fn review_commits(
 
         // Check if commit has already been published as a CVE
         if let Some(cve_id) = check_already_published(&commit)? {
-            println!("\n{} CVE already published as {} -- skipping", "WARNING:".red(), cve_id);
-
-            processed_file_handle.write_all(format!("{}\n", oneline).as_bytes())?;
-
-            // Record the mainline SHA automatically
-            let mainline_sha = get_mainline_sha(&commit.sha)?;
-            let mainline_oneline = get_commit_oneline(&mainline_sha)?;
-            writeln!(result_file_handle, "{} [auto: cve already created]", mainline_oneline)?;
-
+            handle_published_commit(
+                &commit,
+                &oneline,
+                &cve_id,
+                &mut processed_file_handle,
+                &mut result_file_handle
+            )?;
             continue;
         }
 
@@ -490,20 +542,19 @@ fn review_commits(
                 let patch_id_match = check_patch_id_match(&commit.sha, &previous_sha)?;
                 if patch_id_match {
                     println!("\n{} Confirmed as already reviewed - SKIPPING", "INFO:".blue());
-                    processed_file_handle.write_all(format!("{}\n", oneline).as_bytes())?;
+                    processed_file_handle.write_all(format!("{oneline}\n").as_bytes())?;
                     continue;
-                } else {
-                    println!("\n{} Patch ID doesn't match - please review for similarity manually", "INFO:".blue());
                 }
+                println!("\n{} Patch ID doesn't match - please review for similarity manually", "INFO:".blue());
             }
         }
 
         // Check if commit has been positively voted for already
-        let proposed_votes = check_proposed_votes(&commit.subject, common::get_cve_root()?.join("review").join("proposed"))?;
+        let proposed_votes = check_proposed_votes(&commit.subject, &common::get_cve_root()?.join("review").join("proposed"))?;
         if !proposed_votes.is_empty() {
             println!("\n{} Positively voted for in:", "WARNING:".red());
             for vote in &proposed_votes {
-                println!("  {}", vote);
+                println!("  {vote}");
             }
         }
 
@@ -512,24 +563,14 @@ fn review_commits(
 
         // Display commit message with highlighting
         let terminal_height = get_terminal_height();
-        let commit_lines: Vec<&str> = highlighted_message.lines().collect();
-        let clip_point = terminal_height.saturating_sub(9 + proposed_votes.len());
-
-        let was_clipped = commit_lines.len() > clip_point;
-        if was_clipped {
-            // Commit is too long, clip it
-            for line in &commit_lines[0..min(clip_point, commit_lines.len())] {
-                println!("{}", line);
-            }
-            println!("\n{} Commit has been clipped, press M to see the remainder", "INFO:".blue());
-        } else {
-            // Commit fits on screen
-            println!("{}", highlighted_message);
-            println!("\n{} Commit not clipped", "INFO:".blue());
-        }
+        let (_, clip_point, was_clipped) = display_commit(
+            &highlighted_message,
+            terminal_height,
+            proposed_votes.len()
+        );
 
         // Process user input
-        let decision = match process_user_input(
+        let Some(decision) = process_user_input(
             &commit,
             &highlighted_message,
             was_clipped,
@@ -537,23 +578,27 @@ fn review_commits(
             annotate,
             &username,
             &mut result_file_handle
-        )? {
-            Some(decision) => decision,
-            None => return Ok(()) // User wants to quit
-        };
+        )? else { return Ok(()) }; // User wants to quit
 
         // Record the decision
         if decision && !annotate {
             let mainline_sha = get_mainline_sha(&commit.sha)?;
             let mainline_oneline = get_commit_oneline(&mainline_sha)?;
-            writeln!(result_file_handle, "{}", mainline_oneline)?;
+            writeln!(result_file_handle, "{mainline_oneline}")?;
         }
 
         // Mark as processed
-        processed_file_handle.write_all(format!("{}\n", oneline).as_bytes())?;
+        processed_file_handle.write_all(format!("{oneline}\n").as_bytes())?;
     }
 
-    // If there were any positive decisions, copy results to the proposed directory
+    // Copy results to the proposed directory if there's content
+    copy_results_if_needed(result_file)?;
+
+    Ok(())
+}
+
+/// Copy results to the proposed directory if there's content
+fn copy_results_if_needed(result_file: &Path) -> Result<()> {
     let has_content = fs::metadata(result_file)?.len() > 0;
     if has_content {
         let proposed_dir = common::get_cve_root()?.join("review").join("proposed");
@@ -562,7 +607,6 @@ fn review_commits(
         let target_file = proposed_dir.join(result_file.file_name().unwrap());
         fs::copy(result_file, target_file)?;
     }
-
     Ok(())
 }
 
@@ -587,13 +631,12 @@ fn target_as_tag(target: &str) -> String {
 /// Returns the CVE ID if found, or None if not found.
 fn check_already_published(commit: &Commit) -> Result<Option<String>> {
     // Get the CVE root directory
-    let cve_root = match std::env::var("CVE_ROOT") {
-        Ok(dir) => PathBuf::from(dir),
-        Err(_) => {
-            // Default to the parent directory of current directory
-            let current_dir = std::env::current_dir()?;
-            current_dir.join("cve")
-        }
+    let cve_root = if let Ok(dir) = std::env::var("CVE_ROOT") {
+        PathBuf::from(dir)
+    } else {
+        // Default to the parent directory of current directory
+        let current_dir = std::env::current_dir()?;
+        current_dir.join("cve")
     };
 
     // Get the mainline SHA (if this is a backport)
@@ -738,7 +781,7 @@ fn check_patch_id_match(sha1: &str, sha2: &str) -> Result<bool> {
             .args(["show", sha])
             .stdout(Stdio::piped())
             .spawn()
-            .context(format!("Failed to execute git show for {}", sha))?;
+            .context(format!("Failed to execute git show for {sha}"))?;
 
         let patch_id_output = Command::new("git")
             .arg("patch-id")
@@ -776,7 +819,7 @@ fn check_patch_id_match(sha1: &str, sha2: &str) -> Result<bool> {
 ///
 /// Returns a list of filenames containing this subject, to show the user which
 /// files already have votes for this commit.
-fn check_proposed_votes(subject: &str, proposed_dir: PathBuf) -> Result<Vec<String>> {
+fn check_proposed_votes(subject: &str, proposed_dir: &PathBuf) -> Result<Vec<String>> {
     let mut votes = Vec::new();
 
     // Skip if directory doesn't exist
@@ -800,7 +843,7 @@ fn check_proposed_votes(subject: &str, proposed_dir: PathBuf) -> Result<Vec<Stri
     for file_path in String::from_utf8_lossy(&grep_output.stdout).lines() {
         let path = PathBuf::from(file_path);
         // Try to get a relative path for cleaner display
-        let filename = match path.strip_prefix(&proposed_dir) {
+        let filename = match path.strip_prefix(proposed_dir) {
             Ok(relative) => relative.display().to_string(),
             Err(_) => path.display().to_string(),
         };
