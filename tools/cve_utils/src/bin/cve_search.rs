@@ -28,7 +28,7 @@ fn main() -> Result<()> {
     let kernel_tree = match common::get_kernel_tree() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
     let cve_root = match common::get_cve_root() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -51,10 +51,9 @@ fn main() -> Result<()> {
                      cve.cyan(),
                      args.search_string.green());
             return Ok(());
-        } else {
-            println!("git sha1 {} not found in any CVE record.", args.search_string);
-            return Ok(());
         }
+        println!("git sha1 {} not found in any CVE record.", args.search_string);
+        return Ok(());
     }
 
     // If not a SHA or SHA not found, try interpreting as a CVE ID
