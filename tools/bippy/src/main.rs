@@ -15,7 +15,7 @@ mod commands;
 mod models;
 mod utils;
 
-use commands::{generate_json_record, generate_mbox};
+use commands::{generate_json_record, generate_mbox, json::CveRecordParams, mbox::MboxParams};
 use models::{Args, DyadEntry};
 use utils::{apply_diff_to_text, get_commit_subject, get_commit_text, read_tags_file, run_dyad, strip_commit_text};
 
@@ -319,21 +319,21 @@ fn generate_output_files(
     // creating anything at all. The mbox generation catches this type of issue and will abort
     // everything if it happens.
     if let Some(path) = mbox_path {
-        // Convert to Vec for generate_mbox which expects &Vec<DyadEntry>
-        let entries_vec: Vec<DyadEntry> = dyad_entries.to_vec();
-
-        let mbox_content = generate_mbox(
-            params.cve_number,
-            params.git_sha_full,
-            params.commit_subject,
-            params.user_name,
-            params.user_email,
-            &entries_vec,
-            params.script_name,
-            params.script_version,
+        // Create MboxParams from OutputParams
+        let mbox_params = MboxParams {
+            cve_number: params.cve_number,
+            git_sha_full: params.git_sha_full,
+            commit_subject: params.commit_subject,
+            user_name: params.user_name,
+            user_email: params.user_email,
+            dyad_entries,
+            script_name: params.script_name,
+            script_version: params.script_version,
             additional_references,
-            params.commit_text,
-        );
+            commit_text: params.commit_text,
+        };
+
+        let mbox_content = generate_mbox(&mbox_params);
 
         if let Err(err) = std::fs::write(path, mbox_content) {
             error!("Warning: Failed to write mbox file to {path:?}: {err}");
@@ -344,18 +344,21 @@ fn generate_output_files(
 
     // Generate JSON file if requested
     if let Some(path) = json_path {
-        match generate_json_record(
-            params.cve_number,
-            params.git_sha_full,
-            params.commit_subject,
-            params.user_name,
-            params.user_email,
-            dyad_entries.to_vec(),
-            params.script_name,
-            params.script_version,
+        // Create CveRecordParams from OutputParams
+        let json_params = CveRecordParams {
+            cve_number: params.cve_number,
+            git_sha_full: params.git_sha_full,
+            commit_subject: params.commit_subject,
+            user_name: params.user_name,
+            user_email: params.user_email,
+            dyad_entries: dyad_entries.to_vec(),
+            script_name: params.script_name,
+            script_version: params.script_version,
             additional_references,
-            params.commit_text,
-        ) {
+            commit_text: params.commit_text,
+        };
+
+        match generate_json_record(&json_params) {
             Ok(json_record) => {
                 if let Err(err) = std::fs::write(path, json_record) {
                     error!("Warning: Failed to write JSON file to {path:?}: {err}");
