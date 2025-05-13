@@ -187,15 +187,80 @@ impl CVEClassifier {
         Self::new(llm_providers, llm_configs, None, repo_path)
     }
 
-    #[allow(clippy::too_many_lines)]
-    pub fn train(&mut self, commit_dataset: &[CommitFeatures]) -> Result<(), String> {
-        // Define constants at the beginning of the function
-        const BATCH_SIZE: usize = 1000;
-        const MAX_CHUNK_LENGTH: usize = 100_000; // Characters
+        // Helper to process a single commit feature into training data
+    fn process_commit_to_training_data(
+        commit: &CommitFeatures,
+        max_chunk_length: usize
+    ) -> (String, HashMap<String, String>) {
+        // Extract subject and message body
+        let message_lines: Vec<&str> = commit.message.trim().lines().collect();
+        let subject = (*message_lines.first().unwrap_or(&"")).to_string();
+        let message_body = if message_lines.len() > 1 {
+            message_lines[1..].join("\n")
+        } else {
+            String::new()
+        };
 
-        info!("Training classifier with {} commits", commit_dataset.len());
+        // Build rich context for each commit
+        let mut commit_context = Vec::new();
 
-        // Process dataset into texts and metadata for vectorstore
+        commit_context.push(format!("Subject: {subject}"));
+        commit_context.push(format!("Commit Message:\n{message_body}"));
+
+        // Add code changes
+        let diff_text = if commit.diff.len() > max_chunk_length {
+            let truncated = commit.diff.chars().take(max_chunk_length).collect::<String>();
+            warn!("Truncating large diff for commit {} (size: {})", commit.sha, commit.diff.len());
+            format!("{truncated}\n[... truncated due to size ...]")
+        } else {
+            commit.diff.clone()
+        };
+
+        commit_context.push(format!("Changes:\n{diff_text}"));
+
+        // Add files changed
+        let files_text = if commit.files_changed.is_empty() {
+            "Files: [none]".to_string()
+        } else {
+            let displayed_files = if commit.files_changed.len() > 5 {
+                let joined = commit.files_changed[0..5].join(", ");
+                format!("{} and {} more", joined, commit.files_changed.len() - 5)
+            } else {
+                commit.files_changed.join(", ")
+            };
+            format!("Files: {displayed_files}")
+        };
+
+        commit_context.push(files_text);
+
+        // Mark CVE status prominently
+        let cve_status = if commit.was_selected == Some(true) { "YES" } else { "NO" };
+        let text = format!("[CVE Status: {}]\n\n{}", cve_status, commit_context.join("\n\n"));
+
+        // Create metadata
+        let mut metadata = HashMap::new();
+        metadata.insert("has_cve".to_string(), cve_status.to_string());
+        metadata.insert("sha".to_string(), commit.sha.clone());
+        metadata.insert("date".to_string(), commit.date.to_rfc3339());
+
+        // Add file paths joined with commas (limited to 10)
+        if !commit.files_changed.is_empty() {
+            let file_list = commit.files_changed.iter()
+                .take(10)
+                .cloned()
+                .collect::<Vec<String>>()
+                .join(",");
+            metadata.insert("files".to_string(), file_list);
+        }
+
+        (text, metadata)
+    }
+
+    // Helper to process a batch of commit data with progress tracking
+    fn process_commit_dataset(
+        commit_dataset: &[CommitFeatures],
+        max_chunk_length: usize
+    ) -> (Vec<String>, Vec<Metadata>) {
         let mut texts = Vec::new();
         let mut metadatas = Vec::new();
 
@@ -205,67 +270,9 @@ impl CVEClassifier {
             .unwrap());
 
         for commit in commit_dataset {
-            let message_lines: Vec<&str> = commit.message.trim().lines().collect();
-            let subject = (*message_lines.first().unwrap_or(&"")).to_string();
-            let message_body = if message_lines.len() > 1 {
-                message_lines[1..].join("\n")
-            } else {
-                String::new()
-            };
+            let (text, metadata) = Self::process_commit_to_training_data(commit, max_chunk_length);
 
-            // Build rich context for each commit
-            let mut commit_context = Vec::new();
-
-            commit_context.push(format!("Subject: {subject}"));
-            commit_context.push(format!("Commit Message:\n{message_body}"));
-
-            // Add code changes
-            let diff_text = if commit.diff.len() > MAX_CHUNK_LENGTH {
-                let truncated = commit.diff.chars().take(MAX_CHUNK_LENGTH).collect::<String>();
-                warn!("Truncating large diff for commit {} (size: {})", commit.sha, commit.diff.len());
-                format!("{truncated}\n[... truncated due to size ...]")
-            } else {
-                commit.diff.clone()
-            };
-
-            commit_context.push(format!("Changes:\n{diff_text}"));
-
-            // Add files changed
-            let files_text = if commit.files_changed.is_empty() {
-                "Files: [none]".to_string()
-            } else {
-                let displayed_files = if commit.files_changed.len() > 5 {
-                    let joined = commit.files_changed[0..5].join(", ");
-                    format!("{} and {} more", joined, commit.files_changed.len() - 5)
-                } else {
-                    commit.files_changed.join(", ")
-                };
-                format!("Files: {displayed_files}")
-            };
-
-            commit_context.push(files_text);
-
-            // Mark CVE status prominently
-            let cve_status = if commit.was_selected == Some(true) { "YES" } else { "NO" };
-            let text = format!("[CVE Status: {}]\n\n{}", cve_status, commit_context.join("\n\n"));
-
-            // Create metadata
-            let mut metadata = HashMap::new();
-            metadata.insert("has_cve".to_string(), cve_status.to_string());
-            metadata.insert("sha".to_string(), commit.sha.clone());
-            metadata.insert("date".to_string(), commit.date.to_rfc3339());
-
-            // Add file paths joined with commas (limited to 10)
-            if !commit.files_changed.is_empty() {
-                let file_list = commit.files_changed.iter()
-                    .take(10)
-                    .cloned()
-                    .collect::<Vec<String>>()
-                    .join(",");
-                metadata.insert("files".to_string(), file_list);
-            }
-
-            // Add text and metadata to vectors
+            // Add text to the texts vector
             texts.push(text);
 
             // Convert HashMap to Metadata
@@ -280,6 +287,99 @@ impl CVEClassifier {
 
         pb.finish_with_message("Processed commit dataset");
 
+        (texts, metadatas)
+    }
+
+    // Helper to create initial vectorstore from the first batch
+    fn create_initial_vectorstore(
+        &mut self,
+        texts: &[String],
+        metadatas: &[Metadata],
+        batch_size: usize
+    ) -> Result<usize, String> {
+        let actual_batch_size = std::cmp::min(batch_size, texts.len());
+        let batch_texts = texts[..actual_batch_size].to_vec();
+        let batch_metadatas = metadatas[..actual_batch_size].to_vec();
+
+        info!("Creating vectorstore with initial {actual_batch_size} items");
+
+        self.vectorstore = match ChromaStore::from_texts(
+            &batch_texts,
+            &mut self.embeddings,
+            Some(&batch_metadatas.iter().map(|m| {
+                let mut map = HashMap::new();
+                for (k, v) in &m.extra {
+                    if let serde_json::Value::String(s) = v {
+                        map.insert(k.clone(), s.clone());
+                    }
+                }
+                map
+            }).collect::<Vec<_>>()),
+            self.persist_directory.as_deref()
+        ) {
+            Ok(vs) => Some(vs),
+            Err(e) => return Err(format!("Failed to create vectorstore: {e}")),
+        };
+
+        Ok(actual_batch_size)
+    }
+
+    // Helper to add remaining batches to vectorstore
+    fn add_remaining_batches(
+        &mut self,
+        texts: &[String],
+        metadatas: &[Metadata],
+        start_idx: usize,
+        batch_size: usize
+    ) {
+        if start_idx >= texts.len() {
+            return;
+        }
+
+        let pb = ProgressBar::new((texts.len() - start_idx) as u64);
+        pb.set_style(ProgressStyle::default_bar()
+            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
+            .unwrap());
+
+        for batch_start in (start_idx..texts.len()).step_by(batch_size) {
+            let batch_end = std::cmp::min(batch_start + batch_size, texts.len());
+            let current_batch_size = batch_end - batch_start;
+
+            let batch_texts = texts[batch_start..batch_end].to_vec();
+            let batch_metadatas = metadatas[batch_start..batch_end].to_vec();
+
+            if let Some(vs) = &mut self.vectorstore {
+                if let Err(e) = vs.add_texts(batch_texts, Some(batch_metadatas)) {
+                    warn!("Failed to add batch to vectorstore: {e}");
+                }
+            }
+
+            pb.inc(current_batch_size as u64);
+        }
+
+        pb.finish_with_message("Added all batches to vectorstore");
+    }
+
+    // Training statistics helper
+    fn log_training_statistics(commit_dataset: &[CommitFeatures]) {
+        let cve_count = commit_dataset.iter()
+            .filter(|c| c.was_selected == Some(true))
+            .count();
+
+        info!("Training complete - indexed {} commits ({} with CVE, {} without CVE)",
+              commit_dataset.len(), cve_count, commit_dataset.len() - cve_count);
+    }
+
+    pub fn train(&mut self, commit_dataset: &[CommitFeatures]) -> Result<(), String> {
+        // Define constants at the beginning of the function
+        const BATCH_SIZE: usize = 1000;
+        const MAX_CHUNK_LENGTH: usize = 100_000; // Characters
+
+        info!("Training classifier with {} commits", commit_dataset.len());
+
+        // Process dataset into texts and metadata for vectorstore
+        let (texts, metadatas) = Self::process_commit_dataset(commit_dataset, MAX_CHUNK_LENGTH);
+
         // Initialize embeddings
         if let Err(e) = self.embeddings.initialize() {
             return Err(format!("Failed to initialize embeddings: {e}"));
@@ -290,66 +390,14 @@ impl CVEClassifier {
 
         if self.vectorstore.is_none() {
             // Create initial vectorstore with first batch
-            let batch_size = std::cmp::min(BATCH_SIZE, texts.len());
-            let batch_texts = texts[..batch_size].to_vec();
-            let batch_metadatas = metadatas[..batch_size].to_vec();
-
-            info!("Creating vectorstore with initial {batch_size} items");
-
-            self.vectorstore = match ChromaStore::from_texts(
-                &batch_texts,
-                &mut self.embeddings,
-                Some(&batch_metadatas.iter().map(|m| {
-                    let mut map = HashMap::new();
-                    for (k, v) in &m.extra {
-                        if let serde_json::Value::String(s) = v {
-                            map.insert(k.clone(), s.clone());
-                        }
-                    }
-                    map
-                }).collect::<Vec<_>>()),
-                self.persist_directory.as_deref()
-            ) {
-                Ok(vs) => Some(vs),
-                Err(e) => return Err(format!("Failed to create vectorstore: {e}")),
-            };
-
-            start_idx = batch_size;
+            start_idx = self.create_initial_vectorstore(&texts, &metadatas, BATCH_SIZE)?;
         }
 
         // Add remaining batches
-        if start_idx < texts.len() {
-            let pb = ProgressBar::new((texts.len() - start_idx) as u64);
-            pb.set_style(ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
-                .unwrap());
+        self.add_remaining_batches(&texts, &metadatas, start_idx, BATCH_SIZE);
 
-            for batch_start in (start_idx..texts.len()).step_by(BATCH_SIZE) {
-                let batch_end = std::cmp::min(batch_start + BATCH_SIZE, texts.len());
-                let batch_size = batch_end - batch_start;
-
-                let batch_texts = texts[batch_start..batch_end].to_vec();
-                let batch_metadatas = metadatas[batch_start..batch_end].to_vec();
-
-                if let Some(vs) = &mut self.vectorstore {
-                    if let Err(e) = vs.add_texts(batch_texts, Some(batch_metadatas)) {
-                        warn!("Failed to add batch to vectorstore: {e}");
-                    }
-                }
-
-                pb.inc(batch_size as u64);
-            }
-
-            pb.finish_with_message("Added all batches to vectorstore");
-        }
-
-        // Count commits with CVEs vs without CVEs
-        let cve_count = commit_dataset.iter()
-            .filter(|c| c.was_selected == Some(true))
-            .count();
-
-        info!("Training complete - indexed {} commits ({} with CVE, {} without CVE)",
-              commit_dataset.len(), cve_count, commit_dataset.len() - cve_count);
+        // Log training statistics
+        Self::log_training_statistics(commit_dataset);
 
         Ok(())
     }
