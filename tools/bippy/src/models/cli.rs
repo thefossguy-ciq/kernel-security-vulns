@@ -8,7 +8,6 @@ use std::path::PathBuf;
 /// Arguments for the bippy tool
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None, disable_version_flag = true, trailing_var_arg = true)]
-#[allow(clippy::struct_field_names)]
 pub struct Args {
     /// CVE number (e.g., "CVE-2021-1234")
     #[clap(short, long)]
