@@ -20,87 +20,42 @@ mod cli;
 mod state;
 mod kernel;
 
-#[allow(clippy::too_many_lines)]
-fn main() {
-    // Default to no logging, can turn it on based on the command line.
-    // Note, RUST_LOG_LEVEL does NOT work here anymore.  See
-    // https://docs.rs/env_logger/latest/env_logger/#specifying-defaults-for-environment-variables
-    // for a possible way to fix this up if anyone gets bored.
-    let mut logging_level: log::LevelFilter = log::LevelFilter::Error;
+/// Initialize and configure the logging system
+fn initialize_logging(verbose: bool) -> log::LevelFilter {
+    // Default to error level, but can turn it on based on the command line option
+    let logging_level = if verbose {
+        log::LevelFilter::max()
+    } else {
+        log::LevelFilter::Error
+    };
 
-    let program_name = env!("CARGO_BIN_NAME");
-    let program_version = env!("CARGO_PKG_VERSION");
-
-    // Parse our command line
-    let args = cli::parse_args();
-
-    // Will not work, move init of logger to above here if you want to see this
-    debug!("{args:#?}");
-
-    // If the version is asked for, just print that and exit
-    if args.version {
-        println!("{program_name} version: {program_version}");
-        std::process::exit(0);
-    }
-
-    // Verify we at least got a git sha passed to us using the --sha1 flag
-    // (not checking to see if it is valid just yet...)
-    if args.sha1.is_empty() {
-        println!("Error: At least one --sha1 value is required\n");
-        std::process::exit(1);
-    }
-
-    // Set the logging level based on the command line option and turn on the logger
-    if args.verbose {
-        logging_level = log::LevelFilter::max();
-    }
     env_logger::builder()
         .format_timestamp(None)
         .filter_level(logging_level)
         .init();
 
-    // Copy the command line args to our local "state" so we can pass it around
-    let mut state = state::DyadState::new();
+    logging_level
+}
 
-    // Set up the locations of all of our external helper programs and databases are there before
-    // we attempt to use any of them
-    state::validate_env_vars(&mut state);
 
-    // Calculate full git sha for each fixing SHA1 that was passed to us
+/// Process fixing SHA1s from command line arguments
+fn process_fixing_shas(state: &mut state::DyadState, shas: &[String]) -> bool {
     state.git_sha_full.clear(); // Clear any existing values
-    for git_sha in &args.sha1 {
-        if !kernel::process_fixing_sha(&mut state, git_sha) {
+
+    for git_sha in shas {
+        if !kernel::process_fixing_sha(state, git_sha) {
             error!(
                 "Error: The provided git SHA1 '{git_sha}' could not be found in the repository"
             );
-            std::process::exit(1);
+            return false;
         }
     }
 
+    // Print information about the fixing SHA1s
     for (idx, full_id) in state.git_sha_full.iter().enumerate() {
         debug!(" Full git id {idx}: '{full_id:?}'");
     }
 
-    // Parse the vulnerable command line and create a vector of vulnerable kernel ids.
-    let vuln_ids = args.vulnerable.clone();
-    for vuln_id in vuln_ids {
-        if !kernel::process_vulnerable_sha(&mut state, &vuln_id) {
-            error!(
-                "Error: The provided vulnerable git SHA1 '{vuln_id}' could not be found in the repository"
-            );
-            std::process::exit(1);
-        }
-    }
-
-    println!(
-        "{} {} {} {}",
-        "#".green(),
-        program_name.purple(),
-        "version:".green(),
-        program_version.cyan()
-    );
-
-    // Print all fixing SHA1s
     for git_sha in &state.git_sha_full {
         println!(
             "{} {}",
@@ -109,24 +64,85 @@ fn main() {
         );
     }
 
+    true
+}
+
+/// Process vulnerable SHA1s from command line arguments
+fn process_vulnerable_shas(state: &mut state::DyadState, shas: &[String]) -> bool {
+    for vuln_id in shas {
+        if !kernel::process_vulnerable_sha(state, vuln_id) {
+            error!(
+                "Error: The provided vulnerable git SHA1 '{vuln_id}' could not be found in the repository"
+            );
+            return false;
+        }
+    }
+
+    true
+}
+
+/// Process and generate kernel pairs
+fn process_kernel_pairs(state: &mut state::DyadState) {
     // Find all of the places where each git commit was backported to
-    kernel::find_fixed_kernels(&mut state);
+    kernel::find_fixed_kernels(state);
 
     // Process explicitly provided vulnerable commits
-    let mut vulnerable_kernels = kernel::add_provided_vulnerabilities(&mut state);
+    let mut vulnerable_kernels = kernel::add_provided_vulnerabilities(state);
 
     // Derive vulnerabilities from fixing SHAs if needed
-    kernel::derive_vulnerabilities(&mut state, &mut vulnerable_kernels);
+    kernel::derive_vulnerabilities(state, &mut vulnerable_kernels);
 
     // Find backported vulnerable kernels and winnow the vulnerable set
-    kernel::process_vulnerable_kernels(&mut state, &vulnerable_kernels);
+    kernel::process_vulnerable_kernels(state, &vulnerable_kernels);
 
     // Generate kernel pairs from vulnerable and fixed sets
-    let fixed_pairs = kernel::generate_kernel_pairs(&state);
+    let fixed_pairs = kernel::generate_kernel_pairs(state);
 
     // Filter and sort pairs for consistency
     let filtered_pairs = kernel::filter_and_sort_pairs(&fixed_pairs);
 
     // Print the final kernel pairs
     kernel::print_kernel_pairs(&filtered_pairs);
+}
+
+fn main() {
+    // Parse command line arguments
+    let args = cli::parse_args();
+
+    // Handle version request
+    if args.version {
+        let program_name = env!("CARGO_BIN_NAME");
+        let program_version = env!("CARGO_PKG_VERSION");
+        println!("{program_name} version: {program_version}");
+        std::process::exit(0);
+    }
+
+    // Verify we have at least one SHA1
+    if args.sha1.is_empty() {
+        println!("Error: At least one --sha1 value is required\n");
+        std::process::exit(1);
+    }
+
+    // Initialize logging system
+    initialize_logging(args.verbose);
+
+    // Debug message will only be seen after logger is initialized
+    debug!("{args:#?}");
+
+    // Initialize state
+    let mut state = state::DyadState::new();
+    state::validate_env_vars(&mut state);
+
+    // Process fixing SHA1s
+    if !process_fixing_shas(&mut state, &args.sha1) {
+        std::process::exit(1);
+    }
+
+    // Process vulnerable SHA1s
+    if !process_vulnerable_shas(&mut state, &args.vulnerable) {
+        std::process::exit(1);
+    }
+
+    // Process and generate kernel pairs
+    process_kernel_pairs(&mut state);
 }
