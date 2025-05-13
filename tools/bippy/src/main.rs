@@ -9,7 +9,7 @@ use cve_utils::git_utils::{get_object_full_sha, resolve_reference};
 use git2::Repository;
 use log::{debug, error, warn};
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 mod commands;
 mod models;
@@ -19,31 +19,37 @@ use commands::{generate_json_record, generate_mbox};
 use models::{Args, DyadEntry};
 use utils::{apply_diff_to_text, get_commit_subject, get_commit_text, read_tags_file, run_dyad, strip_commit_text};
 
-/// Main function
-#[allow(clippy::too_many_lines)]
-fn main() -> Result<()> {
-    let mut logging_level: log::LevelFilter = log::LevelFilter::Error;
+/// Initialize and configure the logging system
+fn initialize_logging(verbose: bool) -> log::LevelFilter {
+    let logging_level = if verbose {
+        log::LevelFilter::max()
+    } else {
+        log::LevelFilter::Error
+    };
 
-    // Parse command line arguments
-    let args = Args::parse();
-
-    // Set the logging level based on the command line option and turn on the logger
-    if args.verbose {
-        logging_level = log::LevelFilter::max();
-    }
     env_logger::builder()
         .format_timestamp(None)
         .filter_level(logging_level)
         .init();
 
-    // Debug all raw command line arguments if verbose is enabled
+    logging_level
+}
+
+/// Log command line arguments if in verbose mode
+fn log_command_args() {
     if std::env::args().len() > 0 {
         debug!("Raw command line arguments:");
         for (i, arg) in std::env::args().enumerate() {
             debug!("  Arg[{i}]: '{arg}'");
         }
     }
+}
 
+/// Type alias for argument validation return value
+type ArgsResult = (String, String, String, Vec<String>, Vec<String>);
+
+/// Validate command line arguments and environment variables
+fn validate_args_and_env(args: &Args) -> ArgsResult {
     // We should not have ANY trailing arguments, so if we do, print them out and abort
     if !args.trailing_args.is_empty() {
         error!("Trailing arguments detected:");
@@ -60,8 +66,8 @@ fn main() -> Result<()> {
     }
 
     // Check for CVE_USER environment variable if user is not specified
-    let user_email = match args.user {
-        Some(ref email) => email.clone(),
+    let user_email = match args.user.as_ref() {
+        Some(email) => email.clone(),
         None => if let Ok(val) = env::var("CVE_USER") {
             val
         } else {
@@ -78,7 +84,7 @@ fn main() -> Result<()> {
     }
 
     // Extract values from args
-    let cve_number = args.cve.as_ref().unwrap();
+    let cve_number = args.cve.as_ref().unwrap().clone();
     let git_shas: Vec<String> = args
         .sha
         .iter()
@@ -111,9 +117,14 @@ fn main() -> Result<()> {
     debug!("REFERENCE_FILE={:?}", args.reference);
     debug!("GIT_VULNERABLE={vulnerable_shas:?}");
 
+    (cve_number, user_name, user_email, git_shas, vulnerable_shas)
+}
+
+/// Get repository and script directories
+fn get_directories() -> Result<(String, PathBuf, String, String)> {
     // Get vulns directory using cve_utils
-    let vulns_dir =
-        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
+    let vulns_dir = cve_utils::find_vulns_dir()
+        .with_context(|| "Failed to find vulns directory")?;
 
     // Get scripts directory
     let script_dir = vulns_dir.join("scripts");
@@ -134,8 +145,16 @@ fn main() -> Result<()> {
     let kernel_tree = env::var("CVEKERNELTREE")
         .with_context(|| "CVEKERNELTREE environment variable is not set")?;
 
+    Ok((kernel_tree, script_dir, script_name, script_version))
+}
+
+/// Get commit information from Git repository
+fn get_commit_info(
+    kernel_tree: &str,
+    git_shas: &[String],
+) -> Result<(String, String, String)> {
     // Open the kernel repository
-    let repo = Repository::open(&kernel_tree)
+    let repo = Repository::open(kernel_tree)
         .with_context(|| format!("Failed to open Git repository at {kernel_tree:?}"))?;
 
     // Resolve Git references for all main commits
@@ -153,41 +172,42 @@ fn main() -> Result<()> {
         error!("None of the provided SHAs could be resolved");
         std::process::exit(1);
     }
+
     // Use the first as the main one for output fields
     let main_git_ref = &git_refs[0];
 
     // Get SHA information for the main commit
-    let git_sha_full =
-        get_object_full_sha(&repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
-    let commit_subject =
-        get_commit_subject(&repo, main_git_ref).with_context(|| "Failed to get commit subject")?;
+    let git_sha_full = get_object_full_sha(&repo, main_git_ref)
+        .with_context(|| "Failed to get full SHA")?;
+    let commit_subject = get_commit_subject(&repo, main_git_ref)
+        .with_context(|| "Failed to get commit subject")?;
 
     // Get the full commit message text for the main commit
-    let kernel_tree = std::env::var("CVEKERNELTREE")
-        .with_context(|| "CVEKERNELTREE environment variable is not set")?;
-    let repo = Repository::open(&kernel_tree)?;
     let git_ref = resolve_reference(&repo, &git_sha_full)?;
-    let mut commit_text = get_commit_text(&repo, &git_ref)?;
+    let commit_text = get_commit_text(&repo, &git_ref)?;
 
+    Ok((git_sha_full, commit_subject, commit_text))
+}
+
+/// Process the commit text with optional diff application
+fn process_commit_text(
+    script_dir: &Path,
+    commit_text: &str,
+    diff_path: Option<&Path>,
+) -> String {
     // Read the tags file to strip from commit message
-    let vulns_dir =
-        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
-    let script_dir = vulns_dir.join("scripts");
-    let tags = read_tags_file(&script_dir).unwrap_or_default();
+    let tags = read_tags_file(script_dir).unwrap_or_default();
 
     // Strip tags from commit text
-    commit_text = strip_commit_text(&commit_text, &tags);
+    let mut processed_text = strip_commit_text(commit_text, &tags);
 
     // Apply diff file to the commit text if provided
-    if let Some(diff_path) = args.diff.as_ref() {
-        match apply_diff_to_text(&commit_text, diff_path) {
+    if let Some(path) = diff_path {
+        match apply_diff_to_text(&processed_text, path) {
             Ok(modified_text) => {
-                debug!(
-                    "Applied diff from {} to the commit text",
-                    diff_path.display()
-                );
+                debug!("Applied diff from {} to the commit text", path.display());
                 // The apply_diff_to_text function handles newline preservation
-                commit_text = modified_text;
+                processed_text = modified_text;
             }
             Err(err) => {
                 error!("Warning: Failed to apply diff to commit text: {err}");
@@ -195,8 +215,16 @@ fn main() -> Result<()> {
         }
     }
 
-    // Run dyad with all main SHAs and all vulnerable SHAs
-    let dyad_data = match run_dyad(&script_dir, &git_shas, &vulnerable_shas) {
+    processed_text
+}
+
+/// Run dyad and parse its output into `DyadEntry` objects
+fn run_dyad_and_parse(
+    script_dir: &Path,
+    git_shas: &[String],
+    vulnerable_shas: &[String],
+) -> Vec<DyadEntry> {
+    let dyad_data = match run_dyad(script_dir, git_shas, vulnerable_shas) {
         Ok(data) => data,
         Err(err) => {
             warn!("Warning: Failed to run dyad: {err:?}");
@@ -222,9 +250,12 @@ fn main() -> Result<()> {
         }
     }
 
-    // Check for the reference file explicitly specified with --reference
-    let reference_path: Option<PathBuf> = args.reference.clone();
-    let additional_references: Vec<String> = if let Some(ref_path) = reference_path {
+    dyad_entries
+}
+
+/// Read additional references from a file if specified
+fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
+    if let Some(ref_path) = reference_path {
         debug!("Attempting to read references from {ref_path:?}");
 
         if let Ok(contents) = std::fs::read_to_string(&ref_path) {
@@ -259,57 +290,77 @@ fn main() -> Result<()> {
     } else {
         debug!("No reference file specified");
         Vec::new()
-    };
+    }
+}
 
+/// Output parameters for generating files
+struct OutputParams<'a> {
+    cve_number: &'a str,
+    git_sha_full: &'a str,
+    commit_subject: &'a str,
+    user_name: &'a str,
+    user_email: &'a str,
+    script_name: &'a str,
+    script_version: &'a str,
+    commit_text: &'a str,
+}
+
+/// Generate and write output files (mbox and/or JSON)
+fn generate_output_files(
+    mbox_path: Option<&Path>,
+    json_path: Option<&Path>,
+    params: &OutputParams,
+    dyad_entries: &[DyadEntry],
+    additional_references: &[String],
+) {
     // Generate mbox file if requested
     // This has to be done BEFORE the json file creation because sometimes we do not have a set of
     // valid vulnerable:fixed pairs that are not in a single release which means we should not be
-    // creating anything at all.  The mbox generation catches this type of issue and will abort
+    // creating anything at all. The mbox generation catches this type of issue and will abort
     // everything if it happens.
-    if let Some(mbox_path) = args.mbox.as_ref() {
+    if let Some(path) = mbox_path {
+        // Convert to Vec for generate_mbox which expects &Vec<DyadEntry>
+        let entries_vec: Vec<DyadEntry> = dyad_entries.to_vec();
+
         let mbox_content = generate_mbox(
-            cve_number,
-            &git_sha_full,
-            &commit_subject,
-            &user_name,
-            &user_email,
-            &dyad_entries,
-            &script_name,
-            &script_version,
-            &additional_references,
-            &commit_text,
+            params.cve_number,
+            params.git_sha_full,
+            params.commit_subject,
+            params.user_name,
+            params.user_email,
+            &entries_vec,
+            params.script_name,
+            params.script_version,
+            additional_references,
+            params.commit_text,
         );
 
-        if let Err(err) = std::fs::write(mbox_path, mbox_content) {
-            error!(
-                "Warning: Failed to write mbox file to {mbox_path:?}: {err}"
-            );
+        if let Err(err) = std::fs::write(path, mbox_content) {
+            error!("Warning: Failed to write mbox file to {path:?}: {err}");
         } else {
-            debug!("Wrote mbox file to {path}", path=mbox_path.display());
+            debug!("Wrote mbox file to {path}", path=path.display());
         }
     }
 
     // Generate JSON file if requested
-    if let Some(json_path) = args.json.as_ref() {
+    if let Some(path) = json_path {
         match generate_json_record(
-            cve_number,
-            &git_sha_full,
-            &commit_subject,
-            &user_name,
-            &user_email,
-            dyad_entries.clone(),
-            &script_name,
-            &script_version,
-            &additional_references,
-            &commit_text,
+            params.cve_number,
+            params.git_sha_full,
+            params.commit_subject,
+            params.user_name,
+            params.user_email,
+            dyad_entries.to_vec(),
+            params.script_name,
+            params.script_version,
+            additional_references,
+            params.commit_text,
         ) {
             Ok(json_record) => {
-                if let Err(err) = std::fs::write(json_path, json_record) {
-                    error!(
-                        "Warning: Failed to write JSON file to {json_path:?}: {err}"
-                    );
+                if let Err(err) = std::fs::write(path, json_record) {
+                    error!("Warning: Failed to write JSON file to {path:?}: {err}");
                 } else {
-                    debug!("Wrote JSON file to {path}", path=json_path.display());
+                    debug!("Wrote JSON file to {path}", path=path.display());
                 }
             }
             Err(err) => {
@@ -317,6 +368,57 @@ fn main() -> Result<()> {
             }
         }
     }
+}
+
+/// Main function
+fn main() -> Result<()> {
+    // Parse command line arguments
+    let args = Args::parse();
+
+    // Initialize logging system
+    initialize_logging(args.verbose);
+
+    // Log command line arguments in verbose mode
+    log_command_args();
+
+    // Validate arguments and environment variables
+    let (cve_number, user_name, user_email, git_shas, vulnerable_shas) = validate_args_and_env(&args);
+
+    // Get required directories and script information
+    let (kernel_tree, script_dir, script_name, script_version) = get_directories()?;
+
+    // Get Git commit information
+    let (git_sha_full, commit_subject, raw_commit_text) = get_commit_info(&kernel_tree, &git_shas)?;
+
+    // Process commit text with optional diff application
+    let commit_text = process_commit_text(&script_dir, &raw_commit_text, args.diff.as_deref());
+
+    // Run dyad and parse its output
+    let dyad_entries = run_dyad_and_parse(&script_dir, &git_shas, &vulnerable_shas);
+
+    // Read additional references from file if specified
+    let additional_references = read_additional_references(args.reference);
+
+    // Create output parameters
+    let output_params = OutputParams {
+        cve_number: &cve_number,
+        git_sha_full: &git_sha_full,
+        commit_subject: &commit_subject,
+        user_name: &user_name,
+        user_email: &user_email,
+        script_name: &script_name,
+        script_version: &script_version,
+        commit_text: &commit_text,
+    };
+
+    // Generate and write output files
+    generate_output_files(
+        args.mbox.as_deref(),
+        args.json.as_deref(),
+        &output_params,
+        &dyad_entries,
+        &additional_references,
+    );
 
     Ok(())
 }
@@ -632,7 +734,7 @@ mod tests {
 
         // Check that it contains only valid semver characters
         assert!(
-            version.chars().all(|c| c.is_digit(10) || c == '.'),
+            version.chars().all(|c| c.is_ascii_digit() || c == '.'),
             "Version should only contain digits and dots"
         );
     }
