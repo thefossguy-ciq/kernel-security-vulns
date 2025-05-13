@@ -4,6 +4,7 @@
 
 use anyhow::{Context, Result};
 use log::debug;
+use std::fmt::Write;
 use std::path::Path;
 
 /// Run the dyad script to get version range information
@@ -66,11 +67,11 @@ pub fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[Strin
         let mut error_msg = format!("Dyad script failed with status: {status}");
 
         if !stderr.is_empty() {
-            error_msg.push_str(&format!("\nStderr: {stderr}"));
+            write!(error_msg, "\nStderr: {stderr}").unwrap();
         }
 
         if !stdout.is_empty() {
-            error_msg.push_str(&format!("\nStdout: {stdout}"));
+            write!(error_msg, "\nStdout: {stdout}").unwrap();
         }
 
         return Err(anyhow::anyhow!("{error_msg}"));

@@ -136,7 +136,7 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path, debug: b
                 cve_file = Some(path.to_path_buf());
                 break;
             },
-            _ => continue,
+            _ => {},
         }
     }
 

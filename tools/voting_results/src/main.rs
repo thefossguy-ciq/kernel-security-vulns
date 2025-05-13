@@ -6,12 +6,13 @@ use anyhow::{Context, Result, anyhow};
 use clap::Parser;
 use owo_colors::OwoColorize;
 use git2::Repository;
-use lazy_static::lazy_static;
 use regex::Regex;
+use std::fmt::Write;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
+use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -19,19 +20,17 @@ use std::process::{Command, Stdio};
 type CommitResult = (String, bool, HashMap<String, bool>);
 
 // Define primary reviewers - other reviewers are determined dynamically
-lazy_static! {
-    static ref PRIMARY_REVIEWERS: Vec<String> = vec![
-        "greg".to_string(),
-        "lee".to_string(),
-        "sasha".to_string(),
-    ];
+static PRIMARY_REVIEWERS: LazyLock<Vec<String>> = LazyLock::new(|| vec![
+    "greg".to_string(),
+    "lee".to_string(),
+    "sasha".to_string(),
+]);
 
-    // Git remote name for stable branches
-    static ref STABLE_REMOTE: String = "stable".to_string();
+// Git remote name for stable branches
+static STABLE_REMOTE: LazyLock<String> = LazyLock::new(|| "stable".to_string());
 
-    // Regular expressions used in the code
-    static ref UPSTREAM_REGEX: Regex = Regex::new(r"[0-9a-f]{40}").unwrap();
-}
+// Regular expressions used in the code
+static UPSTREAM_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[0-9a-f]{40}").unwrap());
 
 #[derive(Parser, Debug)]
 #[clap(version, about = "Conducts voting system between the present reviewers")]
@@ -198,7 +197,7 @@ impl VotingResults {
                 let file_name = entry.file_name().to_string_lossy().to_string();
 
                 if regex.is_match(&file_name) {
-                    if let Some(reviewer) = file_name.split('-').last() {
+                    if let Some(reviewer) = file_name.split('-').next_back() {
                         reviewer_set.insert(reviewer.to_string());
                     }
                 }
@@ -422,7 +421,7 @@ impl VotingResults {
         for file_path in &self.review_files {
             if let Ok(file) = File::open(file_path) {
                 let file_name = file_path.file_name().unwrap().to_string_lossy();
-                if let Some(reviewer) = file_name.split('-').last() {
+                if let Some(reviewer) = file_name.split('-').next_back() {
                     let reader = BufReader::new(file);
                     for line in reader.lines().map_while(Result::ok) {
                         // Check for subject in various formats:
@@ -446,7 +445,7 @@ impl VotingResults {
 
     fn format_commit_output(&self, oneline: &str, has_cve: bool, reviewer_votes: &HashMap<String, bool>) -> String {
         let mut output = oneline.to_string() + "\n";
-        output += &format!("\tCVE:\t{}\t", if has_cve { "0" } else { "1" });
+        write!(output, "\tCVE:\t{}\t", if has_cve { "0" } else { "1" }).unwrap();
 
         // Print reviewers in alphabetical order
         for reviewer in &self.reviewers {
@@ -454,9 +453,9 @@ impl VotingResults {
             // Capitalize first letter
             let capitalized = format!("{}:",
                 reviewer.chars().next().unwrap_or_default().to_uppercase().collect::<String>() + &reviewer[1..]);
-            output += &format!("{}\t{}\t", capitalized, if *vote { "1" } else { "0" });
+            write!(output, "{}\t{}\t", capitalized, if *vote { "1" } else { "0" }).unwrap();
         }
-        output += "\n";
+        output.push('\n');
 
         output
     }

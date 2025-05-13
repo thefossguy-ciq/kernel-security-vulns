@@ -2,6 +2,7 @@
 // (c) 2025, Sasha Levin <sashal@kernel.org>
 
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use log::{info, debug, warn, error};
 use regex::Regex;
@@ -447,7 +448,7 @@ impl CVEClassifier {
                 .join(", ");
 
             if commit_info.files_changed.len() > 10 {
-                files_text.push_str(&format!(" and {} more", commit_info.files_changed.len() - 10));
+                write!(files_text, " and {} more", commit_info.files_changed.len() - 10).unwrap();
             }
 
             commit_parts.push(format!("Files Changed: {files_text}"));

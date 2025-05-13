@@ -4,6 +4,7 @@
 use clap::{Arg, ArgAction, Command};
 use log::{info, debug, error, warn};
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use std::fs;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -453,7 +454,7 @@ fn main() {
 
                                     let mut full_explanation = String::new();
                                     for (provider, provider_result) in &result.provider_results {
-                                        full_explanation.push_str(&format!("Provider: {provider}\n"));
+                                        writeln!(full_explanation, "Provider: {provider}").unwrap();
                                         if let Some(raw_response) = &provider_result.raw_response {
                                             full_explanation.push_str(raw_response);
                                         } else {
@@ -708,7 +709,7 @@ fn save_explanation(dir: &str, file_stem: &str, provider_results: &HashMap<Strin
 
     let mut full_explanation = String::new();
     for (provider, provider_result) in provider_results {
-        full_explanation.push_str(&format!("Provider: {provider}\n"));
+        writeln!(full_explanation, "Provider: {provider}").unwrap();
         if let Some(raw_response) = &provider_result.raw_response {
             full_explanation.push_str(raw_response);
         } else {

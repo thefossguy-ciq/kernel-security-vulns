@@ -83,7 +83,7 @@ fn validate_env_vars(state: &mut DyadState) {
     match cve_utils::common::get_kernel_tree() {
         Ok(path) => state.kernel_tree = path.to_string_lossy().into_owned(),
         Err(e) => panic!("Failed to get kernel tree: {e}"),
-    };
+    }
     debug!("kernel_tree = {}", state.kernel_tree);
 }
 

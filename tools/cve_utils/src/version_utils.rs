@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-/// Version utilities for kernel version management
+//! Version utilities for kernel version management
 
 use anyhow::Result;
 use std::cmp::Ordering;
@@ -123,10 +123,7 @@ impl FromStr for KernelVersion {
 
             // Parse RC number if present
             let rc_number = if rc_idx + 3 < version.len() {
-                match version[rc_idx + 3..].parse::<u32>() {
-                    Ok(num) => Some(num),
-                    Err(_) => None, // Invalid RC format like "rcx" should return None
-                }
+                version[rc_idx + 3..].parse::<u32>().ok()
             } else {
                 Some(0) // Just "-rc" without number
             };
@@ -176,7 +173,7 @@ impl Ord for KernelVersion {
             let v2 = other.components.get(i).copied().unwrap_or(0);
 
             match v1.cmp(&v2) {
-                Ordering::Equal => continue,
+                Ordering::Equal => {}
                 other_ord => return other_ord,
             }
         }

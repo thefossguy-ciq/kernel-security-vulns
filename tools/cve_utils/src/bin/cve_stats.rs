@@ -255,15 +255,10 @@ fn get_first_cve_date(vulns_dir: &Path) -> Result<String> {
         // Try to parse the directory name as a year
         if let Some(name) = path.file_name() {
             let name_str = name.to_string_lossy();
-            match name_str.parse::<i32>() {
-                Ok(year) => {
-                    if year < min_year && year >= 2000 {  // Sanity check for valid years
-                        min_year = year;
-                        earliest_date = Some(format!("{year}-01-01"));
-                    }
-                },
-                Err(_) => {
-                    continue;
+            if let Ok(year) = name_str.parse::<i32>() {
+                if year < min_year && year >= 2000 {  // Sanity check for valid years
+                    min_year = year;
+                    earliest_date = Some(format!("{year}-01-01"));
                 }
             }
         }
@@ -608,7 +603,7 @@ fn get_commit_subsystem(kernel_tree: &Path, sha1_file: &Path) -> Result<Option<(
         Err(e) => {
             return Err(anyhow!("Failed to process diff: {e}"));
         }
-    };
+    }
 
     if let Some(path) = first_file {
         // Split path into parts to get main subsystem and sub-subsystem

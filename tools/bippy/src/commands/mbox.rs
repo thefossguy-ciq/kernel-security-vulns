@@ -6,6 +6,7 @@ use cve_utils::git_utils::{get_affected_files, resolve_reference};
 use cve_utils::version_utils::compare_kernel_versions;
 use git2::Repository;
 use log::error;
+use std::fmt::Write;
 
 use crate::models::DyadEntry;
 
@@ -143,19 +144,19 @@ pub fn generate_mbox(
     // Format the vulnerability summary section
     let mut vuln_section = String::new();
     for line in vuln_array_mbox {
-        vuln_section.push_str(&format!("\t{line}\n"));
+        writeln!(vuln_section, "\t{line}").unwrap();
     }
 
     // Format the affected files section
     let mut files_section = String::new();
     for file in affected_files {
-        files_section.push_str(&format!("\t{file}\n"));
+        writeln!(files_section, "\t{file}").unwrap();
     }
 
     // Format the mitigation section with URLs
     let mut url_section = String::new();
     for url in url_array {
-        url_section.push_str(&format!("\t{url}\n"));
+        writeln!(url_section, "\t{url}").unwrap();
     }
 
     // Use the provided commit_text, which might have been modified by the diff
