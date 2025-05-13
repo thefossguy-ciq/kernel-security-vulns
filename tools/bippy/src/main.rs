@@ -51,9 +51,9 @@ type ArgsResult = (String, String, String, Vec<String>, Vec<String>);
 /// Validate command line arguments and environment variables
 fn validate_args_and_env(args: &Args) -> ArgsResult {
     // We should not have ANY trailing arguments, so if we do, print them out and abort
-    if !args.trailing_args.is_empty() {
+    if !args.remaining_parameters.is_empty() {
         error!("Trailing arguments detected:");
-        for (i, arg) in args.trailing_args.iter().enumerate() {
+        for (i, arg) in args.remaining_parameters.iter().enumerate() {
             error!("  trailing_arg[{i}]: '{arg}'");
         }
         std::process::exit(1);

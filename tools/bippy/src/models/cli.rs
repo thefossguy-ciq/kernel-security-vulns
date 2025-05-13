@@ -52,5 +52,5 @@ pub struct Args {
 
     /// Catch any trailing arguments
     #[clap(hide = true)]
-    pub trailing_args: Vec<String>,
+    pub remaining_parameters: Vec<String>,
 }
