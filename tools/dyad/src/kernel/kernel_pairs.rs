@@ -258,24 +258,27 @@ fn process_unfixed_vulnerabilities(vulnerable_kernel: &Kernel, fixed_pairs: &[Ke
     }
 
     // If we found a fix, create a pair
-    if let Some(fix) = best_fix {
-        debug!(
-            "Found compatible fix for {} in {}",
-            vulnerable_kernel.version(),
-            fix.version()
-        );
+    best_fix.map_or_else(
+        || {
+            // No fix found, mark as unfixed
+            Some(KernelPair {
+                vulnerable: vulnerable_kernel.clone(),
+                fixed: Kernel::empty_kernel(),
+            })
+        },
+        |fix| {
+            debug!(
+                "Found compatible fix for {} in {}",
+                vulnerable_kernel.version(),
+                fix.version()
+            );
 
-        Some(KernelPair {
-            vulnerable: vulnerable_kernel.clone(),
-            fixed: fix,
-        })
-    } else {
-        // No fix found, mark as unfixed
-        Some(KernelPair {
-            vulnerable: vulnerable_kernel.clone(),
-            fixed: Kernel::empty_kernel(),
-        })
-    }
+            Some(KernelPair {
+                vulnerable: vulnerable_kernel.clone(),
+                fixed: fix,
+            })
+        }
+    )
 }
 
 pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
@@ -373,9 +376,6 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
     // we shouldn't create a pair 6.6:6.13 if the version was fixed in 6.7
     let mut filtered_pairs: Vec<KernelPair> = Vec::new();
 
-    // Track which vulnerable commits have already been paired with a mainline fix
-    let mut vulnerable_commit_with_mainline_fix: HashMap<String, String> = HashMap::new();
-
     // First, separate the pairs by vulnerable git id
     let mut pairs_by_vuln_id: HashMap<String, Vec<KernelPair>> = HashMap::new();
 
@@ -443,8 +443,6 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
                 vuln_id,
                 mainline_pair.fixed.version()
             );
-            vulnerable_commit_with_mainline_fix
-                .insert(vuln_id.clone(), mainline_pair.fixed.version());
             filtered_pairs.push(mainline_pair);
         }
 
