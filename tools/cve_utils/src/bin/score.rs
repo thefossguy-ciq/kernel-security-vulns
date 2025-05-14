@@ -72,8 +72,7 @@ impl CVEDatabase {
 
         // Extract the HashSet from the Mutex and Arc
         let mut final_set = HashSet::new();
-        let mutex_guard = sha1_set_mutex.lock().unwrap();
-        final_set.extend(mutex_guard.iter().cloned());
+        final_set.extend(sha1_set_mutex.lock().unwrap().iter().cloned());
 
         Ok(Self { sha1_set: final_set })
     }
@@ -298,15 +297,15 @@ fn main() -> Result<()> {
     let cve_root = vulns_dir.join("cve");
 
     // Set up the directory paths
-    let review_dir = match args.review_dir {
-        Some(path) => PathBuf::from(path),
-        None => cve_root.join("review").join("done"),
-    };
+    let review_dir = args.review_dir.map_or_else(
+        || cve_root.join("review").join("done"),
+        PathBuf::from,
+    );
 
-    let published_dir = match args.published_dir {
-        Some(path) => PathBuf::from(path),
-        None => cve_root.join("published"),
-    };
+    let published_dir = args.published_dir.map_or_else(
+        || cve_root.join("published"),
+        PathBuf::from,
+    );
 
     // Validate directories exist
     if !review_dir.exists() {

@@ -101,14 +101,15 @@ fn main() {
     let cli = Args::parse();
 
     // Validate CVEKERNELTREE environment variable
-    let kernel_tree = if let Ok(path) = env::var("CVEKERNELTREE") {
-        PathBuf::from(path)
-    } else {
-        eprintln!("Error: CVEKERNELTREE environment variable not set");
-        eprintln!("Please set it to the location of your Linux kernel git tree");
-        eprintln!("Example: export CVEKERNELTREE=/path/to/linux");
-        std::process::exit(1);
-    };
+    let kernel_tree = env::var("CVEKERNELTREE").map_or_else(
+        |_| {
+            eprintln!("Error: CVEKERNELTREE environment variable not set");
+            eprintln!("Please set it to the location of your Linux kernel git tree");
+            eprintln!("Example: export CVEKERNELTREE=/path/to/linux");
+            std::process::exit(1);
+        },
+        PathBuf::from,
+    );
 
     // Validate kernel tree path exists and is a directory
     if !kernel_tree.exists() || !kernel_tree.is_dir() {
@@ -264,11 +265,10 @@ fn get_first_cve_date(vulns_dir: &Path) -> Result<String> {
         }
     }
 
-    if let Some(date) = earliest_date {
-        Ok(date)
-    } else {
-        Err(anyhow!("No valid year directories found in {}", published_dir.display()))
-    }
+    earliest_date.map_or_else(
+        || Err(anyhow!("No valid year directories found in {}", published_dir.display())),
+        Ok,
+    )
 }
 
 /// Count CVEs created in a specific time period

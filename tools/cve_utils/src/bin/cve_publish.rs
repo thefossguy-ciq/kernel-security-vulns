@@ -56,7 +56,7 @@ enum ModeCommand {
 
 impl Args {
     /// Determine the publish mode based on command-line arguments
-    fn get_publish_mode(&self) -> PublishMode {
+    const fn get_publish_mode(&self) -> PublishMode {
         match &self.mode {
             Some(ModeCommand::All) => PublishMode::All,
             Some(ModeCommand::Json) => PublishMode::Json,
@@ -70,7 +70,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let publish_mode = args.get_publish_mode();
 
-    if let PublishMode::None = publish_mode {
+    if matches!(publish_mode, PublishMode::None) {
         println!("{} No action specified. Use --json, --mbox, or --all", "WARNING:".yellow());
         println!("Run with --help for more information.");
         return Ok(());

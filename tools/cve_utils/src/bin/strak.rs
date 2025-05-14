@@ -49,7 +49,7 @@ impl DyadEntry {
             return Err(anyhow!("Invalid dyad entry: {s}"));
         }
 
-        Ok(DyadEntry {
+        Ok(Self {
             vulnerable_git: parts[1].to_string(),
             fixed_git: parts[3].to_string(),
         })

@@ -196,9 +196,11 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
                         let mut counter = counter.lock().unwrap();
                         let index = *counter;
                         if index >= total_count {
+                            drop(counter); // Drop the mutex early
                             break;
                         }
                         *counter += 1;
+                        drop(counter); // Drop the mutex early
                         sha1_files[index].clone()
                     };
 
@@ -209,16 +211,20 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
 
                     let result = update_cve(&file, dry_run);
 
-                    if let Err(ref e) = result {
-                        // Store errors for later display
-                        let mut results = update_results.lock().unwrap();
-                        results.push((cve_id.to_string(), format!("ERROR: {e}")));
-                    } else if let Ok(ref updated_files) = result {
-                        if !updated_files.is_empty() {
-                            // Store successful updates
-                            let mut results = update_results.lock().unwrap();
-                            results.push((cve_id.to_string(), format!("Updated: {}", updated_files.join(", "))));
+                    match result {
+                        Err(ref e) => {
+                            // Store errors for later display
+                            update_results.lock().unwrap().push(
+                                (cve_id.to_string(), format!("ERROR: {e}"))
+                            );
                         }
+                        Ok(ref updated_files) if !updated_files.is_empty() => {
+                            // Store successful updates
+                            update_results.lock().unwrap().push(
+                                (cve_id.to_string(), format!("Updated: {}", updated_files.join(", ")))
+                            );
+                        }
+                        _ => {}
                     }
 
                     // Update progress

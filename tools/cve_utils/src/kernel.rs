@@ -135,7 +135,7 @@ impl Kernel {
     }
 
     /// Return true if X.Y matches in a kernel version (i.e. the major is the same)
-    #[must_use] pub fn version_major_match(&self, k: &Kernel) -> bool {
+    #[must_use] pub fn version_major_match(&self, k: &Self) -> bool {
         version_utils::version_major_match(&self.version, &k.version)
     }
 
@@ -153,7 +153,7 @@ impl Kernel {
 
     /// Compare the version numbers of a kernel.
     /// Will look in git if the version string is the same
-    #[must_use] pub fn compare(&self, k: &Kernel) -> Ordering {
+    #[must_use] pub fn compare(&self, k: &Self) -> Ordering {
         // Fast path: exact same version
         if self.version == k.version {
             // If versions match exactly, check git IDs

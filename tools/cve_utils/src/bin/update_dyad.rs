@@ -301,17 +301,21 @@ fn process_single_file(
             let diff_text = String::from_utf8_lossy(&diff_output.stdout);
             let meaningful_change = diff_text.lines().any(|line| {
                 // Only consider added/removed lines
-                if let Some(rest) = line.strip_prefix('+') {
-                    let rest = rest.trim_start();
-                    // Ignore added comment lines and diff metadata
-                    !rest.starts_with('#') && !line.starts_with("+++ ")
-                } else if let Some(rest) = line.strip_prefix('-') {
-                    let rest = rest.trim_start();
-                    // Ignore removed comment lines and diff metadata
-                    !rest.starts_with('#') && !line.starts_with("--- ")
-                } else {
-                    false
-                }
+                line.strip_prefix('+').map_or_else(
+                    || line.strip_prefix('-').map_or_else(
+                        || false,
+                        |rest| {
+                            let rest = rest.trim_start();
+                            // Ignore removed comment lines and diff metadata
+                            !rest.starts_with('#') && !line.starts_with("--- ")
+                        }
+                    ),
+                    |rest| {
+                        let rest = rest.trim_start();
+                        // Ignore added comment lines and diff metadata
+                        !rest.starts_with('#') && !line.starts_with("+++ ")
+                    }
+                )
             });
 
             if meaningful_change {

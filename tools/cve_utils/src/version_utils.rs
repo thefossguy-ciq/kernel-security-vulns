@@ -24,7 +24,7 @@ pub struct KernelVersion {
 impl KernelVersion {
     /// Creates a new `KernelVersion` from parsed components
     #[must_use]
-    pub fn new(
+    pub const fn new(
         components: Vec<u32>,
         rc_num: Option<u32>,
         is_queue: bool,
@@ -40,7 +40,7 @@ impl KernelVersion {
 
     /// Returns whether this is a release candidate version
     #[must_use]
-    pub fn is_rc(&self) -> bool {
+    pub const fn is_rc(&self) -> bool {
         // A version is considered an RC if it has "-rc" in its representation,
         // even if we couldn't parse a valid RC number
         self.rc_num.is_some() || self.is_rc_by_name
@@ -48,7 +48,7 @@ impl KernelVersion {
 
     /// Returns whether this is a queue version
     #[must_use]
-    pub fn is_queue(&self) -> bool {
+    pub const fn is_queue(&self) -> bool {
         self.is_queue
     }
 
@@ -103,7 +103,7 @@ impl KernelVersion {
 
     /// Checks if the major version matches another kernel version
     #[must_use]
-    pub fn major_matches(&self, other: &KernelVersion) -> bool {
+    pub fn major_matches(&self, other: &Self) -> bool {
         !self.major_version().is_empty()
             && !other.major_version().is_empty()
             && self.major_version() == other.major_version()
@@ -118,7 +118,7 @@ impl FromStr for KernelVersion {
         let is_rc_by_name = version.contains("-rc");
 
         // Handle RC versions
-        let (base_version, rc_num) = if let Some(rc_idx) = version.find("-rc") {
+        let (base_version, rc_num) = version.find("-rc").map_or((version, None), |rc_idx| {
             let base = &version[0..rc_idx];
 
             // Parse RC number if present
@@ -129,9 +129,7 @@ impl FromStr for KernelVersion {
             };
 
             (base, rc_number)
-        } else {
-            (version, None)
-        };
+        });
 
         // Parse version components
         let components: Vec<u32> = base_version
@@ -139,7 +137,7 @@ impl FromStr for KernelVersion {
             .filter_map(|s| s.parse::<u32>().ok())
             .collect();
 
-        Ok(KernelVersion::new(
+        Ok(Self::new(
             components,
             rc_num,
             is_queue,

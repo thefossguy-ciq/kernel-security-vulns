@@ -422,7 +422,7 @@ pub mod git_utils {
                     let oid_i = Oid::from_str(&remaining_ids[i]).unwrap();
                     let oid_j = Oid::from_str(&remaining_ids[j]).unwrap();
 
-                    if let Ok(true) = repo.graph_descendant_of(oid_j, oid_i) {
+                    if repo.graph_descendant_of(oid_j, oid_i) == Ok(true) {
                         // Found a descendant, so this one isn't the newest
                         is_newest = false;
                         break;
@@ -650,13 +650,10 @@ pub mod git_utils {
     /// Supports exact matches and *.ext patterns
     #[must_use]
     pub fn match_pattern(path: &str, pattern: &str) -> bool {
-        if let Some(suffix) = pattern.strip_prefix("*") {
-            // Handle *.ext pattern
-            path.ends_with(suffix)
-        } else {
-            // Exact match
-            path == pattern
-        }
+        pattern.strip_prefix("*").map_or_else(
+            || path == pattern, // Exact match
+            |suffix| path.ends_with(suffix) // Handle *.ext pattern
+        )
     }
 
     /// Gets the full commit message for a git SHA
