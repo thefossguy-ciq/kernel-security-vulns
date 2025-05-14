@@ -310,7 +310,7 @@ impl VotingResults {
         } else {
             // If that fails, try to resolve the short SHA using git_utils
             // First, we'll need to find the working directory to pass to get_full_sha
-            let repo_path = self.repo.path().parent().unwrap_or(self.repo.path());
+            let repo_path = self.repo.path().parent().unwrap_or_else(|| self.repo.path());
             match cve_utils::git_utils::get_full_sha(repo_path, short_stable_sha) {
                 Ok(full_sha) => {
                     match git2::Oid::from_str(&full_sha) {
@@ -480,14 +480,12 @@ impl VotingResults {
 
         // We still need to use Command for this external script
         // since it's not part of the git repository
-        match Command::new(&cve_search)
+        Command::new(&cve_search)
             .arg(commit_sha)
             .stdout(Stdio::null())
             .stderr(Stdio::null())
-            .status() {
-                Ok(status) => status.success(),
-                Err(_) => false // Default to false if script execution fails
-        }
+            .status()
+            .is_ok_and(|status| status.success())
     }
 
     fn print_annotations(&self, oneline: &str) {
@@ -522,10 +520,10 @@ impl VotingResults {
         // Helper function to capitalize first letter
         let capitalize = |s: &str| -> String {
             let mut chars = s.chars();
-            match chars.next() {
-                None => String::new(),
-                Some(first) => first.to_uppercase().chain(chars).collect(),
-            }
+            chars.next().map_or_else(
+                String::new,
+                |first| first.to_uppercase().chain(chars).collect()
+            )
         };
 
         // Get the set of commits that everyone agrees on or have CVEs
