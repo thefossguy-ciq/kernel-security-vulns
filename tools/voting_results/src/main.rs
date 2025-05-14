@@ -656,6 +656,7 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use super::*;
     use std::collections::HashMap;
     use tempfile::tempdir;
