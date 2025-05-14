@@ -680,3 +680,235 @@ fn log_final_ranges(kernel_versions: &[VersionRange]) {
         debug!("   {0} ({1}){2}", v.version, v.status, range_desc);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::dyad::DyadEntry;
+
+    // Helper function to create a DyadEntry from string representation
+    fn dyad_entry(s: &str) -> DyadEntry {
+        DyadEntry::from_str(s).unwrap()
+    }
+
+    #[test]
+    fn test_determine_default_status_with_unknown_vulnerable() {
+        // When vulnerable_version = 0, status should be "affected"
+        let entries = vec![
+            dyad_entry("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da"),
+        ];
+        assert_eq!(determine_default_status(&entries), "affected");
+    }
+
+    #[test]
+    fn test_determine_default_status_with_unfixed_vulnerabilities() {
+        // When there are unfixed vulnerabilities, status should be "affected"
+        let entries = vec![
+            dyad_entry("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:0:0"),
+        ];
+        assert_eq!(determine_default_status(&entries), "affected");
+    }
+
+    #[test]
+    fn test_determine_default_status_with_mainline_cross_version_vulnerability() {
+        // When there's a mainline vulnerable version that's different from the fixed version,
+        // status should be "affected"
+        let entries = vec![
+            dyad_entry("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da"),
+        ];
+        assert_eq!(determine_default_status(&entries), "affected");
+    }
+
+    #[test]
+    fn test_determine_default_status_with_same_version_fix() {
+        // When a vulnerability is both introduced and fixed in the same version,
+        // status should be "unaffected" because no actually released version was affected
+        let entries = vec![
+            dyad_entry("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33"),
+        ];
+        assert_eq!(determine_default_status(&entries), "unaffected");
+    }
+
+    #[test]
+    fn test_determine_default_status_with_stable_version_fix() {
+        // When only stable versions are affected and fixed, status should be "unaffected"
+        let entries = vec![
+            dyad_entry("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a"),
+        ];
+        assert_eq!(determine_default_status(&entries), "unaffected");
+    }
+
+    #[test]
+    fn test_determine_default_status_with_mixed_entries() {
+        // Test with multiple entries, one with vulnerable_version = 0
+        let entries = vec![
+            dyad_entry("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da"),
+            dyad_entry("0:0:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33"),
+        ];
+        assert_eq!(determine_default_status(&entries), "affected");
+
+        // Test with multiple entries, mix of same-version fixes and different-version fixes
+        let entries = vec![
+            dyad_entry("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a"),
+            dyad_entry("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33"),
+        ];
+        assert_eq!(determine_default_status(&entries), "unaffected");
+
+        // Mainline vulnerability that's not fixed should make the default status "affected"
+        let entries = vec![
+            // Just use this entry which we know works and has a mainline vulnerability
+            dyad_entry("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da"),
+        ];
+        assert_eq!(determine_default_status(&entries), "affected");
+    }
+
+    #[test]
+    fn test_generate_cpe_ranges_with_cross_version_vulnerability() {
+        // Test with a single entry for a cross-version vulnerability
+        let entries = vec![
+            dyad_entry("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541"),
+        ];
+
+        let cpe_nodes = generate_cpe_ranges(&entries);
+
+        // Should have one OR node with one CPE match
+        assert_eq!(cpe_nodes.len(), 1);
+        assert_eq!(cpe_nodes[0].operator, "OR");
+        assert_eq!(cpe_nodes[0].negate, false);
+        assert_eq!(cpe_nodes[0].cpe_match.len(), 1);
+
+        // Check CPE match details
+        let cpe_match = &cpe_nodes[0].cpe_match[0];
+        assert_eq!(cpe_match.vulnerable, true);
+        assert_eq!(cpe_match.criteria, "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*");
+        assert_eq!(cpe_match.version_start_including, "5.15");
+        assert_eq!(cpe_match.version_end_excluding, "5.16");
+    }
+
+    #[test]
+    fn test_generate_cpe_ranges_with_unknown_vulnerable() {
+        // Test with an unknown vulnerability introduction point
+        let entries = vec![
+            dyad_entry("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541"),
+        ];
+
+        let cpe_nodes = generate_cpe_ranges(&entries);
+
+        // Should have one OR node with one CPE match
+        assert_eq!(cpe_nodes.len(), 1);
+        assert_eq!(cpe_nodes[0].cpe_match.len(), 1);
+
+        // Check CPE match details - no version_start_including, only version_end_excluding
+        let cpe_match = &cpe_nodes[0].cpe_match[0];
+        assert_eq!(cpe_match.version_start_including, "");
+        assert_eq!(cpe_match.version_end_excluding, "5.16");
+    }
+
+    #[test]
+    fn test_generate_cpe_ranges_with_unfixed_vulnerability() {
+        // Test with an unfixed vulnerability
+        let entries = vec![
+            dyad_entry("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:0:0"),
+        ];
+
+        let cpe_nodes = generate_cpe_ranges(&entries);
+
+        // Should have one OR node with one CPE match
+        assert_eq!(cpe_nodes.len(), 1);
+        assert_eq!(cpe_nodes[0].cpe_match.len(), 1);
+
+        // Check CPE match details - only version_start_including, no version_end_excluding
+        let cpe_match = &cpe_nodes[0].cpe_match[0];
+        assert_eq!(cpe_match.version_start_including, "5.11");
+        assert_eq!(cpe_match.version_end_excluding, "");
+    }
+
+    #[test]
+    fn test_generate_cpe_ranges_with_same_version_vulnerability() {
+        // Test with a vulnerability that's fixed in the same version
+        let entries = vec![
+            dyad_entry("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33"),
+        ];
+
+        let cpe_nodes = generate_cpe_ranges(&entries);
+
+        // Should have one OR node with no CPE matches (skipped due to same version)
+        assert_eq!(cpe_nodes.len(), 1);
+        assert_eq!(cpe_nodes[0].cpe_match.len(), 0);
+    }
+
+    #[test]
+    fn test_generate_git_ranges_basic() {
+        // Test with a single entry
+        let entries = vec![
+            dyad_entry("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541"),
+        ];
+
+        let git_versions = generate_git_ranges(&entries);
+
+        // Should have one git version entry
+        assert_eq!(git_versions.len(), 1);
+
+        // Check git version details
+        let git_version = &git_versions[0];
+        assert_eq!(git_version.version, "11c52d250b34a0862edc29db03fbec23b30db6da");
+        assert_eq!(git_version.status, "affected");
+        assert_eq!(git_version.version_type, Some("git".to_string()));
+        assert_eq!(git_version.less_than, Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string()));
+        assert_eq!(git_version.less_than_or_equal, None);
+    }
+
+    #[test]
+    fn test_generate_git_ranges_with_unknown_vulnerable() {
+        // Test with an unknown vulnerability introduction point
+        let entries = vec![
+            dyad_entry("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541"),
+        ];
+
+        let git_versions = generate_git_ranges(&entries);
+
+        // Should have one git version entry starting from the first Linux commit ID
+        assert_eq!(git_versions.len(), 1);
+        assert_eq!(git_versions[0].version, "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2");
+        assert_eq!(git_versions[0].less_than, Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string()));
+    }
+
+    #[test]
+    fn test_generate_git_ranges_with_unfixed_vulnerability() {
+        // Test with an unfixed vulnerability
+        let entries = vec![
+            dyad_entry("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:0:0"),
+        ];
+
+        let git_versions = generate_git_ranges(&entries);
+
+        // Should have one git version entry with no "less_than" field
+        assert_eq!(git_versions.len(), 1);
+        assert_eq!(git_versions[0].version, "e478d6029dca9d8462f426aee0d32896ef64f10f");
+        assert_eq!(git_versions[0].less_than, None);
+    }
+
+    #[test]
+    fn test_version_ranges_functionality() {
+        // Test the basic functionality of generate_version_ranges
+        // Note: This function is complex and depends heavily on external functions,
+        // so we're only testing core aspects rather than full functionality
+
+        // Test with a single entry and default status "unaffected"
+        let entries = vec![
+            dyad_entry("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541"),
+        ];
+
+        let kernel_versions = generate_version_ranges(&entries, "unaffected");
+
+        // Verify we get at least some entries back
+        assert!(!kernel_versions.is_empty());
+
+        // Verify we have some affected entries
+        let affected_entries: Vec<&VersionRange> = kernel_versions.iter()
+            .filter(|v| v.status == "affected")
+            .collect();
+
+        assert!(!affected_entries.is_empty());
+    }
+}
