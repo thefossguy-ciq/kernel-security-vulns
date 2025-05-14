@@ -60,21 +60,31 @@ fn validate_args_and_env(args: &Args) -> ArgsResult {
     }
 
     // Check for required arguments
-    if args.cve.is_none() || args.sha.is_empty() || (args.json.is_none() && args.mbox.is_none()) {
-        error!("Missing required arguments: cve, sha, or one of json/mbox");
+    if args.cve.is_none() {
+        error!("Missing required argument: cve");
+        std::process::exit(1);
+    }
+
+    if args.sha.is_empty() {
+        error!("Missing required argument: sha");
+        std::process::exit(1);
+    }
+
+    if args.json.is_none() && args.mbox.is_none() {
+        error!("Missing required argument: one of json or mbox must be specified");
         std::process::exit(1);
     }
 
     // Check for CVE_USER environment variable if user is not specified
-    let user_email = match args.user.as_ref() {
-        Some(email) => email.clone(),
-        None => if let Ok(val) = env::var("CVE_USER") {
-            val
-        } else {
-            error!("Missing required argument: user (-u/--user) and CVE_USER environment variable is not set");
-            std::process::exit(1);
+    let user_email = args.user.as_ref().map_or_else(
+        || {
+            env::var("CVE_USER").unwrap_or_else(|_| {
+                error!("Missing required argument: user (-u/--user) and CVE_USER environment variable is not set");
+                std::process::exit(1);
+            })
         },
-    };
+        std::clone::Clone::clone
+    );
 
     // Check for CVEKERNELTREE environment variable
     if env::var("CVEKERNELTREE").is_err() {
@@ -255,42 +265,48 @@ fn run_dyad_and_parse(
 
 /// Read additional references from a file if specified
 fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
-    if let Some(ref_path) = reference_path {
-        debug!("Attempting to read references from {ref_path:?}");
-
-        if let Ok(contents) = std::fs::read_to_string(&ref_path) {
-            debug!("Successfully read reference file");
-            if contents.is_empty() {
-                debug!("Reference file is empty");
-            } else {
-                debug!("Reference file contains {} lines", contents.lines().count());
-                for (i, line) in contents.lines().enumerate() {
-                    if !line.trim().is_empty() {
-                        debug!("  Reference[{}]: {}", i, line.trim());
-                    }
-                }
-            }
-
-            contents
-                .lines()
-                .map(|line| line.trim().to_string())
-                .filter(|line| !line.is_empty())
-                .collect()
-        } else {
-            warn!("Warning: Failed to read reference file from {ref_path:?}");
-            if !ref_path.exists() {
-                debug!("  File does not exist");
-            } else if !ref_path.is_file() {
-                debug!("  Path exists but is not a regular file");
-            } else {
-                debug!("  File exists but could not be read (permissions issue?)");
-            }
+    reference_path.map_or_else(
+        || {
+            debug!("No reference file specified");
             Vec::new()
+        },
+        |ref_path| {
+            debug!("Attempting to read references from {ref_path:?}");
+
+            std::fs::read_to_string(&ref_path).map_or_else(
+                |_| {
+                    warn!("Warning: Failed to read reference file from {ref_path:?}");
+                    if !ref_path.exists() {
+                        debug!("  File does not exist");
+                    } else if !ref_path.is_file() {
+                        debug!("  Path exists but is not a regular file");
+                    } else {
+                        debug!("  File exists but could not be read (permissions issue?)");
+                    }
+                    Vec::new()
+                },
+                |contents| {
+                    debug!("Successfully read reference file");
+                    if contents.is_empty() {
+                        debug!("Reference file is empty");
+                    } else {
+                        debug!("Reference file contains {} lines", contents.lines().count());
+                        for (i, line) in contents.lines().enumerate() {
+                            if !line.trim().is_empty() {
+                                debug!("  Reference[{}]: {}", i, line.trim());
+                            }
+                        }
+                    }
+
+                    contents
+                        .lines()
+                        .map(|line| line.trim().to_string())
+                        .filter(|line| !line.is_empty())
+                        .collect()
+                }
+            )
         }
-    } else {
-        debug!("No reference file specified");
-        Vec::new()
-    }
+    )
 }
 
 /// Output parameters for generating files

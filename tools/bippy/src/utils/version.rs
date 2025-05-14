@@ -255,8 +255,7 @@ fn process_explicit_versions(
         }
 
         let ver_key = format!("kernel:{status}:{version}:::");
-        if !seen_versions.contains(&ver_key) {
-            seen_versions.insert(ver_key);
+        if seen_versions.insert(ver_key) {
             kernel_versions.push(VersionRange {
                 version: version.clone(),
                 less_than: None,
@@ -399,8 +398,7 @@ fn add_version_if_new(
     kernel_versions: &mut Vec<VersionRange>,
 ) {
     let ver_key = format!("kernel:{status}:{version}:::");
-    if !seen_versions.contains(&ver_key) {
-        seen_versions.insert(ver_key);
+    if seen_versions.insert(ver_key) {
         let version_clone = version.clone();
         kernel_versions.push(VersionRange {
             version,
@@ -476,26 +474,29 @@ fn add_pre_affected_unaffected_range(
     kernel_versions: &mut Vec<VersionRange>,
 ) {
     let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable.version());
-    if !seen_versions.contains(&unaffected_key) {
-        // Check if any version before this one is already marked as affected
-        let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
-            // Use the shared comparison function
-            match compare_kernel_versions(v, &entry.vulnerable.version()) {
-                std::cmp::Ordering::Less => true, // This affected version is less than current version
-                _ => false,
-            }
-        });
+    // First check if we need to process this unaffected range
+    if seen_versions.contains(&unaffected_key) {
+        return;
+    }
 
-        if is_safe_to_mark_unaffected {
-            seen_versions.insert(unaffected_key);
-            kernel_versions.push(VersionRange {
-                version: "0".to_string(),
-                less_than: Some(entry.vulnerable.version().clone()),
-                less_than_or_equal: None,
-                status: "unaffected".to_string(),
-                version_type: Some("semver".to_string()),
-            });
+    // Check if any version before this one is already marked as affected
+    let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
+        // Use the shared comparison function
+        match compare_kernel_versions(v, &entry.vulnerable.version()) {
+            std::cmp::Ordering::Less => true, // This affected version is less than current version
+            _ => false,
         }
+    });
+
+    if is_safe_to_mark_unaffected {
+        seen_versions.insert(unaffected_key);
+        kernel_versions.push(VersionRange {
+            version: "0".to_string(),
+            less_than: Some(entry.vulnerable.version()),
+            less_than_or_equal: None,
+            status: "unaffected".to_string(),
+            version_type: Some("semver".to_string()),
+        });
     }
 }
 
@@ -512,14 +513,13 @@ fn add_fixed_unaffected_range(
     let wildcard = if version_parts.len() >= 2 {
         format!("{}.{}.*", version_parts[0], version_parts[1])
     } else {
-        entry.fixed.version().clone() + ".*"
+        format!("{}.*", entry.fixed.version())
     };
 
     // Create a unique key for this version
     let key = format!("kernel:unaffected:{}::{}", entry.fixed.version(), wildcard);
 
-    if !seen_versions.contains(&key) {
-        seen_versions.insert(key.clone());
+    if seen_versions.insert(key) {
 
         // Add fixed version as unaffected
         if entry.fixed.is_mainline() {
@@ -527,7 +527,7 @@ fn add_fixed_unaffected_range(
         } else {
             // For stable kernels with a patch version (e.g., 5.10.234)
             kernel_versions.push(VersionRange {
-                version: entry.fixed.version().clone(),
+                version: entry.fixed.version(),
                 less_than: None,
                 less_than_or_equal: Some(wildcard),
                 status: "unaffected".to_string(),
@@ -564,7 +564,7 @@ fn add_mainline_fixed_unaffected_range(
         if let Some(next_version) = next_affected_version {
             // Add a range for versions between the fixed version and the next affected version
             kernel_versions.push(VersionRange {
-                version: entry.fixed.version().clone(),
+                version: entry.fixed.version(),
                 less_than: Some(next_version),
                 less_than_or_equal: None,
                 status: "unaffected".to_string(),
@@ -573,7 +573,7 @@ fn add_mainline_fixed_unaffected_range(
         } else {
             // Fallback - should not normally happen
             kernel_versions.push(VersionRange {
-                version: entry.fixed.version().clone(),
+                version: entry.fixed.version(),
                 less_than: None,
                 less_than_or_equal: None,
                 status: "unaffected".to_string(),
@@ -583,7 +583,7 @@ fn add_mainline_fixed_unaffected_range(
     } else {
         // No later affected versions or this is an RC version, so we can use the original_commit_for_fix entry
         kernel_versions.push(VersionRange {
-            version: entry.fixed.version().clone(),
+            version: entry.fixed.version(),
             less_than: None,
             less_than_or_equal: Some("*".to_string()),
             status: "unaffected".to_string(),
@@ -624,8 +624,8 @@ fn process_affected_ranges(
 ) {
     if entry.vulnerable.version() != "0" && entry.fixed.version() != "0" {
         let ver_range = VersionRange {
-            version: entry.vulnerable.version().clone(),
-            less_than: Some(entry.fixed.version().clone()),
+            version: entry.vulnerable.version(),
+            less_than: Some(entry.fixed.version()),
             less_than_or_equal: None,
             status: "affected".to_string(),
             version_type: Some("semver".to_string()),
@@ -637,8 +637,7 @@ fn process_affected_ranges(
             ver_range.less_than.as_deref().unwrap_or("")
         );
 
-        if !seen_versions.contains(&key) {
-            seen_versions.insert(key);
+        if seen_versions.insert(key) {
             kernel_versions.push(ver_range);
         }
     }

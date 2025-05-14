@@ -44,7 +44,7 @@ impl DyadEntry {
             return Err(BippyError::InvalidDyadVersion(fixed_version));
         }
 
-        Ok(DyadEntry {
+        Ok(Self {
             vulnerable: vulnerable_kernel,
             fixed: fixed_kernel,
         })

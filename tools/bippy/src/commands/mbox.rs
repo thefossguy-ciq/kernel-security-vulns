@@ -126,10 +126,11 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry], git_sha_full: &str) -> Vec<Str
 
 /// Get affected files from the commit
 fn get_commit_affected_files(repo: &Repository, git_sha_full: &str) -> Vec<String> {
-    match resolve_reference(repo, git_sha_full) {
-        Ok(obj) => get_affected_files(repo, &obj).unwrap_or_default(),
-        Err(_) => Vec::new(),
-    }
+    resolve_reference(repo, git_sha_full)
+        .map_or_else(
+            |_| Vec::new(),
+            |obj| get_affected_files(repo, &obj).unwrap_or_default()
+        )
 }
 
 /// Collect reference URLs from dyad entries and additional references
