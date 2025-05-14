@@ -44,53 +44,6 @@ struct Args {
     no_fetch: bool,
 }
 
-/// Finds the root directory of the vulns repository
-///
-/// This function attempts to locate the vulns repository by:
-/// 1. Using the standard `cve_utils` implementation
-/// 2. If that fails, checking some common absolute paths
-fn find_vulns_dir() -> Result<PathBuf> {
-    // First attempt to use the standard implementation from cve_utils
-    if let Ok(dir) = cve_utils::find_vulns_dir() {
-        return Ok(dir);
-    }
-
-    // Second attempt: look from executable directory
-    if let Ok(exec_path) = env::current_exe() {
-        if let Some(exec_dir) = exec_path.parent() {
-            let mut current_dir = exec_dir.to_path_buf();
-
-            // Check if we're already in the vulns repo
-            if current_dir.file_name().is_some_and(|name| name == "vulns") {
-                return Ok(current_dir);
-            }
-
-            // Traverse up the directory tree
-            while current_dir.parent().is_some() {
-                if current_dir.file_name().is_some_and(|name| name == "vulns") {
-                    return Ok(current_dir);
-                }
-
-                if !current_dir.pop() {
-                    break;
-                }
-            }
-        }
-    }
-
-    // Third attempt: check common absolute paths
-    let common_paths = [
-        PathBuf::from(env::var("HOME").unwrap_or_default()).join("vulns"),
-    ];
-
-    for path in &common_paths {
-        if path.exists() && path.is_dir() && path.file_name().is_some_and(|name| name == "vulns") {
-            return Ok(path.clone());
-        }
-    }
-
-    Err(anyhow!("Could not find vulns directory"))
-}
 
 struct VotingResults {
     repo: Repository,
@@ -136,8 +89,8 @@ impl VotingResults {
             }
         }
 
-        // Use the vulns directory location function
-        let vulns_dir = find_vulns_dir()?;
+        // Use the standard cve_utils implementation to find the vulns directory
+        let vulns_dir = cve_utils::find_vulns_dir()?;
         let proposed_dir = vulns_dir.join("cve").join("review").join("proposed");
         let script_dir = vulns_dir.join("scripts");
 
