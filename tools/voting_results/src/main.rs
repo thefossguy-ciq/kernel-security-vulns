@@ -9,7 +9,6 @@ use git2::Repository;
 use regex::Regex;
 use std::fmt::Write;
 use std::collections::{HashMap, HashSet};
-use std::env;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::sync::LazyLock;
