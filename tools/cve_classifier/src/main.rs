@@ -491,10 +491,16 @@ fn run_prediction(config: &RunConfig) -> HashMap<String, PredictionResult> {
         std::process::exit(1);
     }
 
-    let pb = ProgressBar::new(commits_to_analyze.len() as u64);
-    pb.set_style(ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
-        .unwrap());
+    // Create a progress bar, but only if not in batch mode
+    let pb = if config.batch_mode {
+        ProgressBar::hidden()
+    } else {
+        let pb = ProgressBar::new(commits_to_analyze.len() as u64);
+        pb.set_style(ProgressStyle::default_bar()
+            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
+            .unwrap());
+        pb
+    };
 
     for sha in &commits_to_analyze {
         if sha.len() < 6 {
@@ -526,7 +532,10 @@ fn run_prediction(config: &RunConfig) -> HashMap<String, PredictionResult> {
         pb.inc(1);
     }
 
-    pb.finish_with_message("Processed commits");
+    // Only show finish message if not in batch mode
+    if !config.batch_mode {
+        pb.finish_with_message("Processed commits");
+    }
 
     display_results(config, &results);
     save_results_to_file(config, &results);
