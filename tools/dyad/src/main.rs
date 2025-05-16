@@ -17,8 +17,8 @@ use std::env;
 extern crate cve_utils;
 
 mod cli;
-mod state;
 mod kernel;
+mod state;
 
 /// Initialize and configure the logging system
 fn initialize_logging(verbose: bool) -> log::LevelFilter {
@@ -37,16 +37,13 @@ fn initialize_logging(verbose: bool) -> log::LevelFilter {
     logging_level
 }
 
-
 /// Process fixing SHA1s from command line arguments
 fn process_fixing_shas(state: &mut state::DyadState, shas: &[String]) -> bool {
     state.git_sha_full.clear(); // Clear any existing values
 
     for git_sha in shas {
         if !kernel::process_fixing_sha(state, git_sha) {
-            error!(
-                "Error: The provided git SHA1 '{git_sha}' could not be found in the repository"
-            );
+            error!("Error: The provided git SHA1 '{git_sha}' could not be found in the repository");
             return false;
         }
     }
@@ -108,11 +105,11 @@ fn process_kernel_pairs(state: &mut state::DyadState) {
 fn main() {
     // Parse command line arguments
     let args = cli::parse_args();
+    let program_name = env!("CARGO_BIN_NAME");
+    let program_version = env!("CARGO_PKG_VERSION");
 
     // Handle version request
     if args.version {
-        let program_name = env!("CARGO_BIN_NAME");
-        let program_version = env!("CARGO_PKG_VERSION");
         println!("{program_name} version: {program_version}");
         std::process::exit(0);
     }
@@ -132,6 +129,15 @@ fn main() {
     // Initialize state
     let mut state = state::DyadState::new();
     state::validate_env_vars(&mut state);
+
+    // output our version for the record to make things easier to track over time
+    println!(
+        "{} {} {} {}",
+        "#".green(),
+        program_name.purple(),
+        "version:".green(),
+        program_version.cyan()
+    );
 
     // Process fixing SHA1s
     if !process_fixing_shas(&mut state, &args.sha1) {
