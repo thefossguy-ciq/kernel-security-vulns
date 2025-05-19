@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use colored::Colorize;
+use owo_colors::OwoColorize;
 use ::cve_utils::common;
 use ::cve_utils::git_utils;
 use ::cve_utils::cve_utils;

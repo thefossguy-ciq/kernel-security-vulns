@@ -4,7 +4,7 @@
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use colored::Colorize;
+use owo_colors::OwoColorize;
 use cve_utils::common::{find_cve_by_sha, get_cve_root, get_kernel_tree};
 use cve_utils::cve_utils::find_next_free_cve_id;
 use cve_utils::git_utils::get_full_sha;

@@ -4,7 +4,7 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
-use colored::Colorize;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use log::debug;
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -487,10 +487,10 @@ pub fn print_kernel_pairs(pairs: &[KernelPair]) {
     for e in pairs {
         println!(
             "{}:{}:{}:{}",
-            e.vulnerable.version().green(),
-            e.vulnerable.git_id().cyan(),
-            e.fixed.version().green(),
-            e.fixed.git_id().cyan()
+            e.vulnerable.version().if_supports_color(Stdout, |x| x.green()),
+            e.vulnerable.git_id().if_supports_color(Stdout, |x| x.cyan()),
+            e.fixed.version().if_supports_color(Stdout, |x| x.green()),
+            e.fixed.git_id().if_supports_color(Stdout, |x| x.cyan())
         );
     }
 }

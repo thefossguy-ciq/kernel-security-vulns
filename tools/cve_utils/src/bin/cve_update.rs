@@ -15,7 +15,7 @@ use std::process::Command;
 use clap::Parser;
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
-use colored::Colorize;
+use owo_colors::OwoColorize;
 use indicatif::{ProgressBar, ProgressStyle, MultiProgress};
 
 /// Update all existing CVE entries based on the latest information from the git tree(s)
