@@ -1,0 +1,50 @@
+c1b0f5183a44 ASoC: renesas: rz-ssi: Use NOIRQ_SYSTEM_SLEEP_PM_OPS()
+bbe5679f30d7 drm/nouveau: Fix WARN_ON in nouveau_fence_context_kill()
+fee4d171451c arm64: errata: Add missing sentinels to Spectre-BHB MIDR arrays
+75aea4b0656e perf/x86/intel: Only check the group flag for X86 leader
+58f6217e5d01 perf/x86/intel: KVM: Mask PEBS_ENABLE loaded for guest with vCPU's value.
+38a05c0b8783 irqchip/qcom-mpm: Prevent crash when trying to handle non-wake GPIOs
+0a8f11f8569e tracing: Do not take trace_event_sem in print_event_fields()
+a3d8f0a7f5e8 dm-bufio: don't schedule in atomic context
+0a533c3e4246 dm-integrity: fix a warning on invalid table line
+8dee308e4c01 iommu/amd: Fix potential buffer overflow in parse_ivrs_acpihid
+30a3f2f3e4bd iommu: Fix two issues in iommu_copy_struct_from_user()
+a1f46c99d9ea ksmbd: fix use-after-free in ksmbd_session_rpc_open
+e86e9134e1d1 ksmbd: fix use-after-free in kerberos authentication
+2fc9feff45d9 ksmbd: fix use-after-free in session logoff
+f5178c41bb43 tracing: Fix oob write in trace_seq_to_buffer()
+9cf7e13fecba book3s64/radix : Align section vmemmap start address to PAGE_SIZE
+534f5a8ba278 powerpc64/ftrace: fix module loading without patchable function entries
+0fb15ae3b0a9 wifi: plfxlc: Remove erroneous assert in plfxlc_mac_release
+087a9eb9e597 vxlan: vnifilter: Fix unlocked deletion of default FDB entry
+a1356ac7749c xsk: Fix race condition in AF_XDP generic RX path
+8e4d3d8a5e51 spi: spi-mem: Add fix to avoid divide error
+6d9b64156d84 ASoC: amd: acp: Fix NULL pointer deref in acp_i2s_set_tdm_slot
+0317b033abcd Bluetooth: btusb: avoid NULL pointer dereference in skb_dequeue()
+8548c84c004b octeon_ep_vf: Resolve netdevice usage count issue
+6fe086601448 net: ethernet: mtk-star-emac: fix spinlock recursion issues on rx/tx poll
+dfd76010f8e8 pds_core: remove write-after-free of client_id
+f99a3fbf023e net_sched: drr: Fix double list add in class with netem as child qdisc
+141d34391abb net_sched: hfsc: Fix a UAF vulnerability in class with netem as child qdisc
+1a6d0c00fa07 net_sched: ets: Fix double list add in class with netem as child qdisc
+f139f37dcdf3 net_sched: qfq: Fix double list add in class with netem as child qdisc
+425c5f266b2e ice: Check VF VSI Pointer Value in ice_vc_add_fdir_fltr()
+56f1f30e6795 ALSA: ump: Fix buffer overflow at UMP SysEx message conversion
+8a558cbda51b idpf: fix potential memory leak on kcalloc() failure
+6e0490fc36cd net: ethernet: mtk_eth_soc: fix SER panic with 4GB+ RAM
+9ab7a709c926 bnxt_en: Fix error handling path in bnxt_init_chip()
+1ae04e489dd7 bnxt_en: call pci_alloc_irq_vectors() after bnxt_reserve_rings()
+6b87bd94f343 bnxt_en: Fix out-of-bound memcpy() during ethtool -w
+927069d5c40c bnxt_en: fix module unload sequence
+f920436a4429 net: use sock_gen_put() when sk_state is TCP_TIME_WAIT
+e98386d79a23 ptp: ocp: Fix NULL dereference in Adva board SMA sysfs operations
+2d52e2e38b85 net: lan743x: Fix memleak issue when GSO enabled
+be8250786ca9 mm, slab: clean up slab->obj_exts always
+ab680dc6c78a accel/ivpu: Fix locking order in ivpu_job_submit
+f40139fde527 ublk: fix race between io_uring_cmd_complete_in_task and ublk_cancel_cmd
+5ba8b837b522 sch_htb: make htb_qlen_notify() idempotent
+9ca67840c0dd firmware: arm_scmi: Balance device refcount when destroying devices
+866bafae59ec btrfs: zoned: skip reporting zone for new block group
+48c1d1bb525b btrfs: fix the inode leak in btrfs_iget()
+be593d9d91c5 drm/amd/display: Fix slab-use-after-free in hdcp
+f1aff4bc199c dm: fix copying after src array boundaries

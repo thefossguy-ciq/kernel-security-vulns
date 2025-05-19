@@ -1,0 +1,58 @@
+1b0449544c64 mm/vmscan: don't try to reclaim hwpoison folio
+3ece3e8e5976 PCI/MSI: Handle the NOMASK flag correctly for all PCI/MSI backends
+fbb429ddff5c net/niu: Niu requires MSIX ENTRY_DATA fields touch before entry reads
+14c8a418159e cpufreq: sun50i: prevent out-of-bounds access
+9992649f6786 cpufreq: apple-soc: Fix null-ptr-deref in apple_soc_cpufreq_get_rate()
+484d3f15cc6c cpufreq: scmi: Fix null-ptr-deref in scmi_cpufreq_get_rate()
+73b24dc73173 cpufreq: scpi: Fix null-ptr-deref in scpi_cpufreq_get_rate()
+4c3240850629 scsi: ufs: mcq: Add NULL check in ufshcd_mcq_abort()
+b0c26f479926 btrfs: zoned: return EIO on RAID1 block group write pointer mismatch
+91037037ee3d net/mlx5: Fix null-ptr-deref in mlx5_create_{inner_,}ttc_table()
+fa8fd315127c net/mlx5: Move ttc allocation after switch case to prevent leaks
+08a966a917fe scsi: ufs: core: Add NULL check in ufshcd_mcq_compl_pending_transfer()
+3d7aa0c7b4e9 nvmet: fix out-of-bounds access in nvmet_enable_port
+b7f0ee992adf net: phy: leds: fix memory leak
+d63527e109e8 tipc: fix NULL pointer dereference in tipc_mon_reinit_self()
+3df275ef0a6a net_sched: hfsc: Fix a UAF vulnerability in class handling
+6ccbda44e2cc net_sched: hfsc: Fix a potential UAF in hfsc_dequeue() too
+2567daad69cd pds_core: handle unsupported PDS_CORE_CMD_FW_CONTROL result
+3f77c3dfffc7 pds_core: make wait_context part of q_info
+7d1d19a11cfb riscv: uprobes: Add missing fence.i after building the XOL buffer
+bbce3de72be5 sched/eevdf: Fix se->slice being set to U64_MAX and resulting crash
+cc3628dcd851 xen-netfront: handle NULL returned by xdp_convert_buff_to_frame()
+3318dc299b07 irqchip/gic-v2m: Prevent use after free of gicv2m_get_fwnode()
+bd51834d1cf6 LoongArch: Return NULL from huge_pte_offset() for invalid PMD
+7537deda3652 KVM: SVM: Allocate IR data using atomic allocation
+7c7f1bfdb224 mcb: fix a double free bug in chameleon_parse_gdd()
+00f1cc14da0f mei: vsc: Fix fortify-panic caused by invalid counted_by() use
+9bcac97dc42d KVM: x86: Reset IRTE to host control if *new* route isn't postable
+18eb77c75ed0 misc: microchip: pci1xxxx: Fix Kernel panic during IRQ handler registration
+ee6a44da3c87 tty: Require CAP_SYS_ADMIN for all usages of TIOCL_SELMOUSEREPORT
+1ea050da5562 usb: xhci: Fix invalid pointer dereference in Etron workaround
+a1059896f2bf usb: cdns3: Fix deadlock when using NCM gadget
+4e28f79e3dff usb: chipidea: ci_hdrc_imx: fix usbmisc handling
+63ccd26cd1f6 usb: dwc3: gadget: check that event count does not exceed event buffer length
+ec27386de23a usb: typec: class: Fix NULL pointer access
+429a98abfc01 usb: typec: class: Unlocked on error in typec_register_partner()
+1fdc4dca350c USB: wdm: wdm_wwan_port_tx_complete mutex in atomic context
+dcc47a028c24 crypto: null - Use spin lock instead of mutex
+11ba7ce076e5 bpf: Fix kmemleak warning for percpu hashmap
+4580f4e0ebdf bpf: Fix deadlock between rcu_tasks_trace and event_mutex.
+3db42c75a921 s390/sclp: Add check for get_zeroed_page()
+ad9bb8f04971 s390/tty: Fix a potential memory leak bug
+cfe816d469dc bpf: Reject attaching fexit/fmod_ret to __noreturn functions
+285cec318bf5 fs/ntfs3: Keep write operations atomic
+ff3559264458 fs/ntfs3: Fix WARNING in ntfs_extend_initialized_size
+3c7df2e27346 sound/virtio: Fix cancel_sync warnings on uninitialized work_structs
+8c75f3e6a433 usb: gadget: aspeed: Add NULL pointer check in ast_vhub_init_dev()
+887c5c12e80c um: work around sched_yield not yielding in time-travel mode
+d0259a856afc 9p/net: fix improper handling of bogus negative read/write replies
+021ba7f1babd udmabuf: fix a buf size overflow issue during udmabuf creation
+0ba3a4ab76fd perf/core: Fix WARN_ON(!ctx) in __free_event() for partial init
+280e5a301005 iommu: Clear iommu-dma ops on cleanup
+40cb48eba3b4 netfs: Only create /proc/fs/netfs with CONFIG_PROC_FS
+1df0d4c61613 ksmbd: fix WARNING "do not call blocking ops when !TASK_RUNNING"
+9b044614be12 ubsan: Fix panic from test_ubsan_out_of_bounds
+951a04ab3a2d spi: spi-imx: Add check for spi_imx_setupxfer()
+18daa52418e7 driver core: fix potential NULL pointer dereference in dev_uevent()
+4c2227656d90 vmxnet3: Fix malformed packet sizing in vmxnet3_process_xdp

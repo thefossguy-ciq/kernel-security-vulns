@@ -1,0 +1,93 @@
+a22b3d54de94 cgroup/cpuset: Fix race between newly created partition and dying one
+6ee6bd5d4fce ublk: fix handling recovery & reissue in ublk_abort_queue()
+ad320e408a8c ata: pata_pxa: Fix potential NULL pointer dereference in pxa_ata_probe()
+69ae94725f4f tipc: fix memory leak in tipc_link_xmit
+5071a1e606b3 net: tls: explicitly disallow disconnect
+dacafdcc7789 drm/tests: modeset: Fix drm_display_mode memory leak
+70f29ca3117a drm/tests: cmdline: Fix drm_display_mode memory leak
+d34146340f95 drm/tests: modes: Fix drm_display_mode memory leak
+8b6f2e28431b drm/tests: probe-helper: Fix drm_display_mode memory leak
+7f1ff1b38a7c net: libwx: handle page_pool_dev_alloc_pages error
+e3ea2eae7069 drm/i915/huc: Fix fence not released on early probe errors
+aa1ac98268cd s390/cpumf: Fix double free on error in cpumf_pmu_event_init()
+b3bf8f63e617 net_sched: sch_sfq: move the limit validation
+9502dd5c7029 smb: client: fix UAF in decryption with multichannel
+fc75ea20ffb4 net: phy: allow MDIO bus PM ops to start/stop state machine for phylink-controlled PHY
+aabc6596ffb3 net: ppp: Add bound checking for skb data on ppp_sync_txmung
+99deffc409b6 iommu/exynos: Fix suspend/resume with IDENTITY domain
+38e8844005e6 iommu/mediatek: Fix NULL pointer deference in mtk_iommu_device_group
+6eb1e8ef586a perf/dwc_pcie: fix some unreleased resources
+7f35b429802a perf/dwc_pcie: fix duplicate pci_dev devices
+52323ed1444e PM: hibernate: Avoid deadlock in hibernate_compressor_param_set()
+22a05462c3d0 HID: pidff: Fix null pointer dereference in pidff_find_fields
+efb24b1f0d29 wifi: ath11k: fix memory leak in ath11k_xxx_remove()
+1b24394ed5c8 wifi: ath12k: fix memory leak in ath12k_pci_remove()
+63fdc4509bcf wifi: ath12k: Fix invalid entry fetch in ath12k_dp_mon_srng_process
+ecfc13138992 wifi: ath12k: Avoid memory leak while enabling statistics
+f08b24d82749 scsi: mpi3mr: Avoid reply queue full condition
+43130d02baa1 page_pool: avoid infinite loop to schedule delayed worker
+9629d7d66c62 jfs: Fix uninit-value access of imap allocated in the diMount() function
+7fcbf789629c fs/jfs: Prevent integer overflow in AG size calculation
+b61e69bb1c04 jfs: Prevent copying of nlink with value 0 from disk inode
+ddf2846f22e8 jfs: add sanity check for agwidth in dbMount
+9a0dddfb30f1 wifi: ath12k: Fix invalid data access in ath12k_dp_rx_h_undecap_nwifi
+e6494977bd4a f2fs: fix to avoid out-of-bounds access in f2fs_truncate_inode_blocks()
+530fea29ef82 ext4: protect ext4_release_dquot against freezing
+700014d3ad1f wifi: mac80211: fix userspace_selectors corruption
+c8e008b60492 ext4: ignore xattrs past end
+a018d1cf990d scsi: st: Fix array overflow in st_setup()
+7511e29cf135 btrfs: harden block_group::bg_list against list_del() races
+27b918007d96 net: vlan: don't propagate flags on open
+459777724d30 drm/xe/vf: Don't try to trigger a full GT reset if VF
+c87d202692de drm/amd/display: Guard Possible Null Pointer Dereference
+8e1ddfada453 drivers: base: devres: Allow to release group on device release
+f0b4440cdc18 drm/amdkfd: Fix mode1 reset crash issue
+fe9d0061c413 drm/amdkfd: debugfs hang_hws skip GPU with MES
+29c1c20496a7 drm/amd/display: Prevent VStartup Overflow
+0d9a95099dcb drm/amdgpu: grab an additional reference on the gang fence v2
+57faaa04804c tracing: probe-events: Log error for exceeding the number of arguments
+7ca59947b5fc pwm: mediatek: Prevent divide-by-zero in pwm_mediatek_config()
+4936cd5817af media: mediatek: vcodec: Fix a resource leak related to the scp device in FW initialization
+f4b211714bcc media: venus: hfi: add a check to handle OOB in sfr region
+69baf245b23e media: venus: hfi: add check to handle incorrect queue size
+ed1ce841245d arm64: errata: Add QCOM_KRYO_4XX_GOLD to the spectre_bhb_k24_list
+250f25367b58 KVM: arm64: Tear down vGIC on failed vCPU creation
+ddc210cf8b8a mtd: rawnand: brcmnand: fix PM resume warning
+d893da85e06e accel/ivpu: Fix PM related deadlocks in MS IOCTLs
+ed554da65abd media: hi556: Fix memory leak (on error) in hi556_check_hwcfg()
+172bf5a9ef70 media: venus: hfi_parser: add check to avoid out of bound access
+9edaaa8e3e15 media: venus: hfi_parser: refactor hfi packet parsing logic
+fc0e982b8a3a block: make sure ->nr_integrity_segments is cloned in blk_rq_prep_clone
+c60d101a226f net: stmmac: Fix accessing freed irq affinity_hint
+6889ae1b4df1 io_uring/net: fix io_req_post_cqe abuse by send bundle
+3e330acf4efd ASoC: codecs: wcd937x: fix a potential memory leak in wcd937x_soc_codec_probe()
+9a6f56762d23 accel/ivpu: Fix deadlock in ivpu_ms_cleanup()
+3371f569223c arm/crc-t10dif: fix use of out-of-scope array in crc_t10dif_arch()
+d48b663f410f arm64/crc-t10dif: fix use of out-of-scope array in crc_t10dif_arch()
+0686a818d77a bus: mhi: host: Fix race between unprepare and queue_buf
+94824ac9a8aa ext4: fix off-by-one error in do_split
+17d253af4c2c tpm: do not start chip while suspended
+c8222ef6cf29 soc: samsung: exynos-chipid: Add NULL pointer check in exynos_chipid_probe()
+bd496a44f041 i3c: Add NULL pointer check in i3c_master_queue_ibi()
+e6eff39dd0fe jbd2: remove wrong sb->s_sequence check
+4cdf1d2a816a mfd: ene-kb3930: Fix a potential NULL pointer dereference
+443041deb5ef mptcp: fix NULL pointer in can_accept_new_subflow
+a13bfa4fe0d6 arm64: mops: Do not dereference src reg for a set operation
+276822a00db3 backlight: led_bl: Hold led_access lock when calling led_sysfs_disable()
+009ca358486d btrfs: tests: fix chunk map leak after failure to add it to the tree
+767e22001dfc iommu/tegra241-cmdqv: Fix warnings due to dmam_free_coherent()
+93ae6e68b6d6 iommu/vt-d: Fix possible circular locking dependency
+0bb2f7a1ad1f net: Fix null-ptr-deref by sock_lock_init_class_and_name() and rmmod.
+f1a69a940de5 sctp: detect and prevent references to a freed transport in sendmsg
+dd941507a948 tracing: fprobe events: Fix possible UAF on modules
+b4885bd5935b cifs: avoid NULL pointer dereference in dbg call
+da47605e43af gpio: mpc8xxx: Fix wakeup source leaks on device unbind
+c5672e310ad9 gpio: zynq: Fix wakeup source leaks on device unbind
+ef01cac401f1 KVM: x86: Acquire SRCU in KVM_GET_MP_STATE to protect guest memory accesses
+f6cb7828c8e1 misc: pci_endpoint_test: Avoid issue of interrupts remaining after request_irq error
+e3260237aaad PCI: pciehp: Avoid unnecessary device replacement check
+1f2768b6a3ee PCI: Fix reference leak in pci_alloc_child_bus()
+804443c1f278 PCI: Fix reference leak in pci_register_host_bridge()
+40369bfe717e spi: fsl-qspi: use devm function instead of driver remove
+5df5dafc171b Bluetooth: hci_uart: Fix another race during initialization
+e3f88665a780 HSI: ssi_protocol: Fix use after free vulnerability in ssi_protocol Driver Due to Race Condition
