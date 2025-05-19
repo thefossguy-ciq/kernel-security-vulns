@@ -260,8 +260,8 @@ fn serialize_cve_record(cve_record: &CveRecord) -> Result<String> {
     }
 }
 
-/// Generate a JSON record for the CVE
-pub fn generate_json_record(params: &CveRecordParams) -> Result<String> {
+/// Generate a JSON for the CVE
+pub fn generate_json(params: &CveRecordParams) -> Result<String> {
     let CveRecordParams {
         cve_number,
         git_sha_full,

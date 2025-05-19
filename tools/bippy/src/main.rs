@@ -15,7 +15,7 @@ mod commands;
 mod models;
 mod utils;
 
-use commands::{generate_json_record, generate_mbox, json::CveRecordParams, mbox::MboxParams};
+use commands::{generate_json, generate_mbox, json::CveRecordParams, mbox::MboxParams};
 use models::{Args, DyadEntry};
 use utils::{
     apply_diff_to_text, get_commit_subject, get_commit_text, read_tags_file, run_dyad,
@@ -368,7 +368,7 @@ fn generate_output_files(
             commit_text: params.commit_text,
         };
 
-        match generate_json_record(&json_params) {
+        match generate_json(&json_params) {
             Ok(json_record) => {
                 if let Err(err) = std::fs::write(path, json_record) {
                     error!("Warning: Failed to write JSON file to {}: {err}", path.display());
