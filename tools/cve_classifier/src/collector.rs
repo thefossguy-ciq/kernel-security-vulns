@@ -64,7 +64,7 @@ impl CVEDataCollector {
         let mut cve_fixes = HashSet::new();
 
         if let Some(cve_dir) = &self.cve_commits_path {
-            info!("Searching for .sha1 files in {cve_dir:?}");
+            info!("Searching for .sha1 files in {}", cve_dir.display());
 
             // Use WalkDir to recursively traverse all directories
             for entry in WalkDir::new(cve_dir)
@@ -85,7 +85,7 @@ impl CVEDataCollector {
                             // Skip empty lines and comments
                             if !line.is_empty() && !line.starts_with('#') {
                                 // Add the SHA1 to fixing commits
-                                debug!("Found CVE commit: {line} from file {path:?}");
+                                debug!("Found CVE commit: {line} from file {}", path.display());
                                 cve_fixes.insert(line.to_string());
                             }
                         }

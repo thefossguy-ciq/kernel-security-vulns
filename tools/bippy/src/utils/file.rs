@@ -9,7 +9,7 @@ use std::path::Path;
 pub fn read_tags_file(script_dir: &Path) -> Result<Vec<String>> {
     let tags_path = script_dir.join("tags");
     let content = std::fs::read_to_string(&tags_path)
-        .with_context(|| format!("Failed to read tags file at {tags_path:?}"))?;
+        .with_context(|| format!("Failed to read tags file at {}", tags_path.display()))?;
 
     Ok(content
         .lines()
@@ -22,7 +22,7 @@ pub fn read_tags_file(script_dir: &Path) -> Result<Vec<String>> {
 pub fn read_uuid(script_dir: &Path) -> Result<String> {
     let uuid_path = script_dir.join("linux.uuid");
     let content = std::fs::read_to_string(&uuid_path)
-        .with_context(|| format!("Failed to read UUID file at {uuid_path:?}"))?;
+        .with_context(|| format!("Failed to read UUID file at {}", uuid_path.display()))?;
 
     let uuid = content.trim();
     if uuid.is_empty() {

@@ -519,10 +519,7 @@ fn show_author_stats(cve_root: &Path, kernel_tree: &Path, num_authors: usize) ->
 fn get_commit_subsystem(kernel_tree: &Path, sha1_file: &Path) -> Result<Option<(String, String)>> {
     // Read the sha1 from the file
     let sha1 = match fs::read_to_string(sha1_file) {
-        Ok(content) => {
-            let trimmed = content.trim().to_string();
-            trimmed
-        },
+        Ok(content) => content.trim().to_string(),
         Err(e) => {
             return Err(anyhow!("Failed to read SHA1 from file: {} - {}", sha1_file.display(), e));
         }
@@ -970,45 +967,42 @@ fn collect_time_to_fix_data(
 
             // For each dyad file, open a new repository instance
             // This is necessary because Repository cannot be shared between threads safely
-            match Repository::open(kernel_tree) {
-                Ok(repo) => {
-                    // Read dyad file to get vulnerable and fixed commits
-                    if let Ok(content) = fs::read_to_string(dyad_file) {
-                        for line in content.lines() {
-                            // Skip comments and empty lines
-                            if line.starts_with('#') || line.trim().is_empty() {
-                                continue;
-                            }
+            if let Ok(repo) = Repository::open(kernel_tree) {
+                // Read dyad file to get vulnerable and fixed commits
+                if let Ok(content) = fs::read_to_string(dyad_file) {
+                    for line in content.lines() {
+                        // Skip comments and empty lines
+                        if line.starts_with('#') || line.trim().is_empty() {
+                            continue;
+                        }
 
-                            // Dyad format: vulnerable_ver:vulnerable_commit:fixed_ver:fixed_commit
-                            let parts: Vec<&str> = line.split(':').collect();
-                            if parts.len() != 4 {
-                                continue;
-                            }
+                        // Dyad format: vulnerable_ver:vulnerable_commit:fixed_ver:fixed_commit
+                        let parts: Vec<&str> = line.split(':').collect();
+                        if parts.len() != 4 {
+                            continue;
+                        }
 
-                            let vuln_commit = parts[1].trim();
-                            let fix_commit = parts[3].trim();
+                        let vuln_commit = parts[1].trim();
+                        let fix_commit = parts[3].trim();
 
-                            // Skip if either commit is "0" (unknown)
-                            if vuln_commit == "0" || fix_commit == "0" {
-                                continue;
-                            }
+                        // Skip if either commit is "0" (unknown)
+                        if vuln_commit == "0" || fix_commit == "0" {
+                            continue;
+                        }
 
-                            // Get the commit dates
-                            let Ok(Some(vuln_date)) = get_commit_author_date(&repo, vuln_commit) else { continue };
-                            let Ok(Some(fix_date)) = get_commit_author_date(&repo, fix_commit) else { continue };
+                        // Get the commit dates
+                        let Ok(Some(vuln_date)) = get_commit_author_date(&repo, vuln_commit) else { continue };
+                        let Ok(Some(fix_date)) = get_commit_author_date(&repo, fix_commit) else { continue };
 
-                            // Calculate days between dates
-                            let days = (fix_date - vuln_date).num_days();
+                        // Calculate days between dates
+                        let days = (fix_date - vuln_date).num_days();
 
-                            // Only consider valid TTF (positive days)
-                            if days > 0 {
-                                return Some((cve_id, Some(days)));
-                            }
+                        // Only consider valid TTF (positive days)
+                        if days > 0 {
+                            return Some((cve_id, Some(days)));
                         }
                     }
-                },
-                _ => {} // Skip if we can't open the repository
+                }
             }
 
             Some((cve_id, None))

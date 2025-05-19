@@ -269,11 +269,11 @@ fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
             Vec::new()
         },
         |ref_path| {
-            debug!("Attempting to read references from {ref_path:?}");
+            debug!("Attempting to read references from {}", ref_path.display());
 
             std::fs::read_to_string(&ref_path).map_or_else(
                 |_| {
-                    warn!("Warning: Failed to read reference file from {ref_path:?}");
+                    warn!("Warning: Failed to read reference file from {}", ref_path.display());
                     if !ref_path.exists() {
                         debug!("  File does not exist");
                     } else if !ref_path.is_file() {
@@ -346,7 +346,7 @@ fn generate_output_files(
         let mbox_content = generate_mbox(&mbox_params);
 
         if let Err(err) = std::fs::write(path, mbox_content) {
-            error!("Warning: Failed to write mbox file to {path:?}: {err}");
+            error!("Warning: Failed to write mbox file to {}: {err}", path.display());
         } else {
             debug!("Wrote mbox file to {path}", path = path.display());
         }
@@ -371,7 +371,7 @@ fn generate_output_files(
         match generate_json_record(&json_params) {
             Ok(json_record) => {
                 if let Err(err) = std::fs::write(path, json_record) {
-                    error!("Warning: Failed to write JSON file to {path:?}: {err}");
+                    error!("Warning: Failed to write JSON file to {}: {err}", path.display());
                 } else {
                     debug!("Wrote JSON file to {path}", path = path.display());
                 }

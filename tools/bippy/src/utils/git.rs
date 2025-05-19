@@ -46,7 +46,7 @@ pub fn apply_diff_to_text(text: &str, diff_file: &std::path::Path) -> Result<Str
         .arg(temp_path)
         .arg(diff_file)
         .status()
-        .with_context(|| format!("Failed to execute patch command with diff file {diff_file:?}"))?;
+        .with_context(|| format!("Failed to execute patch command with diff file {}", diff_file.display()))?;
 
     if !status.success() {
         return Err(anyhow::anyhow!(

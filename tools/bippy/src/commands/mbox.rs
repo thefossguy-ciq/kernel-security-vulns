@@ -116,9 +116,7 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry]) -> Vec<String> {
     }
 
     // If no vulnerabilities were found, do NOT create a CVE at all!
-    if vuln_array_mbox.is_empty() {
-        panic!("No vulnerable:fixed kernel versions, aborting!");
-    }
+    assert!(!vuln_array_mbox.is_empty(), "No vulnerable:fixed kernel versions, aborting!");
 
     vuln_array_mbox
 }

@@ -233,7 +233,7 @@ impl Verhaal {
                         query_u32(&self.conn, sql_mainline, &[&revert_id as &dyn ToSql]);
 
                     // Skip if this commit reverts a stable commit (mainline = 0)
-                    if mainline_values.iter().any(|&mainline| mainline == 0) {
+                    if mainline_values.contains(&0) {
                         debug!("\t\tfound_in: skipping {id:?} as it reverts a stable commit");
                         continue;
                     }
