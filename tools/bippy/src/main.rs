@@ -17,7 +17,10 @@ mod utils;
 
 use commands::{generate_json_record, generate_mbox, json::CveRecordParams, mbox::MboxParams};
 use models::{Args, DyadEntry};
-use utils::{apply_diff_to_text, get_commit_subject, get_commit_text, read_tags_file, run_dyad, strip_commit_text};
+use utils::{
+    apply_diff_to_text, get_commit_subject, get_commit_text, read_tags_file, run_dyad,
+    strip_commit_text,
+};
 
 /// Initialize and configure the logging system
 fn initialize_logging(verbose: bool) -> log::LevelFilter {
@@ -115,7 +118,9 @@ fn validate_args_and_env(args: &Args) -> ArgsResult {
         .collect();
 
     // Dig into git if the user name is not set
-    let user_name = args.name.clone()
+    let user_name = args
+        .name
+        .clone()
         .unwrap_or_else(|| git_config::get_git_config("user.name").unwrap_or_default());
 
     // Debug output if verbose is enabled
@@ -133,8 +138,8 @@ fn validate_args_and_env(args: &Args) -> ArgsResult {
 /// Get repository and script directories
 fn get_directories() -> Result<(String, PathBuf, String, String)> {
     // Get vulns directory using cve_utils
-    let vulns_dir = cve_utils::find_vulns_dir()
-        .with_context(|| "Failed to find vulns directory")?;
+    let vulns_dir =
+        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
 
     // Get scripts directory
     let script_dir = vulns_dir.join("scripts");
@@ -159,10 +164,7 @@ fn get_directories() -> Result<(String, PathBuf, String, String)> {
 }
 
 /// Get commit information from Git repository
-fn get_commit_info(
-    kernel_tree: &str,
-    git_shas: &[String],
-) -> Result<(String, String, String)> {
+fn get_commit_info(kernel_tree: &str, git_shas: &[String]) -> Result<(String, String, String)> {
     // Open the kernel repository
     let repo = Repository::open(kernel_tree)
         .with_context(|| format!("Failed to open Git repository at {kernel_tree:?}"))?;
@@ -187,10 +189,10 @@ fn get_commit_info(
     let main_git_ref = &git_refs[0];
 
     // Get SHA information for the main commit
-    let git_sha_full = get_object_full_sha(&repo, main_git_ref)
-        .with_context(|| "Failed to get full SHA")?;
-    let commit_subject = get_commit_subject(&repo, main_git_ref)
-        .with_context(|| "Failed to get commit subject")?;
+    let git_sha_full =
+        get_object_full_sha(&repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
+    let commit_subject =
+        get_commit_subject(&repo, main_git_ref).with_context(|| "Failed to get commit subject")?;
 
     // Get the full commit message text for the main commit
     let git_ref = resolve_reference(&repo, &git_sha_full)?;
@@ -200,11 +202,7 @@ fn get_commit_info(
 }
 
 /// Process the commit text with optional diff application
-fn process_commit_text(
-    script_dir: &Path,
-    commit_text: &str,
-    diff_path: Option<&Path>,
-) -> String {
+fn process_commit_text(script_dir: &Path, commit_text: &str, diff_path: Option<&Path>) -> String {
     // Read the tags file to strip from commit message
     let tags = read_tags_file(script_dir).unwrap_or_default();
 
@@ -303,9 +301,9 @@ fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
                         .map(|line| line.trim().to_string())
                         .filter(|line| !line.is_empty())
                         .collect()
-                }
+                },
             )
-        }
+        },
     )
 }
 
@@ -350,7 +348,7 @@ fn generate_output_files(
         if let Err(err) = std::fs::write(path, mbox_content) {
             error!("Warning: Failed to write mbox file to {path:?}: {err}");
         } else {
-            debug!("Wrote mbox file to {path}", path=path.display());
+            debug!("Wrote mbox file to {path}", path = path.display());
         }
     }
 
@@ -375,7 +373,7 @@ fn generate_output_files(
                 if let Err(err) = std::fs::write(path, json_record) {
                     error!("Warning: Failed to write JSON file to {path:?}: {err}");
                 } else {
-                    debug!("Wrote JSON file to {path}", path=path.display());
+                    debug!("Wrote JSON file to {path}", path = path.display());
                 }
             }
             Err(err) => {
@@ -397,7 +395,8 @@ fn main() -> Result<()> {
     log_command_args();
 
     // Validate arguments and environment variables
-    let (cve_number, user_name, user_email, git_shas, vulnerable_shas) = validate_args_and_env(&args);
+    let (cve_number, user_name, user_email, git_shas, vulnerable_shas) =
+        validate_args_and_env(&args);
 
     // Get required directories and script information
     let (kernel_tree, script_dir, script_name, script_version) = get_directories()?;
@@ -570,7 +569,10 @@ mod tests {
         // Test with vulnerable_version = 0
         let entries =
             vec![DyadEntry::from_str("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap()];
-        assert_eq!(utils::version::determine_default_status(&entries), "affected");
+        assert_eq!(
+            utils::version::determine_default_status(&entries),
+            "affected"
+        );
 
         // Test with invalid git id
         /* FIXME, does not build, but you get the idea of what we should be testing...
@@ -587,28 +589,40 @@ mod tests {
         let entries = vec![
             DyadEntry::from_str("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
         ];
-        assert_eq!(utils::version::determine_default_status(&entries), "affected");
+        assert_eq!(
+            utils::version::determine_default_status(&entries),
+            "affected"
+        );
 
         // Test with mainline version that's both vulnerable and fixed in the same version
         // This should be "unaffected" because no actually released version was affected
         let entries = vec![
             DyadEntry::from_str("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
-        assert_eq!(utils::version::determine_default_status(&entries), "unaffected");
+        assert_eq!(
+            utils::version::determine_default_status(&entries),
+            "unaffected"
+        );
 
         // Test with multiple entries, one with vulnerable_version = 0
         let entries = vec![
             DyadEntry::from_str("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
             DyadEntry::from_str("0:0:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
-        assert_eq!(utils::version::determine_default_status(&entries), "affected");
+        assert_eq!(
+            utils::version::determine_default_status(&entries),
+            "affected"
+        );
 
         // Test with multiple entries, mix of same-version fixes and different-version fixes
         let entries = vec![
             DyadEntry::from_str("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a").unwrap(),
             DyadEntry::from_str("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
-        assert_eq!(utils::version::determine_default_status(&entries), "unaffected");
+        assert_eq!(
+            utils::version::determine_default_status(&entries),
+            "unaffected"
+        );
     }
 
     #[test]

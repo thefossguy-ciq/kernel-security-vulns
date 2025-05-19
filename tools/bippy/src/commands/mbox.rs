@@ -125,18 +125,17 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry]) -> Vec<String> {
 
 /// Get affected files from the commit
 fn get_commit_affected_files(repo: &Repository, git_sha_full: &str) -> Vec<String> {
-    resolve_reference(repo, git_sha_full)
-        .map_or_else(
-            |_| Vec::new(),
-            |obj| get_affected_files(repo, &obj).unwrap_or_default()
-        )
+    resolve_reference(repo, git_sha_full).map_or_else(
+        |_| Vec::new(),
+        |obj| get_affected_files(repo, &obj).unwrap_or_default(),
+    )
 }
 
 /// Collect reference URLs from dyad entries and additional references
 fn collect_reference_urls(
     dyad_entries: &[DyadEntry],
     additional_references: &[String],
-    git_sha_full: &str
+    git_sha_full: &str,
 ) -> Vec<String> {
     // First add all fix commit URLs from dyad entries (except the main fix)
     let mut version_url_pairs = Vec::new();
@@ -300,9 +299,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
     } = params;
 
     // For the From line we need the script name and version
-    let from_line = format!(
-        "From {script_name}-{script_version} Mon Sep 17 00:00:00 2001"
-    );
+    let from_line = format!("From {script_name}-{script_version} Mon Sep 17 00:00:00 2001");
 
     // Initialize environment and open repository
     let (_kernel_tree, repo) = match initialize_environment(
@@ -310,7 +307,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
         user_name,
         user_email,
         cve_number,
-        commit_subject
+        commit_subject,
     ) {
         Ok(result) => result,
         Err(error_message) => return error_message,
@@ -326,11 +323,8 @@ pub fn generate_mbox(params: &MboxParams) -> String {
     let url_array = collect_reference_urls(dyad_entries, additional_references, git_sha_full);
 
     // Format sections for the mbox content
-    let (vuln_section, files_section, url_section) = format_mbox_sections(
-        vuln_array_mbox,
-        affected_files,
-        url_array
-    );
+    let (vuln_section, files_section, url_section) =
+        format_mbox_sections(vuln_array_mbox, affected_files, url_array);
 
     // Create the final mbox content
     create_mbox_content(&MboxContentParams {
@@ -355,8 +349,7 @@ mod tests {
     fn create_test_kernel(_version: &str, git_id: &str) -> Kernel {
         // In tests, we don't have real git commit IDs to look up,
         // so we'll create dummy kernels with the provided info
-        let kernel = Kernel::from_id(git_id)
-            .unwrap_or_else(|_| Kernel::empty_kernel());
+        let kernel = Kernel::from_id(git_id).unwrap_or_else(|_| Kernel::empty_kernel());
 
         // We can't directly modify the fields, but for testing
         // purposes, we're assuming these are valid git IDs and versions
@@ -398,12 +391,10 @@ mod tests {
         // so we'll just verify that entries were generated
 
         // Test with an array containing only same-version entries
-        let _same_version_entries = vec![
-            DyadEntry {
-                vulnerable: create_test_kernel("6.1", "5b503c8598d1b232e7fc7526bce9326d92331544"),
-                fixed: create_test_kernel("6.1", "6b503c8598d1b232e7fc7526bce9326d92331545"),
-            },
-        ];
+        let _same_version_entries = vec![DyadEntry {
+            vulnerable: create_test_kernel("6.1", "5b503c8598d1b232e7fc7526bce9326d92331544"),
+            fixed: create_test_kernel("6.1", "6b503c8598d1b232e7fc7526bce9326d92331545"),
+        }];
 
         // Testing directly will panic, so we can't test that case directly
     }
@@ -450,7 +441,8 @@ mod tests {
     fn test_format_mbox_sections() {
         // Create test data
         let vuln_array = vec![
-            "Issue introduced in 5.15 with commit 11c52d250b34a0862edc29db03fbec23b30db6da".to_string(),
+            "Issue introduced in 5.15 with commit 11c52d250b34a0862edc29db03fbec23b30db6da"
+                .to_string(),
             "Fixed in 5.10 with commit 22c52d250b34a0862edc29db03fbec23b30db6db".to_string(),
         ];
 
@@ -465,7 +457,8 @@ mod tests {
         ];
 
         // Format the sections
-        let (vuln_section, files_section, url_section) = format_mbox_sections(vuln_array, affected_files, url_array);
+        let (vuln_section, files_section, url_section) =
+            format_mbox_sections(vuln_array, affected_files, url_array);
 
         // Check that each line is properly indented with a tab
         assert!(vuln_section.lines().all(|line| line.starts_with('\t')));
@@ -479,8 +472,10 @@ mod tests {
         assert!(files_section.contains("drivers/net/ethernet/test.c"));
         assert!(files_section.contains("include/linux/test.h"));
 
-        assert!(url_section.contains("https://git.kernel.org/stable/c/11c52d250b34a0862edc29db03fbec23b30db6da"));
-        assert!(url_section.contains("https://git.kernel.org/stable/c/22c52d250b34a0862edc29db03fbec23b30db6db"));
+        assert!(url_section
+            .contains("https://git.kernel.org/stable/c/11c52d250b34a0862edc29db03fbec23b30db6da"));
+        assert!(url_section
+            .contains("https://git.kernel.org/stable/c/22c52d250b34a0862edc29db03fbec23b30db6db"));
     }
 
     #[test]
@@ -514,12 +509,18 @@ mod tests {
         assert!(mbox.contains("Mitigation\n=========="));
 
         // Check that the commit message is included
-        assert!(mbox.contains("This is a test commit message.\n\nIt contains details about the vulnerability."));
+        assert!(mbox.contains(
+            "This is a test commit message.\n\nIt contains details about the vulnerability."
+        ));
 
         // Check that other sections are included
-        assert!(mbox.contains("\tIssue introduced in 5.15 with commit 11c52d250b34a0862edc29db03fbec23b30db6da"));
+        assert!(mbox.contains(
+            "\tIssue introduced in 5.15 with commit 11c52d250b34a0862edc29db03fbec23b30db6da"
+        ));
         assert!(mbox.contains("\tdrivers/net/ethernet/test.c"));
-        assert!(mbox.contains("\thttps://git.kernel.org/stable/c/22c52d250b34a0862edc29db03fbec23b30db6db"));
+        assert!(mbox.contains(
+            "\thttps://git.kernel.org/stable/c/22c52d250b34a0862edc29db03fbec23b30db6db"
+        ));
 
         // Check that the result ends with a newline
         assert!(mbox.ends_with('\n'));

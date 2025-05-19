@@ -9,8 +9,14 @@ use serde::Serialize;
 use serde_json::ser::{PrettyFormatter, Serializer};
 use std::collections::HashSet;
 
-use crate::models::{CnaData, Containers, CpeApplicability, CpeNodes, CveMetadata, CveRecord, DyadEntry, Generator, ProviderMetadata, Reference, Description, AffectedProduct};
-use crate::utils::{generate_cpe_ranges, generate_git_ranges, generate_version_ranges, determine_default_status, read_uuid};
+use crate::models::{
+    AffectedProduct, CnaData, Containers, CpeApplicability, CpeNodes, CveMetadata, CveRecord,
+    Description, DyadEntry, Generator, ProviderMetadata, Reference,
+};
+use crate::utils::{
+    determine_default_status, generate_cpe_ranges, generate_git_ranges, generate_version_ranges,
+    read_uuid,
+};
 
 /// Parameters for generating a JSON CVE record
 pub struct CveRecordParams<'a> {
@@ -52,8 +58,7 @@ fn initialize_environment(_git_sha_full: &str) -> Result<(String, String)> {
     }
 
     // Read the UUID from the linux.uuid file
-    let uuid = read_uuid(&script_dir)
-        .with_context(|| "Failed to read UUID")?;
+    let uuid = read_uuid(&script_dir).with_context(|| "Failed to read UUID")?;
 
     // Get the kernel tree path from environment
     let kernel_tree = std::env::var("CVEKERNELTREE")
@@ -123,7 +128,11 @@ fn create_affected_products(
 }
 
 /// Generate references from dyad entries and additional references
-fn generate_references(dyad_entries: &[DyadEntry], additional_references: &[String], git_sha_full: &str) -> Vec<Reference> {
+fn generate_references(
+    dyad_entries: &[DyadEntry],
+    additional_references: &[String],
+    git_sha_full: &str,
+) -> Vec<Reference> {
     let mut references = Vec::new();
     let mut seen_refs: HashSet<String> = HashSet::new();
 
@@ -207,7 +216,9 @@ fn create_cve_record(params: CveRecordCreationParams) -> CveRecord {
                     value: params.truncated_description,
                 }],
                 affected: vec![params.git_product, params.kernel_product],
-                cpe_applicability: vec![CpeApplicability { nodes: params.cpe_nodes }],
+                cpe_applicability: vec![CpeApplicability {
+                    nodes: params.cpe_nodes,
+                }],
                 references: params.references,
                 title: params.commit_subject.to_string(),
                 x_generator: Generator {
@@ -272,10 +283,12 @@ pub fn generate_json_record(params: &CveRecordParams) -> Result<String> {
     let git_ref = resolve_reference(&repo, git_sha_full)?;
 
     // Prepare dyad entries and affected files
-    let (dyad_entries, affected_files) = prepare_vulnerability_data(&repo, &git_ref, git_sha_full, in_dyad_entries)?;
+    let (dyad_entries, affected_files) =
+        prepare_vulnerability_data(&repo, &git_ref, git_sha_full, in_dyad_entries)?;
 
     // Create affected products
-    let (kernel_product, git_product, cpe_nodes) = create_affected_products(&dyad_entries, affected_files);
+    let (kernel_product, git_product, cpe_nodes) =
+        create_affected_products(&dyad_entries, affected_files);
 
     // Generate references
     let references = generate_references(&dyad_entries, additional_references, git_sha_full);
@@ -337,8 +350,7 @@ mod tests {
         fn create_test_kernel(_version: &str, git_id: &str) -> Kernel {
             // In tests, we don't have real git commit IDs to look up,
             // so we'll create dummy kernels with the provided info
-            let kernel = Kernel::from_id(git_id)
-                .unwrap_or_else(|_| Kernel::empty_kernel());
+            let kernel = Kernel::from_id(git_id).unwrap_or_else(|_| Kernel::empty_kernel());
 
             // We can't directly modify the fields, but for testing
             // purposes, we're assuming these are valid git IDs and versions
@@ -380,15 +392,22 @@ mod tests {
         // so we'll only check for the additional references
 
         // Check that additional references were added
-        assert!(references.iter().any(|r| r.url == "https://example.com/ref1"));
-        assert!(references.iter().any(|r| r.url == "https://example.com/ref2"));
+        assert!(references
+            .iter()
+            .any(|r| r.url == "https://example.com/ref1"));
+        assert!(references
+            .iter()
+            .any(|r| r.url == "https://example.com/ref2"));
 
         // Test with no dyad entries and no additional references
         let references = generate_references(&[], &[], git_sha_full);
 
         // Should have 1 reference (main fix commit)
         assert_eq!(references.len(), 1);
-        assert_eq!(references[0].url, format!("https://git.kernel.org/stable/c/{git_sha_full}"));
+        assert_eq!(
+            references[0].url,
+            format!("https://git.kernel.org/stable/c/{git_sha_full}")
+        );
     }
 
     #[test]

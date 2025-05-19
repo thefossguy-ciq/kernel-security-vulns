@@ -8,7 +8,11 @@ use std::fmt::Write;
 use std::path::Path;
 
 /// Run the dyad script to get version range information
-pub fn run_dyad(script_dir: &Path, git_shas: &[String], vulnerable_shas: &[String]) -> Result<String> {
+pub fn run_dyad(
+    script_dir: &Path,
+    git_shas: &[String],
+    vulnerable_shas: &[String],
+) -> Result<String> {
     // Ensure dyad script exists
     let dyad_script = script_dir.join("dyad");
     if !dyad_script.exists() {
