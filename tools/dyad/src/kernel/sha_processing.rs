@@ -4,8 +4,8 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
-use cve_utils::Kernel;
 use crate::state::DyadState;
+use cve_utils::Kernel;
 
 /// Adds a git SHA to the state's list of fixing kernels
 pub fn process_fixing_sha(state: &mut DyadState, git_sha: &str) -> bool {

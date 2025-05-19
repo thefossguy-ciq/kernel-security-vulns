@@ -11,8 +11,8 @@
 //
 // Usage: dyad --sha1 <git-sha> [--sha1 <git-sha> ...] [--vulnerable <git-sha> ...]
 
-use owo_colors::{OwoColorize, Stream::Stdout};
 use log::{debug, error};
+use owo_colors::{OwoColorize, Stream::Stdout};
 use std::env;
 extern crate cve_utils;
 
@@ -56,7 +56,8 @@ fn process_fixing_shas(state: &mut state::DyadState, shas: &[String]) -> bool {
     for git_sha in &state.git_sha_full {
         println!(
             "{} {}",
-            "# \tgetting vulnerable:fixed pairs for git id".if_supports_color(Stdout, |x| x.green()),
+            "# \tgetting vulnerable:fixed pairs for git id"
+                .if_supports_color(Stdout, |x| x.green()),
             git_sha.git_id().if_supports_color(Stdout, |x| x.cyan())
         );
     }

@@ -4,18 +4,25 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
-use owo_colors::{OwoColorize, Stream::Stdout};
+use crate::state::DyadState;
+use cve_utils::{Kernel, KernelPair};
 use log::debug;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use cve_utils::{Kernel, KernelPair};
-use crate::state::DyadState;
 
 /// Process pairs with exact version match (Priority 1)
-fn find_exact_version_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Option<KernelPair> {
+fn find_exact_version_match(
+    fixed_kernel: &Kernel,
+    vulnerabilities: &[Kernel],
+) -> Option<KernelPair> {
     for vuln in vulnerabilities {
         if fixed_kernel.version() == vuln.version() {
-            debug!("\t\t{} == {} save it", fixed_kernel.version(), vuln.version());
+            debug!(
+                "\t\t{} == {} save it",
+                fixed_kernel.version(),
+                vuln.version()
+            );
             return Some(KernelPair {
                 vulnerable: vuln.clone(),
                 fixed: fixed_kernel.clone(),
@@ -26,7 +33,10 @@ fn find_exact_version_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -
 }
 
 /// Process mainline-to-mainline pairs (Priority 2)
-fn find_mainline_to_mainline_matches(fixed_kernel: &Kernel, mainline_vulns: &[&Kernel]) -> Vec<KernelPair> {
+fn find_mainline_to_mainline_matches(
+    fixed_kernel: &Kernel,
+    mainline_vulns: &[&Kernel],
+) -> Vec<KernelPair> {
     let mut pairs = Vec::new();
 
     if fixed_kernel.is_mainline() && !mainline_vulns.is_empty() {
@@ -51,7 +61,10 @@ fn find_mainline_to_mainline_matches(fixed_kernel: &Kernel, mainline_vulns: &[&K
 }
 
 /// Find matches based on same major version (Priority 3)
-fn find_same_major_version_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Option<KernelPair> {
+fn find_same_major_version_match(
+    fixed_kernel: &Kernel,
+    vulnerabilities: &[Kernel],
+) -> Option<KernelPair> {
     for vuln in vulnerabilities {
         if vuln.version_major_match(fixed_kernel) {
             debug!(
@@ -106,7 +119,10 @@ fn calculate_version_distance(v: &Kernel, k: &Kernel) -> Option<i32> {
 }
 
 /// Find best mainline match based on version proximity (Priority 4)
-fn find_best_mainline_match(fixed_kernel: &Kernel, mainline_vulns: &[&Kernel]) -> Option<KernelPair> {
+fn find_best_mainline_match(
+    fixed_kernel: &Kernel,
+    mainline_vulns: &[&Kernel],
+) -> Option<KernelPair> {
     if mainline_vulns.is_empty() {
         return None;
     }
@@ -160,7 +176,10 @@ fn find_best_mainline_match(fixed_kernel: &Kernel, mainline_vulns: &[&Kernel]) -
 }
 
 /// Find best match based on version distance (Priority 5)
-fn find_best_version_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Option<KernelPair> {
+fn find_best_version_match(
+    fixed_kernel: &Kernel,
+    vulnerabilities: &[Kernel],
+) -> Option<KernelPair> {
     let mut best_match: Option<&Kernel> = None;
     let mut best_match_score = i32::MAX;
 
@@ -199,7 +218,8 @@ fn find_best_version_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) ->
 /// Find default pairing if no other matches found
 fn find_default_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Option<KernelPair> {
     // Get the oldest mainline kernel from the vulnerable set
-    let oldest_mainline_kernel = vulnerabilities.iter()
+    let oldest_mainline_kernel = vulnerabilities
+        .iter()
         .filter(|k| k.is_mainline())
         .min_by(|a, b| a.compare(b))
         .cloned();
@@ -226,11 +246,16 @@ fn find_default_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Opti
 }
 
 /// Process unfixed vulnerabilities to find matching pairs
-fn process_unfixed_vulnerabilities(vulnerable_kernel: &Kernel, fixed_pairs: &[KernelPair], fixed_set: &[Kernel]) -> Option<KernelPair> {
+fn process_unfixed_vulnerabilities(
+    vulnerable_kernel: &Kernel,
+    fixed_pairs: &[KernelPair],
+    fixed_set: &[Kernel],
+) -> Option<KernelPair> {
     // Check if this vulnerability is already part of a pair
     for pair in fixed_pairs {
-        if vulnerable_kernel.version() == pair.vulnerable.version() &&
-           vulnerable_kernel.git_id() == pair.vulnerable.git_id() {
+        if vulnerable_kernel.version() == pair.vulnerable.version()
+            && vulnerable_kernel.git_id() == pair.vulnerable.git_id()
+        {
             return None;
         }
         if vulnerable_kernel.version() == pair.fixed.version() {
@@ -277,7 +302,7 @@ fn process_unfixed_vulnerabilities(vulnerable_kernel: &Kernel, fixed_pairs: &[Ke
                 vulnerable: vulnerable_kernel.clone(),
                 fixed: fix,
             })
-        }
+        },
     )
 }
 
@@ -329,7 +354,9 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
                 create = true;
             }
             // Priority 3: Same major version line
-            else if let Some(pair) = find_same_major_version_match(fixed_kernel, &sorted_vulnerabilities) {
+            else if let Some(pair) =
+                find_same_major_version_match(fixed_kernel, &sorted_vulnerabilities)
+            {
                 fixed_pairs.push(pair);
                 create = true;
             }
@@ -487,8 +514,12 @@ pub fn print_kernel_pairs(pairs: &[KernelPair]) {
     for e in pairs {
         println!(
             "{}:{}:{}:{}",
-            e.vulnerable.version().if_supports_color(Stdout, |x| x.green()),
-            e.vulnerable.git_id().if_supports_color(Stdout, |x| x.cyan()),
+            e.vulnerable
+                .version()
+                .if_supports_color(Stdout, |x| x.green()),
+            e.vulnerable
+                .git_id()
+                .if_supports_color(Stdout, |x| x.cyan()),
             e.fixed.version().if_supports_color(Stdout, |x| x.green()),
             e.fixed.git_id().if_supports_color(Stdout, |x| x.cyan())
         );

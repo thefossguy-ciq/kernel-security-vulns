@@ -2,14 +2,14 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-use std::process::Command;
-use std::path::{Path, PathBuf};
+use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 use std::env;
-use std::sync::{Arc, Mutex};
 use std::fs;
 use std::io::Write;
-use rayon::prelude::*;
-use indicatif::{ProgressBar, ProgressStyle};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::sync::{Arc, Mutex};
 
 /// Integration test that verifies dyad produces expected output
 ///
@@ -37,7 +37,10 @@ fn test_dyad_consistency() {
         Ok(dir) => dir,
         Err(err) => panic!("Failed to find CVE directory: {}", err),
     };
-    println!("Running integration test in CVE directory: {}", cve_dir.display());
+    println!(
+        "Running integration test in CVE directory: {}",
+        cve_dir.display()
+    );
 
     // Collect and prepare test cases
     let mut test_cases = get_test_cases(&cve_dir);
@@ -47,7 +50,11 @@ fn test_dyad_consistency() {
 
     // Limit test cases if requested
     if limit_tests > 0 && test_cases.len() > limit_tests {
-        println!("Limiting test to {} cases (out of {})", limit_tests, test_cases.len());
+        println!(
+            "Limiting test to {} cases (out of {})",
+            limit_tests,
+            test_cases.len()
+        );
         test_cases.truncate(limit_tests);
     }
     println!("Found {} test cases", test_cases.len());
@@ -57,10 +64,14 @@ fn test_dyad_consistency() {
 
     // Setup progress bar
     let pb = ProgressBar::new(test_cases.len() as u64);
-    pb.set_style(ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta})")
-        .unwrap()
-        .progress_chars("#>-"));
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta})",
+            )
+            .unwrap()
+            .progress_chars("#>-"),
+    );
 
     // Run tests in parallel
     test_cases.par_iter().for_each(|test_case| {
@@ -115,10 +126,12 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
     // Find the dyad binary
     let dyad_path = match find_dyad_binary() {
         Some(path) => path,
-        None => return TestResult {
-            success: false,
-            error_message: "Failed to find dyad binary".to_string(),
-        },
+        None => {
+            return TestResult {
+                success: false,
+                error_message: "Failed to find dyad binary".to_string(),
+            }
+        }
     };
 
     // Build command with git SHA
@@ -140,8 +153,10 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
             if !output.status.success() {
                 return TestResult {
                     success: false,
-                    error_message: format!("Dyad command failed: {}",
-                        String::from_utf8_lossy(&output.stderr)),
+                    error_message: format!(
+                        "Dyad command failed: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ),
                 };
             }
 
@@ -156,11 +171,13 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
                         let actual = actual_output.replace("\r\n", "\n").trim().to_string();
 
                         // Filter out lines starting with "#" for comparison
-                        let expected_filtered = expected.lines()
+                        let expected_filtered = expected
+                            .lines()
                             .filter(|line| !line.trim_start().starts_with("#"))
                             .collect::<Vec<&str>>()
                             .join("\n");
-                        let actual_filtered = actual.lines()
+                        let actual_filtered = actual
+                            .lines()
                             .filter(|line| !line.trim_start().starts_with("#"))
                             .collect::<Vec<&str>>()
                             .join("\n");
@@ -187,7 +204,7 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
                             success: true,
                             error_message: String::new(),
                         }
-                    },
+                    }
                     Err(e) => TestResult {
                         success: false,
                         error_message: format!("Failed to read expected .dyad file: {}", e),
@@ -197,14 +214,17 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
                 // No .dyad file exists, warn but don't fail
                 TestResult {
                     success: true,
-                    error_message: format!("Warning: No .dyad file exists for {}", test_case.cve_id),
+                    error_message: format!(
+                        "Warning: No .dyad file exists for {}",
+                        test_case.cve_id
+                    ),
                 }
             }
-        },
+        }
         Err(err) => TestResult {
             success: false,
             error_message: format!("Failed to execute dyad: {}", err),
-        }
+        },
     }
 }
 
@@ -217,8 +237,8 @@ fn find_cve_dir() -> Result<PathBuf, String> {
                 return Ok(cve_dir);
             }
             Err(format!("CVE directory not found at: {}", cve_dir.display()))
-        },
-        Err(e) => Err(format!("Failed to find vulns directory: {}", e))
+        }
+        Err(e) => Err(format!("Failed to find vulns directory: {}", e)),
     }
 }
 
@@ -294,12 +314,9 @@ fn find_dyad_binary() -> Option<PathBuf> {
     {
         if output.status.success() {
             // Get the path from Cargo's output
-            let target_dir = env::var("CARGO_TARGET_DIR")
-                .unwrap_or_else(|_| "target".to_string());
+            let target_dir = env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
 
-            let dyad_path = PathBuf::from(target_dir)
-                .join("debug")
-                .join("dyad");
+            let dyad_path = PathBuf::from(target_dir).join("debug").join("dyad");
 
             if dyad_path.exists() {
                 return Some(dyad_path);

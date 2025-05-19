@@ -5,16 +5,14 @@
 //
 
 // Internal modules
+mod kernel_pairs;
 mod sha_processing;
 mod vulnerability;
-mod kernel_pairs;
 
 // Re-export public functions
+pub use kernel_pairs::{filter_and_sort_pairs, generate_kernel_pairs, print_kernel_pairs};
 pub use sha_processing::{process_fixing_sha, process_vulnerable_sha};
 pub use vulnerability::{
-    find_fixed_kernels,
-    add_provided_vulnerabilities,
-    derive_vulnerabilities,
-    process_vulnerable_kernels
+    add_provided_vulnerabilities, derive_vulnerabilities, find_fixed_kernels,
+    process_vulnerable_kernels,
 };
-pub use kernel_pairs::{generate_kernel_pairs, filter_and_sort_pairs, print_kernel_pairs};

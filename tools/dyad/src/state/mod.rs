@@ -4,9 +4,9 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
-use log::debug;
 use cve_utils::Kernel;
 use cve_utils::Verhaal;
+use log::debug;
 
 /// State for dyad tool runtime
 pub struct DyadState {
