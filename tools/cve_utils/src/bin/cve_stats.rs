@@ -537,72 +537,24 @@ fn get_commit_subsystem(kernel_tree: &Path, sha1_file: &Path) -> Result<Option<(
         }
     };
 
-    // Parse SHA1
-    let obj_id = match Oid::from_str(&sha1) {
-        Ok(id) => id,
-        Err(e) => {
-            return Err(anyhow!("Invalid git SHA format: {}", e));
+    // Resolve the commit to a git object
+    let obj = match resolve_reference(&repo, &sha1) {
+        Ok(obj) => obj,
+        Err(_) => {
+            return Ok(None);
         }
     };
 
-    // Find commit
-    let Ok(commit) = repo.find_commit(obj_id) else {
-        return Ok(None);
-    };
-
-    // Get parent commit
-    let Ok(parent) = commit.parent(0) else {
-        return Ok(None);
-    };
-
-    // Get trees
-    let commit_tree = match commit.tree() {
-        Ok(tree) => tree,
-        Err(e) => {
-            return Err(anyhow!("Failed to get commit tree: {}", e));
+    // Get affected files using the cve_utils module - more efficient than doing diff traversal manually
+    let affected_files = match git_utils::get_affected_files(&repo, &obj) {
+        Ok(files) => files,
+        Err(_) => {
+            return Ok(None);
         }
     };
 
-    let parent_tree = match parent.tree() {
-        Ok(tree) => tree,
-        Err(e) => {
-            return Err(anyhow!("Failed to get parent tree: {}", e));
-        }
-    };
-
-    // Get diff
-    let diff = match repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None) {
-        Ok(diff) => diff,
-        Err(e) => {
-            return Err(anyhow!("Failed to create diff between trees: {}", e));
-        }
-    };
-
-    // Find first changed file
-    let mut first_file = None;
-    match diff.foreach(
-        &mut |_delta, _progress| { true },
-        None,
-        None,
-        Some(&mut |diff_file, _binary, _| {
-            if first_file.is_none() {
-                if let Some(path) = diff_file.new_file().path() {
-                    let path_str = path.to_string_lossy();
-                    if !path_str.is_empty() {
-                        first_file = Some(path_str.to_string());
-                    }
-                }
-            }
-            true
-        }),
-    ) {
-        Ok(()) => {},
-        Err(e) => {
-            return Err(anyhow!("Failed to process diff: {e}"));
-        }
-    }
-
-    if let Some(path) = first_file {
+    // Get the first file (if any)
+    if let Some(path) = affected_files.first() {
         // Split path into parts to get main subsystem and sub-subsystem
         let parts: Vec<&str> = path.split('/').collect();
 
