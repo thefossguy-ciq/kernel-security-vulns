@@ -3,8 +3,6 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
 use anyhow::{Context, Result};
-use cve_utils::git_utils::{get_affected_files, resolve_reference};
-use git2::Repository;
 use serde::Serialize;
 use serde_json::ser::{PrettyFormatter, Serializer};
 use std::collections::HashSet;
@@ -40,10 +38,12 @@ pub struct CveRecordParams<'a> {
     pub additional_references: &'a [String],
     /// Full commit text/description
     pub commit_text: &'a str,
+    /// List of affected files
+    pub affected_files: &'a Vec<String>,
 }
 
-/// Initialize environment and get repository information
-fn initialize_environment(_git_sha_full: &str) -> Result<(String, String)> {
+/// Get UUID information
+fn get_uuid() -> Result<String> {
     // Get vulns directory using cve_utils
     let vulns_dir =
         cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
@@ -60,25 +60,16 @@ fn initialize_environment(_git_sha_full: &str) -> Result<(String, String)> {
     // Read the UUID from the linux.uuid file
     let uuid = read_uuid(&script_dir).with_context(|| "Failed to read UUID")?;
 
-    // Get the kernel tree path from environment
-    let kernel_tree = std::env::var("CVEKERNELTREE")
-        .with_context(|| "CVEKERNELTREE environment variable is not set")?;
-
-    Ok((uuid, kernel_tree))
+    Ok(uuid)
 }
 
 /// Prepare dyad entries and affected files
 fn prepare_vulnerability_data(
-    repo: &Repository,
-    git_ref: &git2::Object,
     git_sha_full: &str,
     in_dyad_entries: &[DyadEntry],
-) -> Result<(Vec<DyadEntry>, Vec<String>)> {
+) -> Result<Vec<DyadEntry>> {
     // Clone dyad entries since we might need to modify them
     let mut dyad_entries = in_dyad_entries.to_vec();
-
-    // Get affected files
-    let affected_files = get_affected_files(repo, git_ref)?;
 
     // If no entries were created, use the fix commit as a fallback
     if dyad_entries.is_empty() {
@@ -88,7 +79,7 @@ fn prepare_vulnerability_data(
         }
     }
 
-    Ok((dyad_entries, affected_files))
+    Ok(dyad_entries)
 }
 
 /// Create affected products (kernel and git)
@@ -273,22 +264,18 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
         script_version,
         additional_references,
         commit_text,
+        affected_files,
     } = params;
 
     // Initialize environment and get repository information
-    let (uuid, kernel_tree) = initialize_environment(git_sha_full)?;
+    let uuid = get_uuid()?;
 
-    // Open repository and get git reference
-    let repo = Repository::open(&kernel_tree)?;
-    let git_ref = resolve_reference(&repo, git_sha_full)?;
-
-    // Prepare dyad entries and affected files
-    let (dyad_entries, affected_files) =
-        prepare_vulnerability_data(&repo, &git_ref, git_sha_full, in_dyad_entries)?;
+    // Prepare dyad entries
+    let dyad_entries = prepare_vulnerability_data(git_sha_full, in_dyad_entries)?;
 
     // Create affected products
     let (kernel_product, git_product, cpe_nodes) =
-        create_affected_products(&dyad_entries, affected_files);
+        create_affected_products(&dyad_entries, affected_files.to_vec());
 
     // Generate references
     let references = generate_references(&dyad_entries, additional_references, git_sha_full);

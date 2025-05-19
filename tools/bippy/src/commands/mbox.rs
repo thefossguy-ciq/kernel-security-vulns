@@ -2,10 +2,7 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-use cve_utils::git_utils::{get_affected_files, resolve_reference};
 use cve_utils::version_utils::compare_kernel_versions;
-use git2::Repository;
-use log::error;
 use std::fmt::Write;
 
 use crate::models::DyadEntry;
@@ -32,46 +29,8 @@ pub struct MboxParams<'a> {
     pub additional_references: &'a [String],
     /// Full commit text/description
     pub commit_text: &'a str,
-}
-
-/// Initialize environment and open repository
-fn initialize_environment(
-    from_line: &str,
-    user_name: &str,
-    user_email: &str,
-    cve_number: &str,
-    commit_subject: &str,
-) -> Result<(String, Repository), String> {
-    // Get kernel tree path from environment
-    let Ok(kernel_tree) = std::env::var("CVEKERNELTREE") else {
-        error!("CVEKERNELTREE environment variable is not set");
-        return Err(format!(
-            "{from_line}\n\
-            From: {user_name} <{user_email}>\n\
-            To: <linux-cve-announce@vger.kernel.org>\n\
-            Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>\n\
-            Subject: {cve_number}: {commit_subject}\n\
-            \n\
-            Error: CVEKERNELTREE environment variable is not set"
-        ));
-    };
-
-    // Open repository
-    if let Ok(repo) = Repository::open(&kernel_tree) {
-        Ok((kernel_tree, repo))
-    } else {
-        let e = format!("Failed to open kernel repo at {kernel_tree}");
-        error!("{e}");
-        Err(format!(
-            "{from_line}\n\
-            From: {user_name} <{user_email}>\n\
-            To: <linux-cve-announce@vger.kernel.org>\n\
-            Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>\n\
-            Subject: {cve_number}: {commit_subject}\n\
-            \n\
-            Error: Failed to open kernel repository"
-        ))
-    }
+    /// List of affected files
+    pub affected_files: &'a Vec<String>,
 }
 
 /// Parse dyad entries into vulnerability information strings
@@ -119,14 +78,6 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry]) -> Vec<String> {
     assert!(!vuln_array_mbox.is_empty(), "No vulnerable:fixed kernel versions, aborting!");
 
     vuln_array_mbox
-}
-
-/// Get affected files from the commit
-fn get_commit_affected_files(repo: &Repository, git_sha_full: &str) -> Vec<String> {
-    resolve_reference(repo, git_sha_full).map_or_else(
-        |_| Vec::new(),
-        |obj| get_affected_files(repo, &obj).unwrap_or_default(),
-    )
 }
 
 /// Collect reference URLs from dyad entries and additional references
@@ -294,35 +245,21 @@ pub fn generate_mbox(params: &MboxParams) -> String {
         script_version,
         additional_references,
         commit_text,
+        affected_files,
     } = params;
 
     // For the From line we need the script name and version
     let from_line = format!("From {script_name}-{script_version} Mon Sep 17 00:00:00 2001");
 
-    // Initialize environment and open repository
-    let (_kernel_tree, repo) = match initialize_environment(
-        &from_line,
-        user_name,
-        user_email,
-        cve_number,
-        commit_subject,
-    ) {
-        Ok(result) => result,
-        Err(error_message) => return error_message,
-    };
-
     // Parse dyad entries into vulnerability information
     let vuln_array_mbox = parse_dyad_entries(dyad_entries);
-
-    // Get affected files from the commit
-    let affected_files = get_commit_affected_files(&repo, git_sha_full);
 
     // Collect reference URLs
     let url_array = collect_reference_urls(dyad_entries, additional_references, git_sha_full);
 
     // Format sections for the mbox content
     let (vuln_section, files_section, url_section) =
-        format_mbox_sections(vuln_array_mbox, affected_files, url_array);
+        format_mbox_sections(vuln_array_mbox, affected_files.to_vec(), url_array);
 
     // Create the final mbox content
     create_mbox_content(&MboxContentParams {

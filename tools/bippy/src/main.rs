@@ -5,7 +5,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use cve_utils::git_config;
-use cve_utils::git_utils::{get_object_full_sha, resolve_reference};
+use cve_utils::git_utils::{get_object_full_sha, resolve_reference, get_affected_files};
 use git2::Repository;
 use log::{debug, error, warn};
 use std::env;
@@ -164,7 +164,7 @@ fn get_directories() -> Result<(String, PathBuf, String, String)> {
 }
 
 /// Get commit information from Git repository
-fn get_commit_info(kernel_tree: &str, git_shas: &[String]) -> Result<(String, String, String)> {
+fn get_commit_info(kernel_tree: &str, git_shas: &[String]) -> Result<(String, String, String, Vec<String>)> {
     // Open the kernel repository
     let repo = Repository::open(kernel_tree)
         .with_context(|| format!("Failed to open Git repository at {kernel_tree:?}"))?;
@@ -198,7 +198,10 @@ fn get_commit_info(kernel_tree: &str, git_shas: &[String]) -> Result<(String, St
     let git_ref = resolve_reference(&repo, &git_sha_full)?;
     let commit_text = get_commit_text(&repo, &git_ref)?;
 
-    Ok((git_sha_full, commit_subject, commit_text))
+    // Get the affected files list
+    let affected_files = get_affected_files(&repo, &git_ref)?;
+
+    Ok((git_sha_full, commit_subject, commit_text, affected_files))
 }
 
 /// Process the commit text with optional diff application
@@ -317,6 +320,7 @@ struct OutputParams<'a> {
     script_name: &'a str,
     script_version: &'a str,
     commit_text: &'a str,
+    affected_files: &'a Vec<String>,
 }
 
 /// Generate and write output files (mbox and/or JSON)
@@ -341,6 +345,7 @@ fn generate_output_files(
             script_version: params.script_version,
             additional_references,
             commit_text: params.commit_text,
+            affected_files: params.affected_files,
         };
 
         let mbox_content = generate_mbox(&mbox_params);
@@ -366,6 +371,7 @@ fn generate_output_files(
             script_version: params.script_version,
             additional_references,
             commit_text: params.commit_text,
+            affected_files: params.affected_files,
         };
 
         match generate_json(&json_params) {
@@ -402,7 +408,7 @@ fn main() -> Result<()> {
     let (kernel_tree, script_dir, script_name, script_version) = get_directories()?;
 
     // Get Git commit information
-    let (git_sha_full, commit_subject, raw_commit_text) = get_commit_info(&kernel_tree, &git_shas)?;
+    let (git_sha_full, commit_subject, raw_commit_text, affected_files) = get_commit_info(&kernel_tree, &git_shas)?;
 
     // Process commit text with optional diff application
     let commit_text = process_commit_text(&script_dir, &raw_commit_text, args.diff.as_deref());
@@ -441,6 +447,7 @@ fn main() -> Result<()> {
         script_name: &script_name,
         script_version: &script_version,
         commit_text: &commit_text,
+        affected_files: &affected_files,
     };
 
     // Generate and write output files
