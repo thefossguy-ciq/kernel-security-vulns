@@ -330,10 +330,6 @@ fn generate_output_files(
     additional_references: &[String],
 ) {
     // Generate mbox file if requested
-    // This has to be done BEFORE the json file creation because sometimes we do not have a set of
-    // valid vulnerable:fixed pairs that are not in a single release which means we should not be
-    // creating anything at all. The mbox generation catches this type of issue and will abort
-    // everything if it happens.
     if let Some(path) = mbox_path {
         // Create MboxParams from OutputParams
         let mbox_params = MboxParams {
@@ -414,6 +410,24 @@ fn main() -> Result<()> {
 
     // Run dyad and parse its output
     let dyad_entries = run_dyad_and_parse(&script_dir, &git_shas, &vulnerable_shas);
+
+    // ***POLICY***
+    // Determine if we actually have any "pairs" of commits that are in a released kernel such that
+    // we should be issuing a CVE or not.  This is a policy decision from cve.org which requires
+    // that an actual release is vulnerable in order for a CVE to be issued, it's not just the fact
+    // that we created and fixed a bug in a git range.
+    let mut is_vulnerable = false;
+    for entry in &dyad_entries {
+        // Skip entries where the vulnerability is in the same version it was fixed
+        if entry.vulnerable.version() == entry.fixed.version() {
+            continue;
+        }
+        is_vulnerable = true;
+    }
+    if !is_vulnerable {
+        error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {git_sha_full}");
+        std::process::exit(1);
+    }
 
     // Read additional references from file if specified
     let additional_references = read_additional_references(args.reference);

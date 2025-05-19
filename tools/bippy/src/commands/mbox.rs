@@ -75,7 +75,7 @@ fn initialize_environment(
 }
 
 /// Parse dyad entries into vulnerability information strings
-fn parse_dyad_entries(dyad_entries: &[DyadEntry], git_sha_full: &str) -> Vec<String> {
+fn parse_dyad_entries(dyad_entries: &[DyadEntry]) -> Vec<String> {
     let mut vuln_array_mbox = Vec::new();
 
     for entry in dyad_entries {
@@ -117,8 +117,7 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry], git_sha_full: &str) -> Vec<Str
 
     // If no vulnerabilities were found, do NOT create a CVE at all!
     if vuln_array_mbox.is_empty() {
-        error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {git_sha_full}");
-        std::process::exit(1);
+        panic!("No vulnerable:fixed kernel versions, aborting!");
     }
 
     vuln_array_mbox
@@ -318,7 +317,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
     };
 
     // Parse dyad entries into vulnerability information
-    let vuln_array_mbox = parse_dyad_entries(dyad_entries, git_sha_full);
+    let vuln_array_mbox = parse_dyad_entries(dyad_entries);
 
     // Get affected files from the commit
     let affected_files = get_commit_affected_files(&repo, git_sha_full);
@@ -392,7 +391,7 @@ mod tests {
 
         // With our updated Kernel implementation, the exact behavior may be different
         // We'll check that we get at least some entries
-        let vuln_info = parse_dyad_entries(&entries, "main_fix_id");
+        let vuln_info = parse_dyad_entries(&entries);
         assert!(!vuln_info.is_empty());
 
         // We can't check for specific content with our test kernels,
