@@ -42,3 +42,11 @@ a93ff742820f ksmbd: Prevent integer overflow in calculation of deadtime
 95f723cf141b ASoC: Intel: avs: Fix null-ptr-deref in avs_component_probe()
 ea08dfc35f83 net: dsa: mv88e6xxx: fix -ENOENT when deleting VLANs and MST is unsupported
 7afb5fb42d49 net: dsa: clean up FDB, MDB, VLAN entries on unbind
+f92bb7436802 scsi: ufs: exynos: Disable iocc if dma-coherent property isn't set
+0b4cce68efb9 riscv: module: Fix out-of-bounds relocation access
+63fdc4509bcf wifi: ath12k: Fix invalid entry fetch in ath12k_dp_mon_srng_processZZ
+39e160505198 block: integrity: Do not call set_page_dirty_lock()
+a31a4934b31f ASoC: qcom: Fix sc7280 lpass potential buffer overflow
+40f2eb9b5314 block: fix resource leak in blk_register_queue() error path
+a2d5a0072235 scsi: smartpqi: Use is_kdump_kernel() to check for kdump
+a0f0dc96de03 wifi: wl1251: fix memory leak in wl1251_tx_work
