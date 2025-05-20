@@ -39,3 +39,11 @@ fbb429ddff5c net/niu: Niu requires MSIX ENTRY_DATA fields touch before entry rea
 7d1d19a11cfb riscv: uprobes: Add missing fence.i after building the XOL buffer
 ee6a44da3c87 tty: Require CAP_SYS_ADMIN for all usages of TIOCL_SELMOUSEREPORT
 021ba7f1babd udmabuf: fix a buf size overflow issue during udmabuf creation
+c1846ed4eb52 USB: wdm: close race between wdm_open and wdm_wwan_port_stop
+66e1a887273c usb: typec: class: Invalidate USB device pointers on partner unregistration
+d9e2f070d8af pds_core: Prevent possible adminq overflow/stuck condition
+0d039eac6e59 fix a couple of races in MNT_TREE_BENEATH handling by do_move_mount()
+3ece3e8e5976 PCI/MSI: Handle the NOMASK flag correctly for all PCI/MSI backends
+bdb43af4fdb3 qibfs: fix _another_ leak
+b16510a530d1 crypto: ecdsa - Harden against integer overflows in DIV_ROUND_UP()
+b7f0ee992adf net: phy: leds: fix memory leak
