@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result, anyhow};
 use clap::Parser;
-use owo_colors::OwoColorize;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use git2::Repository;
 use regex::Regex;
 use std::fmt::Write;
@@ -81,7 +81,7 @@ impl VotingResults {
 
         // Fetch from stable remote if --no-fetch is not specified
         if !args.no_fetch {
-            println!("{}", format!("Fetching from {}", *STABLE_REMOTE).blue());
+            println!("{}", format!("Fetching from {}", *STABLE_REMOTE).if_supports_color(Stdout, |x| x.blue()));
             if let Err(e) = repo.find_remote(&STABLE_REMOTE)
                 .and_then(|mut remote| remote.fetch(&[] as &[&str], None, None)) {
                 eprintln!("Warning: Failed to fetch from stable remote: {e}");
@@ -126,13 +126,13 @@ impl VotingResults {
     }
 
     fn display_reviewer_info(&self) {
-        println!("{}", format!("Primary reviewers: {}", PRIMARY_REVIEWERS.join(" ")).blue());
-        println!("{}", format!("All reviewers found: {}", self.reviewers.join(" ")).blue());
+        println!("{}", format!("Primary reviewers: {}", PRIMARY_REVIEWERS.join(" ")).if_supports_color(Stdout, |x| x.blue()));
+        println!("{}", format!("All reviewers found: {}", self.reviewers.join(" ")).if_supports_color(Stdout, |x| x.blue()));
 
         if self.guest_reviewers.is_empty() {
-            println!("{}", "No guest reviewers found".blue());
+            println!("{}", "No guest reviewers found".if_supports_color(Stdout, |x| x.blue()));
         } else {
-            println!("{}", format!("Guest reviewers: {}", self.guest_reviewers.join(" ")).blue());
+            println!("{}", format!("Guest reviewers: {}", self.guest_reviewers.join(" ")).if_supports_color(Stdout, |x| x.blue()));
         }
     }
 
@@ -613,7 +613,7 @@ impl VotingResults {
         }
 
         // Print guest reviewer results
-        println!("\n{}", "------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------".blue());
+        println!("\n{}", "------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------".if_supports_color(Stdout, |x| x.blue()));
 
         // Print combinations with guest reviewers
         for primary in PRIMARY_REVIEWERS.iter() {
@@ -628,9 +628,9 @@ impl VotingResults {
         }
 
         // Print guest-only results
-        println!("\n{}", "Guest-only results".blue());
+        println!("\n{}", "Guest-only results".if_supports_color(Stdout, |x| x.blue()));
         for guest in &self.guest_reviewers {
-            println!("  {}:", capitalize(guest).blue());
+            println!("  {}:", capitalize(guest).if_supports_color(Stdout, |x| x.blue()));
 
             self.display_filtered_section_indented(
                 "",
@@ -641,7 +641,7 @@ impl VotingResults {
     }
 
     fn display_commit_section(&self, title: &str, commits: Option<&Vec<String>>) {
-        println!("\n{}", title.blue());
+        println!("\n{}", title.if_supports_color(Stdout, |x| x.blue()));
         if let Some(commits_vec) = commits {
             for commit in commits_vec {
                 if !commit.is_empty() {
@@ -658,7 +658,7 @@ impl VotingResults {
                 .filter(|commit| !excluded.contains(*commit))
                 .collect();
 
-            println!("\n{}", title.blue());
+            println!("\n{}", title.if_supports_color(Stdout, |x| x.blue()));
 
             for commit in filtered_commits {
                 println!("  {commit}");
@@ -675,7 +675,7 @@ impl VotingResults {
 
             if !filtered_commits.is_empty() {
                 if !title.is_empty() {
-                    println!("  {}:", title.blue());
+                    println!("  {}:", title.if_supports_color(Stdout, |x| x.blue()));
                 }
 
                 for commit in filtered_commits {
