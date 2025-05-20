@@ -1,0 +1,24 @@
+42420c50c68f s390/pci: Fix missing check for zpci_create_device() error return
+023c1f2f0609 wifi: cfg80211: fix out-of-bounds access during multi-link element defragmentation
+05a2538f2b48 s390/pci: Fix duplicate pci_dev_put() in disable_slot() when PF has child VFs
+53e3e5babc09 ksmbd: prevent rename with empty string
+0ca6df4f40cf ksmbd: prevent out-of-bounds stream writes by validating *pos
+36991c1ccde2 ksmbd: Fix UAF in __close_file_table_ids
+376947861013 sch_htb: make htb_deactivate() idempotent
+dcaeeb8ae84c can: m_can: m_can_class_allocate_dev(): initialize spin lock on device probe
+e34090d7214e ipvs: fix uninit-value for saddr in do_output_route4
+11cdb506d0fb Input: mtk-pmic-keys - fix possible null pointer dereference
+98698ca0e587 staging: bcm2835-camera: Initialise dev in v4l2_dev
+be6e843fc51a mm/huge_memory: fix dereferencing invalid pmd migration entry
+a2620f8932fa KVM: SVM: Forcibly leave SMM mode on SHUTDOWN interception
+ae08d55807c0 riscv: Fix kernel crash due to PR_SET_TAGGED_ADDR_CTRL
+159ca7f18129 iio: imu: st_lsm6dsx: fix possible lockup in st_lsm6dsx_read_fifo
+8114ef86e205 iio: imu: st_lsm6dsx: fix possible lockup in st_lsm6dsx_read_tagged_fifo
+f063a28002e3 iio: light: opt3001: fix deadlock due to concurrent flag access
+9984db637420 drm/amd/display: Fix invalid context error in dml helper
+1f0304dfd9d2 xenbus: Use kref to track req lifetime
+da8bf5daa5e5 memblock: Accept allocated memory before use in memblock_double_array()
+31d4cd4eb2f8 ocfs2: fix panic in failed foilio allocation
+364618c89d4c usb: typec: ucsi: displayport: Fix deadlock
+0dfefc2ea2f2 arm64: bpf: Add BHB mitigation to the epilogue for cBPF programs
+4d8fb075de84 x86/its: Add support for ITS-safe indirect thunk
