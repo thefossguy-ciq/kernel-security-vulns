@@ -163,3 +163,7 @@ c134deabf478 spufs: fix gang directory lifetimes
 0590c94c3596 drm/panthor: Fix race condition when gathering fdinfo group samples
 cbf937dcadfd PCI/ASPM: Fix link state exit during switch upstream function removal
 8741d0737921 ublk: make sure ubq->canceling is set when queue is frozen
+e63d465f5901 objtool, media: dib8000: Prevent divide-by-zero in dib8000_set_dds()
+47a60391ae0e rwonce: fix crash by removing READ_ONCE() for unaligned read
+ea8d7647f9dd tracing: Verify event formats that have "%*p.."
+0a7c2a843596 libbpf: Fix accessing BTF.ext core_relo header
