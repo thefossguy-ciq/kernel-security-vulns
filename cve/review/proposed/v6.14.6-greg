@@ -37,3 +37,5 @@ bbe5679f30d7 drm/nouveau: Fix WARN_ON in nouveau_fence_context_kill()
 a1356ac7749c xsk: Fix race condition in AF_XDP generic RX path
 f920436a4429 net: use sock_gen_put() when sk_state is TCP_TIME_WAIT
 2d52e2e38b85 net: lan743x: Fix memleak issue when GSO enabled
+8e089e7b585d wifi: brcm80211: fmac: Add error handling for brcmf_usb_dl_writeimage()
+de3629baf5a3 parisc: Fix double SIGFPE crash
