@@ -605,24 +605,15 @@ impl VotingResults {
         for file_path in &self.annotated_files {
             if let Ok(file) = File::open(file_path) {
                 let reader = BufReader::new(file);
-                let mut lines = reader.lines();
+                let mut lines_iter = reader.lines().peekable();
 
-                // Find the line with the SHA
-                while let Some(Ok(line)) = lines.next() {
+                // Find the line containing the SHA
+                while let Some(Ok(line)) = lines_iter.next() {
                     if line.contains(short_sha) {
-                        // If found, read and print the first annotation line
-                        if let Some(Ok(annotation)) = lines.next() {
-                            if !annotation.is_empty() {
-                                println!("  {annotation}");
-
-                                // Check for multi-line annotations (lines starting with two spaces)
-                                while let Some(Ok(continuation)) = lines.next() {
-                                    if continuation.starts_with("  ") {
-                                        println!("  {continuation}");
-                                    } else {
-                                        break;
-                                    }
-                                }
+                        // If found, check if there's a next line (the annotation)
+                        if let Some(Ok(annotation_line)) = lines_iter.next() {
+                            if !annotation_line.is_empty() {
+                                println!("  {}", annotation_line);
                             }
                         }
                         break;
