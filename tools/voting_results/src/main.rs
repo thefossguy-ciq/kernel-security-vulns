@@ -375,7 +375,54 @@ impl VotingResults {
                 let file_name = file_path.file_name().unwrap().to_string_lossy();
                 if let Some(reviewer) = file_name.split('-').next_back() {
                     let reader = BufReader::new(file);
+
+                    // Process the current commit for this file
                     for line in reader.lines().map_while(Result::ok) {
+                        // Skip empty lines
+                        if line.trim().is_empty() {
+                            continue;
+                        }
+
+                        // First try matching by SHA hash (for files that only contain SHA hashes)
+                        // Extract the first part of the line as a possible SHA
+                        if line.len() >= 12 {
+                            let possible_sha = line.trim().split_whitespace().next().unwrap_or("");
+
+                            // Try to get the current commit's full SHA from the repo
+                            let commit = match git2::Oid::from_str(possible_sha) {
+                                Ok(oid) => self.repo.find_commit(oid).ok(),
+                                Err(_) => {
+                                    // For short SHAs, we need a different approach
+                                    if possible_sha.len() >= 7 {
+                                        // Try to use lookup_prefix if available
+                                        match self.repo.revparse_single(possible_sha) {
+                                            Ok(obj) => {
+                                                if let Some(commit) = obj.as_commit() {
+                                                    self.repo.find_commit(commit.id()).ok()
+                                                } else {
+                                                    None
+                                                }
+                                            },
+                                            Err(_) => None,
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                }
+                            };
+
+                            // Check if this commit's subject matches our target subject
+                            if let Some(c) = commit {
+                                if let Some(commit_subject) = c.summary() {
+                                    if commit_subject == subject {
+                                        reviewer_votes.insert(reviewer.to_string(), true);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // If we can't match by SHA, try matching by subject (the original method)
                         // Check for subject in various formats:
                         // 1. Direct string match
                         // 2. Subject in parentheses
@@ -388,6 +435,9 @@ impl VotingResults {
                             break;
                         }
                     }
+
+                    // If we've found a match for this reviewer, we can move on to the next file
+                    // We don't break out of the outer loop because we need to check all reviewers
                 }
             }
         }
