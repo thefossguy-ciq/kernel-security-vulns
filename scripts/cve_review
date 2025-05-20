@@ -183,6 +183,7 @@ for h in ${SHAS[@]}; do
     print_blue "Processing ${TAG} fix: ${count} of ${NOSHAS} (%${percentage})"
 
     BADMATCHES="\
+attack|\
 call[-\s_\n]*trace|\
 dead[-\s_\n]*lock|lock[-\s_\n]*up|\
 nul[l]*[-\s_\n]*p[a-z]*[-\s_\n]*deref[a-z]*|nul[l]*[-\s_\n]*p[a-z]*|null|deref[a-z]*|\
