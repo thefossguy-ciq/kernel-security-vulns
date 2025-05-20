@@ -1,0 +1,24 @@
+4397684a292a virtio-net: free xsk_buffs on error in virtnet_xsk_pool_enable()
+4db6c75124d8 net: ethernet: mtk_eth_soc: reset all TX queues on DMA free
+ae08d55807c0 riscv: Fix kernel crash due to PR_SET_TAGGED_ADDR_CTRL
+e34090d7214e ipvs: fix uninit-value for saddr in do_output_route4
+be6e843fc51a mm/huge_memory: fix dereferencing invalid pmd migration entry
+9984db637420 drm/amd/display: Fix invalid context error in dml helper
+1f0304dfd9d2 xenbus: Use kref to track req lifetime
+84f5eb833f53 can: mcp251xfd: mcp251xfd_remove(): fix order of unregistration calls
+a2620f8932fa KVM: SVM: Forcibly leave SMM mode on SHUTDOWN interception
+0dfefc2ea2f2 arm64: bpf: Add BHB mitigation to the epilogue for cBPF programs
+f300769ead03 arm64: bpf: Only mitigate cBPF programs loaded by unprivileged users
+732f35cf8bdf usb: host: tegra: Prevent host controller crash when OTG port is used
+53e3e5babc09 ksmbd: prevent rename with empty string
+0ca6df4f40cf ksmbd: prevent out-of-bounds stream writes by validating *pos
+36991c1ccde2 ksmbd: Fix UAF in __close_file_table_ids
+eb4447bcce91 ksmbd: fix memory leak in parse_lease_state()
+3ca02e63edcc smb: client: Avoid race in open_cached_dir with lease breaks
+35e4079bf1a2 drm/v3d: Add job to pending list if the reset was skipped
+da8bf5daa5e5 memblock: Accept allocated memory before use in memblock_double_array()
+c43272299488 bpf: Scrub packet on bpf_redirect_peer
+05a2538f2b48 s390/pci: Fix duplicate pci_dev_put() in disable_slot() when PF has child VFs
+31d4cd4eb2f8 ocfs2: fix panic in failed foilio allocation
+376947861013 sch_htb: make htb_deactivate() idempotent
+fea4e317f9e7 x86/mm: Eliminate window where TLB flushes may be inadvertently skipped
