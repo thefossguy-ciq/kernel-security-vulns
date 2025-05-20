@@ -465,6 +465,10 @@ pub mod git_utils {
     /// - The tree cannot be retrieved for the commit or its parent
     /// - The diff between the trees cannot be generated
     /// - The diff cannot be processed
+    ///
+    /// FIXME: libgit2 diffstat is slow as all get-out, should be replaced with something like:
+    ///     git show --pretty=format: --numstat HEAD
+    /// as this is the HUGE % of time spent (at least 200ms) when running tools like `bippy`
     pub fn get_affected_files<'a>(repo: &'a Repository, obj: &Object<'a>) -> Result<Vec<String>> {
         let commit = repo
             .find_commit(obj.id())
