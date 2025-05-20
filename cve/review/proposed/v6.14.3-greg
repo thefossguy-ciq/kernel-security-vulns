@@ -63,3 +63,9 @@ bd496a44f041 i3c: Add NULL pointer check in i3c_master_queue_ibi()
 e6eff39dd0fe jbd2: remove wrong sb->s_sequence check
 7f1ff1b38a7c net: libwx: handle page_pool_dev_alloc_pages error
 f0df00ebc57f x86/cpu: Avoid running off the end of an AMD erratum table
+1f650dcec32d HID: pidff: Make sure to fetch pool before checking SIMULTANEOUS_MAX
+3e330acf4efd ASoC: codecs: wcd937x: fix a potential memory leak in wcd937x_soc_codec_probe()
+42ea22e754ba ftrace: Add cond_resched() to ftrace_graph_set_hash()
+63fdc4509bcf wifi: ath12k: Fix invalid entry fetch in ath12k_dp_mon_srng_process
+9a0dddfb30f1 wifi: ath12k: Fix invalid data access in ath12k_dp_rx_h_undecap_nwifi
+fc75ea20ffb4 net: phy: allow MDIO bus PM ops to start/stop state machine for phylink-controlled PHY
