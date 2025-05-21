@@ -712,7 +712,6 @@ impl VotingResults {
             for commit in commits_vec {
                 if !commit.is_empty() {
                     println!("  {commit}");
-                    self.print_annotations(commit);
                 }
             }
         }
