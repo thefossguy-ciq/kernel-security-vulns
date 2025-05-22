@@ -512,6 +512,16 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
 /// Print kernel pairs in the format required by bippy
 pub fn print_kernel_pairs(pairs: &[KernelPair]) {
     for e in pairs {
+        /* ***POLICY***
+         * FIXME
+         * Should we be testing for if we have a fix in an older kernel than was actually
+         * vulnerable?  If so, uncomment this if {} out for it to print it in a comment only
+         */
+        /*
+        if !e.fixed.is_empty() && (e.vulnerable > e.fixed) {
+            print!("# fix before vulnerable ");
+        }
+        */
         println!(
             "{}:{}:{}:{}",
             e.vulnerable
