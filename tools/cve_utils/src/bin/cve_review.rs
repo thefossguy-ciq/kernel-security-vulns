@@ -708,9 +708,11 @@ fn get_mainline_sha(sha: &str) -> Result<String> {
 
     // Look for "upstream: <sha>" or similar
     // Modified to match both full and partial SHAs (minimum 7 hex chars)
-    let re = Regex::new(r"(?i)upstream.*?([a-f0-9]{7,40})")?;
-    if let Some(caps) = re.captures(&log_text) {
-        return Ok(caps[1].to_string());
+   let re = Regex::new(r"^commit\s+([a-f0-9]{7,40})\s+upstream\.$")?;
+   for line in log_text.lines() {
+       if let Some(caps) = re.captures(line.trim()) {
+           return Ok(caps[1].to_string());
+       }
     }
 
     // If no upstream SHA found, return the original SHA (it may be a mainline commit)
