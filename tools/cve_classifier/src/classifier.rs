@@ -804,6 +804,22 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
             return (false, format!("LLM Error: {filtered_response}"));
         }
 
+        // First check for bold indicators in the original response (case-insensitive)
+        // Match **YES**, **NO**, or even partial bold like **YES or YES**
+        let bold_patterns = [
+            Regex::new(r"(?i)\*\*(YES|NO)\*\*").unwrap(),  // Standard **YES** or **NO**
+            Regex::new(r"(?i)\*\*(YES|NO)\b").unwrap(),    // **YES or **NO followed by word boundary
+            Regex::new(r"(?i)\b(YES|NO)\*\*").unwrap(),    // YES** or NO**
+        ];
+
+        for bold_pattern in &bold_patterns {
+            if let Some(captures) = bold_pattern.captures(&filtered_response) {
+                let decision = captures.get(1).unwrap().as_str().to_uppercase();
+                debug!("Found bold {} indicator", decision);
+                return (decision == "YES", filtered_response.to_string());
+            }
+        }
+
         // Convert to uppercase for case-insensitive pattern matching
         let upper_response = filtered_response.to_uppercase();
 
@@ -988,5 +1004,81 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
             vote_ratio: result.vote_ratio,
             provider_results: result.provider_results,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CVEClassifier;
+
+    #[test]
+    fn test_parse_bold_yes_indicator() {
+        let response = "**YES** This commit should be backported to stable kernel trees because it fixes a real bug that can lead to crashes or undefined behavior.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
+    }
+
+    #[test]
+    fn test_parse_bold_no_indicator() {
+        let response = "Based on my analysis of this commit and understanding of stable kernel rules, here is my determination: **NO** This commit should NOT be backported to stable kernel trees.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, false);
+    }
+
+    #[test]
+    fn test_parse_bold_yes_with_context() {
+        let response = "Let me analyze this commit based on the information provided: **YES** This commit should definitely be backported to stable kernel trees.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
+    }
+
+    #[test]
+    fn test_parse_bold_no_with_emphasis() {
+        let response = "**NO** This commit should **NOT** be backported to stable kernel trees.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, false);
+    }
+
+    #[test]
+    fn test_parse_plain_no_without_bold() {
+        let response = "NO This commit should not be backported to stable kernel trees.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, false);
+    }
+
+    #[test]
+    fn test_parse_partial_bold_yes() {
+        let response = "The answer is **YES, this commit needs a CVE assignment.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
+    }
+
+    #[test]
+    fn test_parse_answer_format() {
+        let response = "ANSWER: YES\n\nThis is a security fix.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
+    }
+
+    #[test]
+    fn test_parse_with_think_blocks() {
+        let response = "<think>\nSome internal reasoning\n</think>\n**YES** This is a security vulnerability.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
+    }
+
+    #[test]
+    fn test_parse_mixed_case_bold() {
+        let response = "**yes** this should be backported";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
+    }
+
+    #[test]
+    fn test_parse_no_clear_indicator() {
+        let response = "This commit appears to be a feature addition and not a bug fix.";
+        let (decision, explanation) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, false); // Should default to false
+        assert!(explanation.contains("feature addition"));
     }
 }
