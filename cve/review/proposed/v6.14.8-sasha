@@ -1,0 +1,26 @@
+fd837de3c9cb1 tracing: probes: Fix a possible race in trace_probe_log APIs
+5257d80e22bf2 iio: adc: ad7606: check for NULL before calling sw_mode_config()
+bd07f751208ba HID: uclogic: Add NULL check in uclogic_input_configured()
+c457dc1ec770a nfs: handle failure of nfs_get_lock_context in unlock path
+fa7ab64f1e2fd NFS/localio: Fix a race in nfs_local_open_fh()
+d0706bfd3ee40 RDMA/core: Fix "KASAN: slab-use-after-free Read in ib_register_device" problem
+2d3cbfd6d54a2 net_sched: Flush gso_skb list too during ->change()
+f11cf946c0a92 net: mctp: Don't access ifa_index when missing
+e4f349bd6e580 net: mctp: Ensure keys maintain only one ref to corresponding dev
+a3b7e65b6be59 drm/amd/display: Fix null check of pipe_ctx->plane_state for update_dchubp_dpp
+588431474eb75 net/mlx5e: Disable MACsec offload for uplink representor profile
+6b0cd72757c69 regulator: max20086: fix invalid memory access
+92ec4855034b2 mlxsw: spectrum_router: Fix use-after-free when deleting GRE net devices
+491deb9b8c4ad net/tls: fix kernel panic when alloc_page failed
+dd24f87f65c95 ublk: fix dead loop when canceling io command
+d9ec73301099e fs/eventpoll: fix endless busy loop after timeout has expired
+578e1b96fad74 HID: bpf: abort dispatch if device destroyed
+2468b0e3d5659 LoongArch: Prevent cond_resched() occurring within kernel-fpu
+72c7d62583ebc dma-buf: insert memory barrier before updating num_fences
+d2062cc1b1c36 x86/sev: Do not touch VMSA pages during SNP guest memory kdump
+fca280992af8c dmaengine: ti: k3-udma: Add missing locking
+46a5cca76c76c dmaengine: idxd: fix memory leak in error handling path of idxd_alloc
+a409e919ca321 dmaengine: idxd: Refactor remove call with idxd_cleanup() helper
+4480912f3f8b8 accel/ivpu: Move parts of MMU event IRQ handling to thread handler
+683e9fa1c885a accel/ivpu: Flush pending jobs of device's workqueues
+f81b33582f933 RDMA/rxe: Fix slab-use-after-free Read in rxe_queue_cleanup bug
