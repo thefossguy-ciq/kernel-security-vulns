@@ -29,13 +29,13 @@ pub struct Args {
     #[clap(short, long)]
     pub mbox: Option<PathBuf>,
 
-    /// Diff file to apply to the commit text (optional)
-    #[clap(short, long)]
-    pub diff: Option<PathBuf>,
-
     /// Reference file path
     #[clap(short, long)]
     pub reference: Option<PathBuf>,
+
+    /// Message file path (overrides commit message)
+    #[clap(short = 'M', long)]
+    pub message: Option<PathBuf>,
 
     /// User email
     #[clap(short, long)]

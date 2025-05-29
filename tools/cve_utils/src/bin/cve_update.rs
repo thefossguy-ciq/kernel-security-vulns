@@ -275,8 +275,8 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
         &cve_data.shas,
         &cve_data.vulnerable_shas,
         &cve_data.root_path,
-        cve_data.has_diff_file,
-        cve_data.has_reference_file
+        cve_data.has_reference_file,
+        cve_data.has_message_file
     )?;
 
     Ok(updated_files)
@@ -292,10 +292,10 @@ struct CveFileData {
     vulnerable_shas: Vec<String>,
     /// Path to the CVE root directory
     root_path: PathBuf,
-    /// Whether a .diff file exists
-    has_diff_file: bool,
     /// Whether a .reference file exists
     has_reference_file: bool,
+    /// Whether a .message file exists
+    has_message_file: bool,
 }
 
 /// Prepare CVE files and extract metadata
@@ -337,21 +337,21 @@ fn prepare_cve_files(sha1_file: &Path) -> Result<CveFileData> {
         }
     }
 
-    // Check for .diff file
-    let diff_file = sha1_file.with_extension("diff");
-    let has_diff_file = diff_file.exists();
-
     // Check for .reference file
     let reference_file = sha1_file.with_extension("reference");
     let has_reference_file = reference_file.exists();
+
+    // Check for .message file
+    let message_file = sha1_file.with_extension("message");
+    let has_message_file = message_file.exists();
 
     Ok(CveFileData {
         cve_id,
         shas,
         vulnerable_shas,
         root_path,
-        has_diff_file,
         has_reference_file,
+        has_message_file,
     })
 }
 
@@ -362,8 +362,8 @@ fn run_bippy_and_update_files(
     shas: &[String],
     vulnerable_shas: &[String],
     root_path: &Path,
-    has_diff_file: bool,
-    has_reference_file: bool
+    has_reference_file: bool,
+    has_message_file: bool
 ) -> Result<Vec<String>> {
     // Create temporary files for the new json and mbox content
     let tmp_json = NamedTempFile::new()
@@ -387,8 +387,8 @@ fn run_bippy_and_update_files(
         tmp_json: &tmp_json,
         tmp_mbox: &tmp_mbox,
         sha1_file,
-        has_diff_file,
         has_reference_file,
+        has_message_file,
     };
     let output = build_and_run_bippy_command(&bippy_params)?;
 
@@ -414,8 +414,8 @@ struct BippyCommandParams<'a> {
     tmp_json: &'a NamedTempFile,
     tmp_mbox: &'a NamedTempFile,
     sha1_file: &'a Path,
-    has_diff_file: bool,
     has_reference_file: bool,
+    has_message_file: bool,
 }
 
 /// Build and run the bippy command
@@ -435,16 +435,16 @@ fn build_and_run_bippy_command(params: &BippyCommandParams) -> Result<std::proce
         bippy_cmd.arg(format!("--vulnerable={sha}"));
     }
 
-    // Add diff option if present
-    if params.has_diff_file {
-        let diff_file = params.sha1_file.with_extension("diff");
-        bippy_cmd.arg(format!("--diff={}", diff_file.display()));
-    }
-
     // Add reference option if present
     if params.has_reference_file {
         let reference_file = params.sha1_file.with_extension("reference");
         bippy_cmd.arg(format!("--reference={}", reference_file.display()));
+    }
+
+    // Add message option if present
+    if params.has_message_file {
+        let message_file = params.sha1_file.with_extension("message");
+        bippy_cmd.arg(format!("--message={}", message_file.display()));
     }
 
     // Run bippy
@@ -658,19 +658,15 @@ mod tests {
                 writeln!(file, "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2").unwrap();
             }
 
-            // Create a .diff file
+            // Create a .message file
             if *cve_id == "CVE-2023-0179" {
-                let diff_file = year_dir.join(format!("{}.diff", cve_id));
-                let mut file = File::create(&diff_file).unwrap();
-                writeln!(file, "diff --git a/file.c b/file.c").unwrap();
-                writeln!(file, "--- a/file.c").unwrap();
-                writeln!(file, "+++ b/file.c").unwrap();
-                writeln!(file, "@@ -10,7 +10,7 @@").unwrap();
-                writeln!(file, " context line").unwrap();
-                writeln!(file, "-removed line").unwrap();
-                writeln!(file, "+added line").unwrap();
-                writeln!(file, " context line").unwrap();
+                let message_file = year_dir.join(format!("{}.message", cve_id));
+                let mut file = File::create(&message_file).unwrap();
+                writeln!(file, "This is a custom CVE description from a .message file.").unwrap();
+                writeln!(file, "").unwrap();
+                writeln!(file, "It overrides the commit message for better clarity.").unwrap();
             }
+
 
             // Create a .reference file
             if *cve_id == "CVE-2022-0185" {
@@ -702,7 +698,7 @@ mod tests {
         // Test additional file types
         assert!(cve_root.join("published").join("2021").join("CVE-2021-33909.vulnerable").exists());
         assert!(cve_root.join("published").join("2022").join("CVE-2022-0847.vulnerable").exists());
-        assert!(cve_root.join("published").join("2023").join("CVE-2023-0179.diff").exists());
+        assert!(cve_root.join("published").join("2023").join("CVE-2023-0179.message").exists());
         assert!(cve_root.join("published").join("2022").join("CVE-2022-0185.reference").exists());
     }
 
@@ -848,10 +844,11 @@ mod tests {
         let mut file = File::create(&vulnerable_file).unwrap();
         writeln!(file, "{}", vulnerable_sha).unwrap();
 
-        // Create diff file
-        let diff_file = year_dir.join(format!("{}.diff", cve_id));
-        let mut file = File::create(&diff_file).unwrap();
-        writeln!(file, "diff --git a/file.c b/file.c").unwrap();
+        // Create message file
+        let message_file = year_dir.join(format!("{}.message", cve_id));
+        let mut file = File::create(&message_file).unwrap();
+        writeln!(file, "Custom CVE description for testing bippy command construction.").unwrap();
+        writeln!(file, "This message overrides the git commit message.").unwrap();
 
         // Create reference file
         let reference_file = year_dir.join(format!("{}.reference", cve_id));
@@ -861,7 +858,7 @@ mod tests {
         // Verify files exist
         assert!(sha1_file.exists());
         assert!(vulnerable_file.exists());
-        assert!(diff_file.exists());
+        assert!(message_file.exists());
         assert!(reference_file.exists());
 
         // Read the vulnerable SHA
@@ -870,7 +867,7 @@ mod tests {
 
         // Check if our implementation correctly detects these files
         assert!(vulnerable_file.exists());
-        assert!(diff_file.exists());
+        assert!(message_file.exists());
         assert!(reference_file.exists());
 
         // Simulate command-building logic
@@ -885,10 +882,6 @@ mod tests {
             cmd_args.push(format!("--vulnerable={}", vulnerable_sha_read));
         }
 
-        if diff_file.exists() {
-            cmd_args.push(format!("--diff={}", diff_file.display()));
-        }
-
         if reference_file.exists() {
             cmd_args.push(format!("--reference={}", reference_file.display()));
         }
@@ -899,7 +892,6 @@ mod tests {
         assert!(cmd_args.iter().any(|arg| arg.starts_with("--json=")));
         assert!(cmd_args.iter().any(|arg| arg.starts_with("--mbox=")));
         assert!(cmd_args.iter().any(|arg| arg.starts_with("--vulnerable=")));
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--diff=")));
         assert!(cmd_args.iter().any(|arg| arg.starts_with("--reference=")));
     }
 }

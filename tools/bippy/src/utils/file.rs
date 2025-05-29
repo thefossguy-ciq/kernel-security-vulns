@@ -33,3 +33,58 @@ pub fn read_uuid(script_dir: &Path) -> Result<String> {
 
     Ok(uuid.to_string())
 }
+
+/// Read a .message file if it exists
+pub fn read_message_file(file_path: &Path) -> Result<Option<String>> {
+    if file_path.exists() {
+        let content = std::fs::read_to_string(file_path)
+            .with_context(|| format!("Failed to read message file at {}", file_path.display()))?;
+        Ok(Some(content))
+    } else {
+        Ok(None)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_read_message_file_exists() {
+        // Create a temporary directory and file
+        let temp_dir = TempDir::new().unwrap();
+        let message_path = temp_dir.path().join("test.message");
+
+        let test_content = "This is a test message file content\nWith multiple lines";
+        fs::write(&message_path, test_content).unwrap();
+
+        // Test reading the file
+        let result = read_message_file(&message_path).unwrap();
+        assert_eq!(result, Some(test_content.to_string()));
+    }
+
+    #[test]
+    fn test_read_message_file_not_exists() {
+        // Test with a non-existent file
+        let temp_dir = TempDir::new().unwrap();
+        let message_path = temp_dir.path().join("nonexistent.message");
+
+        let result = read_message_file(&message_path).unwrap();
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_read_message_file_empty() {
+        // Create an empty file
+        let temp_dir = TempDir::new().unwrap();
+        let message_path = temp_dir.path().join("empty.message");
+
+        fs::write(&message_path, "").unwrap();
+
+        // Test reading empty file
+        let result = read_message_file(&message_path).unwrap();
+        assert_eq!(result, Some("".to_string()));
+    }
+}

@@ -18,8 +18,8 @@ mod utils;
 use commands::{generate_json, generate_mbox, json::CveRecordParams, mbox::MboxParams};
 use models::{Args, DyadEntry};
 use utils::{
-    apply_diff_to_text, get_commit_subject, get_commit_text, read_tags_file, run_dyad,
-    strip_commit_text,
+    get_commit_subject, get_commit_text, read_message_file, read_tags_file,
+    run_dyad, strip_commit_text,
 };
 
 /// Initialize and configure the logging system
@@ -128,7 +128,6 @@ fn validate_args_and_env(args: &Args) -> ArgsResult {
     debug!("GIT_SHAS={git_shas:?}");
     debug!("JSON_FILE={:?}", args.json);
     debug!("MBOX_FILE={:?}", args.mbox);
-    debug!("DIFF_FILE={:?}", args.diff);
     debug!("REFERENCE_FILE={:?}", args.reference);
     debug!("GIT_VULNERABLE={vulnerable_shas:?}");
 
@@ -204,29 +203,29 @@ fn get_commit_info(kernel_tree: &str, git_shas: &[String]) -> Result<(String, St
     Ok((git_sha_full, commit_subject, commit_text, affected_files))
 }
 
-/// Process the commit text with optional diff application
-fn process_commit_text(script_dir: &Path, commit_text: &str, diff_path: Option<&Path>) -> String {
-    // Read the tags file to strip from commit message
-    let tags = read_tags_file(script_dir).unwrap_or_default();
-
-    // Strip tags from commit text
-    let mut processed_text = strip_commit_text(commit_text, &tags);
-
-    // Apply diff file to the commit text if provided
-    if let Some(path) = diff_path {
-        match apply_diff_to_text(&processed_text, path) {
-            Ok(modified_text) => {
-                debug!("Applied diff from {} to the commit text", path.display());
-                // The apply_diff_to_text function handles newline preservation
-                processed_text = modified_text;
+/// Process the commit text
+fn process_commit_text(script_dir: &Path, commit_text: &str, message_file: Option<&Path>) -> String {
+    // Check if a message file was explicitly provided
+    if let Some(message_path) = message_file {
+        if let Ok(Some(message_content)) = read_message_file(message_path) {
+            let trimmed_content = message_content.trim();
+            // Check if message file has actual content after trimming
+            if !trimmed_content.is_empty() {
+                debug!("Using content from .message file: {}", message_path.display());
+                // When using a .message file, use its content as the complete description
+                return format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{}", trimmed_content);
+            } else {
+                error!("Warning: Message file {} is empty or contains only whitespace, falling back to commit message", message_path.display());
             }
-            Err(err) => {
-                error!("Warning: Failed to apply diff to commit text: {err}");
-            }
+        } else {
+            error!("Warning: Could not read message file: {}", message_path.display());
         }
     }
 
-    processed_text
+    // Read the tags file to strip from commit message
+    let tags = read_tags_file(script_dir).unwrap_or_default();
+    // Strip tags from commit text normally
+    strip_commit_text(commit_text, &tags)
 }
 
 /// Run dyad and parse its output into `DyadEntry` objects
@@ -410,8 +409,8 @@ fn main() -> Result<()> {
     // Get Git commit information
     let (git_sha_full, commit_subject, raw_commit_text, affected_files) = get_commit_info(&kernel_tree, &git_shas)?;
 
-    // Process commit text with optional diff application
-    let commit_text = process_commit_text(&script_dir, &raw_commit_text, args.diff.as_deref());
+    // Process commit text
+    let commit_text = process_commit_text(&script_dir, &raw_commit_text, args.message.as_deref());
 
     // Run dyad and parse its output
     let dyad_entries = run_dyad_and_parse(&script_dir, &git_shas, &vulnerable_shas);
@@ -569,6 +568,47 @@ mod tests {
         let expected_multi = "In the Linux kernel, the following vulnerability has been resolved:\n\nSubject: Complex fix\n\nParagraph 1 with details.\n\nParagraph 2 with more details.\n";
         let result = strip_commit_text(multi_para_commit, &tags);
         assert_eq!(result, expected_multi);
+    }
+
+    #[test]
+    fn test_message_file_functionality() {
+        use std::fs;
+        use tempfile::TempDir;
+
+        // Create a temporary directory for testing
+        let temp_dir = TempDir::new().unwrap();
+        let script_dir = temp_dir.path();
+
+        // Create a test .message file
+        let test_sha = "abc123def456";
+        let message_file_path = script_dir.join(format!("{}.message", test_sha));
+        let custom_message = "This is a custom CVE description from a .message file\n\nIt should be used instead of the git commit message.";
+        fs::write(&message_file_path, custom_message).unwrap();
+
+        // Test that read_message_file finds and reads the file
+        let result = read_message_file(&message_file_path).unwrap();
+        assert_eq!(result, Some(custom_message.to_string()));
+
+        // Test process_commit_text with message file
+        let commit_text = "Original commit message that should be ignored";
+        let processed = process_commit_text(script_dir, commit_text, Some(&message_file_path));
+        assert!(processed.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));
+        assert!(processed.contains("This is a custom CVE description"));
+        assert!(!processed.contains("Original commit message"));
+
+        // Test process_commit_text without message file
+        let tags = vec!["Signed-off-by".to_string()];
+        fs::write(script_dir.join("tags"), "Signed-off-by\n").unwrap();
+        let processed_no_message = process_commit_text(script_dir, commit_text, None);
+        assert!(processed_no_message.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));
+        assert!(processed_no_message.contains("Original commit message"));
+
+        // Test empty message file - should fall back to commit message
+        let empty_message_path = script_dir.join("empty.message");
+        fs::write(&empty_message_path, "   \n\n   \n").unwrap();
+        let processed_empty = process_commit_text(script_dir, commit_text, Some(&empty_message_path));
+        assert!(processed_empty.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));
+        assert!(processed_empty.contains("Original commit message"));
     }
 
     #[test]
