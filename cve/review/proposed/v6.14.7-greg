@@ -22,3 +22,10 @@ c43272299488 bpf: Scrub packet on bpf_redirect_peer
 31d4cd4eb2f8 ocfs2: fix panic in failed foilio allocation
 376947861013 sch_htb: make htb_deactivate() idempotent
 fea4e317f9e7 x86/mm: Eliminate window where TLB flushes may be inadvertently skipped
+312d79669e71 usb: typec: ucsi: displayport: Fix NULL pointer access
+a6aeb739974e module: ensure that kobject_put() is safe for module type kobjects
+157dbc4a321f KVM: arm64: Fix uninitialized memcache pointer in user_mem_abort()
+8478a729c046 netfilter: ipset: fix region locking in hash types
+6beb6835c1fb openvswitch: Fix unsafe attribute parsing in output_userspace()
+bbfe756dc306 fs/erofs/fileio: call erofs_onlinefolio_split() after bio_add_folio()
+dcaeeb8ae84c can: m_can: m_can_class_allocate_dev(): initialize spin lock on device probe
