@@ -538,19 +538,13 @@ fn get_commit_subsystem(kernel_tree: &Path, sha1_file: &Path) -> Result<Option<(
     };
 
     // Resolve the commit to a git object
-    let obj = match resolve_reference(&repo, &sha1) {
-        Ok(obj) => obj,
-        Err(_) => {
-            return Ok(None);
-        }
+    let Ok(obj) = resolve_reference(&repo, &sha1) else {
+        return Ok(None);
     };
 
     // Get affected files using the cve_utils module - more efficient than doing diff traversal manually
-    let affected_files = match git_utils::get_affected_files(&repo, &obj) {
-        Ok(files) => files,
-        Err(_) => {
-            return Ok(None);
-        }
+    let Ok(affected_files) = git_utils::get_affected_files(&repo, &obj) else {
+        return Ok(None);
     };
 
     // Get the first file (if any)

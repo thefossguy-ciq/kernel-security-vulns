@@ -422,7 +422,7 @@ impl VotingResults {
                         // First try matching by SHA hash (for files that only contain SHA hashes)
                         // Extract the first part of the line as a possible SHA
                         if line.len() >= 12 {
-                            let possible_sha = line.trim().split_whitespace().next().unwrap_or("");
+                            let possible_sha = line.split_whitespace().next().unwrap_or("");
 
                             // Try to get the current commit's full SHA from the repo
                             let commit = match git2::Oid::from_str(possible_sha) {
@@ -613,7 +613,7 @@ impl VotingResults {
                         // If found, check if there's a next line (the annotation)
                         if let Some(Ok(annotation_line)) = lines_iter.next() {
                             if !annotation_line.is_empty() {
-                                println!("  {}", annotation_line);
+                                println!("  {annotation_line}");
                             }
                         }
                         break;
@@ -642,10 +642,10 @@ impl VotingResults {
         }
 
         // Print CVE results
-        self.display_commit_section("Already assigned a CVE", self.commits_by_pattern.get("cve"));
+        Self::display_commit_section("Already assigned a CVE", self.commits_by_pattern.get("cve"));
 
         // Print results where everyone agrees
-        self.display_commit_section("Everyone agrees", self.commits_by_pattern.get("all"));
+        Self::display_commit_section("Everyone agrees", self.commits_by_pattern.get("all"));
 
         // Print primary reviewer combinations
         for (i, r1) in PRIMARY_REVIEWERS.iter().enumerate() {
@@ -706,7 +706,7 @@ impl VotingResults {
         }
     }
 
-    fn display_commit_section(&self, title: &str, commits: Option<&Vec<String>>) {
+    fn display_commit_section(title: &str, commits: Option<&Vec<String>>) {
         println!("\n{}", title.if_supports_color(Stdout, |x| x.blue()));
         if let Some(commits_vec) = commits {
             for commit in commits_vec {

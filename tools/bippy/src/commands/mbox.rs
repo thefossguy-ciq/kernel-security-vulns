@@ -259,7 +259,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
 
     // Format sections for the mbox content
     let (vuln_section, files_section, url_section) =
-        format_mbox_sections(vuln_array_mbox, affected_files.to_vec(), url_array);
+        format_mbox_sections(vuln_array_mbox, (*affected_files).clone(), url_array);
 
     // Create the final mbox content
     create_mbox_content(&MboxContentParams {

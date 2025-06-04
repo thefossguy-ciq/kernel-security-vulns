@@ -815,7 +815,7 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
         for bold_pattern in &bold_patterns {
             if let Some(captures) = bold_pattern.captures(&filtered_response) {
                 let decision = captures.get(1).unwrap().as_str().to_uppercase();
-                debug!("Found bold {} indicator", decision);
+                debug!("Found bold {decision} indicator");
                 return (decision == "YES", filtered_response.to_string());
             }
         }

@@ -67,7 +67,7 @@ fn get_uuid() -> Result<String> {
 fn prepare_vulnerability_data(
     git_sha_full: &str,
     in_dyad_entries: &[DyadEntry],
-) -> Result<Vec<DyadEntry>> {
+) -> Vec<DyadEntry> {
     // Clone dyad entries since we might need to modify them
     let mut dyad_entries = in_dyad_entries.to_vec();
 
@@ -79,7 +79,7 @@ fn prepare_vulnerability_data(
         }
     }
 
-    Ok(dyad_entries)
+    dyad_entries
 }
 
 /// Create affected products (kernel and git)
@@ -271,11 +271,11 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
     let uuid = get_uuid()?;
 
     // Prepare dyad entries
-    let dyad_entries = prepare_vulnerability_data(git_sha_full, in_dyad_entries)?;
+    let dyad_entries = prepare_vulnerability_data(git_sha_full, in_dyad_entries);
 
     // Create affected products
     let (kernel_product, git_product, cpe_nodes) =
-        create_affected_products(&dyad_entries, affected_files.to_vec());
+        create_affected_products(&dyad_entries, (*affected_files).clone());
 
     // Generate references
     let references = generate_references(&dyad_entries, additional_references, git_sha_full);
