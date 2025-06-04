@@ -1,0 +1,36 @@
+690d722e0281 drivers/platform/x86/amd: pmf: Check for invalid sideloaded Smart PC Policies
+5257d80e22bf iio: adc: ad7606: check for NULL before calling sw_mode_config()
+f81b33582f93 RDMA/rxe: Fix slab-use-after-free Read in rxe_queue_cleanup bug
+09d546303b37 HID: thrustmaster: fix memory leak in thrustmaster_interrupts()
+c457dc1ec770 nfs: handle failure of nfs_get_lock_context in unlock path
+d0706bfd3ee4 RDMA/core: Fix "KASAN: slab-use-after-free Read in ib_register_device" problem
+2d3cbfd6d54a net_sched: Flush gso_skb list too during ->change()
+c92d6089d8ad net: cadence: macb: Fix a possible deadlock in macb_halt_tx.
+3d8932133dce nvme-pci: acquire cq_poll_lock in nvme_poll_irqdisable
+a3b7e65b6be5 drm/amd/display: Fix null check of pipe_ctx->plane_state for update_dchubp_dpp
+588431474eb7 net/mlx5e: Disable MACsec offload for uplink representor profile
+9d8a99c5a7c7 qlcnic: fix memory leak in qlcnic_sriov_channel_cfg_cmd()
+6b0cd72757c6 regulator: max20086: fix invalid memory access
+92ec4855034b mlxsw: spectrum_router: Fix use-after-free when deleting GRE net devices
+491deb9b8c4a net/tls: fix kernel panic when alloc_page failed
+dd24f87f65c9 ublk: fix dead loop when canceling io command
+d9ec73301099 fs/eventpoll: fix endless busy loop after timeout has expired
+578e1b96fad7 HID: bpf: abort dispatch if device destroyed
+2468b0e3d565 LoongArch: Prevent cond_resched() occurring within kernel-fpu
+a0fd1c609863 btrfs: fix folio leak in submit_one_async_extent()
+a0fa7873f2f8 drm/amdgpu: csa unmap use uninterruptible lock
+72c7d62583eb dma-buf: insert memory barrier before updating num_fences
+d2062cc1b1c3 x86/sev: Do not touch VMSA pages during SNP guest memory kdump
+b47158fb4295 phy: tegra: xusb: Use a bitmask for UTMI pad power state tracking
+1fe4a44b7fa3 smb: client: fix memory leak during error handling for POSIX mkdir
+78ab4be54953 wifi: mt76: disable napi on driver removal
+fca280992af8 dmaengine: ti: k3-udma: Add missing locking
+3fd2f4bc010c dmaengine: idxd: fix memory leak in error handling path of idxd_setup_wqs
+817bced19d1d dmaengine: idxd: fix memory leak in error handling path of idxd_setup_engines
+aa6f4f945b10 dmaengine: idxd: fix memory leak in error handling path of idxd_setup_groups
+d5449ff1b04d dmaengine: idxd: Add missing idxd cleanup to fix memory leak in remove call
+46a5cca76c76 dmaengine: idxd: fix memory leak in error handling path of idxd_alloc
+90022b3a6981 dmaengine: idxd: fix memory leak in error handling path of idxd_pci_probe
+a409e919ca32 dmaengine: idxd: Refactor remove call with idxd_cleanup() helper
+fefc07518227 mm/page_alloc: fix race condition in unaccepted memory handling
+83c178470e0b phy: tegra: xusb: remove a stray unlock

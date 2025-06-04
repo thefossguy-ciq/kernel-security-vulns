@@ -1,0 +1,36 @@
+650266ac4c72 dm: add missing unlock on in dm_keyslot_evict()
+0713a1b3276b can: mcan: m_can_class_unregister(): fix order of unregistration calls
+42420c50c68f s390/pci: Fix missing check for zpci_create_device() error return
+023c1f2f0609 wifi: cfg80211: fix out-of-bounds access during multi-link element defragmentation
+05a2538f2b48 s390/pci: Fix duplicate pci_dev_put() in disable_slot() when PF has child VFs
+84f5eb833f53 can: mcp251xfd: mcp251xfd_remove(): fix order of unregistration calls
+037ada7a3181 can: rockchip_canfd: rkcanfd_remove(): fix order of unregistration calls
+53e3e5babc09 ksmbd: prevent rename with empty string
+0ca6df4f40cf ksmbd: prevent out-of-bounds stream writes by validating *pos
+36991c1ccde2 ksmbd: Fix UAF in __close_file_table_ids
+eb4447bcce91 ksmbd: fix memory leak in parse_lease_state()
+376947861013 sch_htb: make htb_deactivate() idempotent
+1e20324b23f0 virtio-net: don't re-enable refill work too early when NAPI is disabled
+4397684a292a virtio-net: free xsk_buffs on error in virtnet_xsk_pool_enable()
+11cdb506d0fb Input: mtk-pmic-keys - fix possible null pointer dereference
+98698ca0e587 staging: bcm2835-camera: Initialise dev in v4l2_dev
+fea4e317f9e7 x86/mm: Eliminate window where TLB flushes may be inadvertently skipped
+be6e843fc51a mm/huge_memory: fix dereferencing invalid pmd migration entry
+a2620f8932fa KVM: SVM: Forcibly leave SMM mode on SHUTDOWN interception
+ae08d55807c0 riscv: Fix kernel crash due to PR_SET_TAGGED_ADDR_CTRL
+159ca7f18129 iio: imu: st_lsm6dsx: fix possible lockup in st_lsm6dsx_read_fifo
+8114ef86e205 iio: imu: st_lsm6dsx: fix possible lockup in st_lsm6dsx_read_tagged_fifo
+f063a28002e3 iio: light: opt3001: fix deadlock due to concurrent flag access
+35e4079bf1a2 drm/v3d: Add job to pending list if the reset was skipped
+9984db637420 drm/amd/display: Fix invalid context error in dml helper
+3ca02e63edcc smb: client: Avoid race in open_cached_dir with lease breaks
+1f0304dfd9d2 xenbus: Use kref to track req lifetime
+da8bf5daa5e5 memblock: Accept allocated memory before use in memblock_double_array()
+a6aeb739974e module: ensure that kobject_put() is safe for module type kobjects
+31d4cd4eb2f8 ocfs2: fix panic in failed foilio allocation
+fcaf3b2683b0 ocfs2: stop quota recovery before disabling quotas
+364618c89d4c usb: typec: ucsi: displayport: Fix deadlock
+312d79669e71 usb: typec: ucsi: displayport: Fix NULL pointer access
+f5c84eff634b loop: Add sanity check for read/write_iter
+0dfefc2ea2f2 arm64: bpf: Add BHB mitigation to the epilogue for cBPF programs
+f300769ead03 arm64: bpf: Only mitigate cBPF programs loaded by unprivileged users
