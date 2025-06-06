@@ -614,6 +614,15 @@ impl VotingResults {
                         if let Some(Ok(annotation_line)) = lines_iter.next() {
                             if !annotation_line.is_empty() {
                                 println!("  {annotation_line}");
+                                
+                                // Check for multi-line annotations (lines starting with two spaces)
+                                while let Some(Ok(continuation)) = lines_iter.next() {
+                                    if continuation.starts_with("  ") {
+                                        println!("  {continuation}");
+                                    } else {
+                                        break;
+                                    }
+                                }
                             }
                         }
                         break;
