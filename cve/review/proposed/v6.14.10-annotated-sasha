@@ -1,0 +1,1134 @@
+29e4e6b4235fe platform/x86: thinkpad_acpi: Ignore battery threshold change event notification
+- [sasha] Based on my analysis of the commit and the kernel source code, here's my assessment:
+  **NO**
+  This commit should NOT be assigned a CVE. Here's why:
+  1. **No Security Vulnerability**: The commit only adds proper handling for a benign ACPI event (0x6013) that indicates when a user changes the battery charge threshold. This is purely informational and has no security implications.
+  2. **Code Changes Analysis**: 
+     - Adds enum `TP_HKEY_EV_ALARM_BAT_LIM_CHANGE = 0x6013` for the new event
+     - Adds a case statement that logs `pr_debug("Battery Info: battery charge threshold changed\n")` and returns `true`
+     - The fix prevents "spurious kernel logs" by properly handling an event that was previously unrecognized
+  3. **No Access Control or Memory Issues**: The change doesn't involve:
+     - Buffer overflows or memory management issues
+     - Access control changes  
+     - Input validation problems
+     - Race conditions
+     - Privilege escalation
+  4. **Similar to Other Non-CVE Commits**: This follows the same pattern as the provided examples (Similar Commits 1-5) which were all marked "CVE Status: NO" - they handle device-specific events, notifications, and hardware quirks without security implications.
+  5. **Purpose**: The commit simply silences harmless but noisy log messages when users adjust their battery charging thresholds - this is a quality-of-life improvement, not a security fix.
+  The commit addresses a logging/notification issue rather than fixing any vulnerability that could be exploited by an attacker.
+10379171f346e ksmbd: use list_first_entry_or_null for opinfo_get_list()
+- [sasha] **YES**
+  This commit should be assigned a CVE. The fix addresses a critical vulnerability where `list_first_entry()` was being used incorrectly on a potentially empty list, which could return an invalid pointer leading to memory corruption.
+  **Key security implications:**
+  1. **Memory corruption vulnerability**: The original code used `list_first_entry()` which returns an invalid pointer (not NULL) when the list is empty, then dereferenced this invalid pointer in subsequent operations.
+  2. **Identical pattern to CVE-assigned commits**: This fix is nearly identical to Similar Commits 1 and 2, which were both assigned CVE status for the same `list_first_entry()` vs `list_first_entry_or_null()` issue.
+  3. **Critical subsystem affected**: The vulnerability is in ksmbd (kernel SMB server), which handles network file sharing operations - a security-sensitive component that processes external network requests.
+  4. **Potential for exploitation**: An attacker could potentially trigger the empty list condition through crafted SMB requests, leading to kernel memory corruption and possible privilege escalation or denial of service.
+  The commit message explicitly states "If the list is empty then it returns an invalid pointer" and the code change shows the vulnerable pattern being fixed by replacing `list_first_entry()` with `list_first_entry_or_null()` and removing the now-redundant `list_empty()` check.
+50980d8da71a0 net: ethernet: ti: am65-cpsw: Lower random mac address error print to info
+- [sasha] Perfect! This confirms the pattern. Now let me analyze this commit:
+  **Analysis:**
+  ## CVE Status: NO
+  **Explanation:**
+  This commit only changes the logging level from `dev_err()` to `dev_info()` for a message that occurs when the driver falls back to using a random MAC address. The code analysis shows:
+  1. **No functional change**: The commit only changes `dev_err(dev, "Use random MAC address\n");` to `dev_info(dev, "Use random MAC address\n");` on line 2688 of the file.
+  2. **No security implications**: 
+     - No buffer overflows, memory leaks, or access control changes
+     - No input validation changes
+     - No race conditions fixed
+     - No privilege escalation issues addressed
+  3. **Cosmetic logging fix**: The change aligns the logging level with the actual severity of the situation. Using a random MAC address is not an error condition - it's a normal fallback behavior when no valid MAC address is available from hardware or device tree.
+  4. **Consistent with other drivers**: The commit message explicitly mentions this change aligns with other drivers like ax88796c and dm9051. My analysis of ax88796c confirms it uses `dev_info()` for the same scenario.
+  5. **No security vulnerability being fixed**: This is purely a cosmetic change to improve logging consistency and reduce unnecessary error-level messages in system logs.
+  This type of commit - changing log levels without any functional code changes - does not introduce or fix security vulnerabilities and therefore does not warrant a CVE assignment.
+5ad8a4ddc4504 ALSA: hda/realtek - restore auto-mute mode for Dell Chrome platform
+- [sasha] Based on my analysis, I can now provide a security assessment of this commit.
+  **NO**
+  This commit should **NOT** be assigned a CVE. Here's my analysis:
+  1. **Nature of the change**: This commit only modifies audio hardware behavior for a specific Dell Chrome platform (subsystem ID 0x10280d76). It changes whether auto-mute functionality is suppressed or enabled for this particular device.
+  2. **No security implications**: The change affects audio functionality only:
+     - Auto-mute is a feature that automatically mutes speakers when headphones are plugged in
+     - The commit restores auto-mute mode to address an EMI (Electromagnetic Interference) issue by properly shutting down the Class-D amplifier
+     - This is purely a hardware compatibility/functionality fix
+  3. **Limited scope**: The change only affects one specific Dell Chrome platform model, identified by subsystem ID 0x10280d76. For all other devices using the `alc256_fixup_chromebook` function, behavior remains unchanged.
+  4. **Comparison to similar commits**: All the provided similar commits (CVE Status: NO) are also audio-related fixes that add device-specific quirks or fix hardware compatibility issues without any security implications.
+  5. **No security-relevant patterns**: The commit does not involve:
+     - Buffer overflows or memory corruption
+     - Access control changes
+     - Input validation
+     - Privilege escalation
+     - Race conditions
+     - Or any other security-relevant patterns
+  This is a straightforward hardware compatibility fix for a specific audio issue on a Dell Chrome platform, with no security implications whatsoever.
+a7e255ff9fe4d platform/x86: fujitsu-laptop: Support Lifebook S2110 hotkeys
+- [sasha] Based on my analysis of the commit and the code context, here is my assessment:
+  **NO**
+  This commit should **NOT** be assigned a CVE because:
+  1. **Feature addition, not vulnerability fix**: The commit adds support for additional hotkeys on the Fujitsu Lifebook S2110, specifically media control keys (play/pause, previous/next song, stop, etc.). This is a hardware support enhancement, not a security fix.
+  2. **No security-sensitive code changes**: The changes only:
+     - Add new scancode definitions (KEY5_CODE through KEY8_CODE) for hardware scancodes 0x414-0x417
+     - Add a new keymap (keymap_s2110) that maps these scancodes to standard Linux input key codes
+     - Add DMI matching for the S2110 model to use the new keymap
+     - Update documentation comments
+  3. **Uses existing secure infrastructure**: The code uses the standard Linux sparse keymap framework (`sparse_keymap_setup`, `sparse_keymap_report_event`) which has built-in bounds checking and validation. The scancode filtering in `acpi_fujitsu_laptop_notify()` at line 1055 ensures only valid, registered scancodes are processed.
+  4. **No privilege escalation or data exposure**: The new key mappings are for standard media control functions that don't involve privileged operations or sensitive data access.
+  5. **Consistent with similar commits**: Comparing to the provided examples, this follows the same pattern as other hardware support additions (like the ThinkPad and Ideapad commits) that were marked "CVE Status: NO".
+  The commit simply extends hardware compatibility without introducing any new attack vectors or security weaknesses.
+b1f704107cf27 drm/xe/xe2hpg: Add Wa_22021007897
+- [sasha] **NO**
+  This commit should not be assigned a CVE. Here's my analysis:
+  1. **Hardware Workaround Pattern**: The commit follows the exact same pattern as all the similar commits (marked "CVE Status: NO") - it's implementing a hardware workaround (Wa_22021007897) for the Xe2_HPG graphics IP.
+  2. **Code Changes Analysis**: 
+     - Adds a new register bit definition: `SBE_PUSH_CONSTANT_BEHIND_FIX_ENABLE` in `xe_gt_regs.h`
+     - Implements the workaround by setting this bit in the `COMMON_SLICE_CHICKEN4` register for graphics version 2001 (Xe2_HPG)
+     - The workaround is described as "permanent" and applies to "all steppings"
+  3. **Security Assessment**: 
+     - This is enabling a hardware fix (`_FIX_ENABLE` suffix suggests it's correcting hardware behavior)
+     - No indication of fixing a security vulnerability - it's a performance/correctness optimization
+     - The change is purely additive (enabling a hardware fix) rather than fixing a software bug
+     - No memory management, access control, or other security-sensitive operations are involved
+  4. **Context Comparison**: All 5 similar commits were hardware workarounds for the same GPU family and none received CVEs. This commit follows the identical pattern of adding hardware workarounds for GPU functionality.
+  The commit represents a standard hardware workaround implementation for GPU functionality optimization, not a security vulnerability fix.
+32d495b384a2d char: tpm: tpm-buf: Add sanity check fallback in read helpers
+- [sasha] Now let me analyze the commit more thoroughly by understanding what happens in boundary error conditions.
+  **NO**
+  This commit should NOT be assigned a CVE. Here's my analysis:
+  1. **Nature of the fix**: This is a defensive programming fix that initializes local variables to prevent undefined behavior when boundary checks fail. The code changes only affect the initialization of local `value` variables (`u8 value = 0`, `u16 value = 0`, `u32 value = 0`).
+  2. **Existing boundary protection**: The code already has robust boundary checking in the `tpm_buf_read()` function:
+     - It checks for existing boundary errors and returns early if found
+     - It validates that `next_offset > buf->length` and sets `TPM_BUF_BOUNDARY_ERROR` flag
+     - It issues a `WARN(1, "tpm_buf: read out of boundary")` for boundary violations
+     - It returns early without modifying the output buffer on boundary errors
+  3. **Impact analysis**: When a boundary error occurs:
+     - The existing code already prevents out-of-bounds memory access
+     - The `memcpy()` is never executed on boundary violations
+     - The local `value` variable remains uninitialized (the original issue)
+     - With this fix, the function returns 0 instead of uninitialized memory
+  4. **Security implications**: 
+     - This is NOT a memory safety vulnerability - the boundary checks already prevent buffer overflows
+     - This is NOT an information disclosure vulnerability - it's fixing potential disclosure of stack contents by ensuring functions return 0 instead of uninitialized values
+     - The fix improves code quality but doesn't address an exploitable security flaw
+  5. **Comparison to similar commits**: This is most similar to the "NO CVE" commits that fix static analysis warnings and improve defensive programming without addressing actual security vulnerabilities.
+  The commit fixes a code quality issue identified by static analysis (Smatch) but doesn't address an exploitable security vulnerability, as the boundary checking already prevents actual security issues.
+e765bf89f42b5 nvme-pci: add NVME_QUIRK_NO_DEEPEST_PS quirk for SOLIDIGM P44 Pro
+- [sasha] **NO**
+  This commit should not be assigned a CVE. The analysis shows:
+  1. **Hardware Compatibility Fix**: The commit adds a quirk (`NVME_QUIRK_NO_DEEPEST_PS`) for the SOLIDIGM P44 Pro SSD to prevent it from entering the deepest power state, which was causing the device to become unresponsive.
+  2. **No Security Vulnerability**: The code change is purely adding a device-specific workaround in the quirks table at `/home/sasha/linux/drivers/nvme/host/pci.c:3742-3743`. It doesn't fix any security-related issue but rather a hardware compatibility problem.
+  3. **Similar Pattern**: All the provided similar commits with "CVE Status: NO" show the same pattern - adding quirks for specific NVMe devices to handle power management issues, sleep problems, or other hardware-specific behaviors. None of these were assigned CVEs because they address compatibility issues, not security vulnerabilities.
+  4. **Power Management Context**: The quirk prevents transitions to the deepest power state (state 5) as shown in the core code at `drivers/nvme/host/core.c:2731-2733`. This is a power management optimization to prevent device hangs, not a security fix.
+  The commit message clearly states this is to fix an unresponsive disk issue, and the code change is a simple addition to a device quirks table - typical of hardware compatibility fixes rather than security patches.
+ce15563e49fb0 drm/xe: Save the gt pointer in lrc and drop the tile
+- [sasha] Based on my analysis of the commit and the security assessment, here is my determination:
+  **NO**
+  This commit should **NOT** be assigned a CVE.
+  **Explanation:**
+  This is a straightforward refactoring commit that changes internal data structure organization without introducing security vulnerabilities. Here's why:
+  1. **Nature of Changes**: The commit simply replaces a `tile` pointer with a `gt` pointer in the `xe_lrc` structure and uses `gt_to_tile(lrc->gt)` where the tile is needed. This is a typical architectural refactoring to improve code organization.
+  2. **Functional Equivalence**: The change maintains identical functionality - it just accesses the tile through the gt pointer instead of storing it directly. The `gt_to_tile()` function provides the same tile access as before.
+  3. **No Security Impact**: 
+     - No buffer overflows, memory leaks, or memory corruption issues
+     - No access control changes or privilege escalation
+     - No input validation bypass or race condition introduction
+     - No sensitive information exposure
+  4. **Comparison to Similar Commits**: Looking at the reference commits provided:
+     - Similar Commit 1 & 2: Simple cleanups and bounds check fixes (NO CVE)
+     - Similar Commit 3: Added explicit NULL check for memory allocation (YES CVE) 
+     - Similar Commit 4 & 5: Bounds check corrections (NO CVE)
+  5. **Code Pattern Analysis**: This follows the same pattern as the "NO CVE" examples - it's an internal structural improvement without security implications, similar to the register field definitions cleanup in Similar Commit 1.
+  The commit is purely organizational/architectural and doesn't introduce any of the security-relevant patterns that would warrant CVE assignment (buffer overflows, access control issues, memory safety violations, etc.).
+f9475055b11c0 phy: phy-rockchip-samsung-hdptx: Fix PHY PLL output 50.25MHz error
+- [sasha] Now I have a clear understanding of this commit. Let me analyze the security implications:
+  **Analysis:**
+  This commit fixes a HDMI/eDP PHY driver issue where:
+  1. **What it fixes**: When the PHY PLL needs to output 50.25MHz, the automatically calculated frequency division coefficients (via `rk_hdptx_phy_clk_pll_calc()`) fail to achieve PHY LANE lock, even though the calculated values are within the allowable range.
+  2. **What the fix does**: It adds a manually computed, working configuration entry for 502500 (50.25MHz) to the `ropll_tmds_cfg` table to bypass the problematic automatic calculation.
+  3. **Component affected**: This is a Samsung HDMI/eDP Transmitter Combo PHY driver for Rockchip SoCs.
+  **Security Assessment:**
+  - **No memory safety issues**: The fix only adds a static configuration entry to a lookup table - no buffer overflows, memory corruption, or bounds issues.
+  - **No privilege escalation**: This is purely a hardware configuration fix for display output.
+  - **No access control bypass**: The failure doesn't bypass any security mechanisms.
+  - **No data corruption or disclosure**: PHY LANE lock failure results in non-functional display output, not data security issues.
+  - **No DoS concerns**: While PHY lock failure could prevent display functionality, this is a reliability/functionality issue, not a security vulnerability.
+  **NO**
+  This commit fixes a hardware configuration issue in a display PHY driver where certain frequency calculations prevented proper PHY lane synchronization. The fix adds a static configuration entry to resolve display functionality problems. This is a hardware compatibility/reliability fix, not a security vulnerability, as it only affects display output functionality without any security implications like memory corruption, privilege escalation, or access control bypass.
+dcd21b609d4ab NFS: Avoid flushing data while holding directory locks in nfs_rename()
+- [sasha] **NO**
+  Based on my analysis of the commit message and code changes, this should not be assigned a CVE. Here's why:
+  1. **Performance optimization, not security fix**: The commit message explicitly states this is an optimization to avoid unnecessary write flushing when it's "clearly not needed." The change allows the client to skip data flushing based on server capabilities (`subtree_check` flag), which is a performance improvement.
+  2. **Code changes support optimization intent**: 
+     - The key change in `nfs_rename()` adds a conditional check `nfs_rename_is_unsafe_cross_dir()` before calling `nfs_sync_inode()`
+     - The new function checks server `fh_expire_type` flags to determine if flushing is actually necessary
+     - This allows skipping unnecessary syncs when the server doesn't require them
+  3. **No security vulnerability being fixed**: 
+     - There's no indication this fixes a deadlock, race condition, or other security issue
+     - The commit doesn't mention any security concerns or problematic behavior
+     - The changes are about avoiding unnecessary work, not fixing dangerous behavior
+  4. **Similar commits context**: Looking at the provided similar commits, those marked "CVE Status: NO" are also optimizations and cleanups, while the one marked "CVE Status: YES" fixed an actual deadlock vulnerability with clear security implications.
+  This is a legitimate performance optimization that makes NFS rename operations more efficient by avoiding unnecessary data flushing when server capabilities indicate it's not required. It does not fix a security vulnerability.
+3f097adb9b6c8 phy: starfive: jh7110-usb: Fix USB 2.0 host occasional detection failure
+- [sasha] Based on my analysis of this commit and comparison with the similar commits provided as reference, here's my assessment:
+  **NO**
+  This commit should **NOT** be assigned a CVE for the following reasons:
+  1. **Hardware reliability issue, not security vulnerability**: The commit fixes an occasional device detection failure in USB 2.0 host mode on the JH7110 SoC. This is a hardware reliability/functionality issue where USB devices sometimes fail to be detected, not a security vulnerability.
+  2. **No security implications**: The fix involves setting a clock gating control signal to normal power consumption mode (`USB_CLK_MODE_RX_NORMAL_PWR`) to improve device detection reliability. There are no security-related code changes such as:
+     - Buffer overflow fixes
+     - Access control modifications  
+     - Input validation improvements
+     - Memory leak fixes
+     - Privilege escalation fixes
+  3. **Consistent with similar commits**: All the provided reference commits (Similar Commit 1-5) are marked as "CVE Status: NO" and involve similar types of USB PHY fixes - clock management, power mode settings, and hardware configuration adjustments. None of these were deemed security issues requiring CVEs.
+  4. **Pure hardware configuration**: The change only modifies a hardware register setting (`phy->regs + USB_CLK_MODE_OFF`) to enable normal power mode for the RX clock, which is a standard hardware configuration adjustment to improve reliability.
+  5. **No mention of security concerns**: Neither the commit message nor the code changes indicate any security implications - the commit explicitly states it's fixing "occasional detection failure" which is a functional issue.
+  This is a typical hardware reliability fix for a specific SoC platform, similar to the other USB PHY commits that were not assigned CVEs.
+8695f060a0295 nvme: all namespaces in a subsystem must adhere to a common atomic write size
+- [sasha] Based on my comprehensive security analysis, here is my assessment:
+  **YES**
+  This commit should be assigned a CVE because it fixes a critical security vulnerability related to inconsistent atomic write size validation in NVMe subsystems.
+  **Key Security Issues Fixed:**
+  1. **Buffer Overflow Vulnerability (CWE-119)**: The code previously allowed namespaces with different atomic write sizes within the same subsystem. Applications allocating buffers based on one namespace's atomic write size could experience buffer overflows when operations from another namespace exceeded those boundaries.
+  2. **Data Integrity Violations**: Inconsistent atomic write sizes could violate transactional guarantees that applications depend on for crash consistency, particularly affecting databases and filesystems.
+  3. **Memory Corruption Potential**: Kernel code assuming consistent atomic write sizes across a subsystem could perform incorrect memory calculations, potentially leading to memory corruption.
+  **Critical Code Changes:**
+  - **Line 2223**: Adds validation `if (lim.atomic_write_hw_max > ns->ctrl->subsys->atomic_bs)` that rejects namespaces with inconsistent atomic write sizes
+  - **Lines 2067-2076**: Enforces subsystem-level consistency by rejecting namespaces that don't match the established `atomic_bs`
+  - **Structure reorganization**: Moves `awupf` from subsystem to controller level and adds `atomic_bs` tracking at subsystem level
+  **Security Impact:**
+  - **CVSS Score**: Approximately 7.8 (High)
+  - **Attack Vector**: Local access to NVMe devices
+  - **Impact**: High (data corruption, potential privilege escalation, system crashes)
+  The commit introduces strict validation to prevent mixed atomic write sizes within NVMe subsystems, addressing serious security vulnerabilities that could be exploited to cause buffer overflows, data corruption, and system instability.
+a21675ee3b1ba nvme: multipath: enable BLK_FEAT_ATOMIC_WRITES for multipathing
+- [sasha] Now let me analyze this commit based on what I understand:
+  **CVE Analysis:**
+  **NO**
+  This commit does not represent a security vulnerability that should be assigned a CVE. Here's my analysis:
+  1. **Nature of the Change**: The commit adds `BLK_FEAT_ATOMIC_WRITES` to the list of features enabled for NVMe multipath disks. This is a feature addition, not a security fix.
+  2. **Root Cause**: The commit message clearly explains this is a functional regression caused by a QEMU change where atomic write attributes were being zeroed out in sysfs for multipath configurations because the atomic write feature wasn't being inherited by the multipath disk node.
+  3. **Code Analysis**: The change in `drivers/nvme/host/multipath.c:641-642` simply adds `BLK_FEAT_ATOMIC_WRITES` to the existing feature flags:
+     ```c
+     lim.features |= BLK_FEAT_IO_STAT | BLK_FEAT_NOWAIT |
+         BLK_FEAT_POLL | BLK_FEAT_ATOMIC_WRITES;
+     ```
+  4. **Security Implications**: This change:
+     - Does not fix memory corruption, buffer overflows, access control issues, or other typical security vulnerabilities
+     - Does not address privilege escalation, information disclosure, or denial of service issues
+     - Simply ensures that atomic write capabilities are properly exposed through the block layer for multipath devices
+  5. **Similar Commits Reference**: All the similar commits provided (CVE Status: NO) are also feature/functionality fixes rather than security vulnerabilities, which aligns with this commit's nature.
+  6. **Impact**: The issue would manifest as missing atomic write functionality for multipath NVMe devices, which is a feature regression rather than a security problem.
+  This is a straightforward feature inheritance fix for proper block device capability exposure, not a security vulnerability requiring CVE assignment.
+fb98bd0a13de2 spi: spi-sun4i: fix early activation
+- [sasha] Based on my analysis of the commit message, code changes, and detailed security assessment, here is my determination:
+  **NO**
+  While this commit addresses a timing issue that could theoretically have security implications in very specific scenarios involving SPI-connected security devices, it does not meet the threshold for CVE assignment for the following reasons:
+  1. **No demonstrated security impact**: The commit message and code changes describe a functional correctness issue - preventing "confusing the receiving device" due to unexpected clock transitions, not a security vulnerability.
+  2. **Similar pattern to reference commits**: All 5 similar commits provided as examples were marked "CVE Status: NO" and dealt with similar SPI timing/ordering issues (microchip-core CS deferral, stm32 enable/CS ordering, etc.) without being assigned CVEs.
+  3. **Functional fix, not security fix**: The code changes move `SUN4I_CTL_ENABLE` to be set after configuration bits to prevent clock state transitions that could confuse devices - this is a protocol compliance fix, not a security vulnerability fix.
+  4. **No privilege escalation or data exposure**: The issue does not lead to unauthorized access, privilege escalation, information disclosure, or denial of service that would typically warrant a CVE.
+  5. **Limited attack surface**: Any potential security impact would require physical access and very specific timing attacks against SPI-connected security devices, which falls more into the category of physical hardware attacks rather than software vulnerabilities.
+  The fix ensures proper SPI protocol compliance and timing, which is important for system stability and device compatibility, but does not address a software security vulnerability that warrants CVE assignment.
+7118be7c6072f gpio: virtuser: fix potential out-of-bound write
+- [sasha] Now I have enough information to analyze this security issue. Based on my analysis:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Buffer Overflow Vulnerability**: The commit fixes a classic buffer overflow vulnerability where user input could exceed the allocated buffer size. In `gpio_virtuser_direction_do_write()`, a 32-byte buffer was allocated but `simple_write_to_buffer()` was called with `sizeof(buf)` allowing up to 32 bytes to be written, but then `buf[ret] = '\0'` could write beyond the buffer if the full 32 bytes were used.
+  2. **Out-of-Bounds Write**: The second function `gpio_virtuser_consumer_write()` had a similar issue where `buf[strlen(buf) - 1] = '\0'` could access memory beyond the buffer boundaries if the buffer wasn't properly null-terminated.
+  3. **Security Impact**: While this is a debugfs interface (typically requiring root access), it still represents a kernel memory corruption vulnerability that could potentially be exploited for privilege escalation or to crash the system.
+  4. **Pattern Match**: This closely matches the pattern of Similar Commits 1, 2, 4, and 5 which were all assigned CVEs for similar out-of-bounds write vulnerabilities in kernel code.
+  5. **Kernel Memory Safety**: Any buffer overflow in kernel space is a serious security concern as it can lead to arbitrary code execution, memory corruption, or system crashes.
+  The fix properly addresses the vulnerability by:
+  - Adding bounds checking before calling `simple_write_to_buffer()`
+  - Ensuring proper null termination within buffer bounds
+  - Preventing potential out-of-bounds writes
+  This matches the established pattern of CVE-worthy commits that fix buffer overflow vulnerabilities in the Linux kernel.
+3c1a467372e0c drm/amd/display: fix link_set_dpms_off multi-display MST corner case
+- [sasha] Based on my analysis of both the commit message and code changes, along with examination of the kernel tree context:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  This commit fixes a **use-after-free vulnerability** in kernel space. The vulnerable code had a serious flaw where:
+  1. **The bug:** In `link_set_all_streams_dpms_off_for_link()`, the function loops through multiple streams, calling `dc_commit_updates_for_stream()` for each one. However, this function call "releases the current state and swaps to a new state", which causes "stream pointers in the pipe_ctx structs to be zero'd" (as stated in the code comments).
+  2. **Use-after-free condition:** On subsequent loop iterations, the code was accessing `pipes[i]->stream` which now pointed to freed/cleared memory.
+  3. **Security implications:** 
+     - This occurs in kernel driver code with elevated privileges
+     - Use-after-free vulnerabilities can lead to memory corruption and potentially arbitrary code execution
+     - At minimum, this could cause kernel crashes/denial of service
+  4. **Attack vector:** While requiring MST display configuration and specific timing ("unplugging/replugging too quickly"), this could potentially be triggered by malicious software controlling display connections.
+  The fix properly addresses this by caching the stream pointers before any `dc_commit_updates_for_stream()` calls that could invalidate them.
+  This vulnerability is highly similar to "Similar Commit 4" which was assigned a CVE, as both involve memory management issues in display driver code that could lead to memory corruption in kernel space.
+9520a2b3f0b5e kbuild: Require pahole <v1.28 or >v1.29 with GENDWARFKSYMS on X86
+- [sasha] This appears to be a different commit analysis. Let me examine the current commit more carefully by analyzing what it does.
+  ## Analysis of the Commit: "kbuild: Require pahole <v1.28 or >v1.29 with GENDWARFKSYMS on X86"
+  Based on my analysis of the commit message and code changes, here's my assessment:
+  **NO**
+  This commit should **NOT** be assigned a CVE for the following reasons:
+  ### 1. **Build System Compatibility Fix, Not Security Vulnerability**
+  The commit adds a dependency constraint to prevent build failures with incompatible versions of the `pahole` tool. This is a build system compatibility issue, not a security vulnerability.
+  ### 2. **Prevents Build Errors, Not Runtime Exploits**
+  The issue described causes:
+  - Boot-time errors ("Invalid offset" error in `btf_datasec_check_meta()`)
+  - Module loading failures with error code -22
+  - Build system incompatibilities
+  These are **availability/functionality issues**, not security vulnerabilities that could be exploited.
+  ### 3. **Code Analysis Shows Preventive Measures**
+  The only code change is in `kernel/module/Kconfig` adding a dependency constraint:
+  ```kconfig
+  depends on !X86 || !DEBUG_INFO_BTF || PAHOLE_VERSION < 128 || PAHOLE_VERSION > 129
+  ```
+  This prevents the problematic configuration from being selected, rather than fixing an exploitable vulnerability.
+  ### 4. **Similar Pattern to Reference Commits**
+  This follows the same pattern as the provided "NO CVE" examples:
+  - Similar Commit 2: Rust BTF compatibility issue (NO CVE)
+  - Similar Commit 3: Build tool compatibility fix (NO CVE) 
+  - Similar Commit 5: BTF generation compatibility (NO CVE)
+  ### 5. **No Security Boundary Crossed**
+  The issue affects:
+  - Kernel build process
+  - Boot-time BTF validation
+  - Module loading mechanism
+  But does not provide any mechanism for privilege escalation, information disclosure, or bypassing security controls.
+  ### 6. **Root Cause is Tool Version Incompatibility**
+  The problem stems from changes in pahole tool behavior between versions v1.28-v1.29, not from a security flaw in kernel code itself.
+  **Conclusion**: This is a build system compatibility fix that prevents functional failures, not a security vulnerability fix that would warrant CVE assignment.
+4236e600bf902 nvmet: pci-epf: cleanup nvmet_pci_epf_raise_irq()
+- [sasha] Based on my analysis of the commit and the detailed examination of the nvmet pci-epf driver code, this commit should **NOT** be assigned a CVE.
+  **NO**
+  **Explanation:**
+  This commit is purely a cleanup/optimization with no security implications:
+  1. **No vulnerability fix**: The changes only move an existing check (`NVMET_PCI_EPF_Q_IRQ_ENABLED`) from inside `nvmet_pci_epf_should_raise_irq()` to the beginning of `nvmet_pci_epf_raise_irq()` to avoid unnecessary lock acquisition when IRQs are disabled.
+  2. **Identical security properties**: The same validation logic is preserved, just reordered for efficiency. All locking mechanisms and race condition protections remain intact.
+  3. **Performance optimization only**: The change prevents taking the `irq_lock` mutex when it's not needed, reducing lock contention without changing functionality.
+  4. **Rate limiting improvement**: The switch from `dev_err()` to `dev_err_ratelimited()` actually *improves* DoS protection by preventing log flooding under error conditions.
+  This aligns with the pattern of similar commits marked as "CVE Status: NO" - it's a code cleanup that improves efficiency without fixing any security vulnerability. The commit message explicitly describes it as "cleanup" and focuses on avoiding unnecessary work, not fixing any security issue.
+a032f29a15412 platform/x86: thinkpad_acpi: Support also NEC Lavie X1475JAS
+- [sasha] Based on my analysis of the commit and the kernel tree, here is my assessment:
+  **NO**
+  This commit should **NOT** be assigned a CVE for the following reasons:
+  1. **No Security Vulnerability Fixed**: This commit is purely adding hardware support for a new device (NEC Lavie X1475JAS) by extending vendor detection. It does not fix any existing security vulnerability.
+  2. **Simple Hardware Compatibility Addition**: The change only adds `else if (dmi_name_in_vendors("NEC"))` to treat NEC-branded devices the same as Lenovo devices when they are actually ThinkPads internally (as confirmed by the commit message showing identical ACPI/BIOS signatures).
+  3. **No Change in Security Posture**: The commit does not modify any security-sensitive code paths, access controls, memory management, input validation, or privilege handling. It simply extends the list of recognized vendor names.
+  4. **Consistent with Driver Safety**: The thinkpad_acpi driver has a safety check (`/* It would be dangerous to run the driver in this case */`) that ensures it only runs on verified IBM/Lenovo hardware. This commit maintains that safety by treating verified NEC devices (which are actually Lenovo ThinkPads internally) the same way.
+  5. **Similar Historical Commits**: Looking at the provided historical commits, all are simple feature additions, hardware support extensions, or minor fixes - none have CVE assignments, which is consistent with this type of change.
+  6. **No Exploitation Potential**: There is no way this change could introduce or fix a security vulnerability that could be exploited to gain unauthorized access, cause denial of service, or compromise system integrity.
+  This is a straightforward hardware compatibility addition that enables ThinkPad ACPI features on NEC-branded hardware that is actually Lenovo ThinkPad hardware internally.
+6b9785dc8b13d nfs: don't share pNFS DS connections between net namespaces
+- [sasha] Now I have a clear understanding of the issue and the fix. Let me analyze this:
+  **Analysis:**
+  This commit addresses a **namespace isolation vulnerability** in the NFS pNFS (parallel NFS) data server connection sharing mechanism. Here's what the issue was:
+  1. **The Problem**: Different NFS clients in different network namespaces (containers) were sharing the same data server (DS) connections. The `_data_server_lookup_locked()` function only compared IP addresses (`_same_data_server_addrs_locked()`) but ignored network namespaces when looking up existing DS connections.
+  2. **Security Impact**: This allowed cross-namespace resource sharing, which violates container isolation:
+     - A containerized NFS client could find and use DS connections created by another container
+     - When the first container exits, it would close the shared connection, causing stalls in other containers
+     - This breaks the fundamental security boundary between network namespaces/containers
+  3. **The Fix**: The commit adds:
+     - A `ds_net` field to `struct nfs4_pnfs_ds` to track the network namespace
+     - Namespace comparison in `_data_server_lookup_locked()` by changing the comparison from just addresses to `ds->ds_net == net && _same_data_server_addrs_locked(...)`
+     - Proper namespace assignment when creating new DS connections
+  **CVE Assessment:**
+  This is a **container escape/isolation bypass vulnerability**. While it doesn't provide direct privilege escalation, it breaks the security boundary between network namespaces, which is a fundamental security feature for containerization.
+  However, comparing to the similar commits provided (all marked "CVE Status: NO"), this appears to be more of an architectural/design issue rather than a traditional security vulnerability that would warrant a CVE. The similar commits deal with namespace isolation improvements but weren't assigned CVEs.
+  **NO**
+  This commit fixes a namespace isolation issue rather than a traditional security vulnerability. While it improves container security by preventing cross-namespace resource sharing, it's an architectural improvement similar to the provided examples that were not assigned CVEs. The issue doesn't provide direct privilege escalation or memory corruption, but rather fixes improper resource sharing between network namespaces.
+f32e8c8095490 HID: amd_sfh: Avoid clearing reports for SRA sensor
+- [sasha] Wait, I see I'm looking at the wrong file. Let me analyze the actual commit about the HID amd_sfh driver:
+  **Analysis of the HID amd_sfh commit:**
+  Looking at the commit message and code changes:
+  1. **What the commit does**: 
+     - Adds a check to skip memory deallocation for SRA sensor reports during cleanup
+     - The SRA sensor doesn't allocate memory for reports, so attempting to free that memory is incorrect
+  2. **Code changes analysis**:
+     - Adds `SRA_IDX` case to deinit function to mark sensor as not present
+     - Adds a check `if (cl_data->sensor_idx[i] == SRA_IDX) continue;` to skip deallocation for SRA sensor
+     - This prevents calling `devm_kfree()` on unallocated memory
+  3. **Security implications**:
+     - The original code was calling `devm_kfree()` on memory that was never allocated for SRA sensors
+     - This could potentially cause:
+       - Double-free vulnerabilities if the memory was somehow allocated elsewhere
+       - Memory corruption if the uninitialized pointer contained a valid-looking address
+       - System crashes from attempting to free invalid memory
+  4. **Comparing to similar commits**:
+     - Similar Commit 2 (CVE Status: YES) was a memory leak fix in the same driver
+     - Similar Commits 1, 3, 4, 5 (CVE Status: NO) were cleanup/refactoring changes without security implications
+  5. **Risk assessment**:
+     - This fixes improper memory management that could lead to crashes or memory corruption
+     - However, the impact is limited to cleanup paths and specific sensor configurations
+     - The bug would likely cause crashes rather than exploitable conditions
+  **NO**
+  This commit fixes a memory management bug where `devm_kfree()` was being called on unallocated memory for SRA sensors. While this could cause system instability or crashes, it's primarily a robustness fix rather than a security vulnerability. The code change adds a simple check to skip deallocation for SRA sensors that don't allocate report memory, preventing potential crashes during cleanup but not addressing an exploitable security flaw.
+ab09da75700e9 um: let 'make clean' properly clean underlying SUBARCH as well
+- [sasha] **NO**
+  This is a build system cleanup fix, not a security vulnerability. The commit adds proper cleaning of SUBARCH artifacts to prevent stale in-tree files from being reused in out-of-tree builds. While this improves build reproducibility and prevents configuration inconsistencies, it has no security implications - it's purely a build system integrity issue that affects developers only, not runtime security boundaries or exploit potential.
+97994333de2b8 dmaengine: idxd: cdev: Fix uninitialized use of sva in idxd_cdev_open
+- [sasha] Based on my analysis of the code changes and similar commits, here is my assessment:
+  **NO**
+  This commit should **NOT** be assigned a CVE for the following reasons:
+  1. **Code Quality Fix, Not Security Issue**: This is purely a static analysis fix for an uninitialized variable warning from Smatch. The actual security implications are minimal.
+  2. **Error Path Only**: The uninitialized `sva` variable is only potentially used in error handling paths when `iommu_sva_bind_device()` fails. In such cases, the function is already failing and returning an error code.
+  3. **Similar Pattern**: This follows the exact same pattern as Similar Commit 2 and Similar Commit 4 (both marked CVE Status: NO), which also fixed uninitialized variable warnings from static analysis tools without addressing actual security vulnerabilities.
+  4. **No Actual Exploit Path**: The uninitialized pointer would only be passed to `iommu_sva_unbind_device()` in an error condition where the bind operation already failed. The IOMMU subsystem should handle invalid pointers gracefully.
+  5. **Code Quality vs Security**: The fix (initializing `sva = NULL` and adding `IS_ERR_OR_NULL()` check) is defensive programming to satisfy static analysis tools, not addressing a real security vulnerability.
+  The changes prevent potential undefined behavior in error paths but don't fix an exploitable security vulnerability that would warrant CVE assignment. This is consistent with how similar static analysis fixes have been categorized.
+b5325b2a270fc coredump: hand a pidfd to the usermode coredump helper
+- [sasha] Now let me analyze the coredump commit carefully based on the code changes and security implications.
+  ## Analysis
+  **CVE Decision: NO**
+  ## Detailed Analysis
+  ### Commit Purpose
+  This commit adds functionality to hand a pidfd (process file descriptor) to usermode coredump helpers. The key changes include:
+  1. **New `%F` format specifier**: When processing corename patterns, `%F` expands to file descriptor number 3
+  2. **pidfd installation**: Creates a pidfd for the thread-group leader and installs it as fd 3 in the usermode helper process
+  3. **Infrastructure changes**: Adds `pid` field to `coredump_params` and includes pidfs headers
+  ### Security Assessment
+  #### ✅ **No Security Vulnerabilities Introduced**
+  1. **Limited Scope**: The feature only activates when:
+     - A usermode helper is spawned (ispipe = true)
+     - The corename pattern contains `%F`
+     - This is an opt-in feature requiring specific configuration
+  2. **Proper Access Control**: 
+     - Only creates pidfd for the thread-group leader of the *coredumping* process
+     - Uses established pidfs_alloc_file() API with proper error handling
+     - No privilege escalation - helper gets access to pidfd of process that's already coredumping
+  3. **Safe File Descriptor Management**:
+     - Uses fixed fd number (3) which is safe since usermode helpers start with clean fd tables
+     - Proper error handling with early return on failure
+     - No fd leakage issues
+  4. **Thread Safety**:
+     - Leverages existing locking in coredump path
+     - Uses task_tgid(current) which is safe in coredump context
+     - No new race conditions introduced
+  #### ✅ **Follows Security Best Practices**
+  1. **Input Validation**: Checks `cp->pid` before attempting pidfd creation
+  2. **Error Handling**: Proper cleanup using `__free(fput)` pattern
+  3. **Minimal Attack Surface**: Feature is disabled by default (requires `%F` in core pattern)
+  4. **Principle of Least Privilege**: Helper only gets pidfd, not broader access
+  #### ✅ **Improves System Reliability**
+  The commit message indicates this makes "coredump handling a lot more reliable for userspace" by giving userspace tools a stable way to identify the coredumping process, which is actually a security improvement.
+  ### Comparison with Similar Commits
+  Looking at the provided examples, commits that received "CVE Status: NO" were typically:
+  - Cleanup/refactoring changes (xe devcoredump)
+  - Functional improvements without security implications (pidfd creation parameter validation)
+  - Reverts of security-related changes (pidfd kthread restrictions)
+  This commit falls into the same category - it's a functional enhancement that adds a new capability without introducing vulnerabilities.
+  ### Why This Does NOT Need a CVE
+  1. **No Fix for Existing Vulnerability**: This is a new feature, not a security fix
+  2. **No Attack Vector Created**: The pidfd provides read-only access to process information that userspace already has access to during coredump handling
+  3. **Opt-in Feature**: Requires administrator configuration to enable
+  4. **Proper Security Controls**: Uses established kernel APIs with appropriate validation
+  **NO** - This commit adds a new feature to improve coredump handling reliability without introducing security vulnerabilities. It follows proper security practices and does not fix an existing security issue.
+fa9fdeea1b7d6 HID: quirks: Add ADATA XPG alpha wireless mouse support
+- [sasha] Based on my analysis of the commit and the kernel source code, let me provide my determination:
+  **NO**
+  This commit should **NOT** be assigned a CVE because:
+  1. **Nature of the change**: This commit adds `HID_QUIRK_ALWAYS_POLL` quirk for a specific ADATA XPG wireless gaming mouse. This is purely a device compatibility fix, not a security vulnerability fix.
+  2. **What HID_QUIRK_ALWAYS_POLL does**: From examining the kernel source, this quirk forces continuous polling of the HID device rather than relying on interrupt-driven input. It's a workaround for devices that don't properly generate input events through normal HID mechanisms.
+  3. **No security implications**: The code changes only:
+     - Add new USB device IDs to `hid-ids.h` 
+     - Add quirk entries to the device compatibility table in `hid-quirks.c`
+     - No memory management, access control, or security-sensitive functionality is modified
+  4. **Pattern consistency**: This matches all the similar commits marked as "CVE Status: NO" in the examples provided - they all add device IDs or quirks for new hardware support without any security implications.
+  5. **Commit message analysis**: The commit message clearly states this is for device functionality ("does not generate input events properly"), not a security fix. There are no mentions of vulnerabilities, exploits, or security concerns.
+  This is a routine hardware support addition that enables proper functionality of a specific gaming mouse model, similar to all the provided reference commits that were correctly marked as not requiring CVEs.
+da33e87bd2bfc iommu: Handle yet another race around registration
+- [sasha] ## NO
+  This commit should **not** be assigned a CVE for the following reasons:
+  1. **Focus on correctness, not security**: The commit message emphasizes fixing "out-of-order group allocation behaviour" rather than describing any exploitable security vulnerability or system crash.
+  2. **Similar to non-CVE precedent**: This is very similar to "Similar Commit 1" (also an IOMMU race fix using deferral mechanisms) which was marked NO CVE. Both address race conditions in IOMMU initialization through synchronization rather than fixing exploitable vulnerabilities.
+  3. **No described security impact**: Unlike "Similar Commits 2&3" which describe clear null pointer dereferences leading to crashes, this commit doesn't mention any actual security breach, crash scenario, or exploitable condition.
+  4. **Code changes show robustness fix**: The changes add a `ready` flag (`drivers/iommu/iommu.c:283`) and deferral logic (`iommu_fwspec_init()`) to ensure proper initialization ordering, which are typical of correctness fixes rather than security patches.
+  5. **Warning-level issue**: The commit mentions they're "now warning about" the out-of-order behavior, suggesting it's a detectable correctness issue rather than a silent security vulnerability.
+  While IOMMU components are security-critical and the underlying issue could theoretically affect device isolation, the specific race condition being fixed here appears to be about initialization ordering rather than creating an exploitable security vulnerability.
+8c138a189f6db perf/arm-cmn: Add CMN S3 ACPI binding
+- [sasha] **NO**
+  This commit should not be assigned a CVE. The analysis shows:
+  1. **Nature of the change**: This is purely an ACPI device ID binding addition. The commit only adds a single line `{ "ARMHC003" },` to the `arm_cmn_acpi_match` array in `drivers/perf/arm-cmn.c:2654`.
+  2. **Purpose**: The commit message explicitly states this is to support ACPI systems using the proper Hardware ID (HID) after the ACPI binding for CMN S3 was finalized in v1.2 of DEN0093 "ACPI for Arm Components". This is completing previously missing functionality, not fixing a security vulnerability.
+  3. **Security implications**: Adding an ACPI device ID binding has no security implications. It simply allows the existing CMN S3 driver support (already added in commit 0dc2f4963f7e) to be properly matched on ACPI-based systems. The underlying functionality and security posture remain unchanged.
+  4. **Code path**: The change only affects device enumeration/matching - when an ACPI system declares a device with HID "ARMHC003", the existing CMN driver will now bind to it. No new code paths, memory management, access controls, or other security-sensitive operations are introduced.
+  5. **Similar commits**: All the provided reference commits with "CVE Status: NO" are similar driver maintenance changes (register offset fixes, event handling improvements, debugfs formatting) that also don't introduce security vulnerabilities.
+  This is a straightforward device binding completion that enables proper ACPI enumeration without any security implications.
+597704e201068 perf/arm-cmn: Initialise cmn->cpu earlier
+- [sasha] Based on my analysis of the commit and the code, this should **NOT** be assigned a CVE.
+  **NO**
+  This is a performance/correctness bug, not a security vulnerability. The bug causes PMU interrupts to be assigned to CPU 0 instead of the intended CPU calculated by `cpumask_local_spread()`, but this has no security implications:
+  1. **Root cause**: The `cmn->cpu` field is initialized to 0 by `devm_kzalloc()`, and `arm_cmn_init_irqs()` calls `irq_set_affinity(irq, cpumask_of(cmn->cpu))` before `cmn->cpu` is properly set, resulting in all IRQs being assigned to CPU 0.
+  2. **Impact assessment**: This only affects performance by suboptimal IRQ handling on the wrong CPU. There are no memory safety issues, privilege escalation opportunities, information disclosure risks, or other security implications.
+  3. **Comparison**: This is similar to the "ionic: set adminq irq affinity" commit in the reference examples, which was also marked "CVE Status: NO" - confirming that IRQ affinity bugs are treated as performance issues rather than security vulnerabilities.
+  The fix simply moves the CPU assignment earlier in the initialization sequence to ensure IRQs are properly assigned to the intended CPU for optimal performance.
+ac9fe7dd8e730 net_sched: hfsc: Address reentrant enqueue adding class to eltree twice
+- [sasha] Let me analyze the commit based on the provided information:
+  ## Analysis of the Commit
+  **CVE Status: YES**
+  ### Security Vulnerability Analysis:
+  1. **Explicit Security Issue**: The commit message clearly states this fixes a **Use-After-Free (UAF) vulnerability** that can be exploited, making this a definitive security issue.
+  2. **Vulnerability Details**:
+     - The issue allows bypassing previous security fixes
+     - Can lead to **UAF vulnerabilities** when HFSC is used with NETEM
+     - Can cause **infinite loops** in `hfsc_dequeue`
+     - The vulnerability can be exploited by adding TBF as root qdisc with very low rate
+  3. **Code Changes Analysis**:
+     - **Root Cause**: The previous fix only checked `cl->cl_nactive` field, which is only incremented by `init_vf`, but not by `init_ed` (for HFSC_RSC)
+     - **Attack Vector**: By using HFSC_RSC flag, attackers could bypass the check and insert the same class twice in the eltree
+     - **Fix**: Introduces `cl_in_el_or_vttree()` function that checks both:
+       - FSC case: `cl->cl_nactive` (existing check)  
+       - RSC case: `!RB_EMPTY_NODE(&cl->el_node)` (new check)
+  4. **Security Impact**:
+     - **Memory corruption** through double insertion in data structures
+     - **Use-After-Free** leading to potential code execution
+     - **Denial of Service** through infinite loops
+     - Affects kernel networking stack (high privilege component)
+  5. **Similarity to CVE-assigned commits**: This follows the exact same pattern as the provided examples (Similar Commits 1-5) which all received CVE assignments for UAF vulnerabilities in the same HFSC scheduler component.
+  The combination of explicit UAF vulnerability, potential for exploitation, and kernel-level impact clearly warrants a CVE assignment.
+11b0f576e0cbd perf/arm-cmn: Fix REQ2/SNP2 mixup
+- [sasha] **NO**
+  This commit should not be assigned a CVE. The code changes fix a functional data accuracy issue in the ARM CMN performance monitoring driver, not a security vulnerability.
+  The changes swap the channel encodings for REQ2 and SNP2 events in two places:
+  1. The visibility check conditions in `arm_cmn_event_attr_is_visible()` 
+  2. The event macro definitions in `CMN_EVENT_XP`
+  This mixup caused performance monitoring events for REQ2 (request) channels to be incorrectly attributed to SNP2 (snoop) channels and vice versa. While this results in inaccurate performance data collection, it does not:
+  - Enable privilege escalation or unauthorized access
+  - Cause memory corruption or buffer overflows  
+  - Violate security boundaries
+  - Create exploitable conditions
+  The affected code is part of a performance monitoring subsystem that requires privileged access to use and only impacts data interpretation accuracy. All reference commits for similar perf driver fixes were marked "CVE Status: NO", consistent with industry standards that performance monitoring correctness issues don't warrant CVEs unless they enable actual exploitation.
+  This is a standard functional bug fix, not a security vulnerability.
+3b62bd1fde50d arm64: dts: ti: k3-j784s4-j742s2-main-common: Fix length of serdes_ln_ctrl
+- [sasha] Based on my analysis of the commit and the pattern from similar commits:
+  **CVE Status: NO**
+  **Analysis:**
+  1. **Nature of the fix**: This is a device tree configuration correction that fixes the register region length to properly cover newly added register offsets. The previous commit correctly added the mux-reg-masks for SERDES4 (offsets 0x40-0x4c) but failed to update the register region length from 0x30 to 0x50.
+  2. **No security implications**: This is purely a device tree configuration issue where:
+     - The register region length was insufficient to cover the newly added register offsets
+     - The fix extends the memory mapping region to properly encompass all registers
+     - This affects hardware configuration/initialization, not security boundaries
+  3. **Pattern consistency**: Looking at the similar commits provided (all marked "CVE Status: NO"), they all involve similar device tree fixes:
+     - Register range corrections
+     - Missing register mask definitions  
+     - Duplicate register entries
+     - All are configuration/correctness fixes without security impact
+  4. **Impact assessment**: Without proper register mapping, the SERDES4 lane configuration would likely fail or behave unpredictably, but this doesn't create a security vulnerability - it's a functional correctness issue.
+  5. **Code change analysis**: The change is minimal and surgical - simply updating the length field from `0x30` to `0x50` in the reg property at arch/arm64/boot/dts/ti/k3-j784s4-j742s2-main-common.dtsi:80.
+  This commit fixes a device tree configuration error and should not be assigned a CVE.
+320d8a84f6f04 arm64: dts: ti: k3-j722s-main: Disable "serdes_wiz0" and "serdes_wiz1"
+- [sasha] Based on my analysis of the commit message, code changes, and examination of the kernel tree, I can now provide my assessment:
+  **NO**
+  This commit should **NOT** be assigned a CVE. Here's why:
+  1. **No Security Vulnerability**: The commit fixes a device tree configuration issue, not a security vulnerability. The change simply adds `status = "disabled";` to two device tree nodes (`serdes_wiz0` and `serdes_wiz1`).
+  2. **Configuration Fix**: The error message "probe with driver wiz failed with error -12" indicates ENOMEM (out of memory), but this is due to improper device tree configuration where parent nodes were enabled while child nodes were disabled, creating an inconsistent state. This is a configuration/boot issue, not a security flaw.
+  3. **No Security Impact**: The changes only affect:
+     - Device tree node status (disabled vs enabled)
+     - Driver probe behavior during boot
+     - Following proper device tree conventions
+  4. **Similar Pattern**: All the similar commits provided as examples (Similar Commit 1-5) are marked as "CVE Status: NO" and involve similar device tree configuration fixes without security implications.
+  5. **No Sensitive Components**: While SERDES involves PCIe and high-speed serial communication, this particular issue is about preventing unnecessary driver probe attempts, not fixing any access control, memory corruption, or privilege escalation issues.
+  The commit addresses a development/maintenance issue to follow proper device tree conventions and eliminate boot-time error messages, but poses no security risk.
+9d76be5828be4 arm64: dts: ti: k3-j722s-evm: Enable "serdes_wiz0" and "serdes_wiz1"
+- [sasha] **NO**
+  This commit should not be assigned a CVE. The changes are purely device tree configuration enablement (`status = "okay"`) for SERDES wizard nodes that control high-speed serial interfaces (PCIe, USB3). This is a standard board configuration fix following established conventions, not a security vulnerability.
+  The code changes only add:
+  ```
+  +&serdes_wiz0 {
+  +	status = "okay";
+  +};
+  ...
+  +&serdes_wiz1 {
+  +	status = "okay";
+  +};
+  ```
+  This enables hardware blocks that were inadvertently left disabled, restoring intended functionality rather than fixing an exploitable security flaw. The commit aligns with similar non-CVE commits in the historical examples that involve device tree configuration corrections.
+c6a20a250200d arm64: dts: ti: k3-j721e-sk: Add requiried voltage supplies for IMX219
+- [sasha] Based on my analysis, I can now provide my assessment:
+  **NO**
+  This commit should **not** be assigned a CVE. Here's my analysis:
+  1. **Nature of the Fix**: This commit adds missing voltage supply definitions (`VANA-supply`, `VDIG-supply`, `VDDL-supply`) to the IMX219 camera sensor device tree overlay. These are required hardware configuration properties according to the device tree binding specification.
+  2. **Non-Security Issue**: The commit message explicitly states this fix is to "avoid dtbs_check warnings" - this is a device tree validation/correctness issue, not a security vulnerability. The dtbs_check tool validates that device tree files comply with their binding specifications.
+  3. **Driver Behavior**: Looking at the IMX219 driver code (`/home/sasha/linux/drivers/media/i2c/imx219.c`):
+     - The driver calls `devm_regulator_bulk_get()` to obtain the required voltage supplies
+     - If supplies are missing from the device tree, the regulator framework will provide dummy regulators automatically
+     - The probe function calls `imx219_get_regulators()` and will fail with an error if there are issues, but this is handled gracefully
+     - Missing supplies don't cause memory corruption, privilege escalation, or other security issues
+  4. **Hardware Configuration Only**: The changes only affect:
+     - Device tree hardware description accuracy
+     - Regulator supply mapping for proper power management
+     - Elimination of kernel warning messages
+  5. **Comparison with Similar Commits**: All the provided similar commits (arm64 dts supply additions) were marked as "CVE Status: NO", and this commit has identical characteristics - adding missing supply properties to eliminate dtbs_check warnings.
+  This is a hardware description correctness fix that improves device tree validation compliance and eliminates spurious warnings, not a security vulnerability that could be exploited.
+95c5f43181fe9 coredump: fix error handling for replace_fd()
+- [sasha] Now let me analyze the commit against the similar commits to understand the security implications:
+  **NO**
+  Based on my analysis of the code changes and comparison with the provided similar commits, this commit should **NOT** be assigned a CVE.
+  **Reasoning:**
+  1. **Error Handling Improvement, Not Vulnerability Fix**: The commit fixes improper error handling in `umh_pipe_setup()` where the return value of `replace_fd()` was not being properly checked. However, this is a defensive programming improvement rather than a fix for an exploitable security vulnerability.
+  2. **Limited Security Impact**: While the change improves robustness, the security impact is minimal because:
+     - The function was returning the error code anyway (`return err;`)
+     - The context is during coredump setup, which is already a privileged operation
+     - No evidence of actual exploitation potential
+  3. **Comparison with Similar Commits**: 
+     - Similar Commit 1 (NO CVE): Also a code cleanup/improvement without security implications
+     - Similar Commit 3 (NO CVE): Error handling fix that improves correctness but has no security impact
+     - Similar Commit 4 (NO CVE): Error handling fix in cleanup path
+  4. **Code Analysis**: The fix changes:
+     ```c
+     // Before: 
+     err = replace_fd(0, files[0], 0);
+     fput(files[0]);
+     return err; // Could return success even if replace_fd failed
+     // After:
+     err = replace_fd(0, files[0], 0);  
+     fput(files[0]);
+     if (err < 0)
+         return err; // Properly handle failure
+     return 0; // Only return success when everything worked
+     ```
+  The change prevents potential logic errors but doesn't address an exploitable security vulnerability. This is a code quality improvement rather than a security fix that would warrant CVE assignment.
+24ab76e55ef15 arm64: dts: ti: k3-j721e-sk: Remove clock-names property from IMX219 overlay
+- [sasha] **NO**
+  This commit should not be assigned a CVE. Based on my analysis:
+  1. **Device Tree Schema Fix Only**: The commit removes an incorrectly added `clock-names` property from IMX219 camera sensor device tree overlays. The IMX219 device tree binding specification never included a `clock-names` property in its schema (`Documentation/devicetree/bindings/media/i2c/imx219.yaml`).
+  2. **No Functional Impact**: The IMX219 driver (`drivers/media/i2c/imx219.c:1197`) uses `devm_clk_get(dev, NULL)` to retrieve the clock, which gets the first/only clock without requiring a name. The sensor continues to function identically with or without the clock-names property.
+  3. **No Security Implications**: This is purely a device tree validation fix to resolve `dtbs_check` warnings. The clock handling in the IMX219 driver involves only basic clock rate validation (24MHz) with no security-sensitive operations.
+  4. **Consistent with Similar Commits**: All the provided similar commits (TI SoC clock ID fixes, Rockchip bluetooth property fixes, etc.) are device tree configuration corrections with CVE Status: NO, and this follows the same pattern.
+  The code changes show removal of two lines (`- clock-names = "xclk";`) from camera sensor definitions, which is a straightforward device tree schema compliance fix with no security or functional consequences.
+f55c9f087cc2e arm64: dts: ti: k3-am65-main: Add missing taps to sdhci0
+- [sasha] **NO**
+  This commit is a hardware configuration fix for SD/MMC controller timing parameters on TI AM65x SoCs, not a security vulnerability. The analysis shows:
+  1. **Hardware Configuration Only**: The commit adds missing `ti,itap-del-sel-legacy` and `ti,itap-del-sel-mmc-hs` parameters to the sdhci0 device tree node, which are input tap delay selection values for SD/MMC timing.
+  2. **No Security Impact**: The changes affect only SD/MMC controller timing parameters according to the device datasheet. This is purely a hardware functionality fix to ensure proper SD card operation in different speed modes.
+  3. **Device Tree Configuration**: This is a device tree source (DTS) file that configures hardware parameters - it doesn't involve memory management, access control, input validation, or other security-sensitive areas.
+  4. **Similar Pattern**: All the reference commits with "CVE Status: NO" show similar device tree configuration fixes for hardware peripherals, which aligns with this commit's nature.
+  5. **No Security Language**: The commit message contains no security-related terminology and describes it as adding "missing taps" for SD controller timing compliance with the datasheet.
+  This is a standard hardware configuration correction to ensure SD/MMC controllers work properly, not a security vulnerability requiring CVE assignment.
+b22cc402d3877 arm64: dts: ti: k3-am62x: Rename I2C switch to I2C mux in OV5640 overlay
+- [sasha] **NO**
+  This commit does not warrant a CVE assignment. Here's my analysis:
+  1. **Nature of the change**: The commit only changes node names from `i2c-switch@71` to `i2c-mux@71` in device tree overlay files. This is purely a naming convention fix to align with DT schema requirements.
+  2. **No security implications**: 
+     - The change doesn't affect any security-sensitive functionality
+     - It doesn't fix buffer overflows, memory leaks, access control issues, or privilege escalation
+     - No actual device functionality is changed - only the node naming
+  3. **Technical impact**: 
+     - The PCA9543 chip functionality remains identical
+     - The `compatible = "nxp,pca9543"` property is unchanged
+     - All register addresses and configurations remain the same
+     - This is purely a cosmetic fix to eliminate dtbs_check warnings
+  4. **Similar to reference commits**: This change follows the same pattern as the reference commits that were marked "CVE Status: NO" - all of which were device tree naming/property fixes with no security implications.
+  The commit message explicitly states this is to "avoid dtbs_check warnings" and the code changes show only node name modifications in k3-am62x-sk-csi2-ov5640.dtso:25 and k3-am62x-sk-csi2-tevi-ov5640.dtso:25. This is a documentation/compliance fix, not a security vulnerability fix.
+7b75dd2029ee0 arm64: dts: ti: k3-am62x: Rename I2C switch to I2C mux in IMX219 overlay
+- [sasha] Now I can see the pattern. Based on my analysis:
+  **NO**
+  This commit does not require a CVE assignment. Here's my analysis:
+  1. **Nature of the change**: This is purely a cosmetic/syntax correction in device tree source files. The commit changes the node name from `i2c-switch@71` to `i2c-mux@71` on line 25 of the overlay file.
+  2. **No functional impact**: The change only affects the node name in the device tree - the actual hardware configuration, register mappings, compatible strings, and all functional properties remain identical. The `compatible = "nxp,pca9543"` property, which determines the actual driver binding and functionality, is unchanged.
+  3. **Documentation compliance**: The commit is fixing a naming convention issue to comply with device tree bindings documentation. As seen in `/home/sasha/linux/Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.yaml`, the PCA9543 device should use the `i2c-mux@` node naming convention (as shown in the example at line 138), not `i2c-switch@`.
+  4. **Similar to reference commits**: This change is very similar to the provided reference commits that were marked as "CVE Status: NO" - they are all device tree cosmetic fixes addressing naming conventions, node structure, or dtbs_check warnings without any security implications.
+  5. **No security-relevant components**: The change doesn't affect memory management, access control, input validation, privilege escalation, or any other security-sensitive code paths. It's purely a device tree node naming fix.
+  The commit message explicitly states this is to "avoid dtbs_check warnings" which confirms this is a validation/compliance fix, not a security issue.
+7edf0a4d3bb7f arm64: dts: ti: k3-am68-sk: Fix regulator hierarchy
+- [sasha] **CVE Status: NO**
+  This commit fixes a device tree configuration error in the regulator hierarchy for the AM68-SK board, not a security vulnerability. The changes:
+  1. **Add a new `vsys_5v0` regulator node** representing the LM61460 5V supply
+  2. **Change the `vin-supply` of the TLV71033 regulator** from `<&vsys_3v3>` to `<&vsys_5v0>`
+  This is a **hardware configuration correction** to match the actual board schematics, not a security fix. While incorrect regulator configuration could theoretically cause system instability or hardware damage, this represents a design/documentation fix rather than a security vulnerability. The commit ensures the TLV71033 voltage regulator receives power from the correct 5V source instead of the wrong 3.3V source, preventing potential hardware reliability issues but not creating or fixing any exploitable security conditions.
+  Similar to the provided examples, this is a device tree correction that falls into the "NO CVE" category like hardware configuration fixes, missing supply declarations, and regulator property corrections.
+c68ab54a89a8c arm64: dts: ti: k3-am62x: Remove clock-names property from IMX219 overlay
+- [sasha] Now I can see that in the current version, line 42 still has `clock-names = "xclk";` which is the line that would be removed by the commit being analyzed.
+  Looking at the IMX219 binding documentation, I can see that:
+  1. The `clocks` property is required (line 27-28 in the binding)
+  2. There is NO `clock-names` property defined in the binding
+  3. The example in the binding (lines 93) shows only `clocks = <&imx219_clk>;` without any `clock-names`
+  This confirms that the commit is fixing a device tree validation issue where an undefined property was incorrectly added.
+  **CVE Status: NO**
+  This commit removes an incorrect `clock-names` property that was not defined in the IMX219 device tree bindings. The change is purely cosmetic/correctness-related to fix device tree validation warnings (`dtbs_check`). 
+  Key points:
+  1. **No security impact**: Removing an unused/undefined device tree property has no functional or security implications
+  2. **Documentation compliance**: The IMX219 binding (`imx219.yaml:27-28`) only defines a `clocks` property but no `clock-names` property  
+  3. **Cosmetic fix**: This only addresses device tree validation warnings, not any functional issue
+  4. **Similar pattern**: All provided similar commits (5 examples) with device tree property corrections were marked as "CVE Status: NO"
+  The commit fixes a documentation compliance issue without affecting device functionality or introducing any security-related changes.
+6af731c5de59c arm64: dts: ti: k3-am62a-main: Set eMMC clock parent to default
+- [sasha] Let me analyze this based on the commit information provided and the context from similar commits.
+  **Analysis:**
+  **Commit Message Analysis:**
+  - This commit addresses a clock configuration issue for eMMC
+  - The problem is that "DM is not implementing the correct procedure to switch PLL clock source for eMMC and MMC CLK mux is not glitch-free"
+  - This is described as a "preventative action" to switch back to defaults
+  - It fixes a previous commit that added sdhci0 instance
+  **Code Changes Analysis:**
+  The commit removes two lines:
+  ```
+  -		assigned-clocks = <&k3_clks 57 6>;
+  -		assigned-clock-parents = <&k3_clks 57 8>;
+  ```
+  This removes the explicit clock parent assignment, allowing the system to use default clock parents instead.
+  **Security Implications:**
+  1. **No direct security vulnerability**: This is a hardware configuration issue, not a security flaw
+  2. **Preventative measure**: The commit is explicitly described as preventative, addressing a potential reliability issue
+  3. **Clock configuration**: This deals with eMMC clock settings, which affects hardware functionality but not security boundaries
+  4. **No access control impact**: No changes to permissions, validation, or security controls
+  5. **Similar pattern**: All the reference commits provided are also device tree clock/configuration fixes with "CVE Status: NO"
+  **Comparison with Similar Commits:**
+  All 5 similar commits provided deal with device tree clock configurations and were marked as "CVE Status: NO". This commit follows the exact same pattern - it's a device tree clock configuration fix.
+  **NO**
+  This commit addresses a hardware clock configuration issue for eMMC reliability, not a security vulnerability. The removal of `assigned-clocks` and `assigned-clock-parents` lines is a preventative hardware configuration change to avoid potential clock switching problems, which affects device functionality but poses no security risk. This follows the same pattern as the provided reference commits which are all device tree clock fixes marked as non-CVE.
+3a71cdfec9443 arm64: dts: ti: k3-am62-main: Set eMMC clock parent to default
+- [sasha] Based on my analysis of the commit message, code changes, and understanding of similar clock-related security issues, here is my assessment:
+  **CVE Status: NO**
+  **Explanation:**
+  This commit removes assigned clock configuration for the eMMC controller (`sdhci0`) by deleting two lines that set specific clock parents. While the commit message mentions this is a "preventative action" due to issues with clock switching procedures, this is a **configuration correctness fix** rather than a security vulnerability fix.
+  **Key factors supporting NO CVE assignment:**
+  1. **Nature of the change**: The commit removes explicit clock assignments to fall back to safer defaults, which is a **proactive stability measure** rather than fixing an exploitable vulnerability.
+  2. **Issue description**: The problem described is about DM (Device Manager) not implementing "correct procedure to switch PLL clock source" and the "MMC CLK mux not being glitch-free" - these are **hardware/firmware timing reliability issues**, not security vulnerabilities.
+  3. **Comparison with similar commits**: Looking at the provided examples, all the "CVE Status: NO" commits involve device tree configuration corrections (clock references, pinctrl settings, etc.) that fix functional issues rather than security holes.
+  4. **Risk assessment**: While clock-related issues *can* potentially be security-relevant (as shown in the SPI security analysis I found), this specific change:
+     - Does not fix an exploitable condition
+     - Is preventative rather than reactive to a discovered vulnerability
+     - Involves switching to more conservative defaults rather than fixing a specific attack vector
+  5. **Impact scope**: The change affects clock configuration stability for eMMC functionality, but there's no indication this created an exploitable security condition.
+  This appears to be a **reliability/stability fix** to prevent potential clock switching issues, similar to other device tree configuration corrections that typically do not warrant CVE assignment.
+9c6b73fc72e19 arm64: dts: ti: k3-am62p-j722s-common-main: Set eMMC clock parent to default
+- [sasha] Now let me check what the similar commits reveal about the security implications:
+  **NO**
+  Based on my analysis of the commit message and code changes, this should NOT be assigned a CVE for the following reasons:
+  1. **Configuration Fix, Not Security Vulnerability**: The commit removes clock parent assignment lines (`assigned-clocks` and `assigned-clock-parents`) for the eMMC controller to revert to default clock settings. This is a configuration correction rather than fixing a security vulnerability.
+  2. **Preventative Hardware Fix**: The commit message explicitly states this is "a preventative action" to address a hardware clock multiplexer issue where "MMC CLK mux is not glitch-free" and "DM is not implementing the correct procedure to switch PLL clock source."
+  3. **Hardware Timing Issue**: The issue described relates to clock timing and hardware implementation problems in the Device Manager (DM) firmware, not a software security flaw that could be exploited.
+  4. **No Security Impact**: Unlike the reference commits that all had "CVE Status: NO", this commit addresses a hardware timing/stability issue rather than:
+     - Buffer overflows
+     - Memory corruption
+     - Access control bypasses  
+     - Input validation issues
+     - Privilege escalation
+  5. **Device Tree Configuration**: The change is purely in device tree source (DTS) files, removing hardware clock configuration that was causing timing issues, not fixing exploitable code.
+  The commit is fixing a hardware reliability issue to prevent potential clock glitches during eMMC operation, but this does not constitute a security vulnerability that would warrant CVE assignment.
+5ba21fa11f473 arm64: dts: qcom: x1e80100: Add GPU cooling
+- [sasha] Based on my detailed analysis of the commit and the Linux kernel tree, I can provide a definitive answer:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  This commit fixes a significant hardware protection vulnerability in the Qualcomm X1E80100 GPU thermal management system. The code changes show:
+  1. **Critical Hardware Protection Gap**: The original GPU implementation (commit 721e38301b79) was missing essential thermal cooling maps, allowing the GPU to reach dangerous temperatures of 120°C without throttling, risking permanent hardware damage.
+  2. **Security-Relevant Fix**: The changes add cooling maps that connect thermal sensors to GPU frequency scaling at 95°C trip points across 8 GPU thermal zones (`gpuss-0-thermal` through `gpuss-7-thermal`), preventing thermal runaway that could cause hardware failure.
+  3. **Attack Vector**: Malicious local users could exploit this by submitting intensive GPU workloads to force thermal shutdown or hardware degradation, constituting both a denial-of-service and potential hardware damage attack.
+  4. **Hardware Protection Vulnerability**: The commit message explicitly states this "endangers the hardware" and the fix prevents reaching "critical hardware shutdown temperature," indicating this is a hardware protection issue that falls under CWE-1247 (Improper Protection Against Hardware Overheating).
+  The nature of this fix - adding essential thermal protection to prevent hardware damage from software-triggered thermal runaway - clearly constitutes a security vulnerability worthy of CVE assignment, similar to other hardware protection issues that have received CVEs.
+181faec4cc9d9 arm64: dts: qcom: x1e80100: Fix PCIe 3rd controller DBI size
+- [sasha] **NO**
+  This commit fixes a device tree configuration issue where the PCIe DBI (Data Bus Interface) region size was incorrectly specified as 0xf1d instead of 0xf20 - a difference of only 3 bytes. While this could theoretically cause system stability issues if kernel code attempts to access registers in those missing 3 bytes, it does not warrant CVE assignment for several reasons:
+  1. **Limited attack surface**: Requires privileged kernel-level access to PCIe registers
+  2. **Hardware-specific scope**: Only affects the Qualcomm X1E80100 SoC
+  3. **No direct security exploit**: This is a configuration correctness issue rather than a vulnerability that enables unauthorized access or memory corruption
+  4. **Consistent with similar commits**: The provided examples show multiple similar PCIe device tree fixes that were not assigned CVEs
+  The fix corrects a documentation compliance issue to ensure proper register region mapping, but lacks the security impact characteristics typically required for CVE assignment.
+801befff4c827 arm64: dts: qcom: x1e80100: Fix video thermal zone
+- [sasha] Based on my analysis of the commit and the context from the kernel tree:
+  **NO**
+  This commit does not require a CVE assignment. Here's my analysis:
+  1. **Nature of the issue**: This is a device tree configuration error, not a security vulnerability. The commit fixes an incorrect thermal zone configuration where:
+     - The video thermal zone had a "passive" trip point at 125°C (which is unusually high for passive cooling)
+     - No cooling devices were attached to handle the passive trip
+     - The fix changes it to a "critical" trip point and adds a proper "hot" trip point at 90°C
+  2. **No security implications**: 
+     - This is a hardware thermal management configuration issue
+     - The fix improves thermal protection by adding proper trip points
+     - There's no indication this could be exploited for privilege escalation, denial of service attacks, or information disclosure
+     - The issue affects hardware thermal management, not system security
+  3. **Comparison with similar commits**: All the provided similar commits (which are marked "CVE Status: NO") involve thermal zone configuration changes, device tree thermal settings, and thermal management improvements - none of which typically constitute security vulnerabilities.
+  4. **Impact assessment**: The original configuration was suboptimal for thermal protection but didn't create a security hole. The fix improves thermal management by ensuring proper critical shutdown occurs and adds appropriate thermal monitoring.
+  This is a hardware configuration fix for better thermal management, not a security vulnerability.
+f43a71dc6d8d8 arm64: dts: qcom: x1e80100-yoga-slim7x: mark l12b and l15b always-on
+- [sasha] It appears this specific commit may not be in this kernel tree yet. Let me analyze based on the information provided in the commit message and changes.
+  Based on my analysis of the commit and the context from the kernel tree, here's my assessment:
+  **CVE Status: NO**
+  **Analysis:**
+  1. **Nature of the change**: This commit adds `regulator-always-on` properties to two voltage regulators (l12b and l15b) in a device tree file for the Lenovo Yoga Slim 7x laptop.
+  2. **Security implications**: This is purely a hardware configuration fix, not a security vulnerability fix. The change prevents regulators from being disabled when they should remain powered for undescribed hardware components.
+  3. **Affected components**: The regulators in question power audio components (WSA8845 speakers - woofers and tweeters) and potentially other hardware that's not fully described in the device tree.
+  4. **Risk assessment**: 
+     - No buffer overflows, memory corruption, or privilege escalation issues
+     - No access control violations or input validation problems
+     - No race conditions or security-sensitive logic changes
+     - This is a stability/functionality fix, not a security fix
+  5. **Comparison to similar commits**: All the provided similar commits (marked "CVE Status: NO") deal with similar device tree regulator configuration issues - fixing supply assignments, boot-on properties, and always-on settings. This commit follows the same pattern.
+  6. **Impact**: The issue being fixed could cause hardware malfunction or system instability when regulators are incorrectly disabled, but this doesn't create a security vulnerability that could be exploited by an attacker.
+  This commit addresses a hardware configuration issue to prevent system instability, similar to the other regulator-related commits in the reference examples, none of which warranted CVEs.
+ff6ba96378367 arm64: dts: qcom: x1e80100-qcp: mark l12b and l15b always-on
+- [sasha] **NO**
+  This commit should not be assigned a CVE based on the following analysis:
+  1. **Nature of the Fix**: This is a preventive robustness improvement, not a security vulnerability fix. The commit adds `regulator-always-on` properties to prevent l12b and l15b regulators from being disabled during normal kernel operations like probe deferrals or suspend.
+  2. **Code Changes Analysis**: The changes only add two lines:
+     - `regulator-always-on;` to vreg_l12b_1p2 (1.2V regulator)  
+     - `regulator-always-on;` to vreg_l15b_1p8 (1.8V regulator)
+  3. **Comparison with Similar Commits**: All five similar commits provided are marked "CVE Status: NO" and involve nearly identical device tree regulator fixes (adding always-on, boot-on, or correcting supply references). This commit follows the exact same pattern.
+  4. **No Security Vulnerability**: The commit doesn't fix an existing security flaw that could be exploited. Instead, it prevents potential system instability from undescribed components losing power. The kernel tree analysis shows these regulators power audio components (WCD9385 codec, WSA8845 amplifiers), but the fix prevents hardware malfunction rather than addressing an exploitable vulnerability.
+  5. **Fixes Tag Context**: While it references a Fixes tag and includes stable backport, this indicates a functional correctness issue, not a security vulnerability requiring CVE assignment.
+  This is a hardware configuration correctness fix to prevent system instability, not a security vulnerability that warrants CVE assignment.
+03f2b8eed7341 arm64: dts: qcom: x1e80100: Apply consistent critical thermal shutdown
+- [sasha] Based on my analysis of the commit "arm64: dts: qcom: x1e80100: Apply consistent critical thermal shutdown", I need to evaluate whether this warrants a CVE assignment.
+  **NO**
+  This commit does not fix a security vulnerability but rather adjusts thermal trip points to ensure clean shutdown before hardware limits are reached. Here's why:
+  1. **No vulnerability being fixed**: The thermal protection mechanism was already functional. The commit simply adjusts thresholds from 125°C/110°C to a consistent 115°C across all thermal zones to ensure orderly shutdown before the hardware's automatic 120°C reset.
+  2. **Configuration optimization, not security fix**: The commit message explicitly states this is about "preferring to shut down the system cleanly" rather than fixing a security issue. The hardware already had protection at 120°C.
+  3. **No exploitability**: There's no attack vector being closed. The thermal zones were already configured with critical trip points that would trigger system shutdown. This just makes them more consistent and provides better margin.
+  4. **Similar to reference commits**: The similar commits provided (CVE Status: NO) all involve thermal zone configuration adjustments, polling delays, and trip point settings - none received CVEs because they're hardware configuration optimizations rather than security fixes.
+  5. **Code changes analysis**: The changes uniformly adjust critical temperatures from various values (110°C, 125°C) to 115°C and add consistent hysteresis. This is a reliability improvement to prevent hitting the hardware's 120°C emergency shutdown, not fixing a vulnerability.
+  The Cc: stable@vger.kernel.org tag indicates this is an important fix for system reliability, but not all stable fixes are security vulnerabilities. This ensures systems shutdown cleanly at 115°C rather than potentially reaching the hardware limit at 120°C, which is a quality/reliability improvement rather than a security fix.
+2ddac70fed504 drm/amd/display: check stream id dml21 wrapper to get plane_id
+- [sasha] Based on my analysis of the commit and code changes, here's my assessment:
+  **NO** - This commit should NOT be assigned a CVE.
+  The changes fix a false positive warning, not an actual security vulnerability. Here's my analysis:
+  1. **Nature of the fix**: The commit adds a `stream_id` parameter to the `dml21_wrapper_get_plane_id()` function to ensure proper stream-to-plane mapping. This prevents a warning that occurs during mode1 reset operations.
+  2. **No security impact**: The changes are purely for correctness in the display mapping logic:
+     - The function now checks that the plane belongs to the correct stream before calculating the plane_id
+     - This prevents potential mismatches but doesn't fix any memory corruption, privilege escalation, or other security issues
+     - The warning was a false positive - the code was already functioning correctly but lacked proper validation
+  3. **No exploitable condition**: The original code didn't have an exploitable vulnerability:
+     - The plane_id calculation `(i << 16) | j` was already bounded by stream_count and plane_count
+     - No buffer overflows or out-of-bounds access were possible
+     - The ASSERT that triggered was a development/debug check, not a security boundary
+  4. **Similar to non-CVE commits**: Unlike the similar commits shown which fixed actual array bounds issues (returning -1 as an index, null pointer dereferences), this commit only adds an additional validation check to ensure the correct stream is being processed.
+  The commit improves code correctness and eliminates a false warning, but doesn't address any security vulnerability that could be exploited by an attacker.
+efdbeae860bf0 arm64: dts: qcom: x1e80100-qcp: Fix vreg_l2j_1p2 voltage
+- [sasha] Based on my analysis:
+  **NO**
+  This commit does not warrant a CVE assignment. Here's why:
+  1. **Configuration correction, not vulnerability fix**: The commit changes the voltage from 1200000 uV (1.2V) to 1256000 uV (1.256V) to match the ACPI DSDT table specification. This is a minor voltage adjustment (56mV increase) to align with the proper hardware specification.
+  2. **Powers non-critical peripherals**: The vreg_l2j_1p2 regulator supplies power to:
+     - USB PHY components (vdda12-supply, vdda-phy-supply)
+     - PCIe PHY PLL (vdda-pll-supply)
+     - Display port PHY PLL (vdda-pll-supply)
+  3. **No security boundary crossed**: The incorrect voltage was slightly lower than specified (1.2V vs 1.256V). This could potentially cause stability issues but doesn't create an exploitable security vulnerability. The peripherals would either work with slightly reduced performance or potentially be unstable, but this doesn't enable privilege escalation, data exposure, or system compromise.
+  4. **Similar commits pattern**: Looking at the historical commits for this platform, there have been numerous voltage regulator corrections (as seen in the similar commits), and none were assigned CVEs because they represent hardware configuration fixes rather than security vulnerabilities.
+  5. **No attack vector**: An attacker cannot exploit this voltage misconfiguration remotely or locally to gain unauthorized access, escalate privileges, or cause denial of service beyond what might occur from normal hardware instability.
+  This is a typical device tree configuration fix to ensure hardware operates within proper specifications, not a security vulnerability fix.
+97b67cc102dc2 arm64: dts: ti: k3-j721e-sk: Add DT nodes for power regulators
+- [sasha] Based on my analysis of the commit and the code changes, here is my assessment:
+  **NO** - This commit should not be assigned a CVE.
+  This is a device tree configuration fix that adds proper power regulator definitions for the TI J721E SK board. The changes:
+  1. **Add two missing voltage regulators**:
+     - `vsys_5v0`: A 5V fixed regulator output from LM61460
+     - `vdd_sd_dv`: A GPIO-controlled TLV71033 regulator for SD card voltage selection
+  2. **Device Tree Configuration Only**: These changes only define power supply rails that were physically present on the board but not properly described in the device tree. This is not a security vulnerability but rather a board description completeness issue.
+  3. **No Security Impact**: 
+     - No memory corruption or buffer overflow potential
+     - No privilege escalation vectors
+     - No access control bypass
+     - Simply adds proper hardware descriptions for existing voltage regulators
+  4. **Similar to Reference Commits**: Like the similar commits shown (GPIO count fixes, regulator supply additions, property cleanups), this is a hardware description correction that ensures the device tree accurately reflects the board's physical design.
+  5. **Board Functionality Fix**: The commit ensures proper power management for SD card interfaces by defining voltage regulators that were missing from the original board support addition. This allows the kernel to properly manage power states but doesn't introduce any security vulnerabilities.
+  The commit is marked with `Cc: stable@vger.kernel.org` likely because it fixes functionality that should have been present in the original board support, not because it addresses a security issue.
+4f27ede34ca33 arm64: dts: qcom: x1e80100-lenovo-yoga-slim7x: Fix vreg_l2j_1p2 voltage
+- [sasha] **NO**
+  This commit fixes a voltage regulator configuration issue in a device tree file, changing the voltage from 1200000 uV (1.2V) to 1256000 uV (1.256V) to match the ACPI DSDT table configuration. This is not a security vulnerability for the following reasons:
+  1. **Configuration Consistency Fix**: The change aligns the device tree voltage with what's already configured in the ACPI DSDT table - it's correcting a misconfiguration, not fixing a security vulnerability.
+  2. **No Security Impact**: The 56mV difference (1.2V to 1.256V) is a minor voltage adjustment for power supply rails that feed USB PHYs, PCIe PHY, and Display Port PHY. This doesn't create any security vulnerabilities - it's ensuring proper hardware operation.
+  3. **Hardware Configuration**: This is purely a hardware configuration parameter that affects electrical characteristics, not software security boundaries, access controls, or data protection.
+  4. **Similar Historical Commits**: All the provided similar commits (with CVE Status: NO) are also device tree configuration fixes for power supplies, regulators, and hardware settings - none involve security vulnerabilities.
+  5. **No Exploitable Condition**: There's no way for an attacker to exploit this voltage difference. It doesn't enable privilege escalation, memory corruption, information disclosure, or any other security-relevant attack vector.
+  The commit is a routine hardware configuration fix to ensure the Lenovo Yoga Slim 7x operates with the correct voltage levels as specified by the hardware vendor.
+3ab4e212a41c4 arm64: dts: qcom: x1e80100-hp-x14: mark l12b and l15b always-on
+- [sasha] Based on my analysis of this commit, here is my assessment:
+  **NO** - This commit should NOT be assigned a CVE.
+  **Reasoning:**
+  1. **No Security Vulnerability Fixed**: This commit adds `regulator-always-on` properties to two power regulators (l12b and l15b) to ensure they remain powered. This is a power management configuration change, not a security vulnerability fix.
+  2. **Functional/Stability Fix**: The commit message clearly states these regulators power components that are "not (fully) described" and preventing them from being disabled avoids issues when "consumers probe defer or suspend". This is about preventing functional failures, not security issues.
+  3. **No Attack Vector**: There's no way for an attacker to exploit the previous state where regulators could be disabled. The system would simply malfunction if critical components lost power - this is a reliability issue, not a security vulnerability.
+  4. **Similar to Reference Commits**: Looking at the similar commits with CVE Status: NO, they all involve regulator/power management fixes:
+     - qrb4210-rb2: L9A regulator always-on (CVE Status: NO)
+     - x1e80100-qcp: PCIe4 PHY supply fix (CVE Status: NO)  
+     - x1e80100-crd: USB PHY regulator fixes (CVE Status: NO)
+  5. **Code Changes**: The changes simply add `regulator-always-on` property to existing regulator definitions - a standard device tree configuration that prevents Linux from disabling these regulators during runtime power management.
+  This is a typical hardware enablement/stability fix that ensures critical components maintain power, preventing system malfunctions but not addressing any security vulnerability.
+63169c07d7403 arm64: dts: qcom: x1e80100-dell-xps13-9345: mark l12b and l15b always-on
+- [sasha] Now, let me analyze the actual commit we're reviewing. Based on the commit message and changes, this commit marks two voltage regulators (l12b and l15b) as "always-on" to prevent them from being disabled. Let me examine the nature of this change:
+  **NO** - This commit should not be assigned a CVE.
+  **Explanation:**
+  1. **Nature of the change**: The commit simply adds `regulator-always-on` properties to two voltage regulators (vreg_l12b_1p2 and vreg_l15b_1p8) in the device tree. This is a preventive configuration change, not a fix for an exploitable vulnerability.
+  2. **No security vulnerability**: The commit message clearly states these regulators are used by components that are "not (fully) described" and must never be disabled. This is a hardware configuration requirement, not a security issue. The change prevents potential system instability but doesn't fix an exploitable security flaw.
+  3. **Similar to reference commits**: Looking at the similar commits provided (CVE Status: NO), they all involve voltage regulator configurations in device trees:
+     - Setting L9A as always-on to prevent undervolting
+     - Fixing USB PHY power supplies
+     - Correcting PCIe PHY supplies
+     None of these were assigned CVEs because they are hardware configuration fixes, not security vulnerabilities.
+  4. **No attack vector**: There's no way for an attacker to exploit this issue. The regulators would only be disabled through normal kernel power management operations, not through malicious activity.
+  5. **Preventive measure**: The commit states these supplies "currently have no consumers described in mainline," meaning this is a proactive fix to ensure hardware stability, not a response to a discovered vulnerability.
+  This is a standard device tree configuration fix to ensure proper hardware operation, similar to the reference commits that were also marked as "CVE Status: NO".
+0fb9ecf8713a7 arm64: dts: qcom: x1e80100-asus-vivobook-s15: Fix vreg_l2j_1p2 voltage
+- [sasha] **NO**
+  This commit should not be assigned a CVE. Here's my analysis:
+  1. **Nature of the change**: This is a simple voltage configuration adjustment for a power regulator (`vreg_l2j_1p2`) from 1200000 uV (1.2V) to 1256000 uV (1.256V) - a minor 56mV increase.
+  2. **Not a security vulnerability**: The change addresses a configuration inconsistency between the device tree and ACPI DSDT table. This is a hardware configuration correction, not a fix for any security vulnerability.
+  3. **No security impact**: 
+     - No memory corruption or buffer overflow issues
+     - No privilege escalation possibilities
+     - No information disclosure risks
+     - No authentication/authorization bypass
+  4. **Functional fix only**: The commit ensures the voltage regulator operates at the correct voltage level as specified by the hardware design (ACPI DSDT). Operating at a slightly lower voltage (1.2V instead of 1.256V) might cause:
+     - Potential hardware instability
+     - Reduced performance
+     - Component malfunction
+     
+     But none of these represent security vulnerabilities.
+  5. **Similar non-CVE commits**: Looking at the similar commits provided as reference, none of the voltage regulator fixes, USB PHY supply fixes, or other device tree hardware configuration corrections were assigned CVEs, which is consistent with this type of change.
+  The commit is a routine hardware configuration fix that ensures proper voltage levels for system components, with no security implications warranting a CVE assignment.
+4a09dad9d437a arm64: dts: qcom: x1e80100-hp-omnibook-x14: Fix vreg_l2j_1p2 voltage
+- [sasha] **NO**
+  This commit does not warrant a CVE assignment. The change fixes a voltage configuration error in the device tree where vreg_l2j_1p2 was set to 1200000 uV instead of the correct 1256000 uV (as specified in the ACPI DSDT table). This is a hardware configuration issue rather than a security vulnerability.
+  Key reasons:
+  1. **Configuration error, not code vulnerability**: The issue is an incorrect voltage value in device tree configuration, not a bug in code logic
+  2. **Limited exploitability**: No remote attack vector; would require physical access to potentially exploit undervoltage conditions
+  3. **Hardware-specific**: Only affects HP Omnibook X14 laptop with X1E80100 SoC
+  4. **Reliability over security**: The 56mV undervoltage (4.5% below spec) primarily causes stability issues rather than creating security vulnerabilities
+  While the undervoltage could potentially cause system instability, data corruption, or peripheral malfunctions, these are reliability concerns rather than security vulnerabilities that would warrant a CVE assignment. The commit properly fixes a device tree configuration to match the hardware specifications.
+38b88722bce07 arm64: dts: qcom: sm8650: Add missing properties for cryptobam
+- [sasha] Now let me analyze the cryptobam commit in detail. The commit adds missing properties (`num-channels` and `qcom,num-ees`) to the cryptobam DMA controller node in the sm8650 device tree.
+  **CVE Status: NO**
+  This commit does not warrant a CVE assignment. Here's why:
+  1. **Nature of the fix**: This is a device tree configuration fix that adds missing but required properties for the BAM (Bus Access Manager) DMA controller. The properties being added are:
+     - `qcom,num-ees = <4>;` - Number of execution environments
+     - `num-channels = <20>;` - Number of DMA channels
+  2. **Not a security vulnerability**: The commit message explains that these properties are required for BAM nodes without clocks because the driver cannot read the hardware registers to determine these values automatically. Without these properties, the driver may fail to probe or could cause early boot crashes when trying to access unpowered hardware registers.
+  3. **Crash vs Security**: While the missing properties can cause "early boot crashes" as mentioned in the commit message and referenced links, this is a reliability/stability issue rather than a security vulnerability. The crashes occur because:
+     - The driver tries to read hardware registers when the hardware might not be powered on
+     - Without clock control, the driver relies on device tree properties to know the hardware configuration
+     - Accessing unpowered registers causes system crashes
+  4. **No security boundary crossed**: There's no:
+     - Privilege escalation possibility
+     - Information disclosure
+     - Memory corruption that could be exploited
+     - Authentication/authorization bypass
+  5. **Similar to referenced commits**: The commit references similar fixes for other SoCs that also didn't receive CVEs - they were treated as stability/correctness fixes rather than security issues.
+  The fix ensures proper driver initialization and prevents crashes during boot, which is a quality/stability improvement rather than a security fix.
+7d328cc134f7d arm64: dts: qcom: x1e001de-devkit: mark l12b and l15b always-on
+- [sasha] Now let me analyze the security implications by looking at similar commits in the historical data provided:
+  ## Analysis of the commit
+  Based on my analysis of the commit and the historical similar commits provided as reference:
+  **NO** - This commit should NOT be assigned a CVE.
+  ### Explanation:
+  1. **Nature of the change**: This commit simply adds `regulator-always-on` properties to two voltage regulators (l12b at 1.2V and l15b at 1.8V) in a device tree file. This is a hardware configuration change, not a security vulnerability fix.
+  2. **No security vulnerability being fixed**: The commit message explains that these regulators supply power to components that are "not (fully) described" and must never be disabled. This is a power management configuration issue to prevent hardware malfunction, not a security vulnerability.
+  3. **Similar to historical non-CVE commits**: All the similar commits provided show regulator configuration changes:
+     - Adding `regulator-always-on` to prevent undervolting (commit d6c6b85bf558)
+     - Fixing regulator supply references (commits ae5cee8e7349, 20676f7819d7)
+     - Adding `regulator-boot-on` to fix boot glitches (commit 37f9477ce9d0)
+     
+     None of these similar commits were assigned CVEs because they are hardware configuration fixes, not security vulnerabilities.
+  4. **Impact assessment**: The worst-case scenario here is that without this fix, the regulators might be disabled during probe defer or suspend, potentially causing hardware components to lose power unexpectedly. This could lead to system instability or hardware malfunction, but does not constitute a security vulnerability that could be exploited by an attacker.
+  5. **No security-sensitive components affected**: The change does not involve memory management, access control, privilege escalation, or any other security-critical subsystems. It's purely a power management configuration for a specific development board.
+  The commit is a legitimate bug fix for proper hardware operation, but it does not meet the criteria for a CVE assignment as it does not address a security vulnerability.
+3ed2a9e03abfe arm64: dts: qcom: x1e001de-devkit: Fix vreg_l2j_1p2 voltage
+- [sasha] **NO**
+  This commit should not be assigned a CVE. The change fixes a voltage configuration error in a device tree file, changing vreg_l2j_1p2 from 1200000 uV to 1256000 uV. This is a hardware configuration correction, not a security vulnerability fix.
+  Key reasons:
+  1. **Configuration error**: Like the similar commits shown (all marked CVE Status: NO), this fixes an incorrect voltage specification in the device tree
+  2. **No security exploitation path**: The 56mV voltage difference is a reliability/functionality issue, not a security vulnerability
+  3. **Hardware description fix**: Device trees describe hardware configurations; incorrect values cause functional issues but aren't exploitable security flaws
+  4. **Consistent with precedent**: All 5 similar commits fixing regulator configurations were not assigned CVEs
+  The commit ensures the regulator provides the correct voltage (1.256V) as specified in the ACPI DSDT table, preventing potential hardware malfunction due to undervoltage, but this doesn't constitute a security vulnerability requiring CVE assignment.
+663cd2cad36da arm64: dts: qcom: sm8550: Add missing properties for cryptobam
+- [sasha] Based on my analysis of the commit message and code changes:
+  **NO**, this commit should not be assigned a CVE.
+  **Explanation:**
+  1. **Nature of the fix**: This is a device tree configuration fix that adds missing properties (`qcom,num-ees` and `num-channels`) to the cryptobam DMA controller node. These properties are required metadata that tell the driver about hardware capabilities.
+  2. **Not a security vulnerability**: While the commit message mentions "early boot crashes" have occurred on other SoCs without these properties, this is a functional correctness issue, not a security vulnerability. The crashes mentioned are:
+     - Boot-time failures due to missing configuration
+     - Not exploitable security issues
+     - Result from the driver attempting to read hardware registers when the hardware might not be powered on
+  3. **Similar to historical commits**: Looking at the similar commits provided (all marked "CVE Status: NO"), they all involve device tree fixes:
+     - Adding compatible strings
+     - Moving properties to correct nodes  
+     - Adding missing configuration properties
+     These are all functional fixes, not security fixes.
+  4. **Impact analysis**: The worst case scenario is:
+     - System fails to boot properly
+     - DMA controller driver fails to probe
+     - Crypto functionality unavailable
+     
+     There's no:
+     - Memory corruption
+     - Privilege escalation
+     - Information disclosure
+     - Remote exploitation
+  5. **The code changes**: Simply add two numeric properties that describe hardware characteristics:
+     ```
+     qcom,num-ees = <4>;
+     num-channels = <20>;
+     ```
+  This is a reliability/stability fix to prevent boot crashes by providing required hardware description data, not a security vulnerability fix.
+295217420a444 arm64: dts: qcom: sm8350: Fix typo in pil_camera_mem node
+- [sasha] Looking at this commit, I need to analyze the changes:
+  **Subject**: arm64: dts: qcom: sm8350: Fix typo in pil_camera_mem node
+  **Changes**:
+  ```diff
+  -		pil_camera_mem: mmeory@85200000 {
+  +		pil_camera_mem: memory@85200000 {
+  ```
+  This is a simple typo correction changing "mmeory" to "memory" in a device tree source (DTS) file node label.
+  ## Analysis:
+  **NO** - This commit should not be assigned a CVE.
+  This is a purely cosmetic typo fix in a device tree source file that:
+  1. **Only fixes a spelling error**: Changes "mmeory@85200000" to "memory@85200000" in the node definition
+  2. **No functional impact**: The typo is in the node label text, not in any functional property
+  3. **No security implications**: This is a reserved memory region declaration that functions correctly regardless of the spelling in the label
+  4. **Device tree compilation unaffected**: DTS compilers would process this node correctly even with the typo
+  5. **No runtime behavior change**: The kernel and bootloader use the memory address and properties, not the human-readable label
+  Based on the similar commits analysis, this is consistent with other non-CVE changes like:
+  - DTS node naming convention fixes (e.g., "qcom,gpi-dma@800000" → "dma-controller@800000")
+  - Property corrections that don't affect security
+  - Cosmetic and clarity improvements
+  This fix improves code readability and consistency but has absolutely no security impact or exploitable vulnerability potential.
+eb73f500548a3 arm64: dts: qcom: sa8775p: Remove extra entries from the iommus property
+- [sasha] Looking at this commit, I need to analyze the changes to the device tree file for the Qualcomm SA8775P platform, specifically the removal of extra IOMMU entries.
+  The commit is removing duplicate IOMMU mappings from the fastrpc compute callback nodes. Looking at the changes:
+  **Before**: Each compute-cb had 10 IOMMU entries, for example:
+  ```
+  iommus = <&apps_smmu 0x2141 0x04a0>,
+           <&apps_smmu 0x2161 0x04a0>,
+           <&apps_smmu 0x2181 0x0400>,
+           <&apps_smmu 0x21c1 0x04a0>,
+           <&apps_smmu 0x21e1 0x04a0>,
+           <&apps_smmu 0x2541 0x04a0>,
+           <&apps_smmu 0x2561 0x04a0>,
+           <&apps_smmu 0x2581 0x0400>,
+           <&apps_smmu 0x25c1 0x04a0>,
+           <&apps_smmu 0x25e1 0x04a0>;
+  ```
+  **After**: Each compute-cb now has only 2 IOMMU entries:
+  ```
+  iommus = <&apps_smmu 0x2141 0x04a0>,
+           <&apps_smmu 0x2181 0x0400>;
+  ```
+  The commit message explains these were duplicates when doing "SID & ~MASK" operations. This is a device tree cleanup that removes redundant IOMMU Stream ID (SID) mappings.
+  **NO** - This commit should not be assigned a CVE.
+  This is a device tree cleanup that removes redundant IOMMU configuration entries. The security implications are:
+  1. **No security vulnerability introduced or fixed**: The removed entries were duplicates that resulted in the same effective IOMMU mappings after masking operations.
+  2. **Configuration optimization only**: This simplifies the device tree by removing unnecessary duplicate entries, but doesn't change the actual IOMMU protection or access control.
+  3. **No exploitable condition**: Having duplicate IOMMU entries doesn't create an attack vector - they simply map to the same effective Stream IDs after the mask is applied.
+  4. **Similar to reference commits**: Like the similar commits shown (removing extra msm-id values, adding missing properties), this is a device tree correctness fix rather than a security fix.
+  The change is purely a configuration cleanup that makes the device tree more maintainable without affecting the security posture of the system.
+d180c2bd3b43d arm64: dts: qcom: sa8775p: Remove cdsp compute-cb@10
+- [sasha] Based on my analysis of this commit, I need to understand the security implications of SMMU (System Memory Management Unit) stage-1 vs stage-2 translations and fastrpc compute context banks.
+  **NO**
+  This commit should NOT be assigned a CVE. Here's why:
+  1. **Configuration cleanup, not a security fix**: The commit removes a compute context bank (compute-cb@10) that was incorrectly configured with S2-only SMMU IDs. According to the commit message, these SMMU IDs are "S2-only which is not used for S1 transaction."
+  2. **Stage-1 vs Stage-2 SMMU context**: In ARM SMMU architecture:
+     - Stage-1 (S1) translation is typically used for process/guest address translation
+     - Stage-2 (S2) translation is typically used for hypervisor-level translation
+     - The removed configuration was trying to use S2-only IDs for S1 transactions, which is a configuration error, not a security vulnerability
+  3. **No security vulnerability exploited**: The diff shows only the removal of:
+     ```
+     compute-cb@10 {
+         compatible = "qcom,fastrpc-compute-cb";
+         reg = <10>;
+         iommus = <&apps_smmu 0x214a 0x04a0>,
+                  <&apps_smmu 0x218a 0x0400>;
+         dma-coherent;
+     };
+     ```
+  4. **Device tree configuration issue**: This is a device tree configuration correction for the Qualcomm SA8775P SoC's fastrpc (Fast Remote Procedure Call) compute context banks. The incorrect configuration would likely result in non-functional or improperly configured IOMMU mappings, but not a security vulnerability.
+  5. **Similar commits analysis**: The referenced similar commits (all marked "CVE Status: NO") are also device tree fixes for various configuration issues like unit address mismatches, missing compatible strings, and property additions - none of which constitute security vulnerabilities.
+  This is a functional fix for an incorrect device configuration, not a security vulnerability fix.
+0fe6357229cb1 arm64: dts: qcom: sm8450: Add missing properties for cryptobam
+- [sasha] **NO**
+  This commit should NOT be assigned a CVE. Here's why:
+  1. **Configuration issue, not a security vulnerability**: The missing device tree properties cause the driver to read hardware registers that may not be accessible, leading to a system crash. This is a reliability/stability issue rather than a security vulnerability.
+  2. **No privilege escalation or data compromise**: The crash occurs during driver initialization when trying to read hardware registers from unpowered/uninitialized hardware. This is a denial-of-service at worst, but:
+     - It requires specific hardware configuration (remotely controlled BAM)
+     - It happens at boot/initialization time, not during runtime
+     - There's no memory corruption, buffer overflow, or information leak
+  3. **Similar to the reference commits**: All the similar commits shown (CVE Status: NO) are device tree fixes that correct hardware descriptions or compatibility strings. They don't fix security vulnerabilities but rather ensure proper hardware initialization.
+  4. **Driver design issue**: The driver already tries to handle this case by checking if values are 0 and reading from hardware, but this approach fails when hardware is not accessible. The fix simply provides the required values through device tree to avoid the hardware access.
+  5. **Local configuration requirement**: This only affects systems with specific Qualcomm hardware where the BAM DMA controller is controlled remotely, and someone would need to boot a kernel with an incorrect device tree - not something an attacker can trigger remotely.
+  The crash mentioned in the commit message is a boot-time failure due to accessing uninitialized hardware, not an exploitable security vulnerability.
+a2517331f11bd arm64: dts: qcom: sa8775p: Add missing properties for cryptobam
+- [sasha] Now let me analyze the security implications based on what I've found:
+  **NO**
+  This commit should not be assigned a CVE. Here's why:
+  1. **Configuration issue, not vulnerability**: This is a missing device tree property issue that causes early boot crashes, not a security vulnerability. The properties `num-channels` and `qcom,num-ees` are required configuration parameters for BAM DMA nodes without clocks.
+  2. **Denial of Service vs Security**: While the missing properties can cause system crashes during boot, this is a reliability/stability issue rather than a security vulnerability. The crash happens during driver probe when the hardware registers cannot be read safely, leading to a controlled kernel panic or reboot.
+  3. **No privilege escalation or data exposure**: The commit message and code changes show this is purely about ensuring the driver has the necessary configuration to initialize properly. There's no indication of:
+     - Memory corruption that could be exploited
+     - Information disclosure
+     - Privilege escalation opportunities
+     - Authentication bypass
+  4. **Similar precedents**: The referenced commits (sm8350 BAM DMA crash fix) were also configuration fixes for boot crashes and were not assigned CVEs. They follow the same pattern of adding missing properties to prevent hardware register access issues.
+  5. **Limited scope**: This only affects systems using the sa8775p SoC with crypto BAM DMA, and the impact is limited to boot-time crashes when the driver tries to probe - not runtime exploitation.
+  The code changes simply add two properties (`qcom,num-ees = <4>` and `num-channels = <20>`) that tell the driver how many execution environments and DMA channels are available, preventing it from trying to read these values from potentially unpowered hardware registers during initialization.
+48274b40a3719 arm64: dts: qcom: x1e80100-hp-omnibook-x14: Enable SMB2360 0 and 1
+- [sasha] Now let me analyze the commit in question about enabling SMB2360 devices for the HP OmniBook X14.
+  **NO** - This commit should not be assigned a CVE.
+  This is a device tree configuration fix that enables battery management hardware that was inadvertently left disabled. Here's my analysis:
+  **Key Points:**
+  1. **Configuration Omission, Not Security Vulnerability**: The commit fixes a missing configuration where SMB2360 battery management ICs were not explicitly enabled after a previous commit (d37e2646c8a5) changed the default to disabled.
+  2. **Functional Hardware Enablement**: The SMB2360 devices are battery charging and power management ICs that are essential for laptop operation. Without them enabled:
+     - Battery charging would not work
+     - Power management would be non-functional
+     - The laptop would only work on AC power
+  3. **No Security Boundary Crossed**: This change:
+     - Does not introduce memory corruption vulnerabilities
+     - Does not create privilege escalation paths
+     - Does not bypass security mechanisms
+     - Simply enables existing hardware that should have been enabled
+  4. **Board-Specific Configuration**: This is specific to the HP OmniBook X14 hardware configuration and corrects an oversight when the board was added before the default-disabled change.
+  5. **Similar to Reference Non-CVE Cases**: Looking at the similar commits marked as "CVE Status: NO", they include:
+     - Firmware node updates
+     - Hardware descriptor additions
+     - Regulator boot glitch fixes
+     - Device tree configuration corrections
+  This is a standard device tree configuration fix that ensures proper hardware functionality, not a security vulnerability requiring CVE assignment.
+b4cd966edb2de arm64: dts: qcom: ipq9574: Add missing properties for cryptobam
+- [sasha] Based on my analysis of the commit and additional context:
+  **NO**
+  This commit should not be assigned a CVE. Here's my reasoning:
+  1. **Nature of the Issue**: The commit adds missing device tree properties (`num-channels` and `qcom,num-ees`) that are configuration parameters, not fixing an actual security vulnerability in code.
+  2. **Boot-time Configuration**: These properties are read during driver initialization/probe time, not during runtime operation. The issue manifests as early boot crashes when the driver tries to read hardware registers without proper clock configuration.
+  3. **Hardware Configuration vs Security Bug**: The missing properties prevent the driver from properly understanding the hardware configuration. This is a functional/stability issue rather than a security vulnerability. The driver cannot "ensure the hardware is powered on when trying to obtain the information from the hardware registers."
+  4. **Similar Commits Pattern**: Looking at the similar commits provided (all marked "CVE Status: NO"), they all involve device tree property additions/corrections for hardware configuration - none received CVEs.
+  5. **Crash Type**: The referenced crashes are early boot crashes due to improper hardware initialization, not exploitable runtime vulnerabilities. The commit message explicitly states this is about ensuring "the driver can probe successfully without causing crashes."
+  6. **No Security Boundary Crossed**: This doesn't involve privilege escalation, memory corruption that can be exploited, or information disclosure. It's purely about providing required hardware configuration data.
+  While the missing properties can cause system crashes, these are deterministic boot-time failures due to missing hardware configuration data, not runtime exploitable security vulnerabilities.
+a6c9896e65e55 arm64: dts: socfpga: agilex5: fix gpio0 address
+- [sasha] Based on my analysis, this is a simple address correction for a GPIO controller in a device tree file. Here's my assessment:
+  **NO**
+  This commit should not be assigned a CVE for the following reasons:
+  1. **Non-security bug**: The commit fixes an incorrect memory-mapped I/O address for gpio0 from `0xffc03200` to `0x10c03200`. This is a configuration error in the device tree, not a security vulnerability.
+  2. **No security impact**: The incorrect address would likely cause the GPIO controller to be inaccessible or non-functional, resulting in a functionality issue rather than a security issue. There's no evidence of:
+     - Memory corruption
+     - Privilege escalation
+     - Information disclosure
+     - Access control bypass
+     - Buffer overflows
+  3. **Device tree configuration fix**: This is purely a hardware description fix. The commit corrects the gpio0 address to be consistent with the address range used by other peripherals in the same SoC (e.g., gpio1 at 0x10c03300, timer0 at 0x10c03000).
+  4. **Similar to reference commits**: The commit is similar to the reference commits marked with "CVE Status: NO" which also fix device tree configuration issues (typos, missing GPIOs, incorrect GPIO numbers).
+  5. **No exploitable condition**: An incorrect GPIO address in the device tree would simply mean the GPIO controller wouldn't work properly - it doesn't create an exploitable security condition.
+  The commit is a straightforward configuration fix that corrects the gpio0 peripheral address to match the proper memory map for the Agilex5 SoC.
+d7cc532df95f7 arm64: dts: rockchip: fix internal USB hub instability on RK3399 Puma
+- [sasha] **NO**
+  This commit should not be assigned a CVE. The changes fix a hardware-specific USB hub instability issue on the RK3399 Puma board caused by improper reset timing. The commit:
+  1. **Addresses a functional/reliability issue** - The USB hub sometimes failed to initialize properly due to insufficient reset duration (< 5ms instead of required ≥ 5ms)
+  2. **Has no security impact** - The timing issue only affects USB device enumeration and cannot be exploited for any security purposes like privilege escalation, data exposure, or system compromise
+  3. **Is board-specific** - The problem only affects the specific hardware configuration of the RK3399 Puma board with its Cypress CYUSB3304 hub
+  4. **Similar to other non-CVE commits** - The provided similar commits show other RK3399 Puma board-specific fixes (GPIO configurations, pin settings) that were not assigned CVEs
+  The changes simply ensure proper hardware initialization by switching from an indirect regulator-based control to proper USB hub device tree nodes with guaranteed 10ms reset timing through the onboard USB device driver.
+9176bd205ee0b can: kvaser_pciefd: Force IRQ edge in case of nested IRQ
+- [sasha] Now let me analyze the kvaser_pciefd interrupt handling issue in detail:
+  ## Analysis
+  Looking at this commit for the kvaser_pciefd CAN driver, I need to determine if the interrupt handling fix represents a security vulnerability.
+  ### Key Changes:
+  1. **Temporary IRQ masking added**: The fix adds `iowrite32(0, KVASER_PCIEFD_PCI_IEN_ADDR(pcie))` at the beginning of the ISR to temporarily disable interrupts
+  2. **IRQ re-enabling**: At the end of the ISR, interrupts are re-enabled with `iowrite32(irq_mask->all, KVASER_PCIEFD_PCI_IEN_ADDR(pcie))`
+  3. **Buffer rearming moved**: The DMA buffer rearming is moved inside the receive handler rather than at the end of the ISR
+  ### Security Impact Assessment:
+  The commit message states this fixes "missing IRQs" due to nested interrupts. Missing interrupts in a CAN driver could lead to:
+  1. **Lost CAN messages**: If interrupts are missed, incoming CAN messages may not be processed
+  2. **Buffer overflows**: If receive interrupts are missed, the hardware receive buffers could overflow
+  3. **Denial of Service**: Missing interrupts could cause the driver to stop processing messages
+  However, these issues are primarily **reliability/availability** concerns rather than security vulnerabilities:
+  - The issue doesn't allow privilege escalation
+  - It doesn't enable unauthorized access to data
+  - It doesn't allow memory corruption or code execution
+  - It's a race condition that affects proper operation but not security boundaries
+  ### Comparison with Similar Commits:
+  Looking at the provided similar commits (all marked CVE Status: NO), they involve:
+  - Code cleanup (removing comments, renaming variables)
+  - Reorganizing interrupt handling for performance
+  - None address actual security vulnerabilities
+  ### Conclusion:
+  **NO** - This commit should not be assigned a CVE.
+  While missing interrupts could cause the CAN interface to malfunction or lose messages, this is a **reliability issue** rather than a security vulnerability. The fix prevents a race condition where nested interrupts could be lost, but this doesn't cross any security boundaries or enable attacks. It's similar to the other kvaser_pciefd commits shown which also deal with interrupt handling improvements but were not assigned CVEs.
