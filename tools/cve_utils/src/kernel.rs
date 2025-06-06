@@ -88,6 +88,15 @@ impl Kernel {
         })
     }
 
+    /// Create a new kernel object with a given git id
+    /// There is no verification at all that the git id given here is valid, ONLY use this if you
+    /// really really know what you are doing.
+    pub fn from_id_no_validate(id: &str) -> Self {
+        let mut kernel = Self::empty_kernel();
+        kernel.git_id = id.to_string();
+        kernel
+    }
+
     #[must_use] pub fn git_id(&self) -> String {
         self.git_id.clone()
     }
@@ -296,6 +305,13 @@ mod tests {
         k = alloc_kernel_id("22207fd5c80177b860279653d017474b2812af5e");
         assert_eq!(k.version(), "6.9");
         assert!(k.is_mainline());
+    }
+
+    #[test]
+    fn constructor_id_no_validate() {
+        let k: Kernel = Kernel::from_id_no_validate("1234567890");
+        assert_eq!(k.git_id(), "1234567890");
+        assert_eq!(k.version(), "0");
     }
 
     #[test]
