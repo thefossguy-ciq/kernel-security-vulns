@@ -235,10 +235,11 @@ selftests|\
 unmet direct dependencies detected|\
 "
 
-    mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}") || true
+    mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream | grep -oE "[a-f0-9]{40,}") || true
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
     commitfile0=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
+    annotatefile=$(mktemp /tmp/cve-review-XXXXX)
 
     git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
 
@@ -305,13 +306,16 @@ unmet direct dependencies detected|\
             print_blue "  ${f}"
             if [ -f ${annotated} ]; then
                 echo
-                grep -A1 -F "${subject}" ${annotated} | tail -n1 | fmt -w ${COLUMNS}
-                annotate_len=$(grep -A1 -F "${subject}" ${annotated} | tail -n1 | fmt -w ${COLUMNS} | wc -l)
+                grep -A1 -F "${subject}" ${annotated} | tail -n1 \
+                    | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Piz "${GOODMATCHES}" \
+                    | grep -C99999 --color=always -Piz "${BADMATCHES}" | fmt -w ${COLUMNS} > ${annotatefile}
+                annotate_len=$(cat ${annotatefile} | wc -l)
+                cat ${annotatefile}
                 clipcommitto=$((clipcommitto - ${annotate_len} - 1))
             fi
         done
 
-        clipcommitto=$((clipcommitto- ${hits} - 3))
+        clipcommitto=$((clipcommitto - ${hits} - 3))
         echo
     fi
 
