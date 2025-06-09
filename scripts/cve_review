@@ -296,10 +296,10 @@ unmet direct dependencies detected|\
     fi
     echo
 
-    hits=$(grep -F "${subject}" ${FINALDIR}/* | wc -l)
+    hits=$(grep -F "${subject}" ${FINALDIR}/* | grep -v annotated | wc -l)
     if [ ${hits} -gt 0 ]; then
         print_red "Positively voted for in:\n"
-        grep -Fl "${subject}" ${FINALDIR}/* | sed 's!'"${FINALDIR}/"'!  !'
+        grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !'
         clipcommitto=$((clipcommitto- ${hits} - 3))
         echo
     fi
