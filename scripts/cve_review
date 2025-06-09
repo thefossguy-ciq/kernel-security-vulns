@@ -299,7 +299,18 @@ unmet direct dependencies detected|\
     hits=$(grep -F "${subject}" ${FINALDIR}/* | grep -v annotated | wc -l)
     if [ ${hits} -gt 0 ]; then
         print_red "Positively voted for in:\n"
-        grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !'
+        positives=$(grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !')
+        for f in ${positives}; do
+            annotated=${FINALDIR}/$(echo ${f} | sed 's/-/-annotated-/')
+            print_blue "  ${f}"
+            if [ -f ${annotated} ]; then
+                echo
+                grep -A1 -F "${subject}" ${annotated} | tail -n1 | fmt -w ${COLUMNS}
+                annotate_len=$(grep -A1 -F "${subject}" ${annotated} | tail -n1 | fmt -w ${COLUMNS} | wc -l)
+                clipcommitto=$((clipcommitto - ${annotate_len} - 1))
+            fi
+        done
+
         clipcommitto=$((clipcommitto- ${hits} - 3))
         echo
     fi
