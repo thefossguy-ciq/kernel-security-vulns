@@ -1,0 +1,26 @@
+7f533cc5ee4c scsi: target: iscsi: Fix timeout on deleted connection
+2e2f925fe737 virtio_ring: Fix data race by tagging event_triggered as racy for KCSAN
+1bd2aad57da9 serial: mctrl_gpio: split disable_ms into sync and no_sync APIs
+f6205f8215f1 vxlan: Annotate FDB data races
+13265fe7426e drm/xe/vf: Perform early GT MMIO initialization to read GMDID
+46d22b47df27 nvmet-tcp: don't restore null sk_state_change
+bc7e09750935 btrfs: correct the order of prelim_ref arguments in btrfs__prelim_ref
+f95d186255b3 btrfs: avoid NULL pointer dereference if no valid csum tree
+7dd7f39fce00 ASoC: SOF: Intel: hda: Fix UAF when reloading module
+99bcd91fabad perf/x86/intel: Fix segfault with PEBS-via-PT with sample_freq
+2dabe349f788 idpf: fix null-ptr-deref in idpf_features_check
+e27902461713 net/tipc: fix slab-use-after-free Read in tipc_aead_encrypt_done
+a7a8fe56e932 smb: client: Fix use-after-free in cifs_fill_dirent
+b6ea95a34cbd kasan: avoid sleepable page allocation from atomic context
+06717a7b6c86 memcg: always call cond_resched() after fn()
+113ed54ad276 mm/hugetlb: fix kernel NULL pointer dereference when replacing free hugetlb folios
+cc0aac7ca17e firmware: arm_ffa: Set dma_mask for ffa devices
+0da30874729b dmaengine: ti: k3-udma-glue: Drop skip_fdq argument from k3_udma_glue_reset_rx_chn
+183a08715af1 virtgpu: don't reset on shutdown
+c46286fdd6aa mr: consolidate the ipmr_can_free_table() checks.
+ef1d3455bbc1 libnvdimm/labels: Fix divide error in nd_label_data_init()
+5da692e2262b dm cache: prevent BUG_ON by blocking retries on failed device resumes
+5595c31c3709 x86/Kconfig: make CFI_AUTO_DEFAULT depend on !RUST or Rust >= 1.88
+c9e455581e2b ptp: ocp: Limit signal/freq counts in summary output functions
+d6ebcde6d4ec padata: do not leak refcount in reorder_work
+7e7cb7a13c81 Revert "drm/amd: Keep display off while going into S4"
