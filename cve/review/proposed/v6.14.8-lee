@@ -1,0 +1,25 @@
+bd07f751208b HID: uclogic: Add NULL check in uclogic_input_configured()
+fa7ab64f1e2f NFS/localio: Fix a race in nfs_local_open_fh()
+2d3cbfd6d54a net_sched: Flush gso_skb list too during ->change() [auto: cve already created]
+f11cf946c0a9 net: mctp: Don't access ifa_index when missing
+c92d6089d8ad net: cadence: macb: Fix a possible deadlock in macb_halt_tx.
+6b0cd72757c6 regulator: max20086: fix invalid memory access
+d871198ee431 io_uring/fdinfo: grab ctx->uring_lock around io_uring_show_fdinfo() [auto: cve already created]
+82bbe02b2500 wifi: mac80211: Set n_channels after allocating struct cfg80211_scan_request
+428dc9fc0873 sched_ext: bpf_iter_scx_dsq_new() should always initialize iterator
+a0fa7873f2f8 drm/amdgpu: csa unmap use uninterruptible lock
+bd07f751208b HID: uclogic: Add NULL check in uclogic_input_configured()
+fa7ab64f1e2f NFS/localio: Fix a race in nfs_local_open_fh()
+2d3cbfd6d54a net_sched: Flush gso_skb list too during ->change() [auto: cve already created]
+f11cf946c0a9 net: mctp: Don't access ifa_index when missing
+c92d6089d8ad net: cadence: macb: Fix a possible deadlock in macb_halt_tx.
+6b0cd72757c6 regulator: max20086: fix invalid memory access
+d871198ee431 io_uring/fdinfo: grab ctx->uring_lock around io_uring_show_fdinfo() [auto: cve already created]
+82bbe02b2500 wifi: mac80211: Set n_channels after allocating struct cfg80211_scan_request
+428dc9fc0873 sched_ext: bpf_iter_scx_dsq_new() should always initialize iterator
+a0fa7873f2f8 drm/amdgpu: csa unmap use uninterruptible lock
+d2062cc1b1c3 x86/sev: Do not touch VMSA pages during SNP guest memory kdump
+b47158fb4295 phy: tegra: xusb: Use a bitmask for UTMI pad power state tracking
+78ab4be54953 wifi: mt76: disable napi on driver removal
+fca280992af8 dmaengine: ti: k3-udma: Add missing locking
+fefc07518227 mm/page_alloc: fix race condition in unaccepted memory handling
