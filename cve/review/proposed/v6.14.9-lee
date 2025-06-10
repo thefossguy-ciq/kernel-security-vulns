@@ -1,0 +1,32 @@
+2e2f925fe737 virtio_ring: Fix data race by tagging event_triggered as racy for KCSAN
+e5f1e8af9c9e x86/fred: Fix system hang during S4 resume with FRED enabled
+7a874e8b54ea spi-rockchip: Fix register out of bounds access
+2356f15caefc xen: Add support for XenServer 6.1 platform device
+c7f50d0433a0 wifi: iwlwifi: don't warn when if there is a FW error
+eb29b4ffafb2 wifi: iwlwifi: fix debug actions order
+a79efc44b514 media: cx231xx: set device_caps for 417
+cc0aac7ca17e firmware: arm_ffa: Set dma_mask for ffa devices
+0da30874729b dmaengine: ti: k3-udma-glue: Drop skip_fdq argument from k3_udma_glue_reset_rx_chn
+eb963d7948ce clk: sunxi-ng: h616: Reparent GPU clock during frequency changes
+1bd2aad57da9 serial: mctrl_gpio: split disable_ms into sync and no_sync APIs
+1ed591582b7b drm/xe/display: Remove hpd cancel work sync from runtime pm path
+3a7810c212bc drm/amd/display: Increase block_sequence array size
+689805dcc474 net/mlx5e: Avoid WARN_ON when configuring MQPRIO with HTB offload enabled
+db1cafc77aaa cpufreq: amd-pstate: Remove unnecessary driver_lock in set_boost
+f6205f8215f1 vxlan: Annotate FDB data races
+13265fe7426e drm/xe/vf: Perform early GT MMIO initialization to read GMDID
+5a062c3c3b82 pinctrl: tegra: Fix off by one in tegra_pinctrl_get_group()
+46d22b47df27 nvmet-tcp: don't restore null sk_state_change
+bc7e09750935 btrfs: correct the order of prelim_ref arguments in btrfs__prelim_ref
+5595c31c3709 x86/Kconfig: make CFI_AUTO_DEFAULT depend on !RUST or Rust >= 1.88
+c46286fdd6aa mr: consolidate the ipmr_can_free_table() checks.
+3f981138109f sch_hfsc: Fix qlen accounting bug when using peek in hfsc_enqueue() [auto: cve already created]
+b2df03ed4052 crypto: algif_hash - fix double free in hash_accept
+d6ebcde6d4ec padata: do not leak refcount in reorder_work
+c2aba69d0c36 can: bcm: add locking for bcm_op runtime updates [auto: cve already created]
+dac5e6249159 can: bcm: add missing rcu read protection for procfs content [auto: cve already created]
+93a81ca06577 ALSA: pcm: Fix race of buffer access at PCM OSS layer
+4e89a4077490 platform/x86: dell-wmi-sysman: Avoid buffer overflow in current_password_store()
+7e7cb7a13c81 Revert "drm/amd: Keep display off while going into S4"
+12ca42c23775 alloc_tag: allocate percpu counters for module tags dynamically
+b6ea95a34cbd kasan: avoid sleepable page allocation from atomic context
