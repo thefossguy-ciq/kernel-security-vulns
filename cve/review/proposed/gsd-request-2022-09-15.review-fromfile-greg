@@ -49,7 +49,6 @@ a5623a203cff HID: hidraw: fix memory leak in hidraw_release()
 dc633700f00f net/af_packet: check len when min_header_len equals to 0
 945a9a8e448b media: pvrusb2: fix memory leak in pvr_probe
 9e9fa6a9198b udmabuf: Set the DMA mask for the udmabuf device (v2)
-a5a923038d70 fbdev: fbcon: Properly revert changes when vc_resize() failed
 cd11d1a6114b HID: steam: Prevent NULL pointer dereference in steam_{recv,send}_report
 a657182a5c51 bpf: Don't use tnum_range on array range checking for poke descriptors
 d957e7ffb2c7 scsi: storvsc: Remove WQ_MEM_RECLAIM from storvsc_error_wq
@@ -72,7 +71,6 @@ a6e675a66175 net/mlx5: LAG, fix logic over MLX5_LAG_FLAG_NDEVS_READY
 5a42f112d367 ice: xsk: prohibit usage of non-balanced queue id
 17ecd4a4db47 xfrm: policy: fix metadata dst->dev xmit null pointer dereference
 f1e941dbf80a nfc: pn533: Fix use-after-free bugs caused by pn532_cmd_timeout
-3c53cd65dece rose: check NULL rose_loopback_neigh->loopback
 fcfc8be1e9cf NFSv4.2 fix problems with __nfs42_ssc_open
 9c9cb23e00dd xfrm: fix refcount leak in __xfrm_policy_check()
 9c80e79906b4 kprobes: don't call disarm_kprobe() for disabled kprobes
@@ -106,7 +104,6 @@ c577ab7ba5f3 scsi: iscsi: Fix HW conn removal use after free
 bbca24d0a3c1 drm/amdgpu: Fix use-after-free on amdgpu_bo_list mutex
 82a1356a933d drm/sun4i: dsi: Prevent underflow when computing packet sizes
 232d150fa156 drm/i915/ttm: don't leak the ccs state
-6faee3d4ee8b igb: Add lock to avoid data race
 91b3c8dbe898 drm/meson: Fix refcount bugs in meson_vpu_has_available_connectors()
 5c23d6b717e4 stmmac: intel: Add a missing clk_disable_unprepare() call in intel_eth_pci_remove()
 fd8e899cdb5e net: dsa: sja1105: fix buffer overflow in sja1105_setup_devlink_regions()
@@ -127,19 +124,15 @@ ca3b7b9dc9bc ASoC: Intel: avs: Fix potential buffer overflow by snprintf()
 419831617ed3 iavf: Fix adminq error handling
 37a530bfe56c fs/ntfs3: Fix missing i_op in ntfs_read_mft
 321460ca3b55 fs/ntfs3: Fix NULL deref in ntfs_update_mftmirr
-fb24771faf72 fscache: don't leak cookie access refs if invalidation is in progress or failed
 19cd4a5471b8 vdpa_sim_blk: set number of address spaces and virtqueue groups
 58dd4385577e ceph: don't leak snap_rwsem in handle_cap_grant
-7e97cfed9929 vsock: Fix memory leak in vsock_connect()
 3f8fe40ab773 octeontx2-af: Fix mcam entry resource leak
 4b32e054335e pinctrl: nomadik: Fix refcount leak in nmk_pinctrl_dt_subnode_to_map
 1b7680c6c1f6 net: bgmac: Fix a BUG triggered by wrong bytes_compl
 4c46bb49460e net: dsa: felix: suppress non-changes to the tagging protocol
-6b4db2e528f6 devlink: Fix use-after-free after a failed reload
 8d12ec102928 virtio-blk: Avoid use-after-free on suspend/resume
 7a542bee27c6 virtio_net: fix memory leak inside XPD_TX with mergeable
 2ba5e47fb75f net: atlantic: fix aq_vec index out of range error
-8c21c54a53ab can: j1939: j1939_session_destroy(): fix memory leak of skbs
 85f02d6c856b btrfs: unset reloc control if transaction commit fails in prepare_to_relocate()
 cf4b7387c0a8 drm/ttm: Fix dummy res NULL ptr deref bug
 e2dcac2f58f5 BPF: Fix potential bad pointer dereference in bpf_sys_bpf()
@@ -155,7 +148,6 @@ ca08d0eac020 cifs: Fix memory leak on the deferred close
 89b008222c2b drm/amd/display: Check correct bounds for stream encoder instances for DCN303
 573ae4f13f63 tee: add overflow check in register_shm_helper()
 405294f29fae KVM: Unconditionally get a ref to /dev/kvm module when creating a VM
-67d7d8ad99be ext4: fix use-after-free in ext4_xattr_set_entry
 51ae846cff56 ext4: fix warning in ext4_iomap_begin as race between bmap and write
 179b14152dcb ext4: add EXT4_INODE_HAS_XATTR_SPACE macro in xattr.h
 1fbeea217d8f dm raid: fix address sanitizer warning in raid_status
@@ -238,7 +230,6 @@ f030304fdeb8 PCI: microchip: Fix refcount leak in mc_pcie_init_irq_domains()
 cbf9c4b9617b of: check previous kernel's ima-kexec-buffer against memory bounds
 77087a04c8fd mtd: maps: Fix refcount leak in ap_flash_init
 33ec82a6d2b1 mtd: maps: Fix refcount leak in of_flash_probe_versatile
-180a6a3ee60a netdevsim: fib: Fix reference count leak on route deletion failure
 6fd57e1d120b wifi: libertas: Fix possible refcount leak in if_usb_probe()
 d7c4c9e075f8 ax25: fix incorrect dev_tracker usage
 14a3aacf517a wifi: iwlwifi: mvm: fix double list_add at iwl_mvm_mac_wake_tx_queue
@@ -260,7 +251,6 @@ e0b212ec9d81 media: tw686x: Fix memory leak in tw686x_video_init
 a8eb8e6f7159 wifi: iwlegacy: 4965: fix potential off-by-one overflow in il4965_rs_fill_link_cmd()
 bd63f11f4c3c virtio-gpu: fix a missing check to avoid NULL dereference
 9e7aa76cdb02 media: imx-jpeg: Align upwards buffer size
-e4c72c06c367 i2c: Fix a potential use after free
 7d255ddbbf67 drm/meson: encoder_cvbs: Fix refcount leak in meson_encoder_cvbs_init
 d82a5a4aae9d drm/meson: encoder_hdmi: Fix refcount leak in meson_encoder_hdmi_init
 136f614931a2 drm/radeon: fix potential buffer overflow in ni_set_mc_special_registers()
@@ -292,16 +282,10 @@ e1a534f5d074 MIPS: cpuinfo: Fix a warning for CONFIG_CPUMASK_OFFSTACK
 d17f744e883b md-raid10: fix KASAN warning
 95f466d22364 netfilter: nf_tables: do not allow CHAIN_ID to refer to another table
 470ee20e069a netfilter: nf_tables: do not allow SET_ID to refer to another table
-580077855a40 netfilter: nf_tables: fix null deref due to zeroed list head
 2af89ebacf29 coresight: Clear the connection field properly
 3455607fd7be scsi: sg: Allow waiting for commands to complete on removed device
 e151db8ecfb0 md-raid: destroy the bitmap after destroying the thread
 035ff33cf4db fuse: write inode in fuse_release()
-8f0541186e9a ksmbd: fix heap-based overflow in set_ntacl_dacl()
-ac60778b87e4 ksmbd: prevent out of bound read for SMB2_WRITE
-cf6531d98190 ksmbd: fix use-after-free bug in smb2_tree_disconect
-824d4f64c200 ksmbd: prevent out of bound read for SMB2_TREE_CONNNECT
-aa7253c2393f ksmbd: fix memory leak in smb2_handle_negotiate
 06674fc7c003 iio: light: isl29028: Fix the warning in isl29028_remove()
 4c46091ee985 bpf: Fix KASAN use-after-free Read in compute_effective_progs
 a69e617e533e usbnet: Fix linkwatch use-after-free on disconnect
