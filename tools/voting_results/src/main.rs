@@ -41,6 +41,10 @@ struct Args {
     /// Skip git fetch operation
     #[clap(long = "no-fetch")]
     no_fetch: bool,
+
+    /// Do not print out annotations
+    #[clap(long = "no-annotate")]
+    no_annotate: bool,
 }
 
 struct VotingResults {
@@ -54,6 +58,7 @@ struct VotingResults {
     review_files: Vec<PathBuf>,
     annotated_files: Vec<PathBuf>,
     commits_by_pattern: HashMap<String, Vec<String>>,
+    no_annotate: bool,
 }
 
 impl VotingResults {
@@ -115,6 +120,7 @@ impl VotingResults {
             review_files: Vec::new(),
             annotated_files: Vec::new(),
             commits_by_pattern: HashMap::new(),
+            no_annotate: args.no_annotate,
         };
 
         // Initialize the remaining fields
@@ -596,6 +602,10 @@ impl VotingResults {
     }
 
     fn print_annotations(&self, oneline: &str) {
+        if self.no_annotate {
+            return;
+        }
+
         // Extract the commit SHA from the oneline format
         let Some(short_sha) = oneline.split_whitespace().next() else {
             return;
@@ -614,7 +624,7 @@ impl VotingResults {
                         if let Some(Ok(annotation_line)) = lines_iter.next() {
                             if !annotation_line.is_empty() {
                                 println!("  {annotation_line}");
-                                
+
                                 // Check for multi-line annotations (lines starting with two spaces)
                                 while let Some(Ok(continuation)) = lines_iter.next() {
                                     if continuation.starts_with("  ") {
