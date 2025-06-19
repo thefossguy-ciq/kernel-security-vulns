@@ -1108,6 +1108,7 @@ mod tests {
             review_files: Vec::new(),
             annotated_files: Vec::new(),
             commits_by_pattern: HashMap::new(),
+            no_annotate: false,
         }
     }
 }
