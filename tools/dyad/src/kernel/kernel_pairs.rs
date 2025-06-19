@@ -476,6 +476,14 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
         // Add all stable fix pairs for this vulnerability
         for pair in &vuln_pairs {
             if !pair.fixed.is_mainline() {
+                // Ensure that the mainline kernel isn't "newer" than the fixed kernel, this catches things
+                // where a fix was backported to older kernels, but the vulnerable commit never was, so
+                // there's no "vulnerable" range here.
+                if pair.vulnerable > pair.fixed {
+                    debug!("Skipping {}:{} as this range is backwards", pair.vulnerable.version(), pair.fixed.version());
+                    continue;
+                }
+
                 debug!(
                     "Added stable fix for {}:{} -> {}",
                     pair.vulnerable.version(),

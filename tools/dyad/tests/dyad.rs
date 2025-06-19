@@ -554,8 +554,6 @@ fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() -> Result<()
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 547713d502f7b4b8efccd409cff84d731a23853b\n\
-         6.7:5329aa5101f73c451bcd48deaf3f296685849d9c:6.1.75:ea6b597fcaca99562fa56a473bcbbbd79b40af03\n\
-         6.7:5329aa5101f73c451bcd48deaf3f296685849d9c:6.6.14:48be1364dd387e375e1274b76af986cb8747be2c\n\
          6.7:5329aa5101f73c451bcd48deaf3f296685849d9c:6.7.2:92be3095c6ca1cdc46237839c6087555be9160e3\n\
          6.7:5329aa5101f73c451bcd48deaf3f296685849d9c:6.8:547713d502f7b4b8efccd409cff84d731a23853b\n";
 
