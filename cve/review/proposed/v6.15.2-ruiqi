@@ -1,0 +1,4 @@
+e3975aa899c0 serial: jsm: fix NPE during jsm_uart_port_init
+8c0a55982528 binder: fix use-after-free in binderfs_evict_inode()
+9857af0fcff3 binder: fix yet another UAF in binder_devices
+0f73628e9da1 thunderbolt: Do not double dequeue a configuration request

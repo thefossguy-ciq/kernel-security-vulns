@@ -1,0 +1,71 @@
+7f533cc5ee4c scsi: target: iscsi: Fix timeout on deleted connection
+f591cf9fce72 vhost-scsi: protect vq->log_used with vq->mutex
+c0e473a0d226 block: fix race between set_blocksize and read paths
+e5f1e8af9c9e x86/fred: Fix system hang during S4 resume with FRED enabled
+7a874e8b54ea spi-rockchip: Fix register out of bounds access
+14d17c78a4b1 Bluetooth: Disable SCO support if READ_VOICE_SETTING is unsupported/broken
+ef1d3455bbc1 libnvdimm/labels: Fix divide error in nd_label_data_init()
+631ca8909fd5 x86/mm: Check return value from memblock_phys_alloc_range()
+0ec6bd16705f ASoC: sma1307: Add NULL check in sma1307_setting_loaded()
+2356f15caefc xen: Add support for XenServer 6.1 platform device
+5f2909c6cd13 posix-timers: Add cond_resched() to posix_timer_add() search loop
+eb29b4ffafb2 wifi: iwlwifi: fix debug actions order
+0e104aa3676d wifi: mac80211: fix warning on disconnect during failed ML reconf
+934e9d137d93 PCI: endpoint: pci-epf-test: Fix double free that causes kernel to oops
+cc47f07234f7 crypto: lzo - Fix compression buffer overrun
+5da692e2262b dm cache: prevent BUG_ON by blocking retries on failed device resumes
+a79efc44b514 media: cx231xx: set device_caps for 417
+cc0aac7ca17e firmware: arm_ffa: Set dma_mask for ffa devices
+0da30874729b dmaengine: ti: k3-udma-glue: Drop skip_fdq argument from k3_udma_glue_reset_rx_chn
+8bd2fa086a04 virtio: break and reset virtio devices on device_shutdown()
+1f7df3a69174 genirq/msi: Store the IOMMU IOVA directly in msi_desc instead of iommu_cookie
+425e64440ad0 net: pktgen: fix access outside of user given buffer in pktgen_thread_write()
+1bd2aad57da9 serial: mctrl_gpio: split disable_ms into sync and no_sync APIs
+bbbc02b7445e bpf: copy_verifier_state() should copy 'loop_entry' field
+f99c5bb396b8 posix-timers: Invoke cond_resched() during exit_itimers()
+1ed591582b7b drm/xe/display: Remove hpd cancel work sync from runtime pm path
+3a7810c212bc drm/amd/display: Increase block_sequence array size
+43d0105e2c75 ext4: don't write back data before punch hole in nojournal mode
+2b8bdc523701 wifi: rtw89: fw: validate multi-firmware header before getting its size
+1f0efffd5978 wifi: rtw89: fw: validate multi-firmware header before accessing
+689805dcc474 net/mlx5e: Avoid WARN_ON when configuring MQPRIO with HTB offload enabled
+db1cafc77aaa cpufreq: amd-pstate: Remove unnecessary driver_lock in set_boost
+f6205f8215f1 vxlan: Annotate FDB data races
+f0842902b383 scsi: lpfc: Free phba irq in lpfc_sli4_enable_msi() when pci_irq_vector() fails
+13265fe7426e drm/xe/vf: Perform early GT MMIO initialization to read GMDID
+012a6efcc805 ASoC: sma1307: Fix error handling in sma1307_setting_loaded()
+5a062c3c3b82 pinctrl: tegra: Fix off by one in tegra_pinctrl_get_group()
+183a08715af1 virtgpu: don't reset on shutdown
+46d22b47df27 nvmet-tcp: don't restore null sk_state_change
+0cd34d98dfd4 iio: accel: fxls8962af: Fix wakeup source leaks on device unbind
+ad3764b45c15 iio: adc: qcom-spmi-iadc: Fix wakeup source leaks on device unbind
+4551383e78d5 iio: imu: st_lsm6dsx: Fix wakeup source leaks on device unbind
+bc7e09750935 btrfs: correct the order of prelim_ref arguments in btrfs__prelim_ref
+f95d186255b3 btrfs: avoid NULL pointer dereference if no valid csum tree
+5595c31c3709 x86/Kconfig: make CFI_AUTO_DEFAULT depend on !RUST or Rust >= 1.88
+250cf3693060 __legitimize_mnt(): check for MNT_SYNC_UMOUNT should be under mount_lock
+63c1f19a3be3 espintcp: fix skb leaks
+028363685bd0 espintcp: remove encap socket caching to avoid reference leak
+7dd7f39fce00 ASoC: SOF: Intel: hda: Fix UAF when reloading module
+99bcd91fabad perf/x86/intel: Fix segfault with PEBS-via-PT with sample_freq
+c9e455581e2b ptp: ocp: Limit signal/freq counts in summary output functions
+c46286fdd6aa mr: consolidate the ipmr_can_free_table() checks.
+2dabe349f788 idpf: fix null-ptr-deref in idpf_features_check
+3f981138109f sch_hfsc: Fix qlen accounting bug when using peek in hfsc_enqueue()
+e27902461713 net/tipc: fix slab-use-after-free Read in tipc_aead_encrypt_done
+3e14c7207a97 clk: s2mps11: initialise clk_hw_onecell_data::num before accessing ::hws[] in probe()
+b2df03ed4052 crypto: algif_hash - fix double free in hash_accept
+d6ebcde6d4ec padata: do not leak refcount in reorder_work
+c2aba69d0c36 can: bcm: add locking for bcm_op runtime updates
+dac5e6249159 can: bcm: add missing rcu read protection for procfs content
+93a81ca06577 ALSA: pcm: Fix race of buffer access at PCM OSS layer
+ba54bce747fa net: dsa: microchip: linearize skb for tail-tagging switches
+4e89a4077490 platform/x86: dell-wmi-sysman: Avoid buffer overflow in current_password_store()
+a7a8fe56e932 smb: client: Fix use-after-free in cifs_fill_dirent
+7e7cb7a13c81 Revert "drm/amd: Keep display off while going into S4"
+12ca42c23775 alloc_tag: allocate percpu counters for module tags dynamically
+b6ea95a34cbd kasan: avoid sleepable page allocation from atomic context
+06717a7b6c86 memcg: always call cond_resched() after fn()
+113ed54ad276 mm/hugetlb: fix kernel NULL pointer dereference when replacing free hugetlb folios
+e05741fb10c3 mm/page_alloc.c: avoid infinite retries caused by cpuset race
+fb881cd76045 nilfs2: fix deadlock warnings caused by lock dependency in init_nilfs()
