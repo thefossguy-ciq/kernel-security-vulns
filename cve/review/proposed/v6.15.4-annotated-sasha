@@ -1,0 +1,1630 @@
+4f6fc78212835 perf: Fix sample vs do_exit()
+- [sasha] Now let me analyze the security implications based on the commit changes:
+  **YES**
+  This commit should be assigned a CVE because it fixes a critical security vulnerability with the following characteristics:
+  1. **Use-After-Free/Memory Access Violation**: The bug allows perf to access userspace memory after the process's memory map (mm) has been torn down during exit. This occurs because `perf_event_exit_task()` was called after `exit_mm()`, creating a window where perf could try to access freed/invalid memory.
+  2. **Crash/DoS Impact**: The commit message explicitly mentions an ARM64 crash with "synchronous external abort" caused by accessing MMIO in bad ways. This can lead to system crashes or denial of service.
+  3. **Race Condition**: The issue is a race condition between process exit and perf sampling, where:
+     - The process is exiting and tearing down its address space in `exit_mmap()`
+     - Perf is simultaneously trying to access that address space for stack sampling
+     - This creates a use-after-free scenario
+  4. **Security Boundary Violation**: The fix adds explicit checks for `current->mm` being NULL in:
+     - `perf_sample_ustack_size()`: Returns 0 if no mm exists
+     - `perf_callchain()`: Disables user callchain collection if no mm exists
+  5. **Widespread Impact**: The vulnerability affects two major perf sampling features:
+     - `PERF_SAMPLE_CALLCHAIN`: User callchain collection
+     - `PERF_SAMPLE_STACK_USER`: User stack dump collection
+  The fix reorders operations in `do_exit()` to stop perf sampling before tearing down the mm, and adds defensive checks to prevent accessing user memory when the mm is gone. This prevents the crash/memory corruption scenario described in the commit message.
+88efa0de3285b EDAC/igen6: Fix NULL pointer dereference
+- [sasha] Now I understand the issue. Let me analyze the crash scenario:
+  Based on my analysis of the commit and code changes:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **NULL Pointer Dereference Vulnerability**: The commit fixes a kernel panic caused by a NULL pointer dereference at address 0x000000000000d570 in the `ecclog_handler` function. The crash occurs when accessing `imc->window` which is NULL for absent memory controllers.
+  2. **Security Impact**: The vulnerability causes a kernel panic/crash which can lead to:
+     - System denial of service (DoS)
+     - System unavailability 
+     - Potential data loss from unexpected system crashes
+  3. **Root Cause**: When BIOS disables a memory controller, the driver still iterates through all expected memory controllers (res_cfg->num_imc). For absent controllers, the `imc->window` field remains NULL because they were skipped during initialization, but the error handler (ecclog_handler) still tries to access them.
+  4. **Exploitability**: While this appears to be triggered by specific hardware configurations (BIOS disabling memory controllers), it could potentially be triggered in virtualized environments or through other means that affect memory controller visibility.
+  5. **Fix**: The commit fixes this by updating `res_cfg->num_imc` to reflect only the actually detected/present memory controllers, preventing the error handler from accessing uninitialized memory controller structures.
+  The vulnerability is similar to other NULL pointer dereferences that have been assigned CVEs (as shown in the similar commits), and it results in a complete system crash, making it a security-relevant issue worthy of CVE assignment.
+a379a8a2a0032 smb: client: fix max_sge overflow in smb_extract_folioq_to_rdma()
+- [sasha] Based on my analysis of the commit, I can now provide my assessment:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact - Memory Corruption**: The KASAN report clearly shows a slab-out-of-bounds write in `smb_set_sge()` at line where it writes to `sge->addr`. The buggy address `ffff888011082890` is 0 bytes to the right of the allocated 144-byte region, indicating a buffer overflow.
+  2. **Root Cause**: The bug is in the loop condition of `smb_extract_folioq_to_rdma()`:
+     - Original buggy code: `while (rdma->nr_sge < rdma->max_sge || maxsize > 0)`
+     - Fixed code: `while (rdma->nr_sge < rdma->max_sge && maxsize > 0)`
+     
+     The OR condition allowed the loop to continue even when `rdma->nr_sge >= rdma->max_sge`, as long as `maxsize > 0`. This causes writes beyond the allocated SGE array bounds.
+  3. **Exploitability**: The overflow occurs in RDMA (Remote Direct Memory Access) code path used by SMB/CIFS network file system. An attacker could potentially trigger this by:
+     - Mounting a malicious SMB server that sends specially crafted responses
+     - Causing large file transfers that exercise the RDMA code path
+     - The overflow could potentially lead to arbitrary kernel memory corruption
+  4. **Real-world Impact**: The commit message includes a detailed KASAN trace from fstests, showing this is a real bug that can be triggered in practice. The trace shows it happens during file flush operations (`cifs_flush`), which is a common operation.
+  5. **Privileged Operation**: While mounting CIFS shares typically requires some privileges, once mounted, unprivileged users can trigger file operations that would exercise this code path.
+  The fix is minimal and correct - changing the loop condition from OR to AND ensures that both conditions must be true to continue, preventing the array overflow when `nr_sge` reaches `max_sge`.
+94a17f2dc90bc x86/mm: Disable INVLPGB when PTI is enabled
+- [sasha] Based on my analysis of both the commit message and code changes:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  1. **Memory Corruption Vulnerability**: The commit fixes a buffer overflow in the kernel. The `user_pcid_flush_mask` bitmap is only 16 bits (unsigned short), but INVLPGB can allocate ASIDs up to 2046. When `invalidate_user_asid()` tries to set bits for ASIDs > 15, it overflows the 16-bit bitmap, corrupting adjacent kernel memory.
+  2. **Security Impact**: This is not just a functional bug but a security vulnerability because:
+     - It causes kernel memory corruption through buffer overflow
+     - Memory corruption in kernel space can lead to privilege escalation, information disclosure, or system crashes
+     - It affects critical security infrastructure (PTI - Page Table Isolation, which is a Meltdown mitigation)
+  3. **Exploitability**: The vulnerability can be triggered by:
+     - Running multiple multi-threaded processes that cause INVLPGB to allocate many global ASIDs
+     - This is particularly concerning on AMD systems where users might manually enable PTI with `pti=on`
+  4. **The Fix**: The patch prevents the vulnerability by disabling INVLPGB when PTI is enabled, avoiding the incompatible configuration that leads to the overflow.
+  The commit message's note that "this will be fixed up properly by making the bitmap bigger" confirms this is addressing a real overflow issue, not just a theoretical concern.
+cade3d57e456e KVM: arm64: VHE: Synchronize restore of host debug registers
+- [sasha] Based on my analysis, here's my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Vulnerability**: The commit fixes a race condition where the host could take an unexpected debug exception with stale guest debug configuration. This is explicitly stated in the commit message: "it's theoretically possible for the host to take an unexpected debug exception due to the stale guest configuration."
+  2. **Guest-to-Host Information Leak**: The race condition could allow guest debug state to affect host execution, potentially leading to:
+     - Information disclosure between guest and host
+     - Unexpected debug exceptions in host context with guest debug registers
+     - Potential for a malicious guest to set up debug registers to monitor host execution
+  3. **Missing Security Boundary Enforcement**: The lack of proper synchronization (ISB - Instruction Synchronization Barrier) between restoring host debug registers and unmasking debug exceptions violates the security boundary between guest and host contexts.
+  4. **Stable Kernel Backport**: The commit includes "Cc: stable@vger.kernel.org" which indicates this is considered a security-relevant fix that needs to be backported to stable kernels.
+  5. **Privilege Escalation Potential**: While the commit message says "theoretically possible," the window exists where:
+     - Guest debug configuration remains active after returning to host
+     - Host debug exceptions are unmasked without proper synchronization
+     - This could allow a malicious guest to influence host debug behavior
+  The fix adds an ISB (Instruction Synchronization Barrier) after restoring host debug registers in VHE mode, ensuring that the debug register changes are synchronized before debug exceptions can be taken. This is a classic security boundary enforcement issue that warrants a CVE assignment.
+d03b79f459c79 net: atm: fix /proc/net/atm/lec handling
+- [sasha] Based on my analysis of the commit and code:
+  **YES**, this commit should be assigned a CVE.
+  **Explanation:**
+  This commit fixes a clear **use-after-free (UAF) vulnerability** in the Linux kernel's ATM LAN Emulation (LEC) driver. The vulnerability occurs in the `/proc/net/atm/lec` handling code due to improper reference counting of network devices.
+  **Key security issues fixed:**
+  1. **Imbalanced reference counting**: The code was calling `dev_put()` twice without corresponding `dev_hold()` calls:
+     - Once in `lec_itf_walk()` at line 907
+     - Once in `lec_seq_stop()` at line 948
+     - But no `dev_hold()` was called when retrieving devices from the `dev_lec[]` array
+  2. **Race condition**: The `dev_lec[]` array could be modified (devices freed) while the `/proc` interface was reading it, as there was no proper locking mechanism.
+  3. **Use-after-free vulnerability**: Due to the imbalanced reference counting, a device could be freed while still being accessed through the `/proc` interface, leading to a UAF condition.
+  **The fix addresses these issues by:**
+  - Removing the incorrect `dev_put()` calls
+  - Adding `mutex_lock(&lec_mutex)` to protect against concurrent access to `dev_lec[]`
+  - Preventing the UAF by not decrementing reference counts that were never incremented
+  This vulnerability could potentially be exploited by a local attacker with access to `/proc/net/atm/lec` to cause kernel crashes or potentially achieve privilege escalation through the UAF condition. The commit message explicitly mentions "UAF" (use-after-free), which is a well-known security vulnerability class.
+  Similar to the first two commits in the reference list (which also fixed UAF vulnerabilities in the ATM subsystem and were assigned CVEs), this commit fixes a memory safety issue that has clear security implications.
+10876da918fa1 calipso: Fix null-ptr-deref in calipso_req_{set,del}attr().
+- [sasha] Based on my analysis of this commit, I determine:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning:
+  1. **Null pointer dereference vulnerability**: The commit fixes a null pointer dereference in `calipso_req_setattr()` and `calipso_req_delattr()` functions. The crash occurs when `sk_to_full_sk()` returns NULL during SYN Cookie processing.
+  2. **Remote triggerable**: This vulnerability can be triggered remotely through network packets. The reproduction shows it can be triggered by a simple TCP connection attempt when CALIPSO is configured and SYN cookies are enabled.
+  3. **Security impact**: The vulnerability causes a kernel crash (general protection fault) which results in a denial of service. The crash trace shows it happens in interrupt context during packet processing.
+  4. **Real-world exploitability**: The commit message provides a clear reproduction case using standard tools (nc) on a Fedora system with SELinux and CALIPSO configured. This makes it practically exploitable in production environments using these security features.
+  5. **Similar to other CVE-assigned commits**: Looking at the similar commits provided, all null pointer dereference fixes in networking code that can be triggered remotely have been assigned CVEs (e.g., the CALIPSO IPv4 socket issue, io_uring null-ptr-deref, bpf sockmap issue).
+  The key security-relevant code changes show:
+  - In `calipso_req_setattr()`: Added check `if (!sk) return -ENOMEM;`
+  - In `calipso_req_delattr()`: Added check `if (!sk) return;`
+  These checks prevent the null pointer from being dereferenced when passed to `sock_kmalloc()` and other functions that expect a valid socket pointer.
+8c84728558843 ublk: santizize the arguments from userspace when adding a device
+- [sasha] ## Analysis
+  **YES**, this commit should be assigned a CVE.
+  The commit fixes a critical integer overflow vulnerability in the ublk driver. Here's why:
+  1. **Integer Overflow in Memory Allocation**: 
+     - Line 2383: `int ubq_size = sizeof(struct ublk_queue) + depth * sizeof(struct ublk_io);`
+     - Line 2387: `ub->__queues = kcalloc(nr_queues, ubq_size, GFP_KERNEL);`
+     
+     Without bounds checking, a malicious user can provide large values for `queue_depth` and `nr_hw_queues` that cause integer overflow in the multiplication operations.
+  2. **Attack Vector**:
+     - The values come directly from userspace via `copy_from_user(&info, argp, sizeof(info))` 
+     - `info.queue_depth` and `info.nr_hw_queues` are controlled by the attacker
+     - These are used in arithmetic operations that can overflow
+  3. **Security Impact**:
+     - Integer overflow in `depth * sizeof(struct ublk_io)` can make `ubq_size` wrap around to a small value
+     - Integer overflow in `nr_queues * ubq_size` in kcalloc can allocate much less memory than expected
+     - This leads to heap buffer overflow when the code later accesses the allocated memory based on the original (non-overflowed) values
+     - Could result in kernel memory corruption, potentially leading to privilege escalation or system crash
+  4. **Similar to CVE-assigned Commits**:
+     - Similar Commit 1 (CVE assigned) fixed an overflow where `queue_size` was too small to hold the calculated value
+     - This commit fixes a similar issue where unchecked multiplication can cause overflow
+  The fix properly validates that `queue_depth <= UBLK_MAX_QUEUE_DEPTH (4096)` and `nr_hw_queues <= UBLK_MAX_NR_QUEUES (4096)`, preventing the integer overflow vulnerability.
+e353b0854d3a1 net: lan743x: fix potential out-of-bounds write in lan743x_ptp_io_event_clock_get()
+- [sasha] Based on my analysis of the commit and code, here is my assessment:
+  **YES**, this commit should be assigned a CVE.
+  Here's the explanation:
+  1. **Out-of-bounds write vulnerability**: The commit fixes a clear out-of-bounds write vulnerability. The `lan743x_ptp_io_event_clock_get()` function writes to `ptp->extts[channel]` array, which was defined with only 4 elements (`LAN743X_PTP_N_EXTTS = 4`), but the channel parameter could be up to 7 (validated against `PCI11X1X_PTP_IO_MAX_CHANNELS = 8`).
+  2. **Memory corruption potential**: When channel values 4-7 are used, the code writes beyond the bounds of the `extts` array at line 1055: `extts = &ptp->extts[channel];`. This causes memory corruption by overwriting adjacent memory structures.
+  3. **Exploitable from hardware events**: The vulnerability is triggered through PTP-IO interrupt handling, which processes hardware events. An attacker with the ability to generate PTP-IO events on channels 4-7 could trigger this out-of-bounds write.
+  4. **Clear security impact**: This is a classic buffer overflow that could lead to:
+     - Memory corruption
+     - Potential code execution if attacker can control the overwritten memory
+     - System crashes/denial of service
+     - Information disclosure
+  5. **The fix is security-focused**: The commit message explicitly states it fixes a "potential out-of-bounds write" which is a security issue. The fix changes the array size from 4 to 8 to match the validation check.
+  This is similar to the ice driver CVE example (Similar Commit 5) which also involved a NULL pointer dereference in PTP handling code, though this lan743x issue is an out-of-bounds write which is typically more severe.
+5bd1bafd4474e eth: fbnic: avoid double free when failing to DMA-map FW msg
+- [sasha] Let me analyze what I have from the provided information. The key change is:
+  ```diff
+  addr = dma_map_single(fbd->dev, msg, PAGE_SIZE, direction);
+  -if (dma_mapping_error(fbd->dev, addr)) {
+  -    free_page((unsigned long)msg);
+  -
+  +if (dma_mapping_error(fbd->dev, addr))
+       return -ENOSPC;
+  -}
+  ```
+  The function `fbnic_mbx_map_msg()` was freeing the page on DMA mapping error, but the callers were also freeing the page on error, resulting in a double free. Looking at the caller pattern:
+  ```c
+  err = fbnic_mbx_map_msg(fbd, FBNIC_IPC_MBX_RX_IDX, msg,
+                          FBNIC_RX_PAGE_SIZE, 0);
+  if (err)
+      free_page((unsigned long)msg);
+  ```
+  This is a classic double free vulnerability where:
+  1. `fbnic_mbx_map_msg()` frees the page on DMA mapping error
+  2. The caller also frees the page when `fbnic_mbx_map_msg()` returns an error
+  3. This results in the same memory being freed twice
+  **YES**
+  This commit fixes a double free vulnerability that occurs when DMA mapping fails in the firmware mailbox communication path. The vulnerability allows the same memory page to be freed twice - once inside `fbnic_mbx_map_msg()` when `dma_mapping_error()` returns true, and again by the caller when the function returns an error. Double free vulnerabilities can lead to memory corruption, use-after-free conditions, and potentially arbitrary code execution in kernel context. This is a clear security issue that warrants a CVE assignment.
+f82727adcf299 tipc: fix null-ptr-deref when acquiring remote ip of ethernet bearer
+- [sasha] **YES**
+  This commit fixes a security vulnerability that should be assigned a CVE. The vulnerability allows unprivileged local users to trigger a kernel NULL pointer dereference resulting in a denial of service (kernel crash).
+  Key evidence:
+  1. **Unprivileged access**: The crash log shows "UID: 1000", confirming non-root users can trigger it
+  2. **Type confusion vulnerability**: The code incorrectly casts a `struct net_device` pointer as `struct udp_bearer`, then dereferences fields that don't exist at those offsets
+  3. **No privilege checks**: The netlink handler lacks CAP_NET_ADMIN checks or GENL_ADMIN_PERM flags
+  4. **Clear security impact**: Local DoS through kernel crash via simple netlink commands
+  5. **The fix validates bearer type**: Adding `b->bcast_addr.media_id != TIPC_MEDIA_TYPE_UDP` checks prevents the type confusion
+  This matches the pattern of the similar CVE-assigned commits shown, which also involved NULL pointer dereferences in TIPC netlink handlers accessible to unprivileged users.
+2f370ae1fb631 atm: atmtcp: Free invalid length skb in atmtcp_c_send().
+- [sasha] Now I have a complete understanding of the issue. Let me analyze it systematically:
+  **YES**
+  This commit fixes a kernel information leak vulnerability in the ATM TCP driver (atmtcp). The security implications are:
+  1. **Uninitialized Memory Read (KMSAN)**: The code was accessing `skb->data` as a `struct atmtcp_hdr` (8 bytes) without verifying that the skb buffer contains at least that much data. When `skb->len` is less than `sizeof(struct atmtcp_hdr)`, this results in reading uninitialized kernel memory.
+  2. **Memory Leak Pattern**: Similar to the CVE-assigned commits shown, this follows the pattern of:
+     - User-controlled input size (`skb->len` from userspace via `vcc_sendmsg()`)
+     - Insufficient bounds checking before accessing structured data
+     - Reading beyond allocated/initialized buffer boundaries
+  3. **Resource Leak**: When `skb->len == 0`, the code would return without properly freeing the skb or adjusting `sk_wmem_alloc`. This causes both memory leak and socket buffer accounting issues, potentially leading to resource exhaustion.
+  4. **Attack Vector**: An unprivileged user can trigger this by sending specially crafted ATM messages through the `atmtcp` interface, potentially exposing kernel memory contents.
+  The fix properly validates that `skb->len >= sizeof(struct atmtcp_hdr)` before accessing the header structure, preventing the information leak. It also ensures proper cleanup of the skb in all error paths.
+1e9ac33fa271b bnxt_en: Fix double invocation of bnxt_ulp_stop()/bnxt_ulp_start()
+- [sasha] Based on my analysis of this commit:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **NULL pointer dereference causing kernel crash**: The commit message clearly describes a NULL pointer dereference at address 0x0000000000000b78 that causes a kernel crash. The stack trace shows:
+     ```
+     BUG: kernel NULL pointer dereference, address: 0000000000000b78
+     ```
+  2. **Double invocation vulnerability**: The issue is caused by `bnxt_ulp_restart()` calling `bnxt_ulp_stop()` followed by `bnxt_ulp_start()`, which can result in the RoCE driver's auxiliary driver `.suspend()` method being invoked twice. The second invocation crashes when dereferencing a NULL `ib_device` pointer.
+  3. **Security impact**: This is a kernel crash vulnerability that can be triggered through the network driver's error recovery path. While it requires specific conditions (RoCE driver in use, certain recovery scenarios), it can cause a denial of service through kernel panic.
+  4. **The fix adds proper state checking**: The code changes add checks for the `BNXT_EN_FLAG_ULP_STOPPED` flag to prevent the double invocation:
+     ```c
+     if (!bnxt_ulp_registered(edev) ||
+         (edev->flags & BNXT_EN_FLAG_ULP_STOPPED))
+         goto ulp_stop_exit;
+     ```
+  5. **Similar to other CVE-assigned commits**: This follows patterns similar to the reference commits that were assigned CVEs - specifically fixing NULL pointer dereferences in driver code that can cause kernel crashes.
+  The vulnerability allows a local denial of service through kernel panic when specific network hardware and drivers are in use, which warrants CVE assignment.
+f744201c6159f rust: devres: fix race in Devres::drop()
+- [sasha] Based on my analysis of the commit, I can now provide my assessment:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Use-After-Free Vulnerability**: The commit explicitly fixes a race condition that can lead to use-after-free bugs. The commit message states: "Depending on the specific device resource, this can potentially lead to user-after-free bugs."
+  2. **Race Condition in Resource Management**: The vulnerability occurs when `Devres::drop()` and the devres callback (`devres_callback()`) execute concurrently. The race allows a device resource to be freed while the device driver core is still unbinding the device, creating a window where freed memory could be accessed.
+  3. **Security Impact**: The vulnerable code manages device resources (like I/O memory mappings) which are critical kernel resources. A use-after-free in this context could potentially:
+     - Allow access to freed kernel memory
+     - Lead to privilege escalation if exploited
+     - Cause system crashes or instability
+  4. **Clear Exploitation Window**: The commit shows a specific race scenario:
+     ```
+     CPU0                          CPU1
+     Devres::drop() {              Devres::devres_callback() {
+        self.data.revoke() {          this.data.revoke() {
+           is_available.swap() == true
+                                        is_available.swap == false
+                                     }
+                                  }
+                                  // device fully unbound
+           drop_in_place() {
+              // release device resource
+           }
+        }
+     }
+     ```
+  5. **Similar Pattern to CVE-Assigned Commits**: This follows patterns seen in the similar commits that were assigned CVEs:
+     - Fixes a race condition between concurrent operations
+     - Involves resource cleanup ordering issues
+     - Can lead to use-after-free vulnerabilities
+     - Affects kernel memory management
+  The fix adds proper synchronization using a completion mechanism to ensure the device resource is fully cleaned up before the device is unbound, preventing the use-after-free condition.
+9802f0a63b641 drm/nouveau: fix a use-after-free in r535_gsp_rpc_push()
+- [sasha] **YES**
+  This commit should be assigned a CVE based on the following analysis:
+  1. **Security Vulnerability**: This is a clear use-after-free vulnerability in kernel space code. The bug occurs when `r535_gsp_rpc_send()` frees the RPC container after sending the initial fragment, but the code continues to use the freed memory when sending subsequent fragments.
+  2. **Exploitable by Unprivileged Users**: The nouveau driver exposes multiple ioctls with `DRM_RENDER_ALLOW` flag, allowing unprivileged users (members of video/render groups) to trigger GPU operations that can lead to GSP RPC calls. This makes the vulnerability accessible to local unprivileged users.
+  3. **Memory Corruption in Kernel Space**: The use-after-free occurs in kernel memory management (`kvfree()` is called prematurely), which could lead to:
+     - Kernel crashes/DoS
+     - Memory corruption
+     - Potential privilege escalation if the freed memory is reallocated with attacker-controlled data
+  4. **Similar to CVE-assigned Commits**: The historical commits show that DRM subsystem memory management bugs regularly receive CVEs:
+     - Similar Commit 1 & 2: DMA buffer leaks in nouveau (CVE assigned)
+     - Similar Commit 3 & 4: Use-after-free in adv7511 driver (CVE assigned)
+  5. **Clear Security Impact**: The commit message explicitly states "use-after-free" which is a well-known security vulnerability class. The fix shows that the original code was freeing memory that was still being accessed in subsequent operations.
+  The vulnerability allows local users with GPU access to potentially corrupt kernel memory and possibly escalate privileges, making it a legitimate security issue deserving of a CVE assignment.
+5466491c9e330 ionic: Prevent driver/fw getting out of sync on devcmd(s)
+- [sasha] **YES**
+  This commit should be assigned a CVE. The bug causes a driver/firmware synchronization issue where the `done` variable is not reset when retrying device commands after EAGAIN errors. Specifically:
+  1. **The vulnerability**: When jumping to `try_again` (line 570), the `done` variable retains its previous value. If it was `true` from a prior iteration, the wait loop immediately exits without actually waiting for the new command to complete.
+  2. **Security impact**: This synchronization bug allows:
+     - Commands to be issued while previous ones are still executing
+     - Driver/firmware state desynchronization
+     - Potential corruption of device control state
+     - Unpredictable device behavior and potential denial of service
+  3. **Affected component**: The `__ionic_dev_cmd_wait()` function controls all device commands including initialization, reset, port configuration, and other critical operations.
+  The fix properly resets `done = false` after the `try_again:` label, ensuring the driver correctly waits for command completion on retries. Similar ionic driver commits fixing state corruption and resource management issues (commits 3-5 in the reference list) were assigned CVEs, making this synchronization vulnerability equally deserving of a CVE designation.
+2b520c6104f34 drm/msm/a7xx: Call CP_RESET_CONTEXT_STATE
+- [sasha] Based on my analysis of this commit:
+  **YES**
+  This commit should be assigned a CVE based on the following security implications:
+  1. **Denial of Service Vulnerability**: The commit message explicitly states "Otherwise a userspace submission in one context could cause another context to function incorrectly and hang, effectively a denial of service". This is a clear security vulnerability where one context can interfere with another context's execution.
+  2. **Cross-Context State Contamination**: The fix adds `CP_RESET_CONTEXT_STATE` to reset state that is "used by userspace to synchronize between BR and BV that are persistent across submits". Without this reset, state from one context can leak into another context, causing incorrect behavior.
+  3. **Missing Security Boundary**: The code change adds essential context isolation that was missing in the initial A7xx implementation. The fix ensures proper isolation between different userspace contexts by resetting:
+     - On-chip timestamps (`CLEAR_ON_CHIP_TS`)
+     - Resource tables (`CLEAR_RESOURCE_TABLE`)
+     - BR/BV counters (`CLEAR_BV_BR_COUNTER`)
+     - Global/local timestamps (`RESET_GLOBAL_LOCAL_TS`)
+  4. **User-Controllable Attack Vector**: Since this involves userspace submissions that can affect other contexts, this represents a user-controllable attack vector where a malicious or buggy application could intentionally or unintentionally cause other applications to malfunction.
+  The commit fixes a security vulnerability that allows cross-context interference, which is a legitimate denial of service issue that warrants CVE assignment.
+e1bc3a13bd775 drm/v3d: Avoid NULL pointer dereference in `v3d_job_update_stats()`
+- [sasha] Based on my analysis of this commit, I can now provide my assessment:
+  **YES**
+  This commit should be assigned a CVE because:
+  1. **It fixes a NULL pointer dereference vulnerability** that causes a kernel panic/crash, as shown in the stack trace in the commit message. The crash occurs at offset 0x588 when trying to access `file->stats[queue]`.
+  2. **The vulnerability is triggered by a race condition** where a file descriptor is closed while GPU jobs submitted by that fd are still running. When the job completes and tries to update statistics, it dereferences the freed `v3d_file_priv` structure.
+  3. **The code changes show the security fix**: The patch adds a NULL check for the `file` pointer before attempting to access `file->stats[queue]`:
+     ```c
+     +	/* Don't update the local stats if the file context has already closed */
+     +	if (file)
+     +		v3d_stats_update(&file->stats[queue], now);
+     ```
+  4. **This follows the pattern of similar CVE-assigned commits** shown in the reference examples - they all involve NULL pointer dereferences in GPU drivers that can cause kernel crashes.
+  5. **The vulnerability has security implications** as it allows unprivileged users to crash the kernel by closing file descriptors at specific timing, which could be used for denial of service attacks.
+  The commit is marked for stable kernels (v6.12+), indicating it's considered an important fix that should be backported, which is typical for security vulnerabilities.
+94d10a4dba0bc sunrpc: handle SVC_GARBAGE during svc auth processing as auth error
+- [sasha] Let me check the actual vulnerability scenario from the code. Based on my analysis:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Remote Trigger**: The commit message explicitly states this is a "remotely-triggerable crash" where a specially crafted packet can cause a kernel crash.
+  2. **NULL Pointer Dereference**: The vulnerability involves dereferencing `rq_accept_statp` when it's NULL. Looking at the code flow:
+     - `svc_authenticate()` can return `SVC_GARBAGE` without calling `svcxdr_set_accept_stat()`
+     - The old code would then jump to `err_garbage_args:` which does `*rqstp->rq_accept_statp = rpc_garbage_args;`
+     - If `rq_accept_statp` is NULL (first time the thread processes an RPC), this causes a kernel crash
+  3. **Security Impact**: This allows remote attackers to crash the kernel RPC server, causing a denial of service. The commit message also mentions potential "memory scribble" in non-crash scenarios.
+  4. **Clear Fix**: The patch changes the handling of `SVC_GARBAGE` during authentication from treating it as a garbage args error (which dereferences the potentially NULL pointer) to treating it as an authentication error (which doesn't dereference the pointer).
+  This is similar to the "SUNRPC: Fix null pointer dereference in svc_rqst_free()" commit which was assigned a CVE, as both involve NULL pointer dereferences in the SUNRPC subsystem that can be triggered remotely.
+7851263998d42 atm: Revert atm_account_tx() if copy_from_iter_full() fails.
+- [sasha] Based on my analysis of the commit and the code changes, here is my assessment:
+  **YES**, this commit should be assigned a CVE.
+  **Explanation:**
+  1. **Memory/Resource Leak Vulnerability**: The commit fixes a clear resource leak where `sk_wmem_alloc` is incremented by `atm_account_tx()` (line 634 in common.c) but never decremented when `copy_from_iter_full()` fails (line 637). This creates a persistent memory accounting leak.
+  2. **Denial of Service Impact**: An attacker can exploit this by repeatedly triggering the failure path:
+     - Call `sendmsg()` with invalid/inaccessible user memory that causes `copy_from_iter_full()` to fail
+     - Each failure increases `sk_wmem_alloc` without corresponding decrease
+     - Eventually `sk_wmem_alloc` reaches `sk_sndbuf` limit, blocking all legitimate ATM traffic on that socket
+  3. **Attack Vector**: This is exploitable by any local user with access to ATM sockets. The attacker doesn't need special privileges beyond the ability to create ATM sockets.
+  4. **Similar CVE Precedents**: The similar commits shown all received CVEs for comparable use-after-free and memory accounting issues:
+     - CVE for "net: atm: fix use after free in lec_send()"
+     - CVE for "net: ieee802154: at86rf230: Stop leaking skb's"
+     - CVE for "atm: idt77252: prevent use after free in dequeue_rx()"
+     - CVE for "bpf, sockmap: Fix double uncharge the mem of sk_msg"
+  5. **Long-standing Issue**: The bug has existed since Linux 2.6.12-rc2 (as indicated by the Fixes tag), making it a long-standing vulnerability affecting many kernel versions.
+  The fix properly adds `atm_return_tx()` to revert the memory accounting when the copy fails, preventing the resource leak that could lead to denial of service.
+7ac5b66acafcc ksmbd: fix null pointer dereference in destroy_previous_session
+- [sasha] Let me check the fix approach from the commit diff provided:
+  The fix moves the `destroy_previous_session()` call to AFTER `ksmbd_krb5_authenticate()` is called. This ensures that `sess->user` is properly initialized before being used.
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Vulnerability**: The commit fixes a NULL pointer dereference that can be triggered remotely by an unauthenticated attacker, leading to a denial of service (kernel panic in the ksmbd service).
+  2. **Attack Surface**: The vulnerability is in the SMB server authentication path, which is network-accessible. An attacker only needs to send a crafted SMB2 Session Setup request with:
+     - Kerberos authentication selected
+     - A non-zero PreviousSessionId field
+  3. **Impact**: While primarily a DoS vulnerability, it allows remote attackers to crash the SMB server without authentication, disrupting file sharing services.
+  4. **Similar to Previous CVEs**: This follows the same pattern as the other ksmbd CVEs shown in the examples:
+     - Similar Commit 1: CVE for use-after-free in kerberos authentication
+     - Similar Commit 4: CVE for null pointer dereference in alloc_preauth_hash()
+     - Similar Commit 5: CVE for dangling pointer in krb_authenticate
+  5. **Vendor Acknowledgment**: The commit includes "Cc: stable@vger.kernel.org" and credits a security researcher (zdi-disclosures@trendmicro.com # ZDI-CAN-27391), indicating this was reported as a security issue.
+  The fix correctly addresses the issue by ensuring `ksmbd_krb5_authenticate()` (which sets `sess->user`) is called before `destroy_previous_session()` attempts to use it.
+383c4613c67c2 mm: close theoretical race where stale TLB entries could linger
+- [sasha] Based on my analysis, this commit should be assigned a CVE: **YES**
+  Here's why:
+  1. **Security Impact**: The commit fixes a race condition that can leave stale TLB entries, which could allow:
+     - Access to freed memory (use-after-free vulnerability)
+     - Access to memory reassigned to another process (information disclosure)
+     - Potentially writing to memory that should be read-only (privilege escalation)
+  2. **Code Analysis**: The bug occurs in `madvise_cold_or_pageout_pte_range()` and `madvise_free_pte_range()` where:
+     - They correctly call `flush_tlb_batched_pending(mm)` after initially acquiring the PTL
+     - But when splitting large folios, they release the PTL (line 497 and similar)
+     - After re-acquiring the PTL (line 503), they fail to call `flush_tlb_batched_pending(mm)` again
+     - The fix adds `flush_tlb_batched_pending(mm)` after re-acquiring the lock (lines 506 and 720 in the patch)
+  3. **Precedent**: The similar commits shown all involve TLB flush races:
+     - "x86/mm: Fix flush_tlb_range()" commits were assigned CVEs
+     - The original commit 3ea277194daa that introduced `flush_tlb_batched_pending()` was addressing a security issue
+     - Other MM race conditions that could lead to data corruption or use-after-free typically receive CVEs
+  4. **Attack Vector**: While described as "theoretical", the race window exists between releasing and re-acquiring the PTL during folio splitting, which could be exploited by a malicious process attempting to access memory concurrently.
+  This is a classic TLB flush race vulnerability in core MM code that could lead to serious security consequences.
+ba9db6f907ac0 net: clear the dst when changing skb protocol
+- [sasha] Based on my analysis, **YES**, this commit should be assigned a CVE.
+  Here's my reasoning:
+  1. **Kernel NULL pointer dereference causing system crash**: The commit message clearly describes a kernel panic with NULL pointer dereference at address 0x0000000000000000, which is a denial-of-service vulnerability.
+  2. **Attack scenario is clearly described**: A BPF program can trigger this crash by "indiscriminately flipping ingress packets from v4 to v6" when:
+     - Packets are multicast
+     - They go through loopback 
+     - The BPF helper changes protocol without clearing the dst
+  3. **Root cause**: The crash occurs in `ip6_rcv_core` at line 190 when it tries to access `ip6_dst_idev(skb_dst(skb))` because:
+     - The skb still has an IPv4 dst after protocol was changed to IPv6
+     - `ip6_dst_idev()` tries to interpret the IPv4 dst as IPv6, leading to invalid memory access
+  4. **Multiple affected helpers**: The fix addresses three different BPF helpers that can trigger this:
+     - `bpf_skb_change_proto()`
+     - `bpf_skb_adjust_room()` with protocol change flags
+     - Protocol changes in `bpf_skb_net_grow()` and `bpf_skb_net_shrink()`
+  5. **The fix**: Adds a new function `bpf_skb_change_protocol()` that:
+     ```c
+     static void bpf_skb_change_protocol(struct sk_buff *skb, u16 proto)
+     {
+         skb->protocol = htons(proto);
+         if (skb_valid_dst(skb))
+             skb_dst_drop(skb);
+     }
+     ```
+     This properly clears non-metadata dst entries when changing protocols.
+  6. **Security impact**: This allows unprivileged BPF programs (with appropriate permissions) to crash the kernel, constituting a denial-of-service vulnerability.
+  The pattern matches similar CVEs like those shown in the examples where kernel crashes can be triggered through specific packet handling paths, particularly when protocol transitions are involved without proper cleanup of associated data structures.
+7ca52541c05c8 net_sched: sch_sfq: reject invalid perturb period
+- [sasha] Based on my analysis of the commit, here's my assessment:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning based on the code changes and analysis:
+  1. **Integer Overflow Vulnerability**: The commit fixes an integer overflow vulnerability in the calculation `ctl->perturb_period * HZ`. The `perturb_period` field is defined as `int` in the `tc_sfq_qopt` structure, and when multiplied by `HZ` (typically 100-1000), it can overflow for large values.
+  2. **Security Impact**: The commit message explicitly states this "can be used to trigger a race condition fixed in a separate patch," indicating there's an exploitable security issue. The overflow could result in:
+     - A negative value being passed to `mod_timer()` (line 620 and 735)
+     - An unexpectedly small positive value due to overflow wraparound
+     - Both scenarios could lead to timer mismanagement and the race condition mentioned
+  3. **User-Controlled Input**: The `perturb_period` value comes directly from user-space via netlink (`ctl->perturb_period`), making this exploitable by unprivileged users who can configure network schedulers.
+  4. **Missing Input Validation**: The original code lacked any validation of the `perturb_period` value before performing the multiplication at line 679: `perturb_period = ctl->perturb_period * HZ;`
+  5. **Fixes Tag**: The commit includes `Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")`, indicating this vulnerability has existed since the initial Linux 2.6.12 release, affecting a very wide range of kernel versions.
+  The fix adds proper bounds checking:
+  ```c
+  if (ctl->perturb_period < 0 ||
+      ctl->perturb_period > INT_MAX / HZ) {
+      NL_SET_ERR_MSG_MOD(extack, "invalid perturb period");
+      return -EINVAL;
+  }
+  ```
+  This prevents both negative values and values that would overflow when multiplied by HZ, addressing the security vulnerability.
+ec9e6f22bce43 jffs2: check that raw node were preallocated before writing summary
+- [sasha] Based on my analysis, here's my determination:
+  **YES**, this commit should be assigned a CVE.
+  This fix addresses a kernel BUG/crash that can be triggered when the system runs out of memory or when fault injection is used. The security implications are:
+  1. **Denial of Service (DoS)**: The bug causes a kernel BUG() at fs/jffs2/nodelist.c:592 when `jffs2_link_node_ref` is called without preallocated references. This results in a kernel panic/crash, causing system unavailability.
+  2. **Attack Vector**: While the commit message mentions this was found via fault injection (syzkaller), the underlying issue is a missing error check for memory allocation failure. In low memory conditions or under memory pressure attacks, this could be triggered without fault injection.
+  3. **Code Analysis**:
+     - The original code at line 861 calls `jffs2_prealloc_raw_node_refs()` but doesn't check its return value
+     - If this function fails (returns -ENOMEM), execution continues to `jffs2_sum_write_data()` at line 874
+     - `jffs2_sum_write_data()` eventually calls `jffs2_link_node_ref()` at lines 831 or 841
+     - `jffs2_link_node_ref()` has a `BUG_ON(!jeb->allocated_refs)` at line 592 which triggers when no refs were preallocated
+  4. **Similar to CVE-assigned commits**: This follows the pattern of other CVE-assigned commits that fix missing error checks leading to kernel crashes (e.g., the ksmbd missing return value check that got a CVE).
+  The fix properly adds error checking for the `jffs2_prealloc_raw_node_refs()` return value and jumps to the cleanup path if allocation fails, preventing the kernel BUG.
+ee084fa96123e LoongArch: Fix panic caused by NULL-PMD in huge_pte_offset()
+- [sasha] Based on my analysis, here's my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Kernel Panic/Crash**: The commit message shows a clear kernel panic with a stack trace indicating a NULL pointer dereference at virtual address 0x0 in `huge_pte_offset()`. This leads to a system crash.
+  2. **Security Impact**: The vulnerability causes a kernel panic that can be triggered through userspace via the `madvise` system call, as shown in the stack trace. This represents a denial of service (DoS) vulnerability where unprivileged users can crash the system.
+  3. **Incomplete Previous Fix**: The commit fixes an issue introduced by a previous security fix (bd51834d1cf6) which was already addressing a kernel crash vulnerability. The previous fix added `pmd_none(pmdp_get(pmd))` check but failed to handle the case where `pmd` itself could be NULL.
+  4. **Code Analysis**: The fix changes:
+     ```c
+     -	return pmd_none(pmdp_get(pmd)) ? NULL : (pte_t *) pmd;
+     +	return (!pmd || pmd_none(pmdp_get(pmd))) ? NULL : (pte_t *) pmd;
+     ```
+     This adds a NULL check for `pmd` before dereferencing it with `pmdp_get(pmd)`, preventing the NULL pointer dereference.
+  5. **Attack Vector**: The vulnerability can be triggered through normal system calls (`madvise`) that interact with huge page memory management, making it accessible to unprivileged users.
+  6. **Similar CVE Precedent**: The similar commits shown with "CVE Status: YES" demonstrate that NULL pointer dereferences in memory management code, especially those that can cause kernel panics, are consistently assigned CVEs.
+  The vulnerability represents a locally exploitable denial of service that allows unprivileged users to crash the kernel, warranting CVE assignment.
+50695153d7ddd drivers/rapidio/rio_cm.c: prevent possible heap overwrite
+- [sasha] So RIO_MAX_MSG_SIZE is 4096 bytes. The vulnerability allows userspace to provide any size between 1 and 4096 bytes, but if it's less than 20 bytes (sizeof(struct rio_ch_chan_hdr)), the kernel will still write 20 bytes to the buffer causing a heap overflow.
+  **CVE Status: YES**
+  This commit fixes a heap buffer overflow vulnerability in the RapidIO CM driver. The vulnerability occurs when:
+  1. Userspace calls the `RIO_CM_CHAN_SEND` ioctl with a buffer size less than 20 bytes (sizeof(struct rio_ch_chan_hdr))
+  2. `cm_chan_msg_send()` allocates a buffer of the user-specified size via `memdup_user()`
+  3. `riocm_ch_send()` unconditionally writes to header fields (lines 809-817) assuming the buffer is at least 20 bytes, causing a heap overflow
+  The fix adds a crucial bounds check `if (len < sizeof(struct rio_ch_chan_hdr))` to prevent writing beyond the allocated buffer. This is a classic heap overflow that could potentially be exploited for privilege escalation or denial of service, warranting CVE assignment.
+1d27f11bf02b3 io_uring/rsrc: validate buffer count with offset for cloning
+- [sasha] Based on my analysis of the commit:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact**: The commit fixes a vulnerability that allows triggering a kernel warning through an oversized memory allocation attempt. The syzbot trace shows `WARNING: CPU: 0 PID: 6488 at mm/slub.c:5024 __kvmalloc_node_noprof+0x520/0x640` when attempting to allocate too much memory.
+  2. **Attack Vector**: An unprivileged user can trigger this issue by calling `io_uring_register()` with the `IORING_REGISTER_BUF_RING_CLONE` operation and crafted arguments where `arg->nr + arg->dst_off` exceeds `IORING_MAX_REG_BUFFERS`.
+  3. **Missing Validation**: The original code validated `arg->nr` against `IORING_MAX_REG_BUFFERS` but failed to validate that `arg->nr + arg->dst_off` doesn't exceed this limit. This is a classic integer overflow/validation bypass pattern.
+  4. **Code Fix**: The fix adds the missing check:
+     ```c
+     if (nbufs > IORING_MAX_REG_BUFFERS)
+         return -EINVAL;
+     ```
+     This prevents the oversized allocation in `io_rsrc_data_alloc()` at line 1178.
+  5. **Similar CVE Patterns**: This follows similar patterns to the referenced CVE commits - missing bounds validation that leads to kernel warnings/crashes through oversized allocations or buffer overflows.
+  The vulnerability allows local denial-of-service by triggering kernel warnings and potentially exhausting memory through large allocation attempts, which justifies CVE assignment.
+61ce04601e0d8 platform/x86: dell_rbu: Fix list usage
+- [sasha] Now I have all the information I need to make a determination.
+  **YES**
+  This commit fixes a security vulnerability that should be assigned a CVE. Here's why:
+  1. **NULL Pointer Dereference**: The commit message explicitly states that "clearing the packet list will result in a NULL pointer dereference." This is a classic security vulnerability that can crash the kernel.
+  2. **Incorrect List Iteration**: The bug is in the incorrect usage of `list_for_each_entry()` and `list_for_each_entry_safe()` macros. The code was incorrectly passing `(&packet_data_head.list)->next` instead of `&packet_data_head.list`. This causes the iteration to start from the wrong position in the linked list.
+  3. **User-Triggerable from Sysfs**: The vulnerability can be triggered from userspace through sysfs interfaces:
+     - Reading packet data via `/sys/devices/platform/dell_rbu/data` when image_type is "packet"
+     - Writing to `/sys/devices/platform/dell_rbu/packet_size` which calls `packet_empty_list()`
+     - Writing to `/sys/devices/platform/dell_rbu/image_type` which also calls `packet_empty_list()`
+  4. **Impact**: 
+     - When reading packet data, the incorrect iteration would skip the first packet and potentially read beyond the list, causing incorrect data to be returned to userspace
+     - When clearing the list via `packet_empty_list()`, the incorrect iteration would attempt to dereference `(&packet_data_head.list)->next` as a packet structure, leading to a NULL pointer dereference and kernel crash
+  5. **Similar to Other CVE-Assigned Commits**: This follows the pattern of the similar commits shown that were assigned CVEs - it fixes a NULL pointer dereference in kernel code that can be triggered from userspace, potentially causing a denial of service.
+  The vulnerability allows unprivileged users with access to the sysfs interface to crash the kernel, making it a clear security issue warranting a CVE assignment.
+cedc1b63394a8 fbcon: Make sure modelist not set on unregistered console
+- [sasha] Based on my analysis of the commit and the code:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **It fixes an array-index-out-of-bounds vulnerability**: The UBSAN report shows that accessing `fbcon_registered_fb[con2fb_map[console]]` with `con2fb_map[console] = -1` causes an out-of-bounds access to the `fbcon_registered_fb` array.
+  2. **The vulnerability is exploitable through sysfs**: The bug can be triggered by writing to the `/sys/class/graphics/fb*/modes` sysfs file, which is a user-accessible interface. This provides an attack vector for unprivileged users who have write access to sysfs.
+  3. **Security impact**: The out-of-bounds array access could potentially lead to:
+     - Information disclosure (reading kernel memory)
+     - Kernel crash/DoS
+     - Potentially arbitrary code execution depending on what memory is accessed
+  4. **The fix adds proper bounds checking**: The patch adds validation to ensure that the `fb` index is within valid bounds (0 to FB_MAX-1) before accessing the array, preventing the out-of-bounds access.
+  5. **Similar pattern to other CVE-assigned commits**: This follows the same pattern as the similar commits shown (array-index-out-of-bounds fixes in filesystem/driver code triggered by user input), which were all assigned CVEs.
+  The vulnerability allows unprivileged users to trigger kernel memory safety violations through a sysfs interface, which is a clear security issue warranting a CVE assignment.
+c426497fa2055 wifi: ath12k: Fix memory leak due to multiple rx_stats allocation
+- [sasha] ## Analysis Summary
+  Based on my comprehensive analysis of the code and commit, here is my determination:
+  **YES** - This commit should be assigned a CVE.
+  ### Justification:
+  1. **Security Impact**: This is a memory leak vulnerability that can be exploited to cause denial of service through kernel memory exhaustion. Each leak is approximately 1.5KB (the size of `struct ath12k_rx_peer_stats`).
+  2. **Remote Exploitability**: The vulnerability can be triggered remotely by any WiFi client through normal operations:
+     - During station state transitions (connecting/disconnecting)
+     - During Multi-Link Operation (MLO) link changes via `ath12k_mac_op_change_sta_links()`
+     - No special privileges required beyond WiFi connectivity
+  3. **Attack Vector**: An attacker can repeatedly trigger the leak by:
+     - Adding MLO links to an existing station connection
+     - The `ath12k_mac_op_change_sta_links()` function calls `ath12k_mac_station_add()` without first removing the station
+     - Each call allocates new `rx_stats` without checking if it already exists
+  4. **Clear Security Boundary Violation**: This allows unprivileged users to exhaust kernel memory resources, crossing the user/kernel security boundary.
+  5. **Similar CVE Precedents**: Looking at the similar commits:
+     - Commit 2 (mac80211 sta-link leak) - **CVE assigned**
+     - Commit 4 & 5 (ath10k memory leak in management tx) - **CVE assigned**
+     - These had similar patterns of memory leaks that could be triggered by unprivileged operations
+  The fix correctly adds a NULL check before allocation:
+  ```c
+  if (!arsta->rx_stats) {
+      arsta->rx_stats = kzalloc(sizeof(*arsta->rx_stats), GFP_KERNEL);
+  ```
+  This prevents the multiple allocation issue while maintaining the same functionality.
+cb1790249361b wifi: ath12k: Fix incorrect rates sent to firmware
+- [sasha] Based on my analysis of the commit and the kernel tree, my answer is:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  1. **Security Vulnerability**: The code change fixes a firmware crash vulnerability where invalid negative rate codes are sent to the firmware when `basic_rates` is 0. The issue occurs because `ffs(0) - 1` returns -1, which becomes 0xFFFFFFFF when cast to unsigned and sent to firmware.
+  2. **Remote Exploitability**: This vulnerability can be triggered remotely by:
+     - Rogue access points advertising no basic rates
+     - Man-in-the-middle attacks modifying association frames
+     - This makes it a network-based denial of service vulnerability
+  3. **Impact**: The commit message explicitly states this causes "firmware assert" - a complete firmware crash that disables WiFi functionality, requiring device restart/recovery.
+  4. **Similar CVE Precedent**: The ath12k driver has similar CVEs:
+     - CVE-2024-46827: Fixed firmware crash due to invalid peer_nss (very similar pattern)
+     - Both involve invalid values causing firmware crashes
+  5. **Code Pattern**: The vulnerable code pattern appears in two places:
+     ```c
+     // Before fix (vulnerable):
+     basic_rate_idx = ffs(bss_conf->basic_rates) - 1;  // Returns -1 when basic_rates=0
+     
+     // After fix (secure):
+     if (bss_conf->basic_rates)
+         basic_rate_idx = __ffs(bss_conf->basic_rates);
+     else
+         basic_rate_idx = 0;
+     ```
+  The vulnerability allows remote attackers to cause denial of service through WiFi firmware crashes, meeting the criteria for CVE assignment.
+015bac5daca97 i40e: fix MMIO write access to an invalid page in i40e_clear_hw
+- [sasha] Now I can see the vulnerability clearly! The issue is in these loops:
+  1. Line 851: `for (i = 0; i < num_pf_int - 2; i++)`
+  2. Line 857: `for (i = 0; i < num_pf_int - 2; i++)`
+  3. Line 862: `for (i = 0; i < num_vf_int - 2; i++)`
+  The problem is that `num_pf_int` and `num_vf_int` are unsigned 32-bit integers (`u32`). When these values are less than 2, the expression `num_pf_int - 2` or `num_vf_int - 2` results in an integer underflow because:
+  - If `num_pf_int = 0`, then `num_pf_int - 2 = 0xFFFFFFFE` (very large positive number)
+  - If `num_pf_int = 1`, then `num_pf_int - 2 = 0xFFFFFFFF` (very large positive number)
+  This causes the loop to iterate a huge number of times, leading to MMIO writes far beyond the valid register range, which can cause:
+  1. System crashes
+  2. Memory corruption
+  3. Potentially privilege escalation if the out-of-bounds writes hit sensitive memory regions
+  The fix changes the types from `u32` to `s32` (signed), so that when the subtraction results in a negative value, the loop condition `i < num_pf_int - 2` will be false and the loop won't execute.
+  This is clearly a security vulnerability that can be triggered by a malicious device sending specific input values that result in small `num_pf_int` or `num_vf_int` values.
+  **YES**
+  This commit should be assigned a CVE because:
+  1. **Security Impact**: The integer underflow leads to out-of-bounds MMIO write operations that can cause memory corruption and system crashes.
+  2. **Attack Vector**: A malicious or compromised i40e network device could send crafted register values that trigger the underflow condition.
+  3. **Vulnerability Type**: This is a classic integer underflow vulnerability leading to out-of-bounds memory access (CWE-191: Integer Underflow).
+  4. **Real Impact**: The loops at lines 851, 857, and 862 will execute billions of times when underflow occurs, writing to invalid MMIO addresses, which can corrupt kernel memory or cause system instability.
+  5. **Fix Validates Security Issue**: The fix explicitly changes variable types from unsigned to signed to prevent the underflow, confirming this is a security-relevant issue rather than just a bug.
+31e4e12e0e960 software node: Correct a OOB check in software_node_get_reference_args()
+- [sasha] The OOB read could lead to:
+  1. Reading `ref->node` from out-of-bounds memory (line 538)
+  2. Dereferencing that potentially invalid pointer in `software_node_fwnode()` and `property_entry_read_int_array()` (line 543)
+  3. Copying potentially arbitrary data from `ref->args[]` into the output buffer (line 562)
+  This is a clear security vulnerability that could lead to:
+  - Information disclosure (reading kernel memory beyond the allocated buffer)
+  - Potential kernel crashes if the OOB read contains invalid pointers that are dereferenced
+  - Possible privilege escalation if an attacker can control the memory layout
+  **CVE Status: YES**
+  This commit fixes a genuine out-of-bounds read vulnerability in the kernel's software node reference handling. The bug allows reading beyond the allocated buffer when the property length is not an exact multiple of the reference structure size. The fix correctly changes the boundary check from `index * sizeof(*ref) >= prop->length` to `(index + 1) * sizeof(*ref) > prop->length`, ensuring that a full structure can be safely accessed at the given index. This prevents potential information disclosure, kernel crashes, or other security issues that could arise from reading uninitialized or out-of-bounds memory.
+b85e3367a5716 netfilter: nft_set_pipapo: clamp maximum map bucket size to INT_MAX
+- [sasha] Based on my analysis of the commit and comparing it with similar CVE-assigned commits, here's my assessment:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Integer Overflow Vulnerability**: The code fails to check if `rules_alloc * sizeof(*new_mt)` exceeds INT_MAX before passing it to `kvmalloc_array()`. When the multiplication result exceeds INT_MAX, it can trigger a WARN_ON_ONCE in the kernel's memory allocation code.
+  2. **User-Controlled Input**: The vulnerability can be triggered through user-controlled input via the netfilter/nftables interface. While it requires CAP_NET_ADMIN privileges, this is still a significant issue as:
+     - It can be exploited from network namespaces
+     - It enables denial of service through kernel warning spam
+     - It could be part of a privilege escalation chain
+  3. **Similar CVE Precedent**: The referenced commit `b541ba7d1f5a` ("netfilter: conntrack: clamp maximum hashtable size to INT_MAX") addresses an identical vulnerability pattern and was assigned a CVE. Both commits:
+     - Fix the same type of integer overflow issue
+     - Prevent WARN_ON_ONCE triggers in kvmalloc
+     - Add INT_MAX clamping to prevent overflow
+  4. **Security Impact**: The vulnerability allows:
+     - Kernel warning spam (DoS)
+     - Potential memory allocation failures
+     - Integer overflow that could lead to under-allocated buffers
+  5. **Fixed Pattern**: The fix adds explicit checks `if (rules_alloc > (INT_MAX / sizeof(*new_mt)))` in two critical locations (pipapo_realloc_mt and pipapo_clone) to prevent the integer overflow before calling kvmalloc_array().
+  The commit follows the exact same pattern as other CVE-assigned netfilter integer overflow fixes and addresses a legitimate security vulnerability in user-controlled allocation paths.
+a6e04f05ce0b0 i2c: tegra: check msg length in SMBUS block read
+- [sasha] Now I have a clear understanding of the vulnerability. Let me analyze the security impact:
+  **YES**
+  This commit fixes a security vulnerability that could lead to a buffer overflow. Here's the analysis:
+  1. **The vulnerability**: When handling SMBUS block reads with the `I2C_M_RECV_LEN` flag, the driver reads the first byte from the device which specifies how many additional bytes to read. The original code blindly trusts this value and adds it to `msgs[i].len` without validation:
+     ```c
+     msgs[i].len += msgs[i].buf[0];
+     ```
+  2. **The security impact**: If a malicious or malfunctioning I2C device returns:
+     - A value of 0: This could cause protocol violations and undefined behavior
+     - A value greater than `I2C_SMBUS_BLOCK_MAX` (32 bytes): This could cause a buffer overflow since the SMBUS protocol specification states that block transfers are limited to 32 bytes, but the driver would attempt to read more data than the allocated buffer can hold
+  3. **Buffer overflow scenario**: The caller is required to allocate a buffer that can hold up to `I2C_SMBUS_BLOCK_MAX` bytes plus the initial length byte. If the device returns a length > 32, the subsequent `tegra_i2c_xfer_msg()` call would attempt to read more data than the buffer can accommodate, leading to memory corruption.
+  4. **Attack vector**: This could be exploited by:
+     - A malicious I2C device on the bus
+     - A compromised device that has been reprogrammed to return invalid lengths
+     - Hardware faults causing incorrect length values
+  5. **The fix adds proper validation**:
+     ```c
+     if (msgs[i].buf[0] == 0 || msgs[i].buf[0] > I2C_SMBUS_BLOCK_MAX)
+         break;
+     ```
+     This prevents both the zero-length issue and the buffer overflow by ensuring the length is within valid bounds before proceeding.
+  This is similar to other I2C driver vulnerabilities where improper validation of device-provided data can lead to buffer overflows, making it a legitimate security issue worthy of a CVE assignment.
+80fda1cd7b0a1 wifi: mt76: mt7996: drop fragments with multicast or broadcast RA
+- [sasha] **YES**
+  This commit should be assigned a CVE based on the following analysis:
+  1. **It explicitly fixes CVE-2020-26145**: The commit message directly states "This patch addresses vulnerabilities such as CVE-2020-26145", which is a known security vulnerability affecting WiFi fragmentation.
+  2. **Security vulnerability pattern**: The code adds a check to drop fragmented frames with multicast or broadcast receiver addresses (RA), which is the exact same security fix pattern seen in other drivers:
+     - ath10k (commits 40e7462dad6f and 65c415a144ad) 
+     - Both explicitly mention fixing CVE-2020-26145
+  3. **The vulnerability impact**: CVE-2020-26145 allows attackers to inject plaintext fragments into encrypted WiFi networks by exploiting the fact that implementations incorrectly accept broadcast/multicast fragments, which violates IEEE 802.11 standards.
+  4. **The fix implementation**: The added code checks if a frame is fragmented AND has a non-unicast (multicast/broadcast) destination address, then drops it:
+     ```c
+     if ((ieee80211_has_morefrags(fc) || seq_ctrl & IEEE80211_SCTL_FRAG) &&
+         FIELD_GET(MT_RXD3_NORMAL_ADDR_TYPE, rxd3) != MT_RXD3_NORMAL_U2M)
+         return -EINVAL;
+     ```
+  5. **Consistency with other drivers**: This is part of a coordinated effort to fix the FragAttacks vulnerabilities across all Linux WiFi drivers, with similar patches applied to mac80211, ath10k, iwlwifi, rtw88, and other drivers.
+  The commit fixes a known security vulnerability (CVE-2020-26145) in the mt7996 driver by implementing the same security check that has been applied to other WiFi drivers to prevent fragment injection attacks.
+d4965578267e2 bpf: Check rcu_read_lock_trace_held() in bpf_map_lookup_percpu_elem()
+- [sasha] Based on my analysis of the code and the historical commits, I can now provide my assessment:
+  **YES**, this commit should be assigned a CVE.
+  Here's why:
+  1. **Security-relevant assertion failure**: The commit adds a missing `rcu_read_lock_trace_held()` check to `bpf_map_lookup_percpu_elem()`. This is a security-relevant fix because the function was triggering a WARN_ON_ONCE() when called from sleepable BPF programs, indicating a potential race condition or improper locking.
+  2. **Pattern matching with CVE-assigned commits**: Looking at the similar commits provided:
+     - Similar Commit 1 and 2 (both CVE Status: YES) fixed the exact same issue for `bpf_map_lookup_elem()`, `bpf_map_update_elem()`, and `bpf_map_delete_elem()` by adding `rcu_read_lock_trace_held()` checks
+     - These commits have identical patterns: missing RCU trace lock checks for sleepable BPF programs
+  3. **Actual security impact**: The missing check could lead to:
+     - Race conditions when accessing BPF maps from sleepable programs
+     - Potential use-after-free if the map is freed while being accessed
+     - The warning indicates a violation of the locking requirements that protect map data structures
+  4. **Code consistency**: The fix makes `bpf_map_lookup_percpu_elem()` consistent with other map helper functions (`bpf_map_lookup_elem`, `bpf_map_update_elem`, `bpf_map_delete_elem`) which already have this check, as seen in lines 40-41, 57-58, and 75-76 of the helpers.c file.
+  The commit follows the exact same pattern as the CVE-assigned commits for similar BPF map helper functions, fixing a missing lock assertion that could lead to race conditions in sleepable BPF programs.
+75584c8213d34 drm/xe/uc: Remove static from loop variable
+- [sasha] Based on my analysis of the commit, I need to provide my assessment:
+  **YES**
+  This commit should be assigned a CVE because it fixes a race condition vulnerability in the firmware loading code. The issue is that the `entries` variable was declared as `static`, making it persist across function calls and creating shared state between concurrent executions of `uc_fw_auto_select()`. 
+  In the vulnerable code:
+  ```c
+  static const struct uc_fw_entry *entries;
+  ```
+  This static variable could be overwritten by concurrent calls, potentially causing:
+  1. **Wrong firmware loading**: Thread A selecting GuC firmware could end up using HuC or GSC firmware entries if Thread B overwrites the pointer
+  2. **Security bypass**: If firmware validation depends on the correct firmware type being loaded, this could bypass security checks
+  3. **Memory safety issues**: Incorrect array bounds could be used if one firmware type has fewer entries than another
+  The fix correctly removes the `static` keyword:
+  ```c
+  const struct uc_fw_entry *entries;
+  ```
+  This makes `entries` a local stack variable, eliminating the race condition. While the practical exploitability may be limited by how the function is called, the vulnerability represents a real security issue in multi-threaded kernel code handling critical firmware loading operations.
+a4685408ff6c3 jfs: Fix null-ptr-deref in jfs_ioc_trim
+- [sasha] **YES**
+  This commit should be assigned a CVE because:
+  1. **Security Impact**: The null pointer dereference causes a kernel panic (denial of service), as shown in the syzkaller report with "Kernel panic - not syncing: Fatal exception"
+  2. **Exploitable from Userspace**: The vulnerability is triggered through the `jfs_ioc_trim` ioctl (command 0xc0185879 - FITRIM), making it accessible to unprivileged users who can open JFS filesystem files
+  3. **Race Condition**: The commit message explicitly states this is a "concurrency bug" where `JFS_SBI(ipbmap->i_sb)->bmap` can be set to NULL in `dbFreeBits` and then dereferenced in `jfs_ioc_trim`
+  4. **Incomplete Previous Fix**: The analysis mentions a related issue (commit d6c1b3599b2f) that attempted to fix race conditions with s_umount locking, but this new vulnerability shows the fix was incomplete
+  5. **Code Analysis**: Looking at line 89 in the original code, `bmp->db_agsize` is dereferenced without checking if `bmp` is NULL. The fix adds the check `bmp == NULL` to prevent this dereference
+  6. **Historical Precedent**: The similar JFS null-ptr-deref commits (Similar Commits 1 & 2) were both assigned CVEs, showing that such vulnerabilities in filesystem code warrant CVE assignment
+  The vulnerability allows local users to crash the system, which is a clear security issue requiring a CVE.
+f22a0ef2231a7 ext4: prevent stale extent cache entries caused by concurrent get es_cache
+- [sasha] Based on my analysis of the commit and the code changes, here is my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Race Condition with Security Impact**: The commit fixes a race condition where ext4_ext_precache() can cache stale extent entries when running concurrently with operations like ext4_collapse_range(). This occurs because:
+     - ext4_ext_precache() only holds i_data_sem in read mode
+     - ext4_ext_remove_space() temporarily releases i_data_sem when needing more journal credits (through ext4_datasem_ensure_credits)
+     - During this window, concurrent IOCTLs can cache extents that are about to be deleted
+  2. **Data Integrity Issue**: The commit message explicitly states this leads to "stale extent cache entries" that become "inconsistent with the actual extents". This can cause:
+     - Incorrect extent information being returned to userspace
+     - Potential data corruption if stale cached extents are used for I/O operations
+     - Filesystem inconsistency
+  3. **Accessible Attack Vector**: The vulnerable IOCTLs (EXT4_IOC_GET_ES_CACHE and EXT4_IOC_PRECACHE_EXTENTS) are accessible to unprivileged users who own the file, making this exploitable without special privileges.
+  4. **Similar to Previous CVEs**: Looking at the similar commits provided:
+     - Commits 3 and 4 (CVE Status: YES) involved uninitialized extent_status structures causing infinite loops
+     - Commit 5 (CVE Status: YES) involved race conditions in ext4 extent handling leading to warnings and potential corruption
+     - This commit follows a similar pattern of fixing race conditions in ext4 extent handling that can lead to data integrity issues
+  The fix properly addresses the issue by acquiring i_rwsem (inode lock) in shared mode during the IOCTL operations, preventing the race condition from occurring.
+5dff41a863775 jfs: fix array-index-out-of-bounds read in add_missing_indices
+- [sasha] Now let me understand the security implications by looking at the commit diff provided:
+  Based on my analysis of the commit and the code, here's my assessment:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  1. **Array Index Out-of-Bounds Vulnerability**: The commit fixes a critical array index out-of-bounds read vulnerability in the `add_missing_indices()` function. The code was accessing `p->slot[stbl[i]]` where `stbl[i]` is an `s8` (signed 8-bit) value that could be negative, but the slot array expects indices from 0 to 127.
+  2. **Security Impact**: 
+     - The vulnerability allows reading memory outside the bounds of the `slot` array when `stbl[i]` contains negative values
+     - This is triggered by malformed/corrupted filesystem data that can be crafted by an attacker
+     - The bug is reachable through the `jfs_readdir()` system call, making it exploitable from userspace
+  3. **Similar CVE Precedent**: The historical commits show that very similar fixes in JFS have been assigned CVEs:
+     - "jfs: fix array-index-out-of-bounds in jfs_readdir" - CVE assigned
+     - "jfs: array-index-out-of-bounds fix in dtReadFirst" - CVE assigned
+     - Both involved bounds checking for `stbl` array values
+  4. **Attack Vector**: The syzbot report indicates this was found through fuzzing, suggesting it's reachable through filesystem operations on a maliciously crafted JFS filesystem image.
+  5. **Fix Pattern**: The fix adds bounds checking (`if (stbl[i] < 0)`) before using `stbl[i]` as an array index, preventing the out-of-bounds access. The function now returns an error (`-EIO`) and properly propagates it through `jfs_readdir()`.
+  This follows the exact same pattern as the previous CVE-worthy commits in the JFS subsystem that fixed similar array bounds issues with the `stbl` array.
+aef87a5fdb511 drm/xe: Use copy_from_user() instead of __copy_from_user()
+- [sasha] Based on my analysis, here is my determination:
+  **YES**
+  This commit should be assigned a CVE because it fixes a critical security vulnerability. The change from `__copy_from_user()` to `copy_from_user()` addresses the following security issues:
+  1. **Missing access validation**: `__copy_from_user()` does not perform `access_ok()` checks, which means user-provided pointers were not validated to ensure they point to legitimate user space addresses. This could allow malicious users to read kernel memory by providing kernel addresses.
+  2. **Lack of speculative execution protection**: `copy_from_user()` includes `barrier_nospec()` protection against speculative execution attacks, which `__copy_from_user()` lacks.
+  3. **Multiple attack vectors**: The vulnerability affects multiple ioctl entry points across 6 different files in the xe driver (xe_bo.c, xe_eu_stall.c, xe_exec.c, xe_exec_queue.c, xe_oa.c, xe_vm.c), providing multiple potential attack surfaces.
+  4. **Direct user accessibility**: These are ioctl handlers that can be directly called from userspace, making the vulnerability easily exploitable.
+  This is similar to the CVE-assigned commit "drm/xe/xe_devcoredump: Check NULL before assignments" which also addressed pointer validation issues, though in a different context. The security impact here is potentially more severe as it could lead to kernel memory disclosure or privilege escalation.
+5df0d6addb7e9 drm/amdgpu: Add basic validation for RAS header
+- [sasha] Based on my analysis, here is my CVE determination:
+  **YES**
+  This commit fixes a security vulnerability where corrupted RAS (Reliability, Availability, and Serviceability) header data read from EEPROM could lead to attempting to allocate huge amounts of memory, potentially causing:
+  1. **Memory exhaustion/DoS**: The `ras_num_recs` field from the EEPROM header is used directly in multiple memory allocation calls:
+     - Line 787: `buf = kcalloc(control->ras_num_recs, RAS_TABLE_RECORD_SIZE, GFP_KERNEL);`
+     - Line 1300: `buf = kzalloc(buf_size, GFP_KERNEL);` where buf_size is calculated as `control->ras_num_recs * RAS_TABLE_RECORD_SIZE`
+  2. **Integer overflow potential**: Without validation, a large `ras_num_recs` value could cause integer overflow in the multiplication `control->ras_num_recs * RAS_TABLE_RECORD_SIZE` (where RAS_TABLE_RECORD_SIZE is 24 bytes).
+  3. **Attack vector**: The EEPROM data could be corrupted either:
+     - Through physical access to the hardware
+     - Through firmware/driver bugs that corrupt EEPROM data
+     - Through malicious firmware updates
+  The fix adds essential validation:
+  - Checks if the version field is valid (only allows known versions)
+  - Validates that `ras_num_recs` doesn't exceed the maximum allowed record count
+  - Returns -EINVAL if validation fails, preventing the subsequent memory allocations
+  This is similar to the CVE-assigned "Fix the null pointer dereference to ras_manager" commits in the reference set, as both fix security issues related to improper validation of data before use.
+7e40f64896e8e drm/amd/display: Avoid divide by zero by initializing dummy pitch to 1
+- [sasha] Based on my analysis of this commit and comparison with the similar commits that were assigned CVEs, I can now provide my assessment.
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Fixes a divide-by-zero vulnerability**: The commit explicitly states it fixes a divide-by-zero issue by changing `out->PitchC[location] = 0;` to `out->PitchC[location] = 1;` in the `populate_dummy_dml_surface_cfg()` function.
+  2. **Security impact pattern matches CVE-assigned commits**: All 5 similar commits shown were assigned CVEs (CVE-2024-49899) and they follow the exact same pattern:
+     - Initialize variables used as denominators from 0 to 1
+     - Prevent DIVIDE_BY_ZERO errors
+     - Changes in AMD display driver DML (Display Mode Library) code
+  3. **Exploitable condition**: The vulnerable code path is triggered when `context->stream_status[i].plane_count == 0`, creating a dummy surface configuration. If PitchC remains 0, it can cause a divide-by-zero when passed to downstream functions like `CalculateVMAndRowBytes()` mentioned in the commit message.
+  4. **Kernel crash potential**: A divide-by-zero in kernel space can cause a kernel panic or system crash, which is a denial-of-service vulnerability.
+  5. **Same vulnerability class**: This is fundamentally the same vulnerability class as the similar commits - uninitialized or zero-initialized denominators in mathematical calculations within the AMD GPU driver's display mode calculations.
+  The code change follows defensive programming practices by ensuring that pitch values, which are likely used as denominators in various calculations throughout the DML subsystem, are never zero.
+1f3d9724e16d6 exfat: fix double free in delayed_free
+- [sasha] Great! So kfree (and therefore kvfree) handles NULL pointers safely with the `ZERO_OR_NULL_PTR` check. This confirms that setting `vol_utbl` to NULL after freeing is the correct fix.
+  **CVE Status: YES**
+  This commit fixes a security vulnerability - a double-free bug in the exFAT filesystem driver. The vulnerability occurs when:
+  1. During filesystem mount, `exfat_create_upcase_table()` fails after allocating memory for `vol_utbl`
+  2. The error path calls `exfat_free_upcase_table()` which frees `vol_utbl` but doesn't set it to NULL
+  3. When the mount ultimately fails, `exfat_kill_sb()` → `delayed_free()` → `exfat_free_upcase_table()` is called again
+  4. This results in a double-free of the same memory pointer
+  The security impact includes:
+  - **Memory corruption** that could lead to kernel crashes (DoS)
+  - **Use-after-free** potential between the two frees
+  - **Possible privilege escalation** if an attacker can control memory allocation patterns
+  - The vulnerability can be triggered by mounting a maliciously crafted exFAT filesystem
+  The fix correctly addresses this by setting `sbi->vol_utbl = NULL` after `kvfree()`, preventing the second free operation since kvfree safely handles NULL pointers.
+c9646e5a7e01c drm/amd/display: DCN32 null data check
+- [sasha] Based on my analysis of the commit and comparison with similar CVE-assigned commits, here is my assessment:
+  **YES**
+  This commit fixes a null pointer dereference vulnerability in the AMD display driver. The code changes show that:
+  1. **The vulnerability**: The functions `mpc32_program_shaper_luta_settings` and `mpc32_program_shaper_lutb_settings` directly dereference `params->arr_curve_points` without checking if it's null. The code then accesses array elements like `curve[0].offset`, `curve[1].offset`, etc., which would cause a kernel crash if `curve` is null.
+  2. **The fix**: The commit adds an `if (curve)` check that wraps all the code that dereferences the curve pointer, preventing the null pointer dereference.
+  3. **Security impact**: This is a classic null pointer dereference that could lead to a kernel panic/crash. In the graphics driver context, this could be triggered by userspace through display configuration changes, potentially allowing a local attacker to cause a denial of service.
+  4. **Similar to CVE-assigned commits**: The pattern matches the similar commits shown, which also fix null pointer dereferences in the AMD display driver by adding null checks before pointer usage. The fact that similar null check additions in the same driver subsystem have been assigned CVEs strongly suggests this should also receive a CVE.
+  The commit clearly fixes a security vulnerability that could be exploited to crash the system, meeting the criteria for CVE assignment.
+2b4ce994afca0 ASoC: simple-card-utils: fixup dlc->xxx handling for error case
+- [sasha] Based on my analysis, here's my determination:
+  **YES**, this commit should be assigned a CVE.
+  **Reasoning:**
+  1. **Memory Leak via Reference Counting Bug**: The commit fixes a reference counting bug with `of_node_put()`. The function `of_graph_get_port_parent()` returns a device_node with incremented reference count (as documented: "Use of_node_put() on it when done"). The original code was missing `of_node_put(node)` calls in error paths when `snd_soc_get_dai_via_args()` succeeds (path X in the commit message), leading to memory leaks.
+  2. **Information Disclosure Risk**: The first issue mentioned in the commit shows that `dlc->xxx` fields (including pointers) were being populated even in error cases. When `snd_soc_copy_dai_args()` fails and returns NULL, the code was still populating `dlc->of_node` and `dlc->dai_name` with potentially sensitive values before detecting the error. This could expose internal kernel pointers/data to callers in error scenarios.
+  3. **Similar CVE Precedent**: Looking at the similar commits:
+     - Commit 1 (CVE: YES) - Fixed missing `of_node_put()` in the same function
+     - Commit 4 (CVE: YES) - Fixed the same missing `of_node_put()` issue
+     - Commit 5 (CVE: YES) - Fixed reference counting errors with `of_node_put()`
+  4. **Security Impact**: The combination of:
+     - Memory leak through missing `of_node_put()` calls (can lead to resource exhaustion)
+     - Partial structure initialization in error cases (potential info disclosure)
+     - Pattern matches previous CVE-assigned commits for similar reference counting fixes
+  The commit fixes legitimate security vulnerabilities involving improper error handling that could lead to resource leaks and potential information disclosure.
+bed18f0bdcd67 ACPICA: fix acpi parse and parseext cache leaks
+- [sasha] Based on my analysis, here is my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Memory Leak with Security Impact**: The commit explicitly states that this memory leak "has a security threat" because older kernels (<= 4.9) expose kernel function memory locations in stack dumps, which could be used to defeat kernel ASLR (Address Space Layout Randomization).
+  2. **Information Disclosure Vulnerability**: The memory leak exposes sensitive kernel memory addresses through kmem_cache_destroy warnings that appear in system logs. As shown in the commit message, the stack traces reveal kernel memory addresses and function locations.
+  3. **KASLR Bypass**: The commit author explicitly states: "Some malicious users could use this information to neutralize kernel ASLR." KASLR bypass is a well-recognized security vulnerability that allows attackers to defeat a key kernel security mechanism.
+  4. **Exploitable in Error Conditions**: The vulnerability is triggered when ACPI initialization fails due to invalid ACPI information, which could potentially be influenced by malicious ACPI tables or firmware.
+  5. **Similar to Other CVE-assigned Issues**: Looking at the similar commits provided:
+     - Commits fixing memory leaks that don't expose sensitive information were marked "CVE Status: NO"
+     - Commits fixing memory leaks with potential security impact (like the kxcjk-1013 driver memory leak) were assigned CVEs
+  The key differentiator here is that this isn't just a resource exhaustion issue - it's an information disclosure vulnerability that can be used to bypass a critical kernel security feature (KASLR).
+156fd20a41e77 ACPICA: fix acpi operand cache leak in dswstate.c
+- [sasha] Now I understand the bug. Let me analyze this step by step:
+  1. In `acpi_ds_create_operands()`, when creating operands:
+     - It starts with `index = walk_state->num_operands` 
+     - It adds new operands to the stack at positions starting from `index`
+     - On error, it calls `acpi_ds_obj_stack_pop_and_delete(arg_count, walk_state)`
+  2. The bug in `acpi_ds_obj_stack_pop_and_delete()`:
+     - It iterates from `i = pop_count - 1` down to 0
+     - It accesses `walk_state->operands[i]` 
+     - But `i` is just an index from 0 to pop_count-1, not the actual stack position!
+  3. The fix adds:
+     - `prev_num_operands` to save the original number of operands
+     - `new_num_operands` to track the final index after adding arguments
+     - Updates `walk_state->num_operands = i` before calling pop_and_delete
+     - Passes `new_num_operands` instead of `arg_count` to pop_and_delete
+     - Restores the original operand count after cleanup
+  This is indeed a memory leak because:
+  - Objects were being pushed at positions starting from `walk_state->num_operands`
+  - But cleanup was trying to delete objects at positions 0 to arg_count-1
+  - This mismatch meant the newly created objects were never freed
+  ## CVE Decision: YES
+  This commit should be assigned a CVE for the following reasons:
+  1. **Memory Leak Security Impact**: The commit explicitly mentions that this memory leak "causes a security threat because an old kernel (<= 4.9) shows memory locations of kernel functions in stack dump" which could be used to "neutralize kernel ASLR".
+  2. **Information Disclosure**: The memory leak combined with stack dumps on older kernels leads to information disclosure of kernel memory addresses, defeating ASLR protections.
+  3. **Triggered by Malicious ACPI Tables**: The commit message states this occurs "when early termination occurs due to malicious ACPI table", indicating it can be triggered by an attacker with ability to provide malicious ACPI tables.
+  4. **Clear Security Fix**: The code changes fix a memory leak that has security implications by properly cleaning up ACPI operand objects that were previously leaked during error handling.
+  5. **Similar Pattern to CVE-Assigned Commits**: This follows the same pattern as similar commits #1, #2, and #4 which fixed memory leaks in ACPI code and were assigned CVEs.
+  The vulnerability allows information disclosure through memory leaks that can expose kernel addresses, which is a security issue worthy of CVE assignment.
+1013af4f585fc mm/hugetlb: fix huge_pmd_unshare() vs GUP-fast race
+- [sasha] Based on my analysis of the commit and extensive examination of the kernel code, I can now provide my assessment.
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning based on the code analysis:
+  1. **Security Vulnerability**: The commit fixes a use-after-free race condition between `huge_pmd_unshare()` and GUP-fast (Get User Pages Fast). The race occurs when:
+     - `huge_pmd_unshare()` clears the PUD entry with `pud_clear(pud)`
+     - Before the PMD page table is actually freed, another CPU running GUP-fast could still access it
+     - This creates a window where GUP-fast might access freed memory
+  2. **Exploitable Window**: The code change shows that after `pud_clear(pud)`, the fix adds `tlb_remove_table_sync_one()` which sends an IPI to all CPUs to ensure any ongoing GUP-fast operations complete before proceeding. This synchronization was missing before.
+  3. **Security Impact**: As noted in the commit message, this could allow "gup_fast() could end up walking the page tables of another process." This is a serious security boundary violation that could potentially lead to:
+     - Information disclosure (reading another process's page tables)
+     - Privilege escalation (if the freed page table memory is reused for sensitive structures)
+     - Memory corruption
+  4. **Historical Precedent**: The similar commits provided show that page table synchronization issues consistently receive CVEs when they involve:
+     - Race conditions in page table management (Similar Commits 2, 3)
+     - Use-after-free vulnerabilities in MM subsystem (Similar Commit 5)
+     - Incorrect page table reference counting (Similar Commits 1, 4, 5)
+  5. **Long-standing Issue**: The Fixes tag references commit 39dde65c9940 from 2006, indicating this vulnerability has existed for a very long time in the kernel, increasing its severity.
+  The fix is clearly addressing a security vulnerability that could compromise process isolation, which is a fundamental security boundary in the Linux kernel.
+081056dc00a27 mm/hugetlb: unshare page tables during VMA split, not before
+- [sasha] **YES**
+  This commit should be assigned a CVE. The commit fixes a race condition in hugetlb page table unsharing during VMA splits that could lead to security issues. Specifically:
+  1. **Race condition with security impact**: The bug allows concurrent operations (VMA-locked page faults and rmap walks) to incorrectly re-share page tables between processes after they were supposed to be unshared. This violates memory isolation between processes.
+  2. **Similar to other CVE-assigned commits**: This follows the same pattern as Similar Commits 1, 2, 3, and 5, which all received CVEs for fixing page table management races. Commit 2 in particular dealt with page table sharing races that could lead to privilege escalation.
+  3. **Critical code changes**: The fix moves `hugetlb_unshare_pmds()` from `hugetlb_vm_op_split()` (called before locks are held) to a new `hugetlb_split()` function called from `__split_vma()` after proper locks are acquired. The commit specifically notes that the original placement was "too early" and allowed the race.
+  4. **Memory isolation violation**: Incorrect page table sharing between processes is a fundamental security boundary violation that could potentially lead to information disclosure or memory corruption between different security contexts.
+  The commit message explicitly states this fixes a "racy protection" and the Fixes tag traces back to 2006, indicating this is a long-standing security issue in the hugetlb subsystem.
+2b12d06c37fd3 mm: fix uprobe pte be overwritten when expanding vma
+- [sasha] Let me analyze the fix based on the code changes provided:
+  Based on my analysis of this commit, here is my determination:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  1. **Memory Corruption Vulnerability**: The commit fixes a bug where uprobe PTEs (Page Table Entries) can be overwritten during VMA expansion via mremap(), leading to orphaned PTEs. This is evidenced by:
+     - The "BUG: Bad rss-counter state" alert indicates memory accounting corruption
+     - The commit message explicitly states PTEs become "orphan" due to being overwritten
+  2. **Exploitable Attack Vector**: The bug can be triggered through a specific sequence of userspace operations:
+     - Register uprobe at file offset zero
+     - mmap the file
+     - Use mremap() to move/expand memory regions
+     - This sequence is reproducible and could be exploited
+  3. **Security Impact**:
+     - **Memory Accounting Corruption**: The RSS counter mismatch indicates the kernel has lost track of memory pages
+     - **Potential Use-After-Free**: Orphaned PTEs could point to freed or reallocated memory
+     - **Information Disclosure**: An attacker might be able to read memory from other processes
+     - **Privilege Escalation**: Memory corruption bugs in the kernel can often be leveraged for privilege escalation
+  4. **Long-standing Issue**: The Fixes tag references commit 2b1444983508 from the initial uprobe implementation, indicating this vulnerability has existed for a very long time in the kernel.
+  5. **Reproducible**: The commit message provides clear reproduction steps, making this vulnerability exploitable by attackers who understand the issue.
+  The fix adds a `skip_vma_uprobe` flag to prevent unnecessary uprobe_mmap() calls during VMA merging operations that would create these orphaned PTEs. This is a classic race condition between memory management operations (mremap) and debugging infrastructure (uprobes) that results in memory corruption.
+  Similar to the CVE-assigned commits in the examples (which dealt with memory management issues like address wraparound and VMA handling bugs), this represents a serious memory management vulnerability with clear security implications.
+98d3f772ca7d6 accel/ivpu: Use dma_resv_lock() instead of a custom mutex
+- [sasha] Based on my analysis of the commit, I can now provide my assessment:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Clear Security Vulnerabilities**: The commit explicitly fixes race conditions in critical memory management functions:
+     - `ivpu_bo_unbind_locked()` modifies `shmem->sgt` without holding `dma_resv_lock()`
+     - `ivpu_bo_print_info()` reads `shmem->pages` without holding `dma_resv_lock()`
+  2. **Synchronization Requirements**: The DRM subsystem requires proper locking when accessing `drm_gem_shmem_object` members. The commit message states that using `dma_resv_lock()` "protects against future synchronisation issues that may arise when accessing drm_gem_shmem_object or drm_gem_object members."
+  3. **Concrete Race Conditions**: The code changes show specific race condition scenarios:
+     - In `ivpu_bo_unbind_locked()`, the function was taking `dma_resv_lock` only for part of the SGT manipulation (lines 128-135 in old code), but was accessing `bo->base.sgt` outside the lock at line 115
+     - In `ivpu_bo_print_info()`, the function reads `bo->base.pages` at line 458 without proper synchronization
+  4. **Potential Impact**: Race conditions in memory management code can lead to:
+     - Use-after-free vulnerabilities
+     - Memory corruption
+     - Information disclosure
+     - System crashes
+  5. **Similar to CVE-assigned Commits**: This is similar to commit 3 in the reference list (drm/msm/dpu: Add mutex lock in control vblank irq) which was assigned a CVE for fixing race conditions with proper mutex locking. Both commits address synchronization issues that could lead to data corruption or system instability.
+  The commit replaces a custom mutex with the standard `dma_resv_lock()` to properly protect shared memory object access, fixing legitimate security vulnerabilities related to concurrent access to memory management structures.
+f1e7a277a1736 smb: client: add NULL check in automount_fullpath
+- [sasha] So `__getname()` is `kmem_cache_alloc(names_cachep, GFP_KERNEL)`, which can return NULL if memory allocation fails. This is a classic case where a NULL pointer from a failed memory allocation is not checked before being passed to a function that will dereference it.
+  **Analysis Summary:**
+  1. **The vulnerability**: The `automount_fullpath` function can receive a NULL `page` parameter when `alloc_dentry_path()` (which calls `__getname()` → `kmem_cache_alloc()`) fails to allocate memory.
+  2. **The code path**: When `tcon->origin_fullpath` is set (not NULL), the function directly passes the potentially NULL `page` to `dentry_path_raw()` without checking, which will cause a NULL pointer dereference.
+  3. **Security impact**: This is a NULL pointer dereference that can be triggered by memory allocation failure. While this typically leads to a kernel crash (DoS), it's generally considered a security issue when it can crash the kernel.
+  4. **Comparison with similar commits**: Looking at the similar commits with CVE status:
+     - Similar commits 2, 3, 4, and 5 all fix NULL pointer dereferences and were assigned CVEs
+     - They all involve potential NULL pointer dereferences in the SMB/CIFS subsystem
+     - The pattern is similar: missing NULL checks that could lead to kernel crashes
+  **Conclusion:**
+  **YES** - This commit should be assigned a CVE.
+  This is a NULL pointer dereference vulnerability in the kernel's SMB client code that can lead to a kernel crash. The issue occurs when memory allocation fails in `alloc_dentry_path()` and the NULL pointer is passed to `dentry_path_raw()` without validation. This follows the same pattern as other CVE-assigned commits in the SMB subsystem that fix NULL pointer dereferences.
+e7143706702a2 nvme-tcp: remove tag set when second admin queue config fails
+- [sasha] **YES**
+  This commit fixes a use-after-free vulnerability in the NVMe TCP driver. The bug occurs when the second call to `nvme_tcp_configure_admin_queue()` fails during secure concatenation setup. The code change from `return ret;` to `goto destroy_admin;` ensures proper cleanup of the admin tag set, preventing the use-after-free condition that KASAN detected in `blk_mq_queue_tag_busy_iter()`.
+  The vulnerability can be triggered by specific operations (reproducible with blktests nvme/063) and results in accessing freed memory when timeout handlers iterate over the admin tag set that was freed along with the nvme_tcp_ctrl structure. This type of memory corruption vulnerability could potentially be exploited for privilege escalation or system crashes.
+2f29b5c231011 video: screen_info: Relocate framebuffers behind PCI bridges
+- [sasha] YES
+  This commit fixes a memory safety issue where the kernel performs invalid accesses to I/O memory. The bug causes the kernel to access framebuffer memory at incorrect addresses when PCI host bridges apply offsets during resource relocation. Specifically:
+  1. The code change shows the bug occurs because `screen_info_lfb_res` was storing PCI bus addresses without properly translating them through `pcibios_bus_to_resource()` to account for PCI host bridge offsets.
+  2. The commit message explicitly states it "Fixes invalid access to I/O memory" - this is a memory safety issue where the kernel accesses wrong memory regions.
+  3. Without this fix, the kernel would read from or write to incorrect memory addresses when accessing the framebuffer, which could lead to:
+     - Information disclosure (reading unintended memory)
+     - Memory corruption (writing to unintended memory)
+     - System crashes/instability
+  4. The bug has real-world impact as evidenced by the referenced bug report (https://bugzilla.suse.com/show_bug.cgi?id=1240696).
+  Unlike the similar commits which mostly involve benign screen_info updates or display configuration changes, this commit addresses an actual memory safety vulnerability worthy of CVE assignment.
+9ad0452c0277b net: ch9200: fix uninitialised access during mii_nway_restart
+- [sasha] Based on my analysis of the commit and the code changes:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Uninitialized Memory Access**: The commit fixes a clear uninitialized memory access vulnerability. In `ch9200_mdio_read()`, the local buffer `buff[2]` is passed to `control_read()`, but if `control_read()` fails (returns error), the buffer remains uninitialized and is still accessed in the return statement: `return (buff[0] | buff[1] << 8);`
+  2. **Information Disclosure**: This vulnerability can lead to information disclosure as uninitialized stack memory content is returned to callers. The returned value propagates through the MII layer and could potentially expose kernel stack contents.
+  3. **Similar to CVE-assigned Issues**: This issue is very similar to the reference commits that were assigned CVEs:
+     - The asix driver commit (CVE Status: YES) fixed a similar uninitialized value issue in `asix_mdio_read()`
+     - The media/dvb-frontends commit (CVE Status: YES) fixed uninitialized buffer reads in `dib3000_read_reg()`
+     - Both involved reading uninitialized buffers when USB control transfers fail
+  4. **Attack Surface**: The vulnerability exists in a USB network driver that processes data from external USB devices, making it potentially exploitable by malicious USB devices or in virtualized environments.
+  5. **Stable Backport**: The commit includes `Cc: stable@vger.kernel.org`, indicating the maintainers consider this a security-relevant fix that needs backporting to stable kernels.
+  The fix properly checks the return value of `control_read()` and propagates the error instead of returning uninitialized data, which is the correct security mitigation.
+f914b52c379c1 ftrace: Fix UAF when lookup kallsym after ftrace disabled
+- [sasha] Based on my analysis of the commit and the historical similar commits provided:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning:
+  1. **Clear Use-After-Free (UAF) vulnerability**: The commit explicitly fixes a UAF bug where `mod_map->mod->name` is accessed after the module has been freed. The stack trace shows this causes a page fault when accessing freed memory at address `ffffffffc05d0218`.
+  2. **Security impact**: This is a memory safety vulnerability that can lead to:
+     - Kernel crashes (demonstrated in the bug report)
+     - Potential information disclosure by reading freed memory
+     - Possible arbitrary code execution if an attacker can control the freed memory contents
+  3. **Exploitable attack vector**: The vulnerability can be triggered by:
+     - Loading a buggy module that causes ftrace_disabled to be set
+     - Unloading the module
+     - Reading /proc/kallsyms (a common operation)
+  4. **Similar to other CVE-assigned commits**: Looking at the similar commits:
+     - Similar Commit 1 (CVE: YES) fixed a UAF in ftrace_location()
+     - Similar Commit 3 (CVE: YES) also fixed a UAF in ftrace_location()
+     - Similar Commit 4 (CVE: YES) fixed a potential memory access issue in ftrace_bug()
+     - Similar Commit 5 (CVE: YES) fixed invalid memory access in lookup_rec()
+  5. **The fix shows clear security relevance**: The code change specifically moves the mod_map cleanup to happen unconditionally, preventing the dangling pointer that causes the UAF. The comment added explicitly states: "To avoid the UAF problem after the module is unloaded, the 'mod_map' resource needs to be released unconditionally."
+  This vulnerability allows local attackers to cause denial of service (kernel crash) and potentially exploit the UAF for privilege escalation, making it a clear security issue warranting a CVE assignment.
+a0ee1d5faff13 KVM: VMX: Flush shadow VMCS on emergency reboot
+- [sasha] Based on my analysis of the commit and the code, here is my assessment:
+  **YES**, this commit should be assigned a CVE.
+  **Explanation:**
+  1. **Memory Corruption Vulnerability**: The commit explicitly states it prevents "potential memory corruption if the cache is evicted after reboot." This is a security vulnerability where stale shadow VMCS data persists across reboots.
+  2. **Information Disclosure Risk**: The shadow VMCS contains sensitive VM state information. When not properly cleared during emergency reboot, this data could be accessible after system restart, potentially leaking sensitive information from one boot session to another.
+  3. **Race Condition with Security Impact**: The commit message describes a race condition where NMIs can occur right after VMCS load operations (during `copy_shadow_to_vmcs12()`), leaving shadow VMCSes active but in an inconsistent state. This could lead to:
+     - Use of stale/corrupted VMCS data
+     - Potential VM escape scenarios
+     - Guest-to-host privilege escalation
+  4. **Similar to Other CVE-Assigned Commits**: Looking at the similar commits provided:
+     - The first similar commit (CVE Status: YES) fixed a memory leak and architectural state corruption in nested virtualization
+     - The second similar commit (CVE Status: YES) fixed VM state corruption that could lead to warnings and incorrect behavior
+     - This commit follows the same pattern of fixing state corruption in nested virtualization
+  5. **Critical Component**: The shadow VMCS is a critical security component in nested virtualization that maintains isolation between different virtualization layers. Failures in properly clearing this state violate security boundaries.
+  The fix adds explicit clearing of shadow VMCS (`vmcs_clear(v->shadow_vmcs)`) during emergency reboot, ensuring complete cleanup even in abnormal shutdown scenarios. This prevents sensitive VM state from persisting across reboots and eliminates the memory corruption risk.
+1bee4838eb3a2 KVM: SVM: Clear current_vmcb during vCPU free for all *possible* CPUs
+- [sasha] Based on my analysis of the commit and its context, here is my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Vulnerability**: The commit fixes a race condition that can bypass IBPB (Indirect Branch Prediction Barrier) protection between VMs. The original code only cleared `current_vmcb` for online CPUs, but if a CPU goes offline and then comes back online after a VMCB page is reused, it could skip the IBPB check.
+  2. **Cross-VM Information Leak**: This vulnerability enables a Spectre v2-style attack where branch predictor state from one VM could influence execution in another VM, potentially leaking sensitive information across VM boundaries.
+  3. **VM Isolation Breach**: The bug undermines the security isolation between virtual machines on the same physical host, which is a fundamental security property of virtualization.
+  4. **Similar CVE Precedent**: The original commit being fixed (fd65d3142f73) was addressing IBPB security issues related to Spectre v2 mitigations. This fix addresses an incomplete implementation of those same security mitigations.
+  The one-line change from `for_each_online_cpu(i)` to `for_each_possible_cpu(i)` closes a security hole where CPU hotplug operations could be exploited to bypass critical security mitigations designed to prevent cross-VM information disclosure.
+fba4ceaa242d2 configfs-tsm-report: Fix NULL dereference of tsm_ops
+- [sasha] **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **NULL Pointer Dereference Vulnerability**: The commit fixes multiple NULL pointer dereference vulnerabilities in the configfs-tsm subsystem. Three functions (`tsm_report_privlevel_store()`, `tsm_report_privlevel_floor_show()`, and `tsm_report_provider_show()`) were directly accessing `provider.ops` members without checking if `provider.ops` was NULL.
+  2. **User-Triggerable**: These vulnerabilities are directly exploitable from userspace through configfs operations. Any user with access to `/sys/kernel/config/tsm/report/*/` can trigger these NULL dereferences by:
+     - Reading from `/sys/kernel/config/tsm/report/*/provider`
+     - Reading from `/sys/kernel/config/tsm/report/*/privlevel_floor`  
+     - Writing to `/sys/kernel/config/tsm/report/*/privlevel`
+  3. **Race Condition Scenario**: The vulnerability can be triggered through a race condition where:
+     - A TSM driver calls `tsm_unregister()` (which sets `provider.ops = NULL`)
+     - While configfs items still exist and userspace accesses them
+     - This leads to kernel NULL pointer dereference and potential system crash
+  4. **Security Impact**: This can lead to:
+     - Denial of Service (kernel panic/crash)
+     - Potential privilege escalation if the NULL dereference can be exploited further
+     - System instability in environments using TSM attestation
+  5. **Similar to Historical CVEs**: This matches patterns seen in the similar commits shown that received CVEs - all involved NULL pointer dereferences that could be triggered by userspace operations, leading to kernel crashes.
+  The commit properly addresses these vulnerabilities by adding NULL checks before accessing `provider.ops` members in all three vulnerable functions.
+6883b680e703c RDMA/iwcm: Fix use-after-free of work objects after cm_id destruction
+- [sasha] Based on my analysis of the commit and the KASAN report, I can now provide a comprehensive assessment:
+  **YES**
+  This commit fixes a critical use-after-free vulnerability in the RDMA/iwcm subsystem. Here's why this warrants a CVE:
+  1. **Clear Security Vulnerability**: The KASAN report shows a slab-use-after-free in `__pwq_activate_work+0x1ff/0x250`, which occurs when accessing memory that has already been freed. This is a classic memory safety vulnerability.
+  2. **Exploitation Impact**: Use-after-free vulnerabilities can potentially be exploited to:
+     - Cause system crashes (denial of service)
+     - Execute arbitrary code if an attacker can control the freed memory
+     - Escalate privileges in certain scenarios
+  3. **Root Cause**: The vulnerability occurs because:
+     - Work objects (`iwcm_work`) are allocated for each cm_id during creation
+     - These work objects contain a pointer to the cm_id_priv structure
+     - When the last reference to cm_id is dropped within the event handler (cm_work_handler), it frees the cm_id_priv and all associated work objects
+     - However, the cm_work_handler is still executing using one of those work objects, leading to use-after-free
+  4. **Similar CVE Precedent**: The referenced similar commits show that previous use-after-free issues in the same subsystem (iwcm) were assigned CVEs:
+     - Similar Commit 1 & 2: "RDMA/iwcm: Fix a use-after-free related to destroying CM IDs" - CVE Status: YES
+     - These dealt with similar race conditions and memory management issues
+  5. **Remote Triggerable**: The vulnerability can potentially be triggered remotely through RDMA operations, making it more severe than local-only vulnerabilities.
+  6. **Stable Backport**: The commit includes `Cc: stable@vger.kernel.org`, indicating it's a serious issue that needs to be fixed in stable kernels.
+  The fix properly addresses the issue by ensuring that `iwcm_deref_id()` is called after flushing pending works in `iw_destroy_cm_id()`, preventing the use-after-free condition.
+d66adabe91803 ipc: fix to protect IPCS lookups using RCU
+- [sasha] Now I understand the vulnerability clearly. Here's my analysis:
+  **YES**
+  This commit fixes a use-after-free vulnerability in the IPC shared memory subsystem. The vulnerability occurs because:
+  1. **Race Condition**: The `shm_destroy_orphaned()` function calls `idr_for_each()` which internally uses `radix_tree_for_each_slot()` to iterate over radix tree nodes. These nodes can be freed via RCU callback (`call_rcu()`) during concurrent modifications.
+  2. **Missing RCU Protection**: The code was protected by `rwsem` (writer lock) but lacked RCU read-critical section protection. While the rwsem prevents concurrent modifications to the IDR structure, it doesn't prevent RCU grace period expiration and immediate freeing of radix tree nodes.
+  3. **Use-After-Free**: Without RCU read lock, when `radix_tree_node_free()` is called through `call_rcu()`, the node can be freed immediately if no RCU read-side critical section is active. This leads to accessing freed memory when `radix_tree_for_each_slot()` tries to read the next node.
+  4. **Security Impact**: This is a kernel use-after-free vulnerability that could potentially be exploited for:
+     - Information disclosure (reading freed kernel memory)
+     - Kernel crashes/DoS
+     - Potentially privilege escalation if the freed memory is reallocated with attacker-controlled data
+  The fix correctly adds `rcu_read_lock()`/`rcu_read_unlock()` around the `idr_for_each()` call, ensuring that RCU-freed nodes remain valid during the iteration.
+864f9963ec6b4 vgacon: Add check for vc_origin address range in vgacon_scroll()
+- [sasha] **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Clear Security Vulnerability**: The commit fixes a slab-out-of-bounds vulnerability that allows reading and writing memory outside the allocated screen buffer. The KASAN report shows reads/writes at addresses 2656 bytes beyond the allocated 1280-byte region.
+  2. **Exploitable Attack Vector**: The vulnerability can be triggered through standard TTY operations available to unprivileged users:
+     - Writing specific escape sequences (ESC M) to /dev/tty0
+     - Using IOCTL calls (TIOCL_SETVESABLANK, VT_RESIZE)
+     - Writing to /dev/vcs
+  3. **Memory Safety Impact**: The bug allows:
+     - Out-of-bounds reads that could leak kernel memory
+     - Out-of-bounds writes that could corrupt kernel memory
+     - Potential for privilege escalation or system crashes
+  4. **Root Cause**: The vgacon_scroll() function fails to validate that `vc_origin - delta` remains within valid bounds (>= vc_screenbuf), allowing an attacker to manipulate vc_origin to point before the allocated screen buffer.
+  5. **Concrete Fix**: The patch adds a critical bounds check:
+     ```c
+     } else if (oldo - delta >= (unsigned long)c->vc_screenbuf)
+         c->vc_origin -= delta;
+     ```
+     This prevents vc_origin from underflowing past vc_screenbuf.
+  The vulnerability is similar to the CVE-assigned commits shown in the examples, involving out-of-bounds memory access with clear security implications and a working PoC demonstrating exploitability.
+05f6e183879d9 fbdev: Fix fb_set_var to prevent null-ptr-deref in fb_videomode_to_var
+- [sasha] Based on my analysis of the commit, here is my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **It fixes a null pointer dereference vulnerability** that can lead to a system crash/denial of service, as evidenced by the stack trace showing "general protection fault" and "KASAN: null-ptr-deref in range".
+  2. **The vulnerability is exploitable** - The commit message indicates this was found with Syzkaller, a kernel fuzzing tool, suggesting it can be triggered through userspace operations (fb_ioctl).
+  3. **Security impact**: The bug allows unprivileged users to crash the kernel by triggering a null pointer dereference through framebuffer ioctls, causing a denial of service.
+  4. **The fix prevents a state inconsistency** - The code change shows that `info->var` was being modified but not restored on failure of `fb_add_videomode()`. This leaves the framebuffer in an inconsistent state where `info->var` describes a mode that doesn't exist in the modelist, leading to the null pointer dereference when `fb_videomode_to_var()` is later called with a NULL mode pointer.
+  5. **Similar to other CVE-assigned commits**: Looking at the similar commits, we see that commit 4 (smscufx null-ptr-deref) and commit 3 (fbmon division by zero) were assigned CVEs. This commit follows a similar pattern - fixing a crash vulnerability in the framebuffer subsystem that can be triggered from userspace.
+  The specific code change adds proper error handling by restoring the original `info->var` value when `fb_add_videomode()` fails, preventing the inconsistent state that leads to the null pointer dereference.
+17186f1f90d34 fbdev: Fix do_register_framebuffer to prevent null-ptr-deref in fb_videomode_to_var
+- [sasha] Based on my analysis of the commit and the surrounding code, here is my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact - NULL Pointer Dereference**: The commit fixes a null pointer dereference vulnerability that can cause a kernel panic/crash. The stack trace shows a "general protection fault" with "KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]" which is a classic security vulnerability.
+  2. **Root Cause**: The vulnerability occurs when `fb_add_videomode()` fails to allocate memory (returns -ENOMEM) but the framebuffer is still registered. Later, when `fb_videomode_to_var()` is called through the chain `fbcon_resize() -> display_to_var()`, it tries to dereference `disp->mode` which is NULL because no mode was added to the modelist.
+  3. **Attack Vector**: The commit message mentions this was found with Syzkaller, indicating it can be triggered through userspace via ioctl calls. The stack trace shows the path through `fb_ioctl()`, making this accessible to unprivileged users who can open framebuffer devices.
+  4. **Code Changes Show Security Fix**: The patch moves `fb_add_videomode()` earlier in the registration process and adds proper error handling. If it fails, the function returns the error code instead of continuing with registration, preventing the vulnerable state where a framebuffer is registered without a valid mode.
+  5. **Similarities to CVE-assigned commits**: This is similar to the other CVE-assigned commits shown in the examples (commits 1, 3, and 5) which also fix null pointer dereferences in the fbdev subsystem that can lead to kernel crashes.
+  The vulnerability allows local users to cause a denial of service (kernel crash) by triggering memory allocation failures during framebuffer registration, making this a legitimate security issue warranting a CVE assignment.
+320302baed05c iommu/vt-d: Restore context entry setup order for aliased devices
+- [sasha] Looking at the actual code changes in the commit, I can see:
+  1. **The commit adds a `domain_attached` flag** to track whether a device has a domain attached
+  2. **In `device_block_translation()`**, it adds an early return if `!info->domain_attached`
+  3. **The flag is set to `true`** when domains are successfully attached
+  4. **The flag is set to `false`** after blocking translation
+  This is a critical pattern to analyze. Let me examine the similar CVE commits more closely:
+  **YES**
+  This commit should be assigned a CVE based on the following security analysis:
+  1. **DMA Security Bypass Window**: The commit fixes a regression where devices (specifically Apple keyboards/touchpads) were experiencing DMA faults because the domain attachment order was changed. The error messages show:
+     ```
+     DMAR: [DMA Read NO_PASID] Request device [00:1e.3] fault addr 0xffffa000 [fault reason 0x06] PTE Read access is not set
+     ```
+     This indicates devices were attempting DMA operations that were being blocked, causing functional failures.
+  2. **Security-Critical State Management**: The addition of the `domain_attached` flag and the early return check in `device_block_translation()` creates a critical security state management issue. If this flag is not properly synchronized or if there's a race condition, a device could maintain DMA access when it should be blocked.
+  3. **Similar to CVE-Assigned Commits**: This commit shares characteristics with the similar commits that were assigned CVEs:
+     - Similar Commit 1 & 2 (CVE assigned): Fixed incorrect `pci_for_each_dma_alias()` calls that could lead to kernel hangs
+     - Similar Commit 4 & 5 (CVE assigned): Implemented blocking domain to prevent UAF and device access issues
+     
+  4. **Attack Surface**: The bug affects PCI aliased devices behind PCIe-to-PCI bridges. An attacker with physical access could potentially exploit the incorrect domain setup order to:
+     - Bypass IOMMU protections during domain transitions
+     - Maintain unauthorized DMA access
+     - Access memory regions that should be protected
+  5. **Real-World Impact**: The commit explicitly mentions it fixes a regression on "several Apple Macbooks" where input devices stopped working. This indicates the bug affects real hardware and could be exploited on affected systems.
+  The security impact is that devices might not be properly isolated during domain transitions, potentially allowing unauthorized DMA access to system memory during the window between clearing the old context and setting up the new one.
+b160766e26d4e net/sched: fix use-after-free in taprio_dev_notifier
+- [sasha] Based on my analysis of the code and commit, here is my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Use-After-Free Vulnerability**: The commit explicitly fixes a use-after-free vulnerability in `taprio_dev_notifier()`. This is a memory safety issue that can lead to crashes or potentially be exploited.
+  2. **Race Condition with Memory Freeing**: The race occurs between:
+     - `taprio_dev_notifier()` which was using `rtnl_dereference()` to access `q->oper_sched` and `q->admin_sched` 
+     - `advance_sched()` which can call `switch_schedules()` → `call_rcu(&(*oper)->rcu, taprio_free_sched_cb)` → eventually freeing the schedule structures
+  3. **Security Impact**: The function `taprio_update_queue_max_sdu()` dereferences the `sched` pointer extensively (lines 283, 288, 305, 306, 308, 309), accessing multiple fields within the potentially freed structure. This could lead to:
+     - System crashes (DoS)
+     - Potential information disclosure if freed memory is reused
+     - Possible arbitrary code execution in worst-case scenarios
+  4. **Similar to Other CVE-Assigned Commits**: This commit shares characteristics with the similar commits that were assigned CVEs:
+     - Similar Commit 1 & 2: Fixed use-after-free in `taprio_change()` 
+     - Similar Commit 4 & 5: Fixed use-after-free in `taprio_dump()`
+     - All involve missing RCU protection when accessing schedule structures
+  5. **The Fix**: The commit properly adds RCU read-side critical section protection by:
+     - Adding `rcu_read_lock()`
+     - Changing `rtnl_dereference()` to `rcu_dereference()`
+     - Adding `rcu_read_unlock()`
+  This ensures the schedule structures cannot be freed while `taprio_dev_notifier()` is accessing them.
+14c9ede9ca4cd hwmon: (ftsteutates) Fix TOCTOU race in fts_read()
+- [sasha] Based on my analysis of the commit, I need to determine if this should be assigned a CVE.
+  **Analysis:**
+  1. **The vulnerability**: The commit fixes a TOCTOU (Time-of-Check to Time-of-Use) race condition in the `fts_read()` function. The code was accessing `data->fan_source[channel]` twice without proper locking:
+     - First check: `if (data->fan_source[channel] == FTS_FAN_SOURCE_INVALID)`
+     - Second use: `*val = BIT(data->fan_source[channel])`
+  2. **The race condition**: Between these two accesses, another thread running `fts_update_device()` could modify `data->fan_source[channel]` to `FTS_FAN_SOURCE_INVALID` (0xff = 255).
+  3. **Security impact**: If the value changes to 0xff (255) between the check and use, `BIT(255)` would be called. Since `BIT()` macro performs a bit shift operation, shifting by 255 positions is undefined behavior (UB) in C when the underlying type has fewer bits than the shift amount.
+  4. **Potential consequences**:
+     - **Crash**: The undefined behavior could cause a kernel crash/panic
+     - **Information disclosure**: Incorrect values could be returned to userspace
+     - **System instability**: Undefined behavior in kernel space
+  5. **Attack surface**: This is a hwmon (hardware monitoring) driver that exposes sysfs interfaces to userspace. A malicious user with access to the hwmon sysfs files could potentially trigger this race condition by repeatedly reading the pwm attributes while the hardware is being updated.
+  6. **Fix**: The patch properly fixes the issue by:
+     - Reading the value once into a local variable
+     - Adding bounds checking (`fan_source >= BITS_PER_LONG`)
+     - Eliminating the race window
+  **Comparison with similar commits**:
+  - Similar Commit 1 & 3 (CVE: YES): Fixed an off-by-one buffer overflow that could lead to out-of-bounds memory access
+  - Similar Commit 5 (CVE: YES): Fixed a race condition that could cause kernel BUG/panic
+  - This commit: Fixes a race condition that can cause undefined behavior, potential crash, or incorrect data
+  **Decision: YES**
+  This commit should be assigned a CVE because:
+  1. It fixes a race condition that can lead to undefined behavior in kernel space
+  2. The undefined behavior (bit shift by 255) can potentially cause kernel crashes
+  3. It's exploitable from userspace through the hwmon sysfs interface
+  4. It affects system stability and reliability
+  5. The pattern is similar to other race condition fixes that were assigned CVEs (like Similar Commit 5)
+5db0d252c64e9 f2fs: fix to do sanity check on sit_bitmap_size
+- [sasha] Based on my analysis of the commit and code:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact - Kernel Panic/DoS**: The commit fixes a kernel BUG_ON that triggers a panic, causing a denial of service. The commit message shows a clear kernel panic trace with "kernel BUG at fs/f2fs/segment.h:863!"
+  2. **Out-of-bounds Access**: The vulnerability involves out-of-bounds memory access. The commit message explicitly states: "build_sit_entries() -> current_sit_addr() tries to access out-of-boundary in sit_bitmap at offset from [1536, 4762)". This is a classic memory safety issue.
+  3. **Exploitable via Crafted Input**: The vulnerability can be triggered by mounting a specially crafted f2fs image. The commit shows a clear reproducer using resize.f2fs to create a corrupted image that triggers the bug when mounted.
+  4. **Missing Input Validation**: The fix adds a critical sanity check that was missing: validating that `sit_bitmap_size * 8` is large enough to accommodate `sit_blk_cnt`. Without this check, the code attempts to access memory beyond the allocated bitmap.
+  5. **Similar to Previous CVEs**: This follows the same pattern as the other f2fs CVEs shown in the examples - missing sanity checks on filesystem metadata that lead to kernel panics when mounting malformed filesystems.
+  The specific code change adds:
+  ```c
+  sit_blk_cnt = DIV_ROUND_UP(main_segs, SIT_ENTRY_PER_BLOCK);
+  if (sit_bitmap_size * 8 < sit_blk_cnt) {
+      f2fs_err(sbi, "Wrong bitmap size: sit: %u, sit_blk_cnt:%u",
+           sit_bitmap_size, sit_blk_cnt);
+      return 1;
+  }
+  ```
+  This prevents the out-of-bounds access that would occur when the SIT (Segment Information Table) bitmap is too small to represent all the segments in the filesystem.
+42cb74a92adaf f2fs: prevent kernel warning due to negative i_nlink from corrupted image
+- [sasha] Now I understand the issue. The VFS drop_nlink() function has a WARN_ON when i_nlink is already 0 (line 417). The commit is adding a check to prevent calling drop_nlink when i_nlink is already 0, which would trigger this kernel warning.
+  Let me analyze the security implications:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Corrupted filesystem image can trigger kernel warning**: The commit message shows a kernel WARNING triggered at fs/inode.c:417 in drop_nlink() when processing a corrupted f2fs image with i_nlink=0.
+  2. **Input validation vulnerability**: The code change adds a check for `inode->i_nlink == 0` before proceeding with the unlink operation, indicating that the filesystem wasn't properly validating this condition from corrupted on-disk data.
+  3. **Similar to other CVE-assigned commits**: This follows the same pattern as the similar commits shown, particularly:
+     - "jfs: reject on-disk inodes of an unsupported type" (CVE assigned)
+     - "f2fs: get rid of online repaire on corrupted directory" (CVE assigned)
+     - "f2fs: fix to don't dirty inode for readonly filesystem" (CVE assigned)
+  4. **Sets EFSCORRUPTED and SBI_NEED_FSCK flags**: The fix properly marks the filesystem as corrupted and needing fsck, similar to other security fixes.
+  5. **Prevents further corruption**: Without this check, the code would proceed to call drop_nlink() on an inode with zero links, potentially leading to undefined behavior or further filesystem corruption.
+  The vulnerability allows a maliciously crafted f2fs filesystem image to trigger kernel warnings and potentially cause system instability when mounted and accessed.
+061cf3a84bde0 f2fs: fix to do sanity check on ino and xnid
+- [sasha] Based on my analysis of the commit and the code changes, here's my determination:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact - Deadlock/DoS**: The commit fixes a deadlock vulnerability that can cause a denial of service. The commit message shows a hung task blocked for more than 143 seconds, indicating a system hang condition.
+  2. **Attack Vector**: The vulnerability can be triggered through filesystem operations (specifically creating files via unix_bind) on a corrupted f2fs filesystem where an inode's xattr_nid equals its i_ino.
+  3. **Root Cause**: The deadlock occurs when the code tries to lock the same inode page twice:
+     - First lock: `f2fs_get_inode_page` in `f2fs_add_inline_entry`
+     - Second lock attempt: `__get_node_page` when trying to read xattr block (since xattr_nid == i_ino)
+  4. **Similar to Previous CVEs**: This follows the same pattern as the similar commits shown which were assigned CVEs - they all involve sanity checks to prevent corruption-based issues that can lead to kernel panics, BUG_ON triggers, or deadlocks.
+  5. **Exploitability**: While it requires a corrupted filesystem, this can be achieved through:
+     - Malicious filesystem images
+     - Memory corruption
+     - Filesystem fuzzing (as shown by syzbot report)
+  The fix adds a sanity check `if (ino_of_node(node_page) == fi->i_xattr_nid)` to prevent processing inodes where the xattr node ID equals the inode number itself, which is an invalid state that leads to the deadlock.
+8f38219fa1396 Input: gpio-keys - fix possible concurrent access in gpio_keys_irq_timer()
+- [sasha] Based on my analysis, here is my determination:
+  **YES**, this commit should be assigned a CVE.
+  **Explanation:**
+  1. **Race Condition with Security Impact**: The commit fixes a legitimate race condition between `gpio_keys_irq_isr()` and `gpio_keys_irq_timer()`. Both functions access the same shared resource (`bdata->key_pressed`) without proper synchronization.
+  2. **Introduced by Previous Security Fix**: The vulnerability was introduced by commit 019002f20cb5 ("Input: gpio-keys - use hrtimer for release timer"), which removed the spinlock protection from `gpio_keys_irq_timer()` with the assumption that hrtimer callbacks running in hard IRQ context wouldn't need locking. However, this created a race condition where:
+     - `gpio_keys_irq_isr()` (GPIO interrupt handler) can run concurrently with
+     - `gpio_keys_irq_timer()` (hrtimer callback)
+     - Both access and modify `bdata->key_pressed` without synchronization
+  3. **Potential Security Consequences**:
+     - **Data Corruption**: Concurrent access to `bdata->key_pressed` could lead to inconsistent state
+     - **Input Event Corruption**: Could result in lost or duplicate key press/release events
+     - **System Instability**: In worst case, race conditions in kernel drivers can lead to crashes or undefined behavior
+     - **Security Bypass**: Corrupted input events could potentially be exploited to bypass security mechanisms that rely on specific key sequences
+  4. **Similar Pattern to CVE-Assigned Commits**: The pattern matches similar commits that were assigned CVEs:
+     - Similar Commit 1 (CVE assigned): Fixed incorrect work cancellation that could cause kernel warnings
+     - Similar Commit 2 & 3 (CVE assigned): Fixed deadlock issues with spinlock usage in interrupt context
+     - This commit: Fixes race condition with missing spinlock protection in interrupt context
+  5. **Kernel Space Vulnerability**: This is a kernel-space driver vulnerability that affects system stability and data integrity, which typically warrants CVE assignment.
+  The fix properly adds back the spinlock protection using `guard(spinlock_irqsave)(&bdata->lock)` in `gpio_keys_irq_timer()`, ensuring mutual exclusion between the two interrupt handlers when accessing shared data.
+a95ef0199e80f Input: ims-pcu - check record size in ims_pcu_flash_firmware()
+- [sasha] Based on my analysis of the commit and the additional context from the kernel tree, I can now provide my assessment:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning based on the code changes:
+  1. **Memory Corruption Vulnerability**: The commit explicitly fixes a potential memory corruption issue. The commit message states: "If the 'len' is too large it could result in memory corruption when we do 'memcpy(fragment->data, rec->data, len);'"
+  2. **Untrusted Input Source**: The `len` value comes from firmware data (`len = be16_to_cpu(rec->len)`), which is loaded from an external file. While the commit message notes "we generally do trust firmware," firmware files can be replaced or corrupted, making this an attack vector.
+  3. **Buffer Overflow Protection**: The fix adds bounds checking to prevent writing beyond the allocated buffer:
+     ```c
+     if (len > sizeof(pcu->cmd_buf) - 1 - sizeof(*fragment)) {
+         dev_err(pcu->dev, "Invalid record length in firmware: %d\n", len);
+         return -EINVAL;
+     }
+     ```
+  4. **Security Impact**: Without this check, a malicious or corrupted firmware file with oversized record lengths could cause:
+     - Buffer overflow in `pcu->cmd_buf` (which is 128 bytes as defined by `IMS_PCU_BUF_SIZE`)
+     - Memory corruption when `memcpy(fragment->data, rec->data, len)` copies more data than the buffer can hold
+     - Potential code execution or system crash
+  5. **Similar to CVE-Assigned Commits**: Looking at the similar commits provided, commit 5 (ALSA: oss) received a CVE for a buffer overflow fix. This commit shares similar characteristics:
+     - Fixes a buffer overflow vulnerability
+     - Involves size validation before memory operations
+     - Could lead to memory corruption if exploited
+  6. **Attack Surface**: The vulnerability is in the firmware update path, which is accessible through sysfs (`/sys/.../update_firmware`). This provides a user-accessible attack vector for a local attacker with appropriate permissions.
+  The vulnerability allows potential memory corruption through crafted firmware files, which could lead to denial of service or potentially arbitrary code execution in kernel context.
+e26268ff1dcae ext4: only dirty folios when data journaling regular files
+- [sasha] **YES**
+  This commit fixes a kernel NULL pointer dereference vulnerability that causes a system crash. The issue occurs when processing symlink inodes from the orphan list during ext4 filesystem operations.
+  Key security-relevant aspects from the code changes:
+  1. **NULL pointer dereference**: The crash happens because `folio_mark_dirty()` calls `mapping->a_ops->dirty_folio()`, but symlink inodes don't have `a_ops` assigned (as shown in line 5034 of fs/ext4/inode.c where `ext4_set_aops()` is only called for regular files).
+  2. **Exploitable condition**: The vulnerability can be triggered through orphan inode processing, which occurs during filesystem mount or recovery operations. An attacker could craft a malicious ext4 filesystem with symlinks in the orphan list to cause a system crash upon mount.
+  3. **The fix**: The code change adds a check for regular files before calling `folio_mark_dirty()`:
+     ```c
+     +	/* only regular files have a_ops */
+     +	if (S_ISREG(inode->i_mode))
+     +		folio_mark_dirty(folio);
+     ```
+  This is similar to the CVE-assigned commit "ocfs2: fix NULL pointer dereference in ocfs2_journal_dirty()" which also fixed a NULL pointer dereference that could cause system crashes. While this requires local access to mount a crafted filesystem, it still represents a denial-of-service vulnerability that warrants CVE assignment.
+b5e58bcd79625 ext4: fix out of bounds punch offset
+- [sasha] Now I see the flow. The function `ext4_truncate_page_cache_block_range` calls `truncate_pagecache_range` with `(inode, start, end - 1)`, which then calls `truncate_inode_pages_range`, which eventually calls `truncate_inode_partial_folio`.
+  The issue is that when `offset` is very large and close to `max_end`, the calculation of `end` in `ext4_punch_hole` could result in values that, when passed down to the truncate functions, cause integer overflow issues leading to the kernel BUG.
+  **YES**
+  This commit fixes a security vulnerability that can be triggered by an unprivileged local user through the fallocate system call with FALLOC_FL_PUNCH_HOLE flag. The vulnerability causes a kernel BUG (panic) due to integer overflow when punching holes at offsets close to the filesystem's maximum addressable range (s_bitmap_maxbytes).
+  The security impact includes:
+  1. **Denial of Service**: An unprivileged user can crash the kernel by triggering the BUG_ON in `zero_user_segments`
+  2. **Local attack vector**: Requires only local filesystem access to trigger
+  3. **Low complexity**: Simple reproducer using standard filesystem operations (truncate, pwrite, fpunch)
+  The fix adds a critical bounds check (`offset >= max_end`) to prevent the integer overflow that leads to invalid memory access attempts when zeroing page segments beyond page boundaries.
+227cb4ca5a650 ext4: inline: fix len overflow in ext4_prepare_inline_data
+- [sasha] Perfect! Now I can see the issue. The function `ext4_generic_write_inline_data` takes `pos` as `loff_t` (64-bit) and `len` as `unsigned` (32-bit). When it calls `ext4_prepare_inline_data(handle, inode, pos + len)`, the expression `pos + len` results in a 64-bit value, but `ext4_prepare_inline_data` was expecting an `unsigned int` parameter, causing truncation.
+  Let me check the reproducer values from the commit message:
+  ```c
+  pwrite(fd, "a", 1, (1UL << 40) + 5UL);
+  ```
+  This means:
+  - `pos` = (1UL << 40) + 5UL = 0x10000000005
+  - `len` = 1
+  - `pos + len` = 0x10000000006
+  When this 64-bit value gets truncated to 32-bit `unsigned int`, it becomes 6, which is why the commit message mentions "leading to ext4_prepare_inline_data parameter to be 6 instead of 0x10000000006."
+  **YES**
+  This commit should be assigned a CVE because:
+  1. **It fixes a security vulnerability**: The integer overflow leads to a kernel BUG_ON() which causes a kernel panic/crash, resulting in a denial of service (DoS).
+  2. **The vulnerability is exploitable**: The commit includes a simple proof-of-concept showing how unprivileged users can trigger this bug with just a few lines of code using standard system calls (open, ftruncate, pwrite).
+  3. **The issue involves improper bounds checking**: The truncation of `pos + len` from 64-bit to 32-bit causes the bounds check in `ext4_prepare_inline_data` to pass incorrectly (checking if 6 bytes fit instead of 0x10000000006 bytes), but later the full 64-bit value is used in `ext4_write_inline_data`, triggering the BUG_ON.
+  4. **Similar to other CVE-assigned commits**: This follows the pattern of commits 2 and 3 in the examples, which also fixed integer overflow/truncation issues that could lead to kernel crashes or other security issues.
+  5. **It affects a common filesystem feature**: While inline_data is a specific ext4 feature, it can be enabled on any ext4 filesystem, making this vulnerability broadly applicable.
+  The fix correctly changes the parameter type from `unsigned int` to `loff_t` to prevent the truncation, ensuring proper bounds checking throughout the code path.
+060909278cc0a ceph: avoid kernel BUG for encrypted inode with unaligned file size
+- [sasha] Looking at this commit, I need to analyze whether it represents a security vulnerability that warrants a CVE.
+  Let me examine the commit details:
+  1. **The Bug**: The commit fixes a kernel BUG_ON() that occurs in `ceph_msg_data_cursor_init()` when handling encrypted inodes with unaligned file sizes.
+  2. **The Trigger**: The bug is triggered by the generic/397 xfstest when:
+     - Creating encrypted files with unaligned sizes (e.g., 33K, 1K)
+     - Accessing these files without the encryption key
+  3. **The Root Cause**: The issue occurs because `subreq->io_iter.count` maintains an unaligned length value, which causes `iov_iter_get_pages_alloc2()` to operate incorrectly, ultimately leading to a condition where `msg->sparse_read_total > msg->data_length`, triggering the BUG_ON().
+  4. **The Fix**: The patch adds a workaround that aligns `subreq->io_iter.count` to the correct length before calling `iov_iter_get_pages_alloc2()`.
+  Let me check if there's additional context available:
+  ```bash
+  if [ -n "$CVEKERNELTREE" ]; then
+      cd "$CVEKERNELTREE"
+      # Check the actual BUG_ON code
+      git show ee4cdf7ba857:net/ceph/messenger.c | grep -A5 -B5 "BUG_ON(length > msg->data_length)"
+      # Check if this is exploitable
+      git log --grep="CVE" --oneline fs/ceph/addr.c | head -10
+  fi
+  ```
+  **CVE Decision: YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Denial of Service**: The bug triggers a kernel BUG_ON(), which causes a kernel panic/crash. This is a clear denial of service vulnerability.
+  2. **User-Triggerable**: The bug can be triggered by unprivileged users who can:
+     - Create encrypted files with specific unaligned sizes
+     - Access these files without the encryption key
+     - This doesn't require special privileges beyond normal file operations
+  3. **Security Boundary Violation**: While the crash requires specific conditions (encrypted files with unaligned sizes), it allows a local user to crash the entire system, crossing the security boundary between userspace and kernel space.
+  4. **Reproducible**: The commit message indicates this is reproducible with a specific xfstest (generic/397), showing it's not a random race condition but a deterministic issue.
+  The fact that this is marked as a "FIXME" workaround rather than a proper fix doesn't diminish its security impact - it still prevents a kernel crash that can be triggered by unprivileged users.
+54ec8b08216f3 can: kvaser_pciefd: refine error prone echo_skb_max handling logic
+- [sasha] Let me check what the commit message says more carefully about the issue. Based on the analysis:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Out-of-bounds memory access vulnerability**: The KASAN report shows a slab-out-of-bounds read at `kvaser_pciefd_handle_ack_packet+0x2d7/0x92a`, which is accessing `can->can.echo_skb[echo_idx]` beyond the allocated array bounds.
+  2. **Root cause**: The driver allocates echo_skb[] array with size `KVASER_PCIEFD_CAN_TX_MAX_COUNT` (17), but after the fixes commit 8256e0ca6010, the echo_skb_max is set to `roundup_pow_of_two(can->tx_max_count)`, which rounds 17 up to 32. The tx/ack indices are then calculated modulo this rounded value (32), but the actual array only has 17 elements allocated.
+  3. **Exploitability**: This can be triggered during normal CAN bus operations when handling ACK packets, potentially leading to:
+     - Information disclosure (reading beyond allocated memory)
+     - Possible kernel crashes
+     - Potential privilege escalation depending on what data is accessed
+  4. **Impact**: The vulnerability affects kernel versions after commit 8256e0ca6010 ("can: kvaser_pciefd: Fix echo_skb race") and is triggered in interrupt context during packet acknowledgment handling.
+  5. **Fix**: The patch correctly changes the allocation size from `KVASER_PCIEFD_CAN_TX_MAX_COUNT` to `roundup_pow_of_two(KVASER_PCIEFD_CAN_TX_MAX_COUNT)` to match the index calculations, ensuring the array is large enough for all possible index values.
+  The vulnerability is similar to the CVE-assigned commits shown in the examples, particularly the bounds checking issues in Similar Commit 1 and the use-after-free in Similar Commit 5.
+6f18d174b73d0 bus: mhi: ep: Update read pointer only after buffer is written
+- [sasha] Let me analyze based on the provided diff. The fix shows:
+  **Before the fix:**
+  1. `old_offset = ring->rd_offset;` (line 133)
+  2. `mhi_ep_ring_inc_index(ring);` (line 134) - Updates rd_offset
+  3. Update rp in ring context visible to host (line 140)
+  4. Write actual data to host (line 146)
+  **After the fix:**
+  1. `old_offset = ring->rd_offset;` (line 133)
+  2. Write actual data to host FIRST (lines 136-141)
+  3. `mhi_ep_ring_inc_index(ring);` (line 143) - Updates rd_offset
+  4. Update rp in ring context visible to host (line 146)
+  This reordering ensures the data is written before the read pointer is updated.
+  **YES**
+  This commit should be assigned a CVE because:
+  1. **Race Condition with Security Impact**: The bug creates a race condition where the host can observe an updated read pointer before the corresponding data is written. This violates the fundamental invariant that a read pointer should only point to valid, fully-written data.
+  2. **Information Disclosure Risk**: During the race window, the host could read uninitialized memory or stale data from previous operations, potentially exposing sensitive information that was not intended to be shared.
+  3. **Data Integrity Violation**: The host processing invalid/incomplete data could lead to:
+     - Incorrect protocol state transitions
+     - Processing of malformed commands
+     - System crashes or undefined behavior
+  4. **Affects Security Boundary**: MHI is used for communication between different security domains (host processor and modem/endpoint). A vulnerability in this interface can compromise the security boundary between these domains.
+  5. **Similar to CVE-worthy Patterns**: The reference commit showing alignment check (CVE Status: YES) also addressed a validation issue that could lead to DoS or memory corruption. This race condition has similar potential impacts.
+  6. **Exploitable by Malicious Host**: In threat models where the host might be compromised (e.g., in mobile devices where the application processor could be compromised while the modem should remain secure), this vulnerability could be actively exploited.
+  The fix correctly addresses the issue by ensuring write-before-read-pointer-update ordering, preventing the host from ever observing a read pointer pointing to unwritten data.
+4b634918384c0 arm64/mm: Close theoretical race where stale TLB entry remains valid
+- [sasha] Based on my analysis of the commit and additional context from the kernel tree, I believe this commit should be assigned a CVE.
+  **Answer: YES**
+  **Explanation:**
+  This commit fixes a security vulnerability where a race condition between TLB batched flushing and memory protection operations (like mprotect()) can leave stale TLB entries valid on ARM64. The key security implications are:
+  1. **Memory Protection Bypass**: The race allows a scenario where a user can continue writing to memory using a cached RW (read-write) PTE even after the permissions have been changed to read-only. This directly violates memory protection boundaries.
+  2. **Architectural Issue**: The vulnerability stems from ARM64's implementation of `arch_flush_tlb_batched_pending()` using only `dsb(ish)`. As the ARM Architecture Reference Manual states, a DSB executed by a different CPU doesn't guarantee completion of TLB maintenance instructions issued by another CPU. The fix changes this to `flush_tlb_mm(mm)`, which properly issues TLBI instructions to invalidate the entire mm's TLB entries.
+  3. **Alignment with Other Architectures**: The x86 implementation already uses `flush_tlb_mm(mm)` in its `arch_flush_tlb_batched_pending()`, confirming this is the correct approach to prevent the race.
+  4. **Explicit Vulnerability Acknowledgment**: The commit message explicitly states "we are still vulnerable to the theoretical race described in Commit 3ea277194daa", directly acknowledging the security issue.
+  5. **Similar CVE Precedents**: The referenced similar commits with CVE assignments (particularly the mm/swap race fix and x86 TLB flush fixes) show that TLB-related race conditions that can lead to memory protection bypass or data corruption are considered CVE-worthy.
+  The potential for privilege escalation through memory protection bypass makes this a clear security vulnerability deserving of a CVE assignment.
+7500bb9cf164e media: imx-jpeg: Cleanup after an allocation error
+- [sasha] **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **NULL Pointer Dereference Vulnerability**: The commit message explicitly states that the bug can "cause NULL pointer dereferences", which is a security vulnerability that can lead to kernel crashes and potential denial of service.
+  2. **Memory Corruption Risk**: Without proper cleanup in the error path of `mxc_jpeg_alloc_slot_data()`, if an allocation fails (e.g., `cfg_desc` or `cfg_stm` fails), the function returns false but leaves partially allocated data in `jpeg->slot_data`. The key issue is that on subsequent calls:
+     - Line 761 checks `if (jpeg->slot_data.desc)` and skips allocation if it's non-NULL
+     - But if previous allocations failed partway through, some fields like `cfg_desc` or `cfg_stream_vaddr` could be NULL
+     - When `mxc_jpeg_config_enc_desc()` or `mxc_jpeg_config_dec_desc()` are called, they directly dereference these pointers (lines 1173, 1239) without NULL checks
+  3. **Attack Surface**: This is in a media driver that processes user-controlled JPEG data, making it accessible to unprivileged users who can trigger memory allocation failures through resource exhaustion or other means.
+  4. **Similar CVE Precedent**: The similar commits shown all received CVEs for:
+     - Error pointer dereferences (CVE for commit 1)
+     - Buffer validation issues that could cause crashes (CVE for commit 2)
+     - NULL pointer dereferences in the same driver (CVE for commits 3-5)
+  5. **Stable Backport**: The commit is marked for stable backport (`Cc: stable@vger.kernel.org`), indicating it fixes a serious issue affecting production kernels.
+  The vulnerability allows local unprivileged users to cause a denial of service (kernel crash) by triggering allocation failures in the JPEG driver, which then leads to NULL pointer dereferences when the driver attempts to use the incompletely allocated structures.
+f83ac8d30c43f media: vivid: Change the siize of the composing
+- [sasha] Based on my analysis of the commit and the code, here's my assessment:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning:
+  1. **Security Vulnerability Fixed**: The commit fixes a **vmalloc-out-of-bounds write vulnerability** as shown in the KASAN report. This is a memory corruption issue where data is written beyond allocated memory boundaries.
+  2. **Root Cause**: The vulnerability occurs because when `has_compose_cap == 0`, the original code was not properly constraining the `compose` rectangle size to be within the `fmt` boundaries. This allowed the compose size to exceed the allocated buffer size, leading to out-of-bounds writes.
+  3. **Impact**: The bug triggers a kernel crash with out-of-bounds write in `tpg_fill_plane_buffer()`. The KASAN report shows "Write of size 1440" beyond allocated memory, which could potentially be exploited for:
+     - Kernel memory corruption
+     - Potential privilege escalation
+     - System crashes/DoS
+  4. **Code Fix**: The fix moves the `v4l2_rect_map_inside(compose, &fmt)` call outside the `if (dev->has_compose_cap)` condition block (line 949 to line 951), ensuring that the compose rectangle is always constrained within fmt boundaries regardless of the `has_compose_cap` flag.
+  5. **Previous Similar CVE**: The commit references fixing a previous vulnerability (commit 94a7ad928346) which was assigned a CVE based on the similar commits provided. This current fix addresses an incomplete fix from that previous security issue.
+  6. **Attack Surface**: The vivid driver is a V4L2 test driver that can be accessed by unprivileged users through the V4L2 API, making this a viable attack vector.
+  The vulnerability allows userspace to trigger kernel memory corruption through the V4L2 API, which is a clear security issue warranting CVE assignment.
+1d5f88f053480 media: vidtv: Terminating the subsequent process of initialization failure
+- [sasha] Based on my analysis, here's my determination:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning based on the code changes and commit message:
+  1. **Use-After-Free Vulnerability**: The commit message clearly describes a slab-use-after-free vulnerability in `vidtv_mux_init()`. The KASAN report shows that memory was accessed after being freed, which is a security vulnerability.
+  2. **Impact on Kernel Stability**: The vulnerability causes a kernel crash when triggered, as shown by the stack trace. This could lead to a denial of service.
+  3. **Root Cause**: The bug occurs because when `vidtv_channel_si_init()` fails, it frees the `m->si.pat` structure (line 499 in the error path), but returns 0 (success) instead of an error code. This causes the caller (`vidtv_mux_init()`) to continue execution and access the freed memory at line 78: `struct vidtv_psi_table_pat_program *p = m->si.pat->program;`
+  4. **Simple Fix**: The fix changes the return value from 0 to -EINVAL on line 500, ensuring that initialization failure is properly propagated to the caller, preventing the use-after-free.
+  5. **Exploitability**: While this is in a test driver (vidtv), it's still part of the mainline kernel and can be triggered by unprivileged users who have access to the DVB device interface, potentially leading to kernel crashes.
+  The commit fixes a clear memory safety issue that results in undefined behavior and kernel crashes, meeting the criteria for CVE assignment.
+609ba05b94848 media: imagination: fix a potential memory leak in e5010_probe()
+- [sasha] **YES**
+  This commit should be assigned a CVE based on the following analysis:
+  1. **Memory Leak Pattern**: The commit fixes a memory leak where `video_device_alloc()` allocates memory that is not freed in error paths during the probe function. When `v4l2_device_register()` fails, the code jumps to error handling but fails to release the allocated video device memory.
+  2. **Security Impact**: While this is primarily a resource leak, it has security implications:
+     - The leak occurs in the driver probe path, which can be triggered repeatedly by module load/unload operations
+     - In embedded systems with limited memory (like the TI AM62A SoCs this driver targets), repeated probe failures could lead to kernel memory exhaustion
+     - This creates a potential DoS vector where an attacker with module load capabilities could exhaust kernel memory
+  3. **Similar CVE Precedents**: Looking at the similar commits provided:
+     - CVE-assigned commits show memory leaks in high-frequency code paths (device memory remapping/unmapping, firmware processing)
+     - These leaks were assigned CVEs because they could accumulate quickly and impact system stability
+     - The e5010 probe function, while less frequently called than runtime operations, can still be triggered multiple times through module operations
+  4. **Exploitability**: While limited, there is exploitability:
+     - An attacker with CAP_SYS_MODULE privileges could repeatedly load/unload the module
+     - In systems where the driver might fail to probe (missing resources, hardware issues), each attempt leaks memory
+     - The accumulated leaks could eventually exhaust kernel memory, causing system instability or crashes
+  The commit explicitly tags stable@vger.kernel.org, indicating the maintainers consider this a significant issue worth backporting to stable kernels, which further supports CVE assignment.
+024bf40edf115 media: davinci: vpif: Fix memory leak in probe error path
+- [sasha] Based on my analysis, **YES**, this commit should be assigned a CVE.
+  The commit fixes a resource leak where a successfully registered platform device (`pdev_capture`) is not properly unregistered in the error path when `pdev_display` registration fails. The fix adds the missing `platform_device_del()` call before `platform_device_put()` to properly clean up the registered device.
+  This constitutes a security vulnerability because:
+  1. It's a kernel memory/resource leak that cannot be reclaimed without rebooting
+  2. Could potentially be exploited for local denial of service by repeatedly triggering the error path
+  3. Similar platform device registration leaks in the kernel have been assigned CVEs (e.g., memory leaks in drivers)
+  4. The leaked platform device remains registered in the system, consuming kernel resources
+  The pattern matches similar CVE-worthy commits shown in the examples where improper cleanup in error paths leads to resource leaks that can accumulate and potentially exhaust system resources.
+73fb3b92da846 media: cxusb: no longer judge rbuf when the write fails
+- [sasha] Looking at the commit diff provided, the key changes are:
+  1. Before: 
+  ```c
+  cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
+  if (i != 0x01)
+      dev_info(&d->udev->dev, "gpio_write failed.\n");
+  ```
+  2. After:
+  ```c
+  if (!cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1) && i != 0x01)
+      dev_info(&d->udev->dev, "gpio_write failed.\n");
+  ```
+  The issue is that when `cxusb_ctrl_msg()` fails (returns non-zero), the variable `i` is never initialized because `dvb_usb_generic_rw()` only performs the read operation if the write succeeds. The code was checking `i != 0x01` even when `i` contained uninitialized data.
+  **YES**
+  This commit should be assigned a CVE because:
+  1. **Security vulnerability**: It fixes an uninitialized value read vulnerability (CWE-457: Use of Uninitialized Variable) that was detected by KMSAN and reported by syzbot.
+  2. **Information disclosure potential**: Reading uninitialized stack memory could potentially leak sensitive information from kernel memory to userspace or be used to influence program behavior in unpredictable ways.
+  3. **Exploitable path**: The vulnerability is reachable through the I2C transfer path via `i2cdev_write()` system call, as shown in the stack trace. This means it can be triggered by userspace applications with access to I2C devices.
+  4. **Similar to other CVE-assigned commits**: The historical commits shown (like the dib3000mb fixes) that also fixed uninitialized value bugs in similar media drivers were assigned CVEs. The commit ca8f245f284e in the same cxusb driver fixed a very similar uninitialized value issue.
+  5. **Long-standing issue**: The bug has existed since commit 22c6d93a7310 from 2005, making it a long-standing security issue affecting many kernel versions.
+  The fix properly ensures that the variable `i` is only checked when `cxusb_ctrl_msg()` succeeds (returns 0), preventing the use of uninitialized stack data.
+37bfb464ddca8 jfs: validate AG parameters in dbMount() to prevent crashes
+- [sasha] Based on my analysis, I can now make a determination.
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Remote Attack Vector**: The vulnerability can be triggered through a maliciously crafted JFS filesystem image, which could be mounted by a user or system, potentially through removable media or network shares.
+  2. **Denial of Service Impact**: The commit message shows a clear UBSAN report of a shift-out-of-bounds error with a negative shift exponent (-335544310), which causes a kernel crash. The stack trace shows this occurs during TRIM operations (`jfs_ioc_trim`).
+  3. **Critical Security Issue**: The problematic code at line 1385:
+     ```c
+     agperlev = (1 << (L2LPERCTL - (bmp->db_agheight << 1))) / bmp->db_agwidth;
+     ```
+     Without proper validation, if `db_agheight` is too large, the expression `L2LPERCTL - (bmp->db_agheight << 1)` becomes negative, causing undefined behavior with the left shift operation.
+  4. **Input Validation Failure**: The commit adds crucial bounds checking for:
+     - `db_agheight`: 0 to 5 (to ensure shift remains positive)
+     - `db_agwidth`: 1 to min(8, 2^(10-2*agheight))
+     - `db_agstart`: 0 to CTLTREESIZE-1 - agwidth*(MAXAG-1)
+  5. **Similar to Previous CVEs**: This follows the same pattern as the similar commits shown which were assigned CVEs - they all involve missing validation of AG (allocation group) parameters in JFS that can lead to crashes or out-of-bounds access.
+  6. **Exploitable**: An attacker could craft a malicious JFS filesystem image with invalid AG parameters to trigger this crash, potentially leading to a denial of service when the filesystem is mounted or when TRIM operations are performed.
+  The fix prevents these crashes by validating the AG parameters early in `dbMount()` before they can be used in arithmetic operations that could cause undefined behavior.
+910efa649076b media: nxp: imx8-isi: better handle the m2m usage_count
+- [sasha] Based on my analysis of the commit and code changes, my answer is:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact**: The bug allows unprivileged users with access to the V4L2 device to cause a denial-of-service condition through imbalanced `streamon`/`streamoff` ioctl calls. This can result in:
+     - Negative `usage_count` preventing device restart
+     - Permanently elevated `usage_count` keeping hardware resources locked
+     - Resource exhaustion if `usage_count` approaches `INT_MAX`
+  2. **Attack Vector**: The vulnerability is accessible through the V4L2 ioctl interface (`VIDIOC_STREAMON`/`VIDIOC_STREAMOFF`), which is typically available to unprivileged users who have access to `/dev/video*` devices.
+  3. **Persistent Impact**: The DoS condition persists until system intervention (driver reload or reboot), making it a significant availability issue.
+  4. **Code Evidence**: The fix adds a `streaming` flag to `mxc_isi_m2m_ctx_queue_data` to track per-context streaming state, preventing multiple increments/decrements of the shared `m2m->usage_count` from the same context. This directly addresses the reference counting vulnerability.
+  5. **Precedent**: Similar reference counting issues in V4L2 drivers have been assigned CVEs in the past, and this commit is marked for stable backporting (`Cc: stable@vger.kernel.org`), indicating its security relevance.
+  The vulnerability represents a local denial-of-service issue that can disrupt video processing functionality for all users of the affected hardware.
+b31da62889e6d nfsd: Initialize ssc before laundromat_work to prevent NULL dereference
+- [sasha] Based on my analysis of the code and commit, here's my assessment:
+  **YES**
+  This commit fixes a NULL pointer dereference vulnerability. The specific issue is:
+  1. **Race condition**: The `laundromat_work` is started in `nfs4_state_start_net()` (lines 8891 and 8897), which can run before `nfsd4_ssc_init_umount_work()` is called to initialize the SSC structures.
+  2. **NULL dereference path**: When `laundromat_work` executes, it calls `nfs4_laundromat()` → `nfsd4_ssc_expire_umount()`. This function accesses `nn->nfsd_ssc_lock` and `nn->nfsd_ssc_mount_list` which are only initialized in `nfsd4_ssc_init_umount_work()`.
+  3. **Triggerable condition**: The commit message explains this can happen when the kernel waits for userspace responses through the grace period handling path, allowing the delayed work to start before initialization completes.
+  4. **Security impact**: This is a NULL pointer dereference in kernel space that can cause a kernel crash/DoS. While it requires specific timing conditions, it's a legitimate security vulnerability as it can be triggered by userspace delays.
+  The fix correctly moves the SSC initialization before starting the laundromat work, eliminating the race condition. This matches the pattern of Similar Commit 5 which also fixed a NULL dereference and was assigned a CVE.
+1244f0b2c3cec nfsd: nfsd4_spo_must_allow() must check this is a v4 compound request
+- [sasha] Based on my analysis of the commit and the kernel tree, here's my assessment:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Security Impact**: The commit fixes a bug where `nfsd4_spo_must_allow()` could be called on non-NFSv4 compound requests, leading to examination of uninitialized or invalid `cstate` (compound state) data. This can result in undefined behavior when the function accesses:
+     - `cstate->minorversion`
+     - `cstate->clp->cl_spo_must_allow`
+     - `cstate->clp->cl_mach_cred`
+  2. **Potential Consequences**: Accessing uninitialized memory through `rqstp->rq_resp` when it's not a v4 compound request could lead to:
+     - Information disclosure (reading uninitialized memory)
+     - Potential crashes/denial of service if dereferencing invalid pointers
+     - Possible privilege bypass in authentication checks (the function is used in `check_nfsd_access()` for security decisions)
+  3. **Authentication Bypass Risk**: The function `nfsd4_spo_must_allow()` is specifically used in authentication/authorization contexts to determine if certain operations should be allowed with machine credentials. If this check returns incorrect results due to examining invalid data, it could potentially allow unauthorized access.
+  4. **The Fix**: The patch adds a critical check:
+     ```c
+     if (rqstp->rq_procinfo != &nfsd_version4.vs_proc[NFSPROC4_COMPOUND] ||
+         cstate->minorversion == 0)
+         return false;
+     ```
+     This ensures the function only processes actual NFSv4 compound requests, preventing the undefined behavior.
+  5. **Stable Tag**: The commit includes `Cc: stable@vger.kernel.org`, indicating the maintainers consider this a security-relevant fix that should be backported to stable kernels.
+  The vulnerability allows potential memory safety issues and authentication bypass scenarios in the NFS server code, which warrants CVE assignment.
+f7fb730cac9aa NFSD: fix race between nfsd registration and exports_proc
+- [sasha] Based on my analysis, here is my assessment:
+  **YES**, this commit should be assigned a CVE.
+  **Explanation:**
+  1. **It fixes a real security vulnerability**: The commit fixes NULL pointer dereferences that can crash the kernel, causing a denial of service. The crash traces show actual kernel panics occurring in production systems.
+  2. **Exploitable race condition**: While it requires root privileges, the vulnerability is still exploitable through a race condition between legitimate administrative operations (`exportfs -r` and mounting nfsd). This means even legitimate root operations can inadvertently trigger the crash.
+  3. **Affects multiple kernel versions**: The commit is marked with `Cc: stable@vger.kernel.org`, indicating this vulnerability affects multiple stable kernel versions and needs backporting.
+  4. **Similar commits received CVEs**: Looking at the similar commits provided:
+     - "nfsd: Fix nsfd startup race (again)" - CVE Status: YES
+     - "nfsd: don't ignore the return code of svc_proc_register()" - CVE Status: YES
+     - Both of these fix similar initialization order issues that can cause crashes
+  5. **Clear security impact**: The vulnerability causes:
+     - Kernel NULL pointer dereferences at specific offsets (0x10, cache operations)
+     - System crashes/panics leading to DoS
+     - Reproducible with a simple script
+  6. **Code pattern matches CVE-worthy issues**: The fix reorders initialization/cleanup to ensure proc entries are only exposed after internal data structures are initialized - a classic pattern for race condition vulnerabilities that typically receive CVEs.
+  While the vulnerability requires root privileges to trigger, many CVEs are assigned to local DoS vulnerabilities that require elevated privileges, especially when they involve race conditions in critical kernel subsystems like NFS.
+da1b9a55ff116 wifi: p54: prevent buffer-overflow in p54_rx_eeprom_readback()
+- [sasha] **YES**
+  This commit should be assigned a CVE. Here's my analysis:
+  **Security Vulnerability Details:**
+  1. **Buffer Overflow Vulnerability**: The commit fixes a buffer overflow in `p54_rx_eeprom_readback()` where a malicious USB device can cause memory corruption by providing a larger `eeprom->v{1,2}.len` value than expected.
+  2. **Attack Vector**: A malicious USB device pretending to be a p54 WiFi interface can send an eeprom_readback message with a manipulated length field that exceeds the allocated buffer size.
+  3. **Vulnerable Code** (before the fix):
+     ```c
+     memcpy(priv->eeprom, eeprom->v2.data, le16_to_cpu(eeprom->v2.len));
+     memcpy(priv->eeprom, eeprom->v1.data, le16_to_cpu(eeprom->v1.len));
+     ```
+     The code blindly trusts the length value provided by the device without validating it against the actual allocated buffer size.
+  4. **Security Impact**: 
+     - Memory corruption beyond the allocated eeprom buffer
+     - Potential system crash/panic
+     - Possible arbitrary code execution depending on what memory gets overwritten
+  5. **Fix Implementation**: The patch adds proper bounds checking by:
+     - Storing the expected slice size in `priv->eeprom_slice_size` during download
+     - Validating that the device-provided length matches the expected size before copying
+     - Rejecting the copy operation if lengths don't match
+  6. **Similar to CVE-assigned commits**: This follows the same pattern as the reference commits with CVE status "YES":
+     - Fixes a buffer overflow caused by trusting device-provided length values
+     - Involves memory copy operations without proper bounds checking
+     - Can be triggered by malicious hardware/firmware
+  The commit message explicitly describes this as fixing a security vulnerability reported by a security researcher, includes a Cc to stable kernels, and provides a clear attack scenario. This is a classic buffer overflow vulnerability in device driver code.
+c6bb8a21cdad8 net/mlx5: Add error handling in mlx5_query_nic_vport_node_guid()
+- [sasha] Based on my analysis:
+  **YES**
+  This commit should be assigned a CVE for the following reasons:
+  1. **Missing Error Handling**: The function `mlx5_query_nic_vport_node_guid()` calls `mlx5_query_nic_vport_context()` but fails to check its return value. If the command fails, the function continues execution as if it succeeded.
+  2. **Information Disclosure Risk**: When `mlx5_query_nic_vport_context()` fails, the output buffer `out` remains uninitialized (filled with zeros from kvzalloc). The function then reads from this uninitialized buffer using `MLX5_GET64()` at line 475-476, potentially exposing zeroed memory content as a valid node_guid to the caller.
+  3. **Incorrect Return Value**: The function always returns 0 (success) regardless of whether the underlying query actually succeeded, misleading callers about the validity of the returned data.
+  4. **Pattern Consistency**: The commit shows that other similar functions in the same file (like `mlx5_query_nic_vport_system_image_guid()` at lines 431-433) properly handle the error case, indicating this is a known pattern that should be followed.
+  5. **Security-Sensitive Component**: This code is part of the Mellanox network driver dealing with vport (virtual port) information, which can be security-sensitive in virtualized environments.
+  The vulnerability could lead to incorrect behavior in code that relies on valid node_guid values, potentially causing security issues in network virtualization scenarios where proper vport identification is critical.
+47c397844869a s390/pci: Prevent self deletion in disable_slot()
+- [sasha] **YES**
+  This commit should be assigned a CVE based on the following security-relevant aspects:
+  1. **Race Condition Leading to Use-After-Free**: The commit fixes a race condition where the `pci_dev_put()` outside the critical section (after `mutex_unlock()`) can lead to self-deletion and use-after-free vulnerability. This occurs when zPCI device event handling slips between the `mutex_unlock()` and `pci_dev_put()`.
+  2. **Security Impact**: The race condition can trigger `zpci_release_device()` which attempts to remove the hotplug slot directory while `disable_slot()` is still executing within that directory - a classic self-deletion scenario that can lead to:
+     - Use-after-free vulnerabilities
+     - Potential kernel crashes or memory corruption
+     - System instability
+  3. **Exploitability**: While the window is small, the race condition could potentially be triggered by carefully timed hotplug operations, making it a legitimate security concern.
+  4. **Similar Pattern to CVE-assigned Commits**: This follows similar patterns to the referenced CVE-assigned commits:
+     - "s390/pci: Fix duplicate pci_dev_put()" - fixed use-after-free
+     - "s390/pci: Fix potential double remove of hotplug slot" - fixed double-free
+     - "PCI: switchtec: Fix stdev_release() crash after surprise hot remove" - fixed use-after-free
+  The fix correctly widens the critical section to include the `pci_dev_put()`, ensuring it happens while the device is still in Standby state, preventing the race condition and potential security vulnerability.
+cb5b691f82734 powerpc64/ftrace: fix clobbered r15 during livepatching
+- [sasha] Based on my analysis:
+  **YES** - This commit should be assigned a CVE.
+  **Explanation:**
+  1. **Memory Corruption**: The bug causes r15 register corruption during livepatching operations when CONFIG_PPC_FTRACE_OUT_OF_LINE is enabled. The corrupted register leads to kernel crashes with memory access violations, as shown in the crash dump where the kernel tries to write to an invalid address (0xc0000000000f9078).
+  2. **Security Impact**: This bug affects the kernel's livepatching mechanism, which is critical for applying security patches without rebooting. The corruption can:
+     - Cause kernel crashes (denial of service)
+     - Lead to unpredictable system behavior
+     - Potentially be combined with other vulnerabilities for exploitation
+     - Undermine the reliability of security patch deployment
+  3. **Code Analysis**: The fix moves the register restoration to ensure r15 is always restored, regardless of the branch taken. The original code would skip r15 restoration when the branch was taken (during livepatch scenarios), leaving r15 with corrupted values that propagate through subsequent kernel execution.
+  4. **Similar CVE Precedents**: Looking at the similar commits:
+     - "powerpc/bpf/32: Fix Oops on tail call tests" (CVE: YES) - Fixed a stack corruption issue
+     - "powerpc/47x: Fix 47x syscall return crash" (CVE: YES) - Fixed register corruption causing crashes
+     - "ftrace: Clean up hash direct_functions on register failures" (CVE: YES) - Fixed ftrace-related memory corruption
+  This bug follows the same pattern of register/memory corruption in critical kernel subsystems that have been assigned CVEs in the past.
+690e47d1403e9 sched/rt: Fix race in push_rt_task
+- [sasha] Based on my analysis of this commit, here is my determination:
+  **YES**, this commit should be assigned a CVE.
+  Here's my reasoning:
+  1. **Security Impact - System Crashes**: The commit explicitly documents multiple types of kernel crashes that this bug can cause:
+     - Kernel panics with various crash signatures
+     - Assert failures (BUG_ON conditions)
+     - Page faults and NULL pointer dereferences
+     - Queue corruption errors
+     
+     These crashes can lead to denial of service (DoS) conditions, which is a security concern.
+  2. **Race Condition with Clear Exploitation Path**: The commit describes a detailed race condition scenario where:
+     - A task can be migrated and dequeued while CPU A is waiting for locks
+     - CPU B can re-enqueue the task on a different CPU
+     - CPU A incorrectly assumes the task is still on the original CPU and attempts to migrate it
+     - This leads to dequeuing a task from the wrong queue, causing various crashes
+  3. **Privilege Context**: This occurs in the kernel's RT (real-time) scheduler, which runs in privileged kernel context. Any crash here affects system stability.
+  4. **Real-world Impact**: The commit mentions that "panics due to this are hit every couple of days" in production clusters, indicating this is not just a theoretical issue but one that affects real systems.
+  5. **The Fix**: The code change adds a critical check to ensure the task is still at the head of the pushable tasks list after reacquiring locks:
+     ```c
+     - if (unlikely(task_rq(task) != rq ||
+     -              !cpumask_test_cpu(lowest_rq->cpu, &task->cpus_mask) ||
+     -              task_on_cpu(rq, task) ||
+     -              !rt_task(task) ||
+     -              is_migration_disabled(task) ||
+     -              !task_on_rq_queued(task))) {
+     + if (unlikely(is_migration_disabled(task) ||
+     +              !cpumask_test_cpu(lowest_rq->cpu, &task->cpus_mask) ||
+     +              task != pick_next_pushable_task(rq))) {
+     ```
+  This is similar to the "sched: Fix yet more sched_fork() races" commit that was assigned a CVE, as both fix race conditions in the scheduler that can lead to system instability and crashes.
+0413bcf0fc460 crypto: marvell/cesa - Do not chain submitted requests
+- [sasha] Let me analyze the commit based on the information provided.
+  **YES**, this commit should be assigned a CVE.
+  **Explanation:**
+  1. **Security Vulnerability**: The commit fixes a dangerous race condition where the driver extends DMA chains that have already been submitted to hardware. As stated in the commit message: "This is dangerous because there is no way of knowing whether the hardware has already read the DMA memory in question or not."
+  2. **Memory Safety Issue**: This is a classic time-of-check-time-of-use (TOCTOU) vulnerability. The driver modifies DMA descriptors after they've been submitted to hardware, which could lead to:
+     - Hardware reading partially updated DMA descriptors
+     - Potential memory corruption if the hardware processes inconsistent data
+     - Unpredictable behavior in cryptographic operations
+  3. **Impact on Cryptographic Operations**: Since this is in a crypto driver (CESA - Cryptographic Engines and Security Accelerator), the vulnerability could potentially compromise:
+     - Cryptographic operation integrity
+     - Data confidentiality (if operations process incorrect data)
+     - System stability (if DMA operations go awry)
+  4. **Code Changes Show Clear Fix**: The patch separates the chain management into two distinct chains:
+     - `chain_hw`: for requests already submitted to hardware (read-only from software perspective)
+     - `chain_sw`: for requests being prepared but not yet submitted
+     This prevents the dangerous modification of already-submitted chains.
+  5. **Similar to CVE-assigned Patterns**: This follows patterns similar to other CVE-assigned commits:
+     - Fixes a race condition with hardware interaction
+     - Affects data integrity/security in a crypto subsystem
+     - Could lead to unpredictable/exploitable behavior
+  The vulnerability allows potential corruption of in-flight DMA operations in a cryptographic accelerator, which is a clear security issue warranting CVE assignment.
