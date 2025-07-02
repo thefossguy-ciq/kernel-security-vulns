@@ -77,3 +77,40 @@ e12d3e1624a0 backlight: pm8941: Add NULL check in wled_configure()
 d14402a38c2d phy: qcom-qmp-usb: Fix an NULL vs IS_ERR() bug
 fd447415e74b dmaengine: ti: Add NULL check in udma_probe()
 12c331b29c73 gve: add missing NULL check for gve_alloc_pending_packet() in TX DQO
+8a4e047c6cc0 crypto: marvell/cesa - Handle zero-length skcipher requests
+9748f2f54f66 erofs: avoid using multiple devices with different type
+d36e3f11fe8b powerpc/pseries/iommu: Fix kmemleak in TCE table userspace view
+179c0c7044a3 PM: EM: Fix potential division-by-zero error in em_compute_costs()
+11741b8e382d power: supply: max77705: Fix workqueue error handling in probe
+d3eaab3c7090 arm64/fpsimd: Discard stale CPU state when handling SME traps
+01098d893fa8 arm64/fpsimd: Avoid clobbering kernel FPSIMD state with SMSTOP
+af5cab0e5b6f fs/ntfs3: handle hdr_first_de() return value
+4dab26bed543 IB/cm: use rwlock for MAD agent lock
+5ca2e29f6834 bpf, sockmap: Fix panic when calling skb_linearize
+9f17747fbda6 wifi: ath12k: fix invalid access to memory
+b5162bb6aa1e scsi: lpfc: Avoid potential ndlp use-after-free in dev_loss_tmo_callbk
+4c5c6aa9967d netfilter: nft_set_pipapo: prevent overflow in lookup table allocation
+7590649ee7af IB/cm: Drop lockdep assert and WARN when freeing old msg
+762ef7d1e6ee pinctrl: at91: Fix possible out-of-boundary access
+89142d34d560 wifi: ath12k: fix memory leak in ath12k_service_ready_ext_event
+8bb7170c5a05 hisi_acc_vfio_pci: fix XQE dma address error
+2777a40998de hisi_acc_vfio_pci: bugfix live migration function without VF device driver
+8f30e2b05975 wifi: mt76: mt7996: Fix null-ptr-deref in mt7996_mmio_wed_init()
+efb95439c147 wifi: mt76: mt7915: Fix null-ptr-deref in mt7915_mmio_wed_init()
+846992645b25 net: phy: mscc: Fix memory leak when using one step timestamping
+25be31832456 hwmon: (asus-ec-sensors) check sensor index in read_string()
+37f53a2c60d0 dm: fix dm_blk_report_zones
+121218bef4c1 dm: limit swapping tables for devices with zone write plugs
+8b926f237743 PCI/pwrctrl: Cancel outstanding rescan work when unregistering
+499a8cee8125 iio: adc: ad4851: fix ad4858 chan pointer handling
+53b9e2659719 coresight: holding cscfg_csdev_lock while removing cscfg from csdev
+408c97c4a5e0 coresight: prevent deactivate active config while enabling the config
+cbefe2ffa778 net: stmmac: make sure that ptp_rate is not 0 before configuring EST
+960c7e6d3880 wifi: iwlwifi: mld: avoid panic on init failure
+ea77c397bff8 netfilter: nf_set_pipapo_avx2: fix initial map fill
+1237c2d4a8db net: dsa: b53: do not enable EEE on bcm63xx
+82ffbe7776d0 net_sched: sch_sfq: fix a potential crash on gso_skb handling
+2660a544fdc0 net: Fix TOCTOU issue in sk_is_readable()
+85a3e0ede384 net_sched: red: fix a race in __red_change()
+43eb46604121 net_sched: tbf: fix a race in tbf_change()
+d92adacdd8c2 net_sched: ets: fix a race in ets_qdisc_change()
