@@ -1,0 +1,24 @@
+ac9fe7dd8e730 net_sched: hfsc: Address reentrant enqueue adding class to eltree twice
+- [sasha] Let me analyze the commit based on the provided information:
+  ## Analysis of the Commit
+  **CVE Status: YES**
+  ### Security Vulnerability Analysis:
+  1. **Explicit Security Issue**: The commit message clearly states this fixes a **Use-After-Free (UAF) vulnerability** that can be exploited, making this a definitive security issue.
+  2. **Vulnerability Details**:
+     - The issue allows bypassing previous security fixes
+     - Can lead to **UAF vulnerabilities** when HFSC is used with NETEM
+     - Can cause **infinite loops** in `hfsc_dequeue`
+     - The vulnerability can be exploited by adding TBF as root qdisc with very low rate
+  3. **Code Changes Analysis**:
+     - **Root Cause**: The previous fix only checked `cl->cl_nactive` field, which is only incremented by `init_vf`, but not by `init_ed` (for HFSC_RSC)
+     - **Attack Vector**: By using HFSC_RSC flag, attackers could bypass the check and insert the same class twice in the eltree
+     - **Fix**: Introduces `cl_in_el_or_vttree()` function that checks both:
+       - FSC case: `cl->cl_nactive` (existing check)  
+       - RSC case: `!RB_EMPTY_NODE(&cl->el_node)` (new check)
+  4. **Security Impact**:
+     - **Memory corruption** through double insertion in data structures
+     - **Use-After-Free** leading to potential code execution
+     - **Denial of Service** through infinite loops
+     - Affects kernel networking stack (high privilege component)
+  5. **Similarity to CVE-assigned commits**: This follows the exact same pattern as the provided examples (Similar Commits 1-5) which all received CVE assignments for UAF vulnerabilities in the same HFSC scheduler component.
+  The combination of explicit UAF vulnerability, potential for exploitation, and kernel-level impact clearly warrants a CVE assignment.
