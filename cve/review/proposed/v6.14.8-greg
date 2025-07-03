@@ -32,3 +32,5 @@ a3b7e65b6be5 drm/amd/display: Fix null check of pipe_ctx->plane_state for update
 491deb9b8c4a net/tls: fix kernel panic when alloc_page failed
 428dc9fc0873 sched_ext: bpf_iter_scx_dsq_new() should always initialize iterator
 578e1b96fad7 HID: bpf: abort dispatch if device destroyed
+c92d6089d8ad net: cadence: macb: Fix a possible deadlock in macb_halt_tx.
+72c7d62583eb dma-buf: insert memory barrier before updating num_fences
