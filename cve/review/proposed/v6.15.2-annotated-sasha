@@ -1,0 +1,50 @@
+0f73628e9da1e thunderbolt: Do not double dequeue a configuration request
+- [sasha] **YES**
+  This commit should be assigned a CVE. The commit fixes a use-after-free vulnerability in the Thunderbolt driver that causes a kernel crash with a general protection fault. The issue occurs due to a race condition where `tb_cfg_request_work()` can be scheduled twice - once via frame.callback from ring_work() and again from tb_cfg_request(). This leads to double execution of `tb_cfg_request_dequeue()` which performs `list_del()` twice on the same list entry, resulting in memory corruption (evidenced by the poison value 0xdead000000000122).
+  The vulnerability has clear security implications:
+  - Causes kernel crash (denial of service)
+  - Use-after-free memory corruption in kernel space
+  - Affects Thunderbolt hardware interface which has DMA capabilities
+  - The fix adds a proper check for `TB_CFG_REQUEST_ACTIVE` flag to prevent the double dequeue
+  Similar UAF vulnerabilities in the kernel (as shown in commits 3-5) have been assigned CVEs, making this vulnerability a strong candidate for CVE assignment.
+9857af0fcff38 binder: fix yet another UAF in binder_devices
+- [sasha] **YES**
+  This commit fixes a use-after-free (UAF) vulnerability in the binder driver and should be assigned a CVE. 
+  The vulnerability occurs in `binder_free_proc()` where a binder device is freed without first being removed from the global `binder_devices` list:
+  ```c
+  if (refcount_dec_and_test(&device->ref)) {
+      // MISSING: binder_remove_device(device);
+      kfree(proc->context->name);
+      kfree(device);  // Device freed but still in binder_devices list!
+  }
+  ```
+  The KASAN report shows this causes a write-after-free when the freed device is later accessed through the list. The fix adds the missing `binder_remove_device(device)` call before the kfree, properly unlinking the device from the global list.
+  This matches the pattern of other binder UAF vulnerabilities that have been assigned CVEs (like the similar commits shown with "CVE Status: YES"). The vulnerability could potentially be exploited for privilege escalation or code execution through controlled heap manipulation.
+8c0a559825281 binder: fix use-after-free in binderfs_evict_inode()
+- [sasha] **YES**
+  This commit should be assigned a CVE based on the following evidence:
+  1. **Use-after-free vulnerability**: The KASAN report clearly shows a slab-use-after-free in `binderfs_evict_inode()` where freed memory is being accessed, specifically a "Write of size 8 at addr ffff88807379bc08" to memory that was already freed.
+  2. **Exploitable security issue**: The vulnerability can be triggered from userspace through concurrent binderfs operations, as demonstrated by the stress-ng workload. The commit message states: "This 'stress-ng' workload causes the concurrent deletions from 'binder_devices' and so requires full-featured synchronization to prevent list corruption."
+  3. **Race condition with security impact**: The code changes show the addition of spinlock protection (`binder_devices_lock`) to the global `binder_devices` list operations. The lack of proper synchronization allowed concurrent list modifications leading to use-after-free conditions.
+  4. **Incomplete previous fix**: This fixes a vulnerability that was incompletely addressed by commit e77aff5528a18. The previous fix moved the list deletion but didn't add proper locking, leaving the race condition exploitable.
+  5. **Consistent with similar CVEs**: All five similar commits involving use-after-free vulnerabilities were assigned CVEs, establishing a clear precedent for this type of security issue.
+  The severity is high as use-after-free vulnerabilities can potentially lead to privilege escalation, arbitrary code execution, or denial of service, especially in a critical kernel subsystem like binder that handles inter-process communication.
+29cc6fb7c068c bcachefs: Fix subvol to missing root repair
+- [sasha] **YES**
+  This commit fixes a severe data loss vulnerability in bcachefs. The key security issues are:
+  1. **Data Loss Impact**: The old code in `check_subvol()` would call `bch2_subvolume_delete()` when finding a subvolume with a missing root inode, which cascades to deleting the entire subvolume contents and snapshot. As the commit message states: "deleting a subvolume triggers deleting the snapshot ID it points to, deleting the entire contents."
+  2. **Triggerable Condition**: The bug can be triggered when a subvolume's root inode is erroneously deleted (due to incorrect i_nlink handling in `bch2_evict_inode()`). Users can create/destroy subvolumes via `BCH_IOCTL_SUBVOLUME_CREATE/DESTROY` ioctls, expanding the attack surface.
+  3. **Similar to CVE-assigned commits**: This closely resembles the bcachefs permission check fixes and fs/9p inode eviction fixes that were assigned CVEs, as they also involved incorrect inode handling leading to security issues.
+  The fix changes the behavior from deleting the entire subvolume (data loss) to recreating the root inode and preserving data under lost+found, which is the correct repair approach.
+09fb85ae56564 bcachefs: Run may_delete_deleted_inode() checks in bch2_inode_rm()
+- [sasha] Based on my analysis of the commit and using the kernel tree for additional context:
+  **YES**
+  This commit fixes a security-relevant bug where the VFS layer could incorrectly delete inodes that were not actually unlinked. The commit message explicitly states "the journal clearly showed the inode was not unlinked" when `bch2_evict_inode()` incorrectly called `bch2_inode_rm()`.
+  Key security implications:
+  1. **Data Loss/Corruption**: The bug allowed deletion of inodes that were still referenced/linked, potentially causing data loss or filesystem corruption.
+  2. **Filesystem Integrity Violation**: The new validation in `may_delete_deleted_inum()` checks that:
+     - The inode has the `BCH_INODE_unlinked` flag set
+     - The inode doesn't have child snapshots  
+     - Empty directory validation for directory inodes
+  3. **Error Detection**: The addition of `BCH_FSCK_ERR_vfs_bad_inode_rm` error counter and explicit error logging ("VFS incorrectly tried to delete inode") indicates this was a real issue that could occur in practice.
+  This is similar to the provided CVE examples where incorrect inode handling or missing permission checks led to security vulnerabilities. The bug could potentially be triggered to cause filesystem inconsistencies or data loss.
