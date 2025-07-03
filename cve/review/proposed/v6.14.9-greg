@@ -51,3 +51,9 @@ db1cafc77aaa cpufreq: amd-pstate: Remove unnecessary driver_lock in set_boost
 250cf3693060 __legitimize_mnt(): check for MNT_SYNC_UMOUNT should be under mount_lock
 63c1f19a3be3 espintcp: fix skb leaks
 3f981138109f sch_hfsc: Fix qlen accounting bug when using peek in hfsc_enqueue()
+012a6efcc805 ASoC: sma1307: Fix error handling in sma1307_setting_loaded()
+028363685bd0 espintcp: remove encap socket caching to avoid reference leak
+14d17c78a4b1 Bluetooth: Disable SCO support if READ_VOICE_SETTING is unsupported/broken
+5a062c3c3b82 pinctrl: tegra: Fix off by one in tegra_pinctrl_get_group()
+c7f50d0433a0 wifi: iwlwifi: don't warn when if there is a FW error
+cbf4890c6f28 drm/amd/display: Don't treat wb connector as physical in create_validate_stream_for_sink
