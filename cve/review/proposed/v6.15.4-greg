@@ -1,0 +1,64 @@
+cb5b691f8273 powerpc64/ftrace: fix clobbered r15 during livepatching
+060909278cc0 ceph: avoid kernel BUG for encrypted inode with unaligned file size
+227cb4ca5a65 ext4: inline: fix len overflow in ext4_prepare_inline_data
+b5e58bcd7962 ext4: fix out of bounds punch offset
+5db0d252c64e f2fs: fix to do sanity check on sit_bitmap_size
+a4685408ff6c jfs: Fix null-ptr-deref in jfs_ioc_trim
+e1bc3a13bd77 drm/v3d: Avoid NULL pointer dereference in `v3d_job_update_stats()`
+1e9ac33fa271 bnxt_en: Fix double invocation of bnxt_ulp_stop()/bnxt_ulp_start()
+f82727adcf29 tipc: fix null-ptr-deref when acquiring remote ip of ethernet bearer
+10876da918fa calipso: Fix null-ptr-deref in calipso_req_{set,del}attr().
+b0823d5fbacb perf/x86/intel: Fix crash in icl_update_topdown_event()
+a379a8a2a003 smb: client: fix max_sge overflow in smb_extract_folioq_to_rdma()
+690e47d1403e sched/rt: Fix race in push_rt_task
+af98b0157adf jbd2: fix data-race and null-ptr-deref in jbd2_journal_dirty_metadata()
+73fb3b92da84 media: cxusb: no longer judge rbuf when the write fails
+1d5f88f05348 media: vidtv: Terminating the subsequent process of initialization failure
+f83ac8d30c43 media: vivid: Change the siize of the composing
+54ec8b08216f can: kvaser_pciefd: refine error prone echo_skb_max handling logic
+e26268ff1dca ext4: only dirty folios when data journaling regular files
+f4a8f561d08e Input: gpio-keys - fix a sleep while atomic with PREEMPT_RT
+864f9963ec6b vgacon: Add check for vc_origin address range in vgacon_scroll()
+6883b680e703 RDMA/iwcm: Fix use-after-free of work objects after cm_id destruction
+2b12d06c37fd mm: fix uprobe pte be overwritten when expanding vma
+ba9db6f907ac net: clear the dst when changing skb protocol
+2f370ae1fb63 atm: atmtcp: Free invalid length skb in atmtcp_c_send().
+d13a3824bfd2 net: atm: add lec_mutex
+a2182743a8b4 smb: Log an error when close_all_cached_dirs fails
+88efa0de3285 EDAC/igen6: Fix NULL pointer dereference
+39dfc971e42d arm64/ptrace: Fix stack-out-of-bounds read in regs_get_kernel_stack_nth()
+37bfb464ddca jfs: validate AG parameters in dbMount() to prevent crashes
+d66adabe9180 ipc: fix to protect IPCS lookups using RCU
+9ad0452c0277 net: ch9200: fix uninitialised access during mii_nway_restart
+70e1683ca3a6 workqueue: Fix race condition in wq->stats incrementation
+5dff41a86377 jfs: fix array-index-out-of-bounds read in add_missing_indices
+d4965578267e bpf: Check rcu_read_lock_trace_held() in bpf_map_lookup_percpu_elem()
+c575f5374be7 wifi: mac80211_hwsim: Prevent tsf from setting if beacon is disabled
+cedc1b63394a fbcon: Make sure modelist not set on unregistered console
+1d27f11bf02b io_uring/rsrc: validate buffer count with offset for cloning
+6dbb0d97c509 mpls: Use rcu_dereference_rtnl() in mpls_route_input_rcu().
+7869738b6908 erofs: refuse crafted out-of-file-range encoded extents
+59ba025948be powerpc/bpf: fix JIT code size calculation of bpf trampoline
+4c10fa44bc5f fs/nfs/read: fix double-unlock bug in nfs_return_empty_folio()
+42cb74a92ada f2fs: prevent kernel warning due to negative i_nlink from corrupted image
+bb5eb8a5b222 f2fs: fix to bail out in get_new_segment()
+327e28664307 fgraph: Do not enable function_graph tracer when setting funcgraph-args
+f7fb730cac9a NFSD: fix race between nfsd registration and exports_proc
+b31da62889e6 nfsd: Initialize ssc before laundromat_work to prevent NULL dereference
+7500bb9cf164 media: imx-jpeg: Cleanup after an allocation error
+b160766e26d4 net/sched: fix use-after-free in taprio_dev_notifier
+17186f1f90d3 fbdev: Fix do_register_framebuffer to prevent null-ptr-deref in fb_videomode_to_var
+05f6e183879d fbdev: Fix fb_set_var to prevent null-ptr-deref in fb_videomode_to_var
+f1e7a277a173 smb: client: add NULL check in automount_fullpath
+61ce04601e0d platform/x86: dell_rbu: Fix list usage
+2b6d96503255 jffs2: check jffs2_prealloc_raw_node_refs() result in few other places
+7ac5b66acafc ksmbd: fix null pointer dereference in destroy_previous_session
+94d10a4dba0b sunrpc: handle SVC_GARBAGE during svc auth processing as auth error
+e7143706702a nvme-tcp: remove tag set when second admin queue config fails
+f4ba2ea57da5 firmware: cs_dsp: Fix OOB memory read access in KUnit test (ctl cache)
+d979b783d61f firmware: cs_dsp: Fix OOB memory read access in KUnit test (wmfw info)
+ec9e6f22bce4 jffs2: check that raw node were preallocated before writing summary
+fe6446215bfa firmware: cs_dsp: Fix OOB memory read access in KUnit test
+9802f0a63b64 drm/nouveau: fix a use-after-free in r535_gsp_rpc_push()
+a89f5fae998b ksmbd: add free_transport ops in ksmbd connection
+1f3d9724e16d exfat: fix double free in delayed_free
