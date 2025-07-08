@@ -252,7 +252,7 @@ unmet direct dependencies detected|\
     if [ ! -s ${commitfile} ]; then
         cat ${commitfile0} > ${commitfile}
     fi
-    rm -f ${commitmsgfile}
+    rm -f ${commitmsgfile} ${commitfile0}
 
     if [ "${mainlinesha}" != "" ]; then
         pubpath=$(grep -rlF "${subject}" ${PUBLISHEDDIR} | grep json | xargs grep -l ${mainlinesha}) || true
@@ -266,6 +266,7 @@ unmet direct dependencies detected|\
         echo "${oneline}" >> ${PROCESSEDFILE}
 
         echo "$(git --no-pager log ${mainlinesha} -n1 --format="%h %s") [auto: cve already created]" >> ${CVEME}
+        rm -f ${commitfile} ${annotatefile}
         continue
     fi
 
@@ -285,8 +286,8 @@ unmet direct dependencies detected|\
             if [ "${newpatchid}" == "${oldpatchid}" ]; then
                 print_blue "\nConfirmed as already reviewed - SKIPPING\n"
                 sleep 1
-                rm -f ${commitfile}
                 echo "${oneline}" >> ${PROCESSEDFILE}
+                rm -f ${commitfile} ${annotatefile}
                 continue
             else
                 print_blue "\nPatch ID doesn't match - please review for similarity manually"
@@ -318,6 +319,7 @@ unmet direct dependencies detected|\
         clipcommitto=$((clipcommitto - ${hits} - 3))
         echo
     fi
+    rm -f ${annotatefile}
 
     print_blue "Summary:\n"
 
@@ -355,7 +357,7 @@ unmet direct dependencies detected|\
         echo -n "> "
         read CHOICE
     fi
-    rm -f ${commitfile} ${commitfile0}
+    rm -f ${commitfile}
 
     if [[ "${CHOICE}" == "q" || "${CHOICE}" == "Q" ]]; then
         print_blue "\nExiting"
