@@ -306,13 +306,27 @@ unmet direct dependencies detected|\
             annotated=${FINALDIR}/$(echo ${f} | sed 's/-/-annotated-/')
             print_blue "  ${f}"
             if [ -f ${annotated} ]; then
+                annotation0=$(mktemp /tmp/cve-review-XXXXX)
+                annotation1=$(mktemp /tmp/cve-review-XXXXX)
                 echo
-                grep -A1 -F "${subject}" ${annotated} | tail -n1 \
+
+                subject_escaped=$(echo "${subject}" | sed 's/[].*+?^$(){}|[]/\\&/g')
+                grep -A30 -E "^[a-z0-9]{12,14} ${subject_escaped}" ${annotated} | tail -n +2 > ${annotation0} || true
+                grep -m1 -E -B30 "^[a-z0-9]{12,14}" ${annotation0} > ${annotation1} || true
+
+                if [ -s ${annotation1} ]; then
+                    # There were more annotations after this one
+                    cat ${annotation1} | head -n -1 > ${annotation0}
+                fi
+
+                cat  ${annotation0} \
                     | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Piz "${GOODMATCHES}" \
                     | grep -C99999 --color=always -Piz "${BADMATCHES}" | fmt -w ${COLUMNS} > ${annotatefile}
                 annotate_len=$(cat ${annotatefile} | wc -l)
                 cat ${annotatefile}
                 clipcommitto=$((clipcommitto - ${annotate_len} - 1))
+
+                rm -rf ${annotation0} ${annotation1}
             fi
         done
 
