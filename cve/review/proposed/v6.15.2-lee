@@ -1,0 +1,2 @@
+1c9977b26347 pinctrl: mediatek: eint: Fix invalid pointer dereference for v1 platforms
+e3975aa899c0 serial: jsm: fix NPE during jsm_uart_port_init
