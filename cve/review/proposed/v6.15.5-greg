@@ -1,0 +1,37 @@
+9079db287fc3 ASoC: codecs: wcd9335: Fix missing free of regulator supplies
+4f489fe6afb3 mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write
+1d6123102e9f Bluetooth: hci_core: Fix use-after-free in vhci_flush()
+aa485e8789d5 libbpf: Fix null pointer dereference in btf_dump__free on allocation failure
+7544f3f5b0b5 bridge: mcast: Fix use-after-free during router port configuration
+788aa64c01f1 riscv: save the SR_SUM status over switches
+a26bf338cdad btrfs: fix race between async reclaim worker and close_ctree()
+547e83666155 btrfs: handle csum tree error with rescue=ibadroots correctly
+5afb4bf9fc62 io_uring/rsrc: fix folio unpinning
+b993ea46b3b6 atm: clip: prevent NULL deref in clip_push()
+a433791aeaea atm: Release atm_dev_mutex after removing procfs in atm_dev_deregister().
+1e46ed947ec6 bcache: fix NULL pointer in cache_set_flush()
+df831e977394 lib/group_cpus: fix NULL pointer dereference from group_cpus_evenly()
+6847b3b6e84e drm/amd/display: Add sanity checks for drm_edid_raw()
+f3054152c12e HID: wacom: fix crash in wacom_aes_battery_handler()
+9caca6ac0e26 bnxt: properly flush XDP redirect lists
+af2b588abe00 drm/xe: Process deferred GGTT node removals on device unwind
+6bd697b5fc39 tty: serial: uartlite: register uart driver in init
+11709abccf93 s390/mm: Fix in_atomic() handling in do_secure_storage_access()
+32ca245464e1 af_unix: Don't leave consecutive consumed OOB skbs.
+0ea148a79919 mm: userfaultfd: fix race of userfaultfd_move and swap cache
+a05dd8ae5cbb mm/shmem, swap: fix softlockup with mTHP swapin
+befd9a71d859 fuse: fix runtime warning on truncate_folio_batch_exceptionals()
+ad40098da5c3 drm/xe/guc: Explicitly exit CT safe mode on unwind
+711741f94ac3 smb: client: fix potential deadlock when reconnecting channels
+1e1981b16bb1 drm/xe: Fix taking invalid lock on wedge
+752eb816b55a scsi: megaraid_sas: Fix invalid node index
+b71717735be4 drm/msm/gpu: Fix crash when throttling GPU immediately during boot
+0bf04c874fcb nvme-tcp: sanitize request list handling
+fb4e2a6e8f28 ALSA: usb-audio: Fix out-of-bounds read in snd_usb_get_audioformat_uac3()
+2dcf838cf5c2 btrfs: fix invalid inode pointer dereferences during log replay
+a35b29bdedb4 scsi: fnic: Fix crash in fnic_wq_cmpl_handler when FDMI times out
+ff8abbd248c1 smb: client: fix regression with native SMB symlinks
+7360ee47599a s390/pkey: Prevent overflow in size calculation for memdup_user()
+3c70ec71abda cxl/ras: Fix CPER handler device confusion
+f59902070269 net: netpoll: Initialize UDP checksum field before checksumming
+0748e553df02 userns and mnt_idmap leak in open_tree_attr(2)
