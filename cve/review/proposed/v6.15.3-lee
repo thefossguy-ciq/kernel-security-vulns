@@ -1,0 +1,137 @@
+f31adc3e356f crypto: sun8i-ce-cipher - fix error handling in sun8i_ce_cipher_prepare()
+8a4e047c6cc0 crypto: marvell/cesa - Handle zero-length skcipher requests [auto: cve already created]
+9748f2f54f66 erofs: avoid using multiple devices with different type [auto: cve already created]
+7af317f7faaa ASoC: mediatek: mt8195: Set ETDM1/2 IN/OUT to COMP_DUMMY()
+20d2d476b3ae EDAC/skx_common: Fix general protection fault
+179c0c7044a3 PM: EM: Fix potential division-by-zero error in em_compute_costs()
+11741b8e382d power: supply: max77705: Fix workqueue error handling in probe [auto: cve already created]
+dd133162c9cf ACPI: platform_profile: Avoid initializing on non-ACPI platforms
+820116a39f96 drm/amd/pp: Fix potential NULL pointer dereference in atomctrl_initialize_mc_reg_table
+d3eaab3c7090 arm64/fpsimd: Discard stale CPU state when handling SME traps [auto: cve already created]
+01098d893fa8 arm64/fpsimd: Avoid clobbering kernel FPSIMD state with SMSTOP [auto: cve already created]
+7f57afde6a44 perf: arm-ni: Unregister PMUs on probe failure [auto: cve already created]
+fc5106088d6d perf: arm-ni: Fix missing platform_set_drvdata()
+af5cab0e5b6f fs/ntfs3: handle hdr_first_de() return value [auto: cve already created]
+097469a2b0f1 perf/amlogic: Replace smp_processor_id() with raw_smp_processor_id() in meson_ddr_pmu_create()
+e22d7acf9f47 drm/xe/guc: Make creation of SLPC debugfs files conditional
+ea24531d00f7 wifi: ath12k: fix NULL access in assign channel context handler
+31e98e277ae4 wifi: ath11k: fix node corruption in ar->arvifs list
+54a3ecaeeeae bpf: fix ktls panic with sockmap [auto: cve already created]
+5ca2e29f6834 bpf, sockmap: Fix panic when calling skb_linearize [auto: cve already created]
+773704c1ef96 f2fs: zone: fix to avoid inconsistence in between SIT and SSA [auto: cve already created]
+8c7a5031a6b0 wifi: ath12k: Fix buffer overflow in debugfs
+497ac4b33b96 wifi: ath12k: fix SLUB BUG - Object already free in ath12k_reg_free()
+05872a167c2c f2fs: fix to do sanity check on sbi->total_valid_block_count [auto: cve already created]
+ee62ce7a1d90 page_pool: Track DMA-mapped pages and unmap them when destroying the pool
+9f17747fbda6 wifi: ath12k: fix invalid access to memory
+e9e094a9734e wifi: ath12k: Prevent sending WMI commands to firmware during firmware crash
+823435bd2310 wifi: ath12k: fix node corruption in ar->arvifs list
+b5162bb6aa1e scsi: lpfc: Avoid potential ndlp use-after-free in dev_loss_tmo_callbk
+42d033cf4b51 scsi: smartpqi: Fix smp_processor_id() call trace for preemptible kernels
+4c5c6aa9967d netfilter: nft_set_pipapo: prevent overflow in lookup table allocation [auto: cve already created]
+7590649ee7af IB/cm: Drop lockdep assert and WARN when freeing old msg
+5d2ea5aebbb2 RDMA/mlx5: Fix error flow upon firmware failure for RQ destruction [auto: cve already created]
+73c46d9a93d0 clk: bcm: rpi: Add NULL check in raspberrypi_clk_register() [auto: cve already created]
+762ef7d1e6ee pinctrl: at91: Fix possible out-of-boundary access
+3880cdbed1c4 bpf: Fix WARN() in get_bpf_raw_tp_regs
+a70cf04b08f4 wifi: rtw89: pci: configure manual DAC mode via PCI config API only
+4c2c372de2e1 wifi: rtw88: fix the 'para' buffer size to avoid reading out of bounds [auto: cve already created]
+8bb7170c5a05 hisi_acc_vfio_pci: fix XQE dma address error [auto: cve already created]
+2777a40998de hisi_acc_vfio_pci: bugfix live migration function without VF device driver
+ac4e317a95a1 wifi: ath9k_htc: Abort software beacon handling if disabled [auto: cve already created]
+071d8e4c2a3b kernfs: Relax constraint in draining guard
+caf4b347c5dc wifi: mt76: mt7996: Add NULL check in mt7996_thermal_init
+cb423ddad0f6 wifi: mt76: mt7996: avoid NULL pointer dereference in mt7996_set_monitor()
+a0bdd3d1b94d wifi: mt76: mt7996: avoid null deref in mt7996_stop_phy()
+7e1fcf687c2f wifi: mt76: scan: Fix 'mlink' dereferenced before IS_ERR_OR_NULL check
+8f30e2b05975 wifi: mt76: mt7996: Fix null-ptr-deref in mt7996_mmio_wed_init() [auto: cve already created]
+efb95439c147 wifi: mt76: mt7915: Fix null-ptr-deref in mt7915_mmio_wed_init() [auto: cve already created]
+3aa1dc3c9060 Bluetooth: btintel: Check dsbr size from EFI variable
+8259eb0e06d8 bpf, sockmap: Avoid using sk_socket after free when sending [auto: cve already created]
+405b0d610745 net: usb: aqc111: fix error handling of usbnet read calls [auto: cve already created]
+92a251c3df8e RDMA/cma: Fix hang when cma_netevent_callback fails to queue_work [auto: cve already created]
+d8d85ef0a631 af_packet: move notifier's packet_dev_mc out of rcu critical section [auto: cve already created]
+9ef41ebf787f virtio-pci: Fix result size returned for the admin command completion
+86bc9c742426 bpf: Avoid __bpf_prog_ret0_warn when jit fails
+e2d2115e56c4 bpf: Do not include stack ptr register in precision backtracking bookkeeping
+0795b05a59b1 net: phy: clear phydev->devlink when the link is deleted [auto: cve already created]
+846992645b25 net: phy: mscc: Fix memory leak when using one step timestamping [auto: cve already created]
+67af4ec948e8 octeontx2-pf: QOS: Refactor TC_HTB_LEAF_DEL_LAST callback
+6e9f2df1c550 calipso: Don't call calipso functions for AF_INET sk. [auto: cve already created]
+0bdc924bfb31 net: openvswitch: Fix the dead loop of MPLS parse [auto: cve already created]
+734aa85390ea Squashfs: check return result of sb_min_blocksize
+d694bf8a9acd bus: fsl-mc: fix double-free on mc_dev
+f1706e0e1a74 soc: aspeed: Add NULL check in aspeed_lpc_enable_snoop() [auto: cve already created]
+3f6dae09fc8c fbdev: core: fbcvt: avoid division by 0 in fb_cvt_hperiod()
+a4e2401438a2 watchdog: lenovo_se30_wdt: Fix possible devm_ioremap() NULL pointer dereference in lenovo_se30_wdt_probe() [auto: cve already created]
+e12d3e1624a0 backlight: pm8941: Add NULL check in wled_configure() [auto: cve already created]
+d95846350aac mtd: nand: ecc-mxic: Fix use of uninitialized variable ret
+25be31832456 hwmon: (asus-ec-sensors) check sensor index in read_string() [auto: cve already created]
+37f53a2c60d0 dm: fix dm_blk_report_zones [auto: cve already created]
+121218bef4c1 dm: limit swapping tables for devices with zone write plugs [auto: cve already created]
+4481f7f2b3df netfs: Fix oops in write-retry from mis-resetting the subreq iterator [auto: cve already created]
+dd59137bfe70 fs/dax: Fix "don't skip locked entries when scanning entries"
+d14402a38c2d phy: qcom-qmp-usb: Fix an NULL vs IS_ERR() bug
+fd447415e74b dmaengine: ti: Add NULL check in udma_probe() [auto: cve already created]
+8b926f237743 PCI/pwrctrl: Cancel outstanding rescan work when unregistering [auto: cve already created]
+ffb34a60ce86 usb: renesas_usbhs: Reorder clock handling and power management in probe [auto: cve already created]
+86bcae88c920 serial: Fix potential null-ptr-deref in mlb_usio_probe() [auto: cve already created]
+73fb0ec9436a usb: acpi: Prevent null pointer dereference in usb_acpi_add_usb4_devlink() [auto: cve already created]
+6ebf1982038a fpga: fix potential null pointer deref in fpga_mgr_test_img_load_sgt()
+499a8cee8125 iio: adc: ad4851: fix ad4858 chan pointer handling [auto: cve already created]
+53b9e2659719 coresight: holding cscfg_csdev_lock while removing cscfg from csdev [auto: cve already created]
+408c97c4a5e0 coresight: prevent deactivate active config while enabling the config [auto: cve already created]
+be9b3f9a5410 drm/connector: only call HDMI audio helper plugged cb if non-null [auto: cve already created]
+271683bb2cf3 page_pool: Fix use-after-free in page_pool_recycle_in_ring [auto: cve already created]
+f29ccaa07cf3 net: tipc: fix refcount warning in tipc_aead_encrypt
+03f1700b9b4d Bluetooth: MGMT: reject malformed HCI_CMD_SYNC commands [auto: cve already created]
+0153f36041b8 ice: fix Tx scheduler error handling in XDP callback [auto: cve already created]
+030ce919e114 net: stmmac: make sure that ptp_rate is not 0 before configuring timestamping [auto: cve already created]
+cbefe2ffa778 net: stmmac: make sure that ptp_rate is not 0 before configuring EST [auto: cve already created]
+3382a1ed7f77 net: fix udp gso skb_segment after pull from frag_list [auto: cve already created]
+905fe0845bb2 net: wwan: t7xx: Fix napi rx poll issue [auto: cve already created]
+120f28a6f314 iavf: get rid of the crit lock
+12c331b29c73 gve: add missing NULL check for gve_alloc_pending_packet() in TX DQO [auto: cve already created]
+960c7e6d3880 wifi: iwlwifi: mld: avoid panic on init failure [auto: cve already created]
+ea77c397bff8 netfilter: nf_set_pipapo_avx2: fix initial map fill [auto: cve already created]
+1237c2d4a8db net: dsa: b53: do not enable EEE on bcm63xx
+feafc73f3e6a net: prevent a NULL deref in rtnl_create_link()
+7632fedb266d seg6: Fix validation of nexthop addresses
+8cf8cde41ad0 drm/xe/vm: move xe_svm_init() earlier
+61a74ad25462 riscv: misaligned: fix sleeping function called during misaligned access handling
+9ad1f3cd0d60 ASoC: Intel: avs: Fix deadlock when the failing IPC is SET_D0IX
+2f78724d4f0c ASoC: Intel: avs: Fix possible null-ptr-deref when initing hw
+93e246b6769b ASoC: Intel: avs: Verify content returned by parse_int_array()
+1f282cdc1d21 fs/fhandle.c: fix a race in call of has_locked_children()
+8a3514d348de scsi: core: ufs: Fix a hang in the error handler [auto: cve already created]
+e6ed54e86aae Bluetooth: MGMT: Fix UAF on mgmt_remove_adv_monitor_complete [auto: cve already created]
+6fe26f694c82 Bluetooth: MGMT: Protect mgmt_pending list with its own lock [auto: cve already created]
+87f7ce260a3c ptp: remove ptp->n_vclocks check logic in ptp_vclock_in_use()
+7588a893cde5 wifi: ath12k: fix GCC_GCC_PCIE_HOT_RST definition for WCN7850
+f3fe49dbddd7 wifi: ath12k: fix uaf in ath12k_core_init() [auto: cve already created]
+82ffbe7776d0 net_sched: sch_sfq: fix a potential crash on gso_skb handling [auto: cve already created]
+cd097df4596f powerpc/powernv/memtrace: Fix out of bounds issue in memtrace mmap [auto: cve already created]
+b4a8085ceefb e1000: Move cancel_work_sync to avoid deadlock [auto: cve already created]
+15eece6c5b05 ACPI: CPPC: Fix NULL pointer dereference when nosmp is used [auto: cve already created]
+2660a544fdc0 net: Fix TOCTOU issue in sk_is_readable() [auto: cve already created]
+0e629694126c net/mdiobus: Fix potential out-of-bounds read/write access [auto: cve already created]
+260388f79e94 net/mdiobus: Fix potential out-of-bounds clause 45 read/write access [auto: cve already created]
+20a2aa01f5ae Bluetooth: Fix NULL pointer deference on eir_get_service_data
+47c03902269a Bluetooth: eir: Fix possible crashes on eir_create_adv_data
+687560d8a9a2 net/mlx5: Fix ECVF vports unload on shutdown flow [auto: cve already created]
+d35acc1be348 net_sched: prio: fix a race in prio_tune() [auto: cve already created]
+85a3e0ede384 net_sched: red: fix a race in __red_change() [auto: cve already created]
+d92adacdd8c2 net_sched: ets: fix a race in ets_qdisc_change() [auto: cve already created]
+1264971017b4 net: drv: netdevsim: don't napi_complete() from netpoll
+3bf179e36da9 btrfs: exit after state insertion failure at btrfs_convert_extent_bit()
+41d69d4d78d8 btrfs: exit after state split error at set_extent_bit()
+ac0b8b327a56 io_uring: fix use-after-free of sq->thread in __io_uring_show_fdinfo() [auto: cve already created]
+cf625013d874 block: don't use submit_bio_noacct_nocheck in blk_zone_wplug_bio_work
+0718a78f6a9f ALSA: usb-audio: Kill timer properly at removal [auto: cve already created]
+fe7f7ac8e0c7 HID: usbhid: Eliminate recurrent out-of-bounds bug in usbhid_parse() [auto: cve already created]
+1bd6406fb5f3 VMCI: fix race between vmci_host_setup_notify and vmci_ctx_unset_notify [auto: cve already created]
+3728101f56ef nvmem: zynqmp_nvmem: unbreak driver after cleanup
+324d45e53f1a usb: typec: tcpm: move tcpm_queue_vdm_unlocked to asynchronous work
+4fc78a7c9ca9 ring-buffer: Do not trigger WARN_ON() due to a commit_overrun
+40ee2afafc1d ring-buffer: Fix buffer locking in ring_buffer_subbuf_order_set() [auto: cve already created]
+8b68e978718f x86/iopl: Cure TIF_IO_BITMAP inconsistencies [auto: cve already created]
