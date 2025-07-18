@@ -1,0 +1,138 @@
+ea4dd134ef33 crypto: sun8i-ce-hash - fix error handling in sun8i_ce_hash_run()
+f31adc3e356f crypto: sun8i-ce-cipher - fix error handling in sun8i_ce_cipher_prepare()
+8a4e047c6cc0 crypto: marvell/cesa - Handle zero-length skcipher requests
+9748f2f54f66 erofs: avoid using multiple devices with different type
+d36e3f11fe8b powerpc/pseries/iommu: Fix kmemleak in TCE table userspace view
+c822831b4263 crypto: sun8i-ce - move fallback ahash_request to the end of the struct
+7af317f7faaa ASoC: mediatek: mt8195: Set ETDM1/2 IN/OUT to COMP_DUMMY()
+20d2d476b3ae EDAC/skx_common: Fix general protection fault
+179c0c7044a3 PM: EM: Fix potential division-by-zero error in em_compute_costs()
+11741b8e382d power: supply: max77705: Fix workqueue error handling in probe
+dd133162c9cf ACPI: platform_profile: Avoid initializing on non-ACPI platforms
+f42c09e614f1 drm/vmwgfx: Fix dumb buffer leak
+820116a39f96 drm/amd/pp: Fix potential NULL pointer dereference in atomctrl_initialize_mc_reg_table
+d3eaab3c7090 arm64/fpsimd: Discard stale CPU state when handling SME traps
+01098d893fa8 arm64/fpsimd: Avoid clobbering kernel FPSIMD state with SMSTOP
+6c161732ea64 accel/amdxdna: Fix incorrect size of ERT_START_NPU commands
+7f57afde6a44 perf: arm-ni: Unregister PMUs on probe failure
+fc5106088d6d perf: arm-ni: Fix missing platform_set_drvdata()
+af5cab0e5b6f fs/ntfs3: handle hdr_first_de() return value
+8b26c8c376b2 fs/ntfs3: Add missing direct_IO in ntfs_aops_cmpr
+097469a2b0f1 perf/amlogic: Replace smp_processor_id() with raw_smp_processor_id() in meson_ddr_pmu_create()
+11beb0fc346e media: verisilicon: Free post processor buffers on error
+e22d7acf9f47 drm/xe/guc: Make creation of SLPC debugfs files conditional
+ea24531d00f7 wifi: ath12k: fix NULL access in assign channel context handler
+31e98e277ae4 wifi: ath11k: fix node corruption in ar->arvifs list
+4dab26bed543 IB/cm: use rwlock for MAD agent lock
+54a3ecaeeeae bpf: fix ktls panic with sockmap
+5ca2e29f6834 bpf, sockmap: Fix panic when calling skb_linearize
+773704c1ef96 f2fs: zone: fix to avoid inconsistence in between SIT and SSA
+8c7a5031a6b0 wifi: ath12k: Fix buffer overflow in debugfs
+6d019abc402f wifi: ath12k: fix SLUB BUG - Object already free in ath12k_reg_free()
+05872a167c2c f2fs: fix to do sanity check on sbi->total_valid_block_count
+ee62ce7a1d90 page_pool: Track DMA-mapped pages and unmap them when destroying the pool
+fd4e41ebf66c bonding: Mark active offloaded xfrm_states
+d2fddbd34799 bonding: Fix multiple long standing offload races
+9f17747fbda6 wifi: ath12k: fix invalid access to memory
+e9e094a9734e wifi: ath12k: Prevent sending WMI commands to firmware during firmware crash
+823435bd2310 wifi: ath12k: fix node corruption in ar->arvifs list
+1c7eec4d5f3b RDMA/rxe: Fix "trying to register non-static key in rxe_qp_do_cleanup" bug
+e586e22974d2 iommu: Protect against overflow in iommu_pgsize()
+b5162bb6aa1e scsi: lpfc: Avoid potential ndlp use-after-free in dev_loss_tmo_callbk
+42d033cf4b51 scsi: smartpqi: Fix smp_processor_id() call trace for preemptible kernels
+4c5c6aa9967d netfilter: nft_set_pipapo: prevent overflow in lookup table allocation
+7590649ee7af IB/cm: Drop lockdep assert and WARN when freeing old msg
+5d2ea5aebbb2 RDMA/mlx5: Fix error flow upon firmware failure for RQ destruction
+73c46d9a93d0 clk: bcm: rpi: Add NULL check in raspberrypi_clk_register()
+762ef7d1e6ee pinctrl: at91: Fix possible out-of-boundary access
+3880cdbed1c4 bpf: Fix WARN() in get_bpf_raw_tp_regs
+a70cf04b08f4 wifi: rtw89: pci: configure manual DAC mode via PCI config API only
+4c2c372de2e1 wifi: rtw88: fix the 'para' buffer size to avoid reading out of bounds
+89142d34d560 wifi: ath12k: fix memory leak in ath12k_service_ready_ext_event
+8bb7170c5a05 hisi_acc_vfio_pci: fix XQE dma address error
+ac4e317a95a1 wifi: ath9k_htc: Abort software beacon handling if disabled
+071d8e4c2a3b kernfs: Relax constraint in draining guard
+8f30e2b05975 wifi: mt76: mt7996: Fix null-ptr-deref in mt7996_mmio_wed_init()
+efb95439c147 wifi: mt76: mt7915: Fix null-ptr-deref in mt7915_mmio_wed_init()
+8259eb0e06d8 bpf, sockmap: Avoid using sk_socket after free when sending
+405b0d610745 net: usb: aqc111: fix error handling of usbnet read calls
+92a251c3df8e RDMA/cma: Fix hang when cma_netevent_callback fails to queue_work
+d8d85ef0a631 af_packet: move notifier's packet_dev_mc out of rcu critical section
+86bc9c742426 bpf: Avoid __bpf_prog_ret0_warn when jit fails
+e2d2115e56c4 bpf: Do not include stack ptr register in precision backtracking bookkeeping
+0795b05a59b1 net: phy: clear phydev->devlink when the link is deleted
+846992645b25 net: phy: mscc: Fix memory leak when using one step timestamping
+6e9f2df1c550 calipso: Don't call calipso functions for AF_INET sk.
+0bdc924bfb31 net: openvswitch: Fix the dead loop of MPLS parse
+cdc3ed3035d0 ocfs2: fix possible memory leak in ocfs2_finish_quota_recovery
+d694bf8a9acd bus: fsl-mc: fix double-free on mc_dev
+f1706e0e1a74 soc: aspeed: Add NULL check in aspeed_lpc_enable_snoop()
+3f6dae09fc8c fbdev: core: fbcvt: avoid division by 0 in fb_cvt_hperiod()
+a4e2401438a2 watchdog: lenovo_se30_wdt: Fix possible devm_ioremap() NULL pointer dereference in lenovo_se30_wdt_probe()
+e12d3e1624a0 backlight: pm8941: Add NULL check in wled_configure()
+25be31832456 hwmon: (asus-ec-sensors) check sensor index in read_string()
+37f53a2c60d0 dm: fix dm_blk_report_zones
+121218bef4c1 dm: limit swapping tables for devices with zone write plugs
+4481f7f2b3df netfs: Fix oops in write-retry from mis-resetting the subreq iterator
+dd59137bfe70 fs/dax: Fix "don't skip locked entries when scanning entries"
+8b926f237743 PCI/pwrctrl: Cancel outstanding rescan work when unregistering
+ffb34a60ce86 usb: renesas_usbhs: Reorder clock handling and power management in probe
+86bcae88c920 serial: Fix potential null-ptr-deref in mlb_usio_probe()
+73fb0ec9436a usb: acpi: Prevent null pointer dereference in usb_acpi_add_usb4_devlink()
+6ebf1982038a fpga: fix potential null pointer deref in fpga_mgr_test_img_load_sgt()
+499a8cee8125 iio: adc: ad4851: fix ad4858 chan pointer handling
+53b9e2659719 coresight: holding cscfg_csdev_lock while removing cscfg from csdev
+408c97c4a5e0 coresight: prevent deactivate active config while enabling the config
+271683bb2cf3 page_pool: Fix use-after-free in page_pool_recycle_in_ring
+f29ccaa07cf3 net: tipc: fix refcount warning in tipc_aead_encrypt
+03f1700b9b4d Bluetooth: MGMT: reject malformed HCI_CMD_SYNC commands
+0153f36041b8 ice: fix Tx scheduler error handling in XDP callback
+030ce919e114 net: stmmac: make sure that ptp_rate is not 0 before configuring timestamping
+cbefe2ffa778 net: stmmac: make sure that ptp_rate is not 0 before configuring EST
+3382a1ed7f77 net: fix udp gso skb_segment after pull from frag_list
+905fe0845bb2 net: wwan: t7xx: Fix napi rx poll issue
+120f28a6f314 iavf: get rid of the crit lock
+12c331b29c73 gve: add missing NULL check for gve_alloc_pending_packet() in TX DQO
+960c7e6d3880 wifi: iwlwifi: mld: avoid panic on init failure
+ea77c397bff8 netfilter: nf_set_pipapo_avx2: fix initial map fill
+1237c2d4a8db net: dsa: b53: do not enable EEE on bcm63xx
+feafc73f3e6a net: prevent a NULL deref in rtnl_create_link()
+7632fedb266d seg6: Fix validation of nexthop addresses
+61a74ad25462 riscv: misaligned: fix sleeping function called during misaligned access handling
+9ad1f3cd0d60 ASoC: Intel: avs: Fix deadlock when the failing IPC is SET_D0IX
+2f78724d4f0c ASoC: Intel: avs: Fix possible null-ptr-deref when initing hw
+93e246b6769b ASoC: Intel: avs: Verify content returned by parse_int_array()
+334d7c4fb60c iov_iter: use iov_offset for length calculation in iov_iter_aligned_bvec
+1f282cdc1d21 fs/fhandle.c: fix a race in call of has_locked_children()
+8a3514d348de scsi: core: ufs: Fix a hang in the error handler
+e6ed54e86aae Bluetooth: MGMT: Fix UAF on mgmt_remove_adv_monitor_complete
+6fe26f694c82 Bluetooth: MGMT: Protect mgmt_pending list with its own lock
+87f7ce260a3c ptp: remove ptp->n_vclocks check logic in ptp_vclock_in_use()
+f3fe49dbddd7 wifi: ath12k: fix uaf in ath12k_core_init()
+82ffbe7776d0 net_sched: sch_sfq: fix a potential crash on gso_skb handling
+cd097df4596f powerpc/powernv/memtrace: Fix out of bounds issue in memtrace mmap
+b4a8085ceefb e1000: Move cancel_work_sync to avoid deadlock
+15eece6c5b05 ACPI: CPPC: Fix NULL pointer dereference when nosmp is used
+2660a544fdc0 net: Fix TOCTOU issue in sk_is_readable()
+0e629694126c net/mdiobus: Fix potential out-of-bounds read/write access
+260388f79e94 net/mdiobus: Fix potential out-of-bounds clause 45 read/write access
+20a2aa01f5ae Bluetooth: Fix NULL pointer deference on eir_get_service_data
+47c03902269a Bluetooth: eir: Fix possible crashes on eir_create_adv_data
+687560d8a9a2 net/mlx5: Fix ECVF vports unload on shutdown flow
+d35acc1be348 net_sched: prio: fix a race in prio_tune()
+85a3e0ede384 net_sched: red: fix a race in __red_change()
+43eb46604121 net_sched: tbf: fix a race in tbf_change()
+1264971017b4 net: drv: netdevsim: don't napi_complete() from netpoll
+3bf179e36da9 btrfs: exit after state insertion failure at btrfs_convert_extent_bit()
+41d69d4d78d8 btrfs: exit after state split error at set_extent_bit()
+ac0b8b327a56 io_uring: fix use-after-free of sq->thread in __io_uring_show_fdinfo()
+cf625013d874 block: don't use submit_bio_noacct_nocheck in blk_zone_wplug_bio_work
+0718a78f6a9f ALSA: usb-audio: Kill timer properly at removal
+fe7f7ac8e0c7 HID: usbhid: Eliminate recurrent out-of-bounds bug in usbhid_parse()
+fe8abdd175d7 nvmem: zynqmp_nvmem: unbreak driver after cleanup
+1bd6406fb5f3 VMCI: fix race between vmci_host_setup_notify and vmci_ctx_unset_notify
+324d45e53f1a usb: typec: tcpm: move tcpm_queue_vdm_unlocked to asynchronous work
+4fc78a7c9ca9 ring-buffer: Do not trigger WARN_ON() due to a commit_overrun
+40ee2afafc1d ring-buffer: Fix buffer locking in ring_buffer_subbuf_order_set()
+8b68e978718f x86/iopl: Cure TIF_IO_BITMAP inconsistencies
+9126d2754c5e gfs2: Don't clear sb->s_fs_info in gfs2_sys_fs_add

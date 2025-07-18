@@ -1,0 +1,106 @@
+690e47d1403e sched/rt: Fix race in push_rt_task
+cb5b691f8273 powerpc64/ftrace: fix clobbered r15 during livepatching
+59ba025948be powerpc/bpf: fix JIT code size calculation of bpf trampoline
+da1b9a55ff11 wifi: p54: prevent buffer-overflow in p54_rx_eeprom_readback()
+cfd86ef7e8e7 anon_inode: use a proper mode internally
+f7fb730cac9a NFSD: fix race between nfsd registration and exports_proc
+b31da62889e6 nfsd: Initialize ssc before laundromat_work to prevent NULL dereference
+4c10fa44bc5f fs/nfs/read: fix double-unlock bug in nfs_return_empty_folio()
+af98b0157adf jbd2: fix data-race and null-ptr-deref in jbd2_journal_dirty_metadata()
+37bfb464ddca jfs: validate AG parameters in dbMount() to prevent crashes
+73fb3b92da84 media: cxusb: no longer judge rbuf when the write fails
+024bf40edf11 media: davinci: vpif: Fix memory leak in probe error path
+609ba05b9484 media: imagination: fix a potential memory leak in e5010_probe()
+1d5f88f05348 media: vidtv: Terminating the subsequent process of initialization failure
+f83ac8d30c43 media: vivid: Change the siize of the composing
+7500bb9cf164 media: imx-jpeg: Cleanup after an allocation error
+63fe298652d4 ASoC: codecs: wcd9375: Fix double free of regulator supplies
+54ec8b08216f can: kvaser_pciefd: refine error prone echo_skb_max handling logic
+060909278cc0 ceph: avoid kernel BUG for encrypted inode with unaligned file size
+d29fc02caad7 ata: pata_via: Force PIO for ATAPI devices on VT6415/VT6330
+227cb4ca5a65 ext4: inline: fix len overflow in ext4_prepare_inline_data
+b5e58bcd7962 ext4: fix out of bounds punch offset
+e26268ff1dca ext4: only dirty folios when data journaling regular files
+f4a8f561d08e Input: gpio-keys - fix a sleep while atomic with PREEMPT_RT
+061cf3a84bde f2fs: fix to do sanity check on ino and xnid
+42cb74a92ada f2fs: prevent kernel warning due to negative i_nlink from corrupted image
+5db0d252c64e f2fs: fix to do sanity check on sit_bitmap_size
+14c9ede9ca4c hwmon: (ftsteutates) Fix TOCTOU race in fts_read()
+b160766e26d4 net/sched: fix use-after-free in taprio_dev_notifier
+320302baed05 iommu/vt-d: Restore context entry setup order for aliased devices
+17186f1f90d3 fbdev: Fix do_register_framebuffer to prevent null-ptr-deref in fb_videomode_to_var
+05f6e183879d fbdev: Fix fb_set_var to prevent null-ptr-deref in fb_videomode_to_var
+864f9963ec6b vgacon: Add check for vc_origin address range in vgacon_scroll()
+d66adabe9180 ipc: fix to protect IPCS lookups using RCU
+6883b680e703 RDMA/iwcm: Fix use-after-free of work objects after cm_id destruction
+fba4ceaa242d configfs-tsm-report: Fix NULL dereference of tsm_ops
+66be40a14e49 dm-verity: fix a memory leak if some arguments are specified multiple times
+f914b52c379c ftrace: Fix UAF when lookup kallsym after ftrace disabled
+9ad0452c0277 net: ch9200: fix uninitialised access during mii_nway_restart
+e7143706702a nvme-tcp: remove tag set when second admin queue config fails
+7692c9fbedd9 remoteproc: core: Cleanup acquired resources when rproc_handle_resources() fails in rproc_attach()
+bcd241230fdb remoteproc: core: Release rproc->clean_table after rproc_attach() fails
+f1e7a277a173 smb: client: add NULL check in automount_fullpath
+3ec523304976 hv_netvsc: fix potential deadlock in netvsc_vf_setxdp()
+2b12d06c37fd mm: fix uprobe pte be overwritten when expanding vma
+081056dc00a2 mm/hugetlb: unshare page tables during VMA split, not before
+1013af4f585f mm/hugetlb: fix huge_pmd_unshare() vs GUP-fast race
+156fd20a41e7 ACPICA: fix acpi operand cache leak in dswstate.c
+bed18f0bdcd6 ACPICA: fix acpi parse and parseext cache leaks
+1f3d9724e16d exfat: fix double free in delayed_free
+7e40f64896e8 drm/amd/display: Avoid divide by zero by initializing dummy pitch to 1
+5dff41a86377 jfs: fix array-index-out-of-bounds read in add_missing_indices
+a4685408ff6c jfs: Fix null-ptr-deref in jfs_ioc_trim
+bd9f6ce7d512 media: platform: exynos4-is: Add hardware sync wait to fimc_is_hw_change_mode()
+d4965578267e bpf: Check rcu_read_lock_trace_held() in bpf_map_lookup_percpu_elem()
+80fda1cd7b0a wifi: mt76: mt7996: drop fragments with multicast or broadcast RA
+ed16618c380c x86/sgx: Prevent attempts to reclaim poisoned pages
+bb5eb8a5b222 f2fs: fix to bail out in get_new_segment()
+b85e3367a571 netfilter: nft_set_pipapo: clamp maximum map bucket size to INT_MAX
+c575f5374be7 wifi: mac80211_hwsim: Prevent tsf from setting if beacon is disabled
+31e4e12e0e96 software node: Correct a OOB check in software_node_get_reference_args()
+ae82eaf4aeea scsi: lpfc: Use memcpy() for BIOS version
+015bac5daca9 i40e: fix MMIO write access to an invalid page in i40e_clear_hw
+6a07e3af4973 net: ethernet: cortina: Use TOE/TSO on all TCP
+c426497fa205 wifi: ath12k: Fix memory leak due to multiple rx_stats allocation
+cedc1b63394a fbcon: Make sure modelist not set on unregistered console
+61ce04601e0d platform/x86: dell_rbu: Fix list usage
+1d27f11bf02b io_uring/rsrc: validate buffer count with offset for cloning
+89465d923bda io_uring: fix task leak issue in io_wq_create()
+50695153d7dd drivers/rapidio/rio_cm.c: prevent possible heap overwrite
+ee084fa96123 LoongArch: Fix panic caused by NULL-PMD in huge_pte_offset()
+f4ba2ea57da5 firmware: cs_dsp: Fix OOB memory read access in KUnit test (ctl cache)
+d979b783d61f firmware: cs_dsp: Fix OOB memory read access in KUnit test (wmfw info)
+ec9e6f22bce4 jffs2: check that raw node were preallocated before writing summary
+2b6d96503255 jffs2: check jffs2_prealloc_raw_node_refs() result in few other places
+7ca52541c05c net_sched: sch_sfq: reject invalid perturb period
+ba9db6f907ac net: clear the dst when changing skb protocol
+7ac5b66acafc ksmbd: fix null pointer dereference in destroy_previous_session
+327e28664307 fgraph: Do not enable function_graph tracer when setting funcgraph-args
+7851263998d4 atm: Revert atm_account_tx() if copy_from_iter_full() fails.
+94d10a4dba0b sunrpc: handle SVC_GARBAGE during svc auth processing as auth error
+e1bc3a13bd77 drm/v3d: Avoid NULL pointer dereference in `v3d_job_update_stats()`
+2b520c6104f3 drm/msm/a7xx: Call CP_RESET_CONTEXT_STATE
+9802f0a63b64 drm/nouveau: fix a use-after-free in r535_gsp_rpc_push()
+7f90d45e57cb aoe: clean device rq_list in aoedev_downdev()
+48c8b214974d ice: fix eswitch code memory leak in reset scenario
+a89f5fae998b ksmbd: add free_transport ops in ksmbd connection
+1e9ac33fa271 bnxt_en: Fix double invocation of bnxt_ulp_stop()/bnxt_ulp_start()
+15d253076923 wifi: carl9170: do not ping device which has failed to load firmware
+6dbb0d97c509 mpls: Use rcu_dereference_rtnl() in mpls_route_input_rcu().
+2f370ae1fb63 atm: atmtcp: Free invalid length skb in atmtcp_c_send().
+f82727adcf29 tipc: fix null-ptr-deref when acquiring remote ip of ethernet bearer
+5bd1bafd4474 eth: fbnic: avoid double free when failing to DMA-map FW msg
+e353b0854d3a net: lan743x: fix potential out-of-bounds write in lan743x_ptp_io_event_clock_get()
+8c8472855884 ublk: santizize the arguments from userspace when adding a device
+10876da918fa calipso: Fix null-ptr-deref in calipso_req_{set,del}attr().
+d13a3824bfd2 net: atm: add lec_mutex
+d03b79f459c7 net: atm: fix /proc/net/atm/lec handling
+b0823d5fbacb perf/x86/intel: Fix crash in icl_update_topdown_event()
+a2182743a8b4 smb: Log an error when close_all_cached_dirs fails
+a379a8a2a003 smb: client: fix max_sge overflow in smb_extract_folioq_to_rdma()
+88efa0de3285 EDAC/igen6: Fix NULL pointer dereference
+4f6fc7821283 perf: Fix sample vs do_exit()
+3172fb986666 perf/core: Fix WARN in perf_cgroup_switch()
+39dfc971e42d arm64/ptrace: Fix stack-out-of-bounds read in regs_get_kernel_stack_nth()
+7869738b6908 erofs: refuse crafted out-of-file-range encoded extents
