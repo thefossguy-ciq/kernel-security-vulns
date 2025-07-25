@@ -497,17 +497,17 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
 
     // Sort the filtered pairs by fixed kernel version to ensure consistent order
     filtered_pairs.sort_by(|a, b| {
-        // First compare by fixed kernel version
-        if a.fixed.version() != "0" && b.fixed.version() != "0" {
-            return a.fixed.compare(&b.fixed);
-        }
-
         // If one is unfixed (version "0"), it goes last
         if a.fixed.version() == "0" {
             return Ordering::Greater;
         }
         if b.fixed.version() == "0" {
             return Ordering::Less;
+        }
+
+        // If fixed is not equal, compare them
+        if a.fixed.version() != b.fixed.version() {
+            return a.fixed.compare(&b.fixed);
         }
 
         // Otherwise, sort by vulnerable version

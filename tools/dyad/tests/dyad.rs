@@ -871,3 +871,29 @@ fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Er
 
     Ok(())
 }
+
+#[test]
+fn single_fixed_multiple_vulnerable_sort_order() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("dyad")?;
+
+    let output =
+        "# 	getting vulnerable:fixed pairs for git id b16510a530d1e6ab9683f04f8fb34f2e0f538275\n\
+         # 	Setting original vulnerable kernel to be kernel 6.10 and git id c6ab5c915da460c0397960af3c308386c3f3247b\n\
+         # 	Setting original vulnerable kernel to be kernel 6.13 and git id d6793ff974e07e4eea151d1f0805e92d042825a1\n\
+         # 	Setting original vulnerable kernel to be kernel 6.13 and git id b04163863caf599d4348a05af5a71cf5d42f11dc\n\
+         6.6.70:55779f26eab9af12474a447001bd17070f055712:6.6.99:f02f0218be412cff1c844addf58e002071be298b\n\
+         6.13:d6793ff974e07e4eea151d1f0805e92d042825a1:6.14.5:921b8167f10708e38080f84e195cdc68a7a561f1\n\
+         6.10:c6ab5c915da460c0397960af3c308386c3f3247b:6.15:b16510a530d1e6ab9683f04f8fb34f2e0f538275\n\
+         6.13:d6793ff974e07e4eea151d1f0805e92d042825a1:6.15:b16510a530d1e6ab9683f04f8fb34f2e0f538275\n\
+         6.13:b04163863caf599d4348a05af5a71cf5d42f11dc:6.15:b16510a530d1e6ab9683f04f8fb34f2e0f538275\n";
+
+    cmd.arg("--sha1=b16510a530d1e6ab9683f04f8fb34f2e0f538275")
+       .arg("--vulnerable=c6ab5c915da460c0397960af3c308386c3f3247b")
+       .arg("--vulnerable=d6793ff974e07e4eea151d1f0805e92d042825a1")
+       .arg("--vulnerable=b04163863caf599d4348a05af5a71cf5d42f11dc");
+    cmd.assert()
+       .success()
+       .stdout(predicate::str::ends_with(output));
+
+    Ok(())
+}
