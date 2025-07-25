@@ -1,0 +1,44 @@
+5a53249d149f KVM: x86/xen: Fix cleanup logic in emulation of Xen schedop poll hypercalls
+3014168731b7 usb: gadget: configfs: Fix OOB read on empty string write
+4c4ca3c46167 usb: net: sierra: check for no status endpoint
+cefc1caee9dd phy: tegra: xusb: Fix unbalanced regulator disable in UTMI PHY mode
+d992ed7e1b68 net: libwx: properly reset Rx ring descriptor
+56448e78a6bb soc: aspeed: lpc-snoop: Don't disable channels that aren't enabled
+60ada4fe644e smc: Fix various oops due to inet_sock type confusion.
+579d4f9ca9a9 net: vlan: fix VLAN 0 refcount imbalance of toggling filtering during runtime
+b1bf1a782fdf dm-bufio: fix sched in atomic context
+b640daa2822a rpl: Fix use-after-free in rpl_do_srh_inline().
+a0075accbf0d Bluetooth: Fix null-ptr-deref in l2cap_sock_resume_cb()
+4ab26bce3969 tls: always refresh the queue when reading sock
+e14fd98c6d66 sched/ext: Prevent update_locked_rq() calls with NULL rq
+85a3bce695b3 tracing/osnoise: Fix crash in timerlat_dump_stack()
+f8a1d9b18c5e mptcp: make fallback action and fallback decision atomic
+1b7e585c04cd net: libwx: remove duplicate page_pool_put_full_page()
+f8242745871f bpf: Reject %p% format string in bprintf-like helpers
+e4d2878369d5 rxrpc: Fix irq-disabled in local_bh_enable()
+5fd77cc6bd9b net: libwx: fix the using of Rx buffer DMA
+b14b076ce593 comedi: pcl812: Fix bit shift out of bounds
+66acb1586737 comedi: aio_iiro_16: Fix bit shift out of bounds
+ed93c6f68a3b comedi: das16m1: Fix bit shift out of bounds
+70f2b28b5243 comedi: das6402: Fix bit shift out of bounds
+08ae4b20f5e8 comedi: Fail COMEDI_INSNLIST ioctl if n_insns is too large
+ab705c8c35e1 comedi: Fix some signed shift left operations
+e9cb26291d00 comedi: Fix use of uninitialized data in insn_rw_emulate_bits()
+46d8c744136c comedi: Fix initialization of data for instructions that write to subdevice
+43e7e284fc77 cifs: Fix the smbd_response slab to allow usercopy
+0e1d5d9b5c59 net/sched: Return NULL when htb_lookup_leaf encounters an empty rbtree
+962fb1f651c2 rxrpc: Fix recv-recv race of completed call
+b220bed63330 smb: client: fix use-after-free in crypt_message when using async crypto
+1fe16dc1a2f5 iio: accel: fxls8962af: Fix use after free in fxls8962af_fifo_flush
+5e28d5a3f774 net/sched: sch_qfq: Fix race condition on qfq_aggregate
+3ce58b01ada4 ice: add NULL check in eswitch lag check
+4c238e30774e netfs: Fix copy-to-cache so that it performs collection with ceph+fscache
+89635eae076c netfs: Fix race between cache write completion and ALL_QUEUED being set
+4f15ee98304b HID: core: ensure the allocated report buffer can contain the reserved report ID
+c2ca42f190b6 HID: core: do not bypass hid_hw_raw_request
+834bce6a715a soundwire: Revert "soundwire: qcom: Add set_channel_map api support"
+705c79101ccf smb: client: fix use-after-free in cifs_oplock_break
+2d72afb34065 netfilter: nf_conntrack: fix crash due to removal of uninitialised entry
+6a5abf8cf182 s390/bpf: Fix bpf_arch_text_poke() with new_addr == NULL again
+da9374819eb3 iio: backend: fix out-of-bound write
+9f92e93e257b iio: common: st_sensors: Fix use of uninitialize device structs
