@@ -114,3 +114,5 @@ ea77c397bff8 netfilter: nf_set_pipapo_avx2: fix initial map fill
 85a3e0ede384 net_sched: red: fix a race in __red_change()
 43eb46604121 net_sched: tbf: fix a race in tbf_change()
 d92adacdd8c2 net_sched: ets: fix a race in ets_qdisc_change()
+7588a893cde5 wifi: ath12k: fix GCC_GCC_PCIE_HOT_RST definition for WCN7850
+734aa85390ea Squashfs: check return result of sb_min_blocksize
