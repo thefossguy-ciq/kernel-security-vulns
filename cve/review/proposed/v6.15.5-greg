@@ -35,3 +35,7 @@ ff8abbd248c1 smb: client: fix regression with native SMB symlinks
 3c70ec71abda cxl/ras: Fix CPER handler device confusion
 f59902070269 net: netpoll: Initialize UDP checksum field before checksumming
 0748e553df02 userns and mnt_idmap leak in open_tree_attr(2)
+4262bd0d9cc7 riscv: vector: Fix context save/restore with xtheadvector
+471db2c2d4f8 drm/scheduler: signal scheduled fence when kill job
+890ba5be6335 Revert "riscv: Define TASK_SIZE_MAX for __access_ok()"
+8d90d9872eda riscv: fix runtime constant support for nommu kernels
