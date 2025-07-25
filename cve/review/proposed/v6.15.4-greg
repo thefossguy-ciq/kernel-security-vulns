@@ -91,3 +91,14 @@ ee084fa96123 LoongArch: Fix panic caused by NULL-PMD in huge_pte_offset()
 e353b0854d3a net: lan743x: fix potential out-of-bounds write in lan743x_ptp_io_event_clock_get()
 8c8472855884 ublk: santizize the arguments from userspace when adding a device
 d03b79f459c7 net: atm: fix /proc/net/atm/lec handling
+1244f0b2c3ce nfsd: nfsd4_spo_must_allow() must check this is a v4 compound request
+15d253076923 wifi: carl9170: do not ping device which has failed to load firmware
+2f29b5c23101 video: screen_info: Relocate framebuffers behind PCI bridges
+3b9935586a9b net: lan743x: Modify the EEPROM and OTP size for PCI1xxxx devices
+4f6fc7821283 perf: Fix sample vs do_exit()
+5df0d6addb7e drm/amdgpu: Add basic validation for RAS header
+63fe298652d4 ASoC: codecs: wcd9375: Fix double free of regulator supplies
+6f18d174b73d bus: mhi: ep: Update read pointer only after buffer is written
+a6e04f05ce0b i2c: tegra: check msg length in SMBUS block read
+a95ef0199e80 Input: ims-pcu - check record size in ims_pcu_flash_firmware()
+d9db3a941270 platform/x86/amd: pmf: Use device managed allocations
