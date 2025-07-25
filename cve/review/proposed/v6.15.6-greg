@@ -27,3 +27,39 @@ f5de469990f1 mtk-sd: Prevent memory corruption from DMA map failure
 c01776287414 NFSv4/pNFS: Fix a race to wake on NFS_LAYOUT_DRAIN
 2ed25aa7f771 IB/mlx5: Fix potential deadlock in MR deregistration
 f77bf1ebf8ff idpf: return 0 size for RSS key if not supported
+609ba05b9484 media: imagination: fix a potential memory leak in e5010_probe()
+d29fc02caad7 ata: pata_via: Force PIO for ATAPI devices on VT6415/VT6330
+14c9ede9ca4c hwmon: (ftsteutates) Fix TOCTOU race in fts_read()
+fc27ab48904c NFC: nci: uart: Set tty->disc_data only in success path
+320302baed05 iommu/vt-d: Restore context entry setup order for aliased devices
+fba4ceaa242d configfs-tsm-report: Fix NULL dereference of tsm_ops
+66be40a14e49 dm-verity: fix a memory leak if some arguments are specified multiple times
+7692c9fbedd9 remoteproc: core: Cleanup acquired resources when rproc_handle_resources() fails in rproc_attach()
+bcd241230fdb remoteproc: core: Release rproc->clean_table after rproc_attach() fails
+7e40f64896e8 drm/amd/display: Avoid divide by zero by initializing dummy pitch to 1
+bd9f6ce7d512 media: platform: exynos4-is: Add hardware sync wait to fimc_is_hw_change_mode()
+ed16618c380c x86/sgx: Prevent attempts to reclaim poisoned pages
+b85e3367a571 netfilter: nft_set_pipapo: clamp maximum map bucket size to INT_MAX
+20c76dadc783 vxlan: Do not treat dst cache initialization errors as fatal
+ae82eaf4aeea scsi: lpfc: Use memcpy() for BIOS version
+015bac5daca9 i40e: fix MMIO write access to an invalid page in i40e_clear_hw
+6a07e3af4973 net: ethernet: cortina: Use TOE/TSO on all TCP
+c426497fa205 wifi: ath12k: Fix memory leak due to multiple rx_stats allocation
+39bb67edcc58 tee: Prevent size calculation wraparound on 32-bit kernels
+50695153d7dd drivers/rapidio/rio_cm.c: prevent possible heap overwrite
+ee084fa96123 LoongArch: Fix panic caused by NULL-PMD in huge_pte_offset()
+7ca52541c05c net_sched: sch_sfq: reject invalid perturb period
+7851263998d4 atm: Revert atm_account_tx() if copy_from_iter_full() fails.
+2b520c6104f3 drm/msm/a7xx: Call CP_RESET_CONTEXT_STATE
+7f90d45e57cb aoe: clean device rq_list in aoedev_downdev()
+48c8b214974d ice: fix eswitch code memory leak in reset scenario
+e353b0854d3a net: lan743x: fix potential out-of-bounds write in lan743x_ptp_io_event_clock_get()
+8c8472855884 ublk: santizize the arguments from userspace when adding a device
+d03b79f459c7 net: atm: fix /proc/net/atm/lec handling
+2b29be967ae4 riscv: cpu_ops_sbi: Use static array for boot_data
+8a2277a3c9e4 genirq/irq_sim: Initialize work context pointers properly
+f681c2aa8676 drm/msm: Fix another leak in the submit error path
+5d319f75ccf7 drm/msm: Fix a fence leak in submit error path
+9df7b5ebead6 netfs: Fix double put of request
+eb617dd25ca1 platform/x86: dell-wmi-sysman: Fix WMI data block retrieval in sysfs callbacks
+5177373c3131 virtio-net: xsk: rx: fix the frame's length check
