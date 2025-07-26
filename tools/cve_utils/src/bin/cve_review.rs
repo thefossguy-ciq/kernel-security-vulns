@@ -65,7 +65,32 @@ fn main() -> Result<()> {
 
     // Check if in a kernel directory
     if !is_kernel_directory() {
-        return Err(anyhow!("Not in a kernel directory (MAINTAINERS file not found)"));
+        return Err(anyhow!(
+            "Not in a kernel directory (MAINTAINERS file not found).\n\
+             \n\
+             Please run this command from within a Linux kernel git repository.\n\
+             Example: cd /path/to/vulns/linux && cve_review v6.7.1..v6.7.2"
+        ));
+    }
+
+    // Check if in vulns directory early to fail fast
+    if let Err(_) = common::find_vulns_dir() {
+        return Err(anyhow!(
+            "Could not find 'vulns' directory.\n\
+             \n\
+             This tool needs access to a 'vulns' directory to store its working files.\n\
+             The 'vulns' directory should be either:\n\
+             - In the current directory path (anywhere above your kernel directory)\n\
+             - In the path where the cve_review executable is located\n\
+             \n\
+             The tool will create: vulns/tmp/cve-review/ for tracking processed commits.\n\
+             \n\
+             Example usage:\n\
+             1. If running from compiled binary in vulns/tools:\n\
+                cd /anywhere/linux && /path/to/vulns/tools/target/debug/cve_review v6.7.1..v6.7.2\n\
+             2. If cve_review is in PATH and vulns is above your kernel:\n\
+                cd /path/to/vulns/some/deep/linux && cve_review v6.7.1..v6.7.2"
+        ));
     }
 
     // Determine if input is a git range or file
