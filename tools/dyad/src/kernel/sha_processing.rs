@@ -17,7 +17,7 @@ pub fn process_fixing_sha(state: &mut DyadState, git_sha: &str) -> bool {
             found_valid_sha = true;
         }
         Err(_) => {
-            debug!("git sha {} could not be validated, attempting a second way...", git_sha);
+            debug!("git sha {git_sha} could not be validated, attempting a second way...");
             // Sometimes the git id is in stable kernels but is NOT in a released Linus tree
             // just yet, so verhaal will not have the data. So let's check the git repo to see
             // if that's the case
@@ -26,7 +26,7 @@ pub fn process_fixing_sha(state: &mut DyadState, git_sha: &str) -> bool {
                     // It is valid, so let's make an "empty" kernel object and fill it in by hand
                     // without a valid version number just yet.
                     let kernel = Kernel::from_id_no_validate(&git_sha_full);
-                    debug!("git sha {} was validated, but not in a Linus release yet, so moving forward with it.", git_sha_full);
+                    debug!("git sha {git_sha_full} was validated, but not in a Linus release yet, so moving forward with it.");
                     state.git_sha_full.push(kernel);
                     found_valid_sha = true;
                 }
