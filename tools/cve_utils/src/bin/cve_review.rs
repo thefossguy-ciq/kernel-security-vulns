@@ -22,6 +22,7 @@ use walkdir::WalkDir;
 use grep::regex::RegexMatcher;
 use grep::searcher::sinks::UTF8;
 use grep::searcher::{BinaryDetection, SearcherBuilder};
+use indicatif::{ProgressBar, ProgressStyle};
 
 /// Review commits to determine if they should be assigned a CVE
 #[derive(Parser, Debug)]
@@ -161,6 +162,8 @@ fn get_commits_from_range(range: &str) -> Result<Vec<Commit>> {
         return Err(anyhow!("Git command failed: {}", String::from_utf8_lossy(&output.stderr)));
     }
 
+    // First, collect all commit info (sha and subject)
+    let mut commit_info: Vec<(String, String)> = Vec::new();
     for line in String::from_utf8_lossy(&output.stdout).lines() {
         if line.is_empty() {
             continue;
@@ -173,6 +176,22 @@ fn get_commits_from_range(range: &str) -> Result<Vec<Commit>> {
 
         let sha = parts[0].to_string();
         let subject = parts[1].to_string();
+        commit_info.push((sha, subject));
+    }
+
+    // Create progress bar for fetching full commit details
+    let pb = ProgressBar::new(commit_info.len() as u64);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta}) {msg}")
+            .unwrap()
+            .progress_chars("#>-")
+    );
+    pb.set_message("Fetching commit details...");
+
+    // Now fetch full details for each commit
+    for (sha, subject) in commit_info {
+        pb.set_message(format!("Fetching {}", &sha[..min(7, sha.len())]));
 
         // Get full commit message
         let full_message = get_full_commit_message(&sha)?;
@@ -182,7 +201,11 @@ fn get_commits_from_range(range: &str) -> Result<Vec<Commit>> {
             subject,
             full_message,
         });
+
+        pb.inc(1);
     }
+
+    pb.finish_with_message("All commits fetched");
 
     Ok(commits)
 }
