@@ -38,6 +38,7 @@ dialoguer = "0.11"
 rayon = "1.8"
 indicatif = "0.17.7"
 rand = "0.9"
+libc = "0.2"
 # CVE Classifier dependencies
 commit-classifier = { git = "https://git.sr.ht/~sashal/commit-classifier", default-features = false, optional = true }
 shellexpand = { version = "3.1", optional = true }

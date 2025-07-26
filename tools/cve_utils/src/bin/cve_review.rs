@@ -499,7 +499,16 @@ fn display_commit(
 ) -> (Vec<&str>, usize, bool) {
     // Convert to lines for display
     let commit_lines: Vec<&str> = commit_message.lines().collect();
-    let clip_point = terminal_height.saturating_sub(9 + proposed_votes_len);
+    // Calculate how many lines we need to reserve:
+    // - 1 line for "Processing" header
+    // - 2 + proposed_votes_len lines for vote warning (if votes exist)
+    // - 5 lines for bottom UI (blank, INFO, blank, QUESTION, prompt)
+    let reserved_lines = if proposed_votes_len > 0 {
+        8 + proposed_votes_len
+    } else {
+        6
+    };
+    let clip_point = terminal_height.saturating_sub(reserved_lines);
 
     let was_clipped = commit_lines.len() > clip_point;
     if was_clipped {
@@ -568,8 +577,8 @@ fn review_commits(
             continue;
         }
 
-        // Clear screen with newlines
-        println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        // Clear screen using ANSI escape sequence
+        print!("\x1B[2J\x1B[1;1H");
         println!("{} {} fix: {} of {} (%{:.2})",
                  "Processing".blue(), target_as_tag(target), i + 1, total_commits, percentage);
 
@@ -963,17 +972,33 @@ fn highlight_commit_message(message: &str, good_patterns: &[&str], bad_patterns:
 ///
 /// This helps properly format commit messages to fit in the user's terminal window.
 fn get_terminal_height() -> usize {
-    // Try to get terminal height using tput command
-    if let Ok(out) = Command::new("tput").arg("lines").output() {
-        if out.status.success() {
-            if let Ok(height) = String::from_utf8_lossy(&out.stdout).trim().parse::<usize>() {
-                return height;
-            }
+    use std::mem;
+    use std::os::unix::io::AsRawFd;
+    #[repr(C)]
+    struct Winsize {
+        ws_row: u16,
+        ws_col: u16,
+        ws_xpixel: u16,
+        ws_ypixel: u16,
+    }
+    unsafe {
+        let mut size: Winsize = mem::zeroed();
+        let fd = std::io::stdout().as_raw_fd();
+        const TIOCGWINSZ: u64 = 0x5413;
+        if libc::ioctl(fd, TIOCGWINSZ, &mut size) == 0 && size.ws_row > 0 {
+            return size.ws_row as usize;
+        }
+    }
+    // Fallback to environment variables
+    if let Ok(lines) = env::var("LINES") {
+        if let Ok(height) = lines.parse::<usize>() {
+            return height;
         }
     }
 
     // Default value if we couldn't get terminal height
-    24
+    // Most modern terminals are much taller than 24 lines
+    40
 }
 
 #[cfg(test)]
