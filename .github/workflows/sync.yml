@@ -1,0 +1,29 @@
+name: kernel-security-vulns sync
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install git
+        run: sudo apt-get install -y git
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Sync kernel-security-vulns
+        run: |
+          set -xeuf -o pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+
+          git remote add upstream https://git.kernel.org/pub/scm/linux/security/vulns.git
+          git fetch upstream --tags --quiet
+          git rebase upstream/master
+          git push origin --follow-tags
