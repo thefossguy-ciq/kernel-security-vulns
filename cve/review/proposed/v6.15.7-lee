@@ -1,0 +1,55 @@
+8c2e52ebbe88 eventpoll: don't decrement ep refcount while still holding the ep mutex [auto: cve already created]
+b846350aa272 drm/exynos: exynos7_drm_decon: add vblank check in IRQ handling [auto: cve already created]
+ba677dbe77af perf: Revert to requiring CAP_SYS_ADMIN for uprobes [auto: cve already created]
+ae8f160e7eb2 netlink: Fix wraparounds of sk->sk_rmem_alloc. [auto: cve already created]
+667eeab4999e tipc: Fix use-after-free in tipc_conn_close(). [auto: cve already created]
+d3a5f2871adc tcp: Correct signedness in skb remaining space calculation [auto: cve already created]
+209fd720838a vsock: Fix transport_{g2h,h2g} TOCTOU [auto: cve already created]
+687aa0c5581b vsock: Fix transport_* TOCTOU [auto: cve already created]
+706cc3647713 atm: clip: Fix potential null-ptr-deref in to_atmarpd(). [auto: cve already created]
+c489f3283dbf atm: clip: Fix infinite recursive call of clip_push(). [auto: cve already created]
+22fc46cea91d atm: clip: Fix NULL pointer dereference in vcc_sendmsg() [auto: cve already created]
+ffdde7bf5a43 net/sched: Abort __tc_modify_qdisc if parent class does not exist [auto: cve already created]
+880a88f318cf rxrpc: Fix oops due to non-existence of prealloc backlog struct
+fa332f5dc6fc ipmi:msghandler: Fix potential memory corruption in ipmi_create_user() [auto: cve already created]
+fa787ac07b3c KVM: x86/hyper-v: Skip non-canonical addresses during PV TLB flush [auto: cve already created]
+ecf371f8b02d KVM: SVM: Reject SEV{-ES} intra host migration if vCPU creation is in-flight [auto: cve already created]
+47bb584237cc KVM: Allow CPU to reschedule while setting per-page memory attributes
+043faef334a1 ALSA: ad1816a: Fix potential NULL pointer deref in snd_card_ad1816a_pnp() [auto: cve already created]
+fc582cd26e88 io_uring/msg_ring: ensure io_kiocb freeing is deferred for RCU [auto: cve already created]
+95a234f6affb net: ethernet: rtsn: Fix a null pointer dereference in rtsn_probe() [auto: cve already created]
+c17fb542dbd1 md/md-bitmap: fix GPF in bitmap_get_stats() [auto: cve already created]
+93712205ce2f pinctrl: qcom: msm: mark certain pins as invalid for interrupts
+737bb912ebbe wifi: prevent A-MSDU attacks in mesh networks
+3b602ddc0df7 wifi: mwifiex: discard erroneous disassoc frames on STA interface
+35ad47c0b3da wifi: mt76: mt7925: prevent NULL pointer dereference in mt7925_sta_set_decap_offload() [auto: cve already created]
+d38376b3ee48 drm/imagination: Fix kernel crash when hard resetting the GPU
+cf234231fcbc drm/amdkfd: Don't call mmput from MMU notifier callback
+5307dce878d4 drm/gem: Acquire references on GEM handles for framebuffers [auto: cve already created]
+8af39ec5cf2b drm/sched: Increment job count before swapping tail spsc queue
+c529c3730bd0 usb: gadget: u_serial: Fix race condition in TTY wakeup [auto: cve already created]
+6ee9b3d84775 kasan: remove kasan_find_vm_area() to prevent possible deadlock
+ddd05742b45b mm/rmap: fix potential out-of-bounds page table access during batched unmap [auto: cve already created]
+bd225b959144 mm/damon: fix divide by zero in damon_get_intervals_score()
+99af22cd3468 lib/alloc_tag: do not acquire non-existent lock in alloc_tag_top_users()
+aacc875a448d clk: imx: Fix an out-of-bounds access in dispmix_csr_clk_dev_data [auto: cve already created]
+a74bb5f202da x86/CPU/AMD: Disable INVLPGB on Zen2
+74b1ec9f5d62 wifi: zd1211rw: Fix potential NULL pointer dereference in zd_mac_tx_to_dev()
+d67ed2ccd2d1 md/raid1: Fix stack memory use after return in raid1_reshape [auto: cve already created]
+43806c3d5b9b raid10: cleanup memleak at raid10_make_request [auto: cve already created]
+58fcb1b4287c wifi: mac80211: reject VHT opmode for unsupported channel widths
+203817de2695 io_uring/zcrx: fix pp destruction warnings
+03ee8f73801a wifi: mt76: mt7925: Fix null-ptr-deref in mt7925_thermal_init()
+aa9552438ebf nbd: fix uaf in nbd_genl_connect() error path [auto: cve already created]
+4cdf1bdd45ac block: reject bs > ps block devices when THP is disabled [auto: cve already created]
+705a412a367f drm/xe/pf: Clear all LMTT pages on alloc
+18cdb3d982da netfilter: flowtable: account for Ethernet header in nf_flow_pppoe_proto() [auto: cve already created]
+eb41a264a3a5 net/mlx5e: Fix race between DIM disable and net_dim() [auto: cve already created]
+3cdf199d4755 bnxt_en: Set DMA unmap len correctly for XDP_REDIRECT [auto: cve already created]
+6c038b58a2dc ASoC: SOF: Intel: hda: Use devm_kstrdup() to avoid memleak. [auto: cve already created]
+1961d20f6fa8 btrfs: fix assertion when building free space tree
+54bae4c17c11 HID: quirks: Add quirk for 2 Chicony Electronics HP 5MP Cameras
+4a0381080397 HID: nintendo: avoid bluetooth suspend/resume stalls
+52e1a03e6cf6 x86/sev: Use TSC_FACTOR for Secure TSC frequency calculation
+50f930db2236 ksmbd: fix potential use-after-free in oplock/lease break ack [auto: cve already created]
+19272b37aa4f Linux 6.16-rc1 [auto: cve already created]
