@@ -1,0 +1,19 @@
+ca46946a4822 regulator: core: fix NULL dereference on unbind due to stale coupling data
+16285a093186 iio: fix potential out-of-bound write
+618c810a7b21 interconnect: icc-clk: destroy nodes in case of memory allocation failures
+c871c199accb regmap: fix potential memory leak of regmap_bus
+a90b2a1aaacb xfrm: interface: fix use-after-free after changing collect_md xfrm interface
+6bea85979d05 ASoC: mediatek: mt8365-dai-i2s: pass correct size to mt8365_dai_set_priv
+3afa3ae3db52 net/mlx5: Fix memory leak in cmd_exec()
+6c4a92d07b08 net: appletalk: Fix use-after-free in AARP proxy probe
+cf074eca0065 net/sched: sch_qfq: Avoid triggering might_sleep in atomic context in qfq_delete_class
+c1f3f9797c1f can: netlink: can_changelink(): fix NULL pointer deref of struct can_priv::do_set_mode
+fb4ef4a52b79 Revert "drm/prime: Use dma_buf from GEM object instance"
+2712ca878b68 Revert "drm/gem-framebuffer: Use dma_buf from GEM object instance"
+1918e79be908 Revert "drm/gem-dma: Use dma_buf from GEM object instance"
+d42e6c20de61 arm64/entry: Mask DAIF in cpu_switch_to(), call_on_irq_stack()
+4ff12d82dac1 ice: Fix a null pointer dereference in ice_copy_and_init_pkg()
+6ade153349c6 kasan: use vmalloc_dump_obj() for vmalloc error reports
+4aead50caf67 nilfs2: reject invalid file types when reading inodes
+9f1e8cd0b7c4 mm/vmscan: fix hwpoisoned large folio handling in shrink_folio_list
+6d496e956998 Revert "drm/gem-shmem: Use dma_buf from GEM object instance"
