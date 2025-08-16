@@ -45,3 +45,10 @@ cf234231fcbc drm/amdkfd: Don't call mmput from MMU notifier callback
 ba677dbe77af perf: Revert to requiring CAP_SYS_ADMIN for uprobes
 ddd05742b45b mm/rmap: fix potential out-of-bounds page table access during batched unmap
 43806c3d5b9b raid10: cleanup memleak at raid10_make_request
+02c4d6c26f1f net: ethernet: ti: am65-cpsw-nuss: Fix skb size by accounting for skb_shared_info
+03ee8f73801a wifi: mt76: mt7925: Fix null-ptr-deref in mt7925_thermal_init()
+44306a684cd1 drm/tegra: nvdec: Fix dma_alloc_coherent error check
+54bae4c17c11 HID: quirks: Add quirk for 2 Chicony Electronics HP 5MP Cameras
+62dba28275a9 atm: clip: Fix memory leak of struct clip_vcc.
+69e4186773c6 rxrpc: Fix bug due to prealloc collision
+711c80f7d8b1 net: appletalk: Fix device refcount leak in atrtr_create()
