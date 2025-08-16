@@ -91,3 +91,32 @@ f2e467a48287 eventpoll: Fix semi-unbounded recursion
 178f6a5c8cb3 bpf, ktls: Fix data corruption when using bpf_msg_pop_data() in ktls
 abad3d0bad72 bpf: Fix oob access in cgroup local storage
 bee47cb026e7 sunrpc: fix handling of server side tls alerts
+3281ddcea642 iio: adc: axp20x_adc: Add missing sentinel to AXP717 ADC channel maps
+495a4f0dce9c hwmon: (corsair-cpro) Validate the size of the received input buffer
+64e135f1eaba efivarfs: Fix memory leak of efivarfs_fs_info in fs_context error paths
+ae3264a25a46 ipv6: mcast: Delay put pmc->idev in mld_del_delrec()
+be5dcaed694e virtio-net: fix recursived rtnl_lock() during probe()
+def5b7b2643e mptcp: plug races between subflow fail and subflow creation
+bab7834c0382 PM / devfreq: Check governor before using governor->name
+05062834350f wifi: ath12k: Pass ab pointer directly to ath12k_dp_tx_get_encap_type()
+90a0d9f33996 iwlwifi: Add missing check for alloc_ordered_workqueue
+b3a431fe2e39 wifi: mt76: mt7925: fix off by one in mt7925_mcu_hw_scan()
+64cbf0d7ce9a wifi: mt76: mt7996: Fix possible OOB access in mt7996_tx()
+f9f68bf1d0ef drm/rockchip: vop2: fail cleanly if missing a primary plane for a video-port
+ec8e0e3d7ade net/sched: Restrict conditions for adding duplicating netems to qdisc tree
+532c8b51b3a8 xen: fix UAF in dmabuf_exp_from_pages()
+c57e5b9819df wifi: mac80211: fix WARN_ON for monitor mode on some devices
+f388f807eca1 vrf: Drop existing dst reference in vrf_ip6_input_dst
+71203f68c774 padata: Fix pd UAF once and for all
+13de464f445d clk: davinci: Add NULL check in davinci_lpsc_clk_register()
+3b0abc443ac2 clk: xilinx: vcu: unregister pll_post only if registered correctly
+d9fa3aae08f9 power: supply: cpcap-charger: Fix null check for power_supply_get_by_name
+7554729de27d clk: spacemit: mark K1 pll1_d8 as critical
+0b075c011032 pinmux: fix race causing mux_owner NULL with active mux_usecount
+da11e6a30e0b fbdev: imxfb: Check fb_add_videomode to prevent null-ptr-deref
+1010b4c012b0 powerpc/eeh: Make EEH driver device hotplug safe
+a2a2a6fc2469 PCI: pnv_php: Fix surprise plug detection and recovery
+ffcfd071eec7 spi: cs42l43: Property entry should be a null-terminated array
+cc5d59081fa2 sunrpc: fix client side handling of tls alerts
+4b31bcb025cb eth: fbnic: unlink NAPIs from queues on error to open
+ffd2dc4c6c49 net/sched: mqprio: fix stack out-of-bounds write in tc entry parsing
