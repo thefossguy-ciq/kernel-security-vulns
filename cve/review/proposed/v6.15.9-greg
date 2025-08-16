@@ -1,0 +1,11 @@
+16285a093186 iio: fix potential out-of-bound write
+a90b2a1aaacb xfrm: interface: fix use-after-free after changing collect_md xfrm interface
+6c4a92d07b08 net: appletalk: Fix use-after-free in AARP proxy probe
+6bea85979d05 ASoC: mediatek: mt8365-dai-i2s: pass correct size to mt8365_dai_set_priv
+6ade153349c6 kasan: use vmalloc_dump_obj() for vmalloc error reports
+8346c6af27f1 platform/x86: alienware-wmi-wmax: Fix `dmi_system_id` array
+4aead50caf67 nilfs2: reject invalid file types when reading inodes
+c1f3f9797c1f can: netlink: can_changelink(): fix NULL pointer deref of struct can_priv::do_set_mode
+ca46946a4822 regulator: core: fix NULL dereference on unbind due to stale coupling data
+4ff12d82dac1 ice: Fix a null pointer dereference in ice_copy_and_init_pkg()
+94d077c33173 xfrm: state: initialize state_ptrs earlier in xfrm_state_find
