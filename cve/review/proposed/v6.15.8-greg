@@ -42,3 +42,9 @@ c2ca42f190b6 HID: core: do not bypass hid_hw_raw_request
 6a5abf8cf182 s390/bpf: Fix bpf_arch_text_poke() with new_addr == NULL again
 da9374819eb3 iio: backend: fix out-of-bound write
 9f92e93e257b iio: common: st_sensors: Fix use of uninitialize device structs
+3281ddcea642 iio: adc: axp20x_adc: Add missing sentinel to AXP717 ADC channel maps
+495a4f0dce9c hwmon: (corsair-cpro) Validate the size of the received input buffer
+64e135f1eaba efivarfs: Fix memory leak of efivarfs_fs_info in fs_context error paths
+ae3264a25a46 ipv6: mcast: Delay put pmc->idev in mld_del_delrec()
+be5dcaed694e virtio-net: fix recursived rtnl_lock() during probe()
+def5b7b2643e mptcp: plug races between subflow fail and subflow creation
