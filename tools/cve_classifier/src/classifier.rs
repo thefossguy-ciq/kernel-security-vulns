@@ -696,23 +696,27 @@ Provide your answer as YES or NO, followed by a brief explanation that reference
         // Initialize LLMs if not already done
         self.initialize_llms()?;
 
-        if self.vectorstore.is_none() {
-            return Err("Vectorstore not initialized. Please train the model first.".to_string());
-        }
-
-        // Ensure embeddings are initialized only if they aren't already
-        if !self.embeddings.is_initialized() {
-            info!("Initializing embeddings model for prediction");
-            if let Err(e) = self.embeddings.initialize() {
-                return Err(format!("Failed to initialize embeddings model: {e}"));
-            }
-        }
-
         // Generate the vector database search for context
         let commit_text = Self::format_commit_info(commit_info);
 
-        // Get similar commits for context
-        let similar_commits = self.find_similar_commits(&commit_text, 5);
+        // Get similar commits for context if vectorstore is available
+        let similar_commits = if self.vectorstore.is_some() {
+            // Ensure embeddings are initialized only if they aren't already
+            if !self.embeddings.is_initialized() {
+                info!("Initializing embeddings model for prediction");
+                if let Err(e) = self.embeddings.initialize() {
+                    warn!("Failed to initialize embeddings model: {e}. Continuing without RAG.");
+                    Vec::new()
+                } else {
+                    self.find_similar_commits(&commit_text, 5)
+                }
+            } else {
+                self.find_similar_commits(&commit_text, 5)
+            }
+        } else {
+            info!("No vectorstore available, proceeding without RAG");
+            Vec::new()
+        };
 
         // Generate fixes context if available
         let fixes_context = if self.repo_path.is_some() {

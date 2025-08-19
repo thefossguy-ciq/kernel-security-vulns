@@ -204,19 +204,29 @@ fn run_training(matches: &clap::ArgMatches) {
 fn initialize_classifier(config: &RunConfig) -> CVEClassifier {
     let model_path = config.model_dir_path.join("cve_classifier.bin");
 
-    if !model_path.exists() {
-        error!("Model file not found at {}. Please train the model first.", model_path.display());
-        std::process::exit(1);
-    }
-
-    info!("Loading model from {}", model_path.display());
-
-    let mut classifier = match CVEClassifier::load_model(&model_path) {
-        Ok(c) => c,
-        Err(e) => {
-            error!("Failed to load model: {e}");
-            std::process::exit(1);
+    let mut classifier = if model_path.exists() {
+        info!("Loading model from {}", model_path.display());
+        
+        match CVEClassifier::load_model(&model_path) {
+            Ok(c) => c,
+            Err(e) => {
+                warn!("Failed to load model: {e}. Continuing without RAG support.");
+                // Create a classifier without vectorstore/embeddings for RAG
+                CVEClassifier::new_for_prompt(
+                    config.llm_providers.to_vec(),
+                    None,
+                    Some(config.kernel_repo_path)
+                )
+            }
         }
+    } else {
+        info!("Model file not found at {}. Continuing without RAG support.", model_path.display());
+        // Create a classifier without vectorstore/embeddings for RAG
+        CVEClassifier::new_for_prompt(
+            config.llm_providers.to_vec(),
+            None,
+            Some(config.kernel_repo_path)
+        )
     };
 
     classifier.repo_path = Some(config.kernel_repo_path.to_path_buf());
@@ -346,16 +356,25 @@ fn generate_and_save_prompt(
     prompt_dir: &str,
     pb: &ProgressBar,
 ) -> bool {
-    if !classifier.embeddings.is_initialized() {
-        info!("Initializing embeddings model for prompt generation");
-        if let Err(e) = classifier.embeddings.initialize() {
-            error!("Failed to initialize embeddings model: {e}");
-            return false;
-        }
-    }
-
     let commit_text = CVEClassifier::format_commit_info(features);
-    let similar_commits = classifier.find_similar_commits(&commit_text, 5);
+    
+    // Only attempt to find similar commits if we have a vectorstore
+    let similar_commits = if classifier.vectorstore.is_some() {
+        if !classifier.embeddings.is_initialized() {
+            info!("Initializing embeddings model for prompt generation");
+            if let Err(e) = classifier.embeddings.initialize() {
+                warn!("Failed to initialize embeddings model: {e}. Continuing without RAG.");
+                Vec::new()
+            } else {
+                classifier.find_similar_commits(&commit_text, 5)
+            }
+        } else {
+            classifier.find_similar_commits(&commit_text, 5)
+        }
+    } else {
+        debug!("No vectorstore available, skipping RAG");
+        Vec::new()
+    };
 
     // Generate fixes context if available
     let fixes_context = if classifier.repo_path.is_some() {
