@@ -1,0 +1,112 @@
+101841c38346 [ceph] parse_longname(): strrchr() expects NUL-terminated string
+d99208b91933 fs/ntfs3: cancle set bad inode after removing name fails [auto: cve already created]
+e0a69cf2c03e landlock: Fix warning from KUnit tests
+fcb96956c921 hfsplus: remove mutex_lock check in hfsplus_free_extents
+deb016c16690 gfs2: No more self recovery
+746d0ac5a07d nvmet: pci-epf: Do not complete commands twice if nvmet_req_init() fails
+f2e467a48287 eventpoll: Fix semi-unbounded recursion [auto: cve already created]
+bd4f35786d5f arm64: dts: qcom: qcs615: fix a crash issue caused by infinite loop for Coresight
+f5ceb9b81c4a mei: vsc: Fix "BUG: Invalid wait context" lockdep error
+21f1c800f662 spi: stm32: Check for cfg availability in stm32_spi_probe
+a739d3b13bff staging: gpib: fix unset padding field copy back to userspace [auto: cve already created]
+eb2cb7dab60f staging: fbtft: fix potential memory leak in fbtft_framebuffer_alloc() [auto: cve already created]
+bfb4cf9fb97e vmci: Prevent the dispatching of uninitialized payloads [auto: cve already created]
+46dc57406887 powercap: dtpm_cpu: Fix NULL pointer dereference in get_pd_power_uw() [auto: cve already created]
+bab7834c0382 PM / devfreq: Check governor before using governor->name [auto: cve already created]
+53cf488927a0 wifi: rtw89: mcc: prevent shift wrapping in rtw89_core_mlsr_switch()
+6fe21445f7e8 wifi: rtw89: sar: drop lockdep assertion in rtw89_set_sar_from_acpi
+178f6a5c8cb3 bpf, ktls: Fix data corruption when using bpf_msg_pop_data() in ktls [auto: cve already created]
+3157f7e29996 bpf: handle jset (if a & b ...) as a jump in CFG computation [auto: cve already created]
+36670b67de18 wifi: ath12k: Avoid accessing uninitialized arvif->ar during beacon miss [auto: cve already created]
+05062834350f wifi: ath12k: Pass ab pointer directly to ath12k_dp_tx_get_encap_type() [auto: cve already created]
+7e04f01bb94f wifi: rtw89: avoid NULL dereference when RX problematic packet on unsupported 6 GHz band
+16d8fd74dbfc wifi: rtl818x: Kill URBs before clearing tx status queue [auto: cve already created]
+5fb90421fa0f drm/amdgpu: fix slab-use-after-free in amdgpu_userq_mgr_fini+0x70c [auto: cve already created]
+90a0d9f33996 iwlwifi: Add missing check for alloc_ordered_workqueue [auto: cve already created]
+a5b46aa7cf5f wifi: ath11k: clear initialized flag for deinit-ed srng lists [auto: cve already created]
+70f238c902b8 net/mlx5: Check device memory pointer before usage
+cf80c02a9fdb wifi: iwlwifi: Fix error code in iwl_op_mode_dvm_start()
+b3a431fe2e39 wifi: mt76: mt7925: fix off by one in mt7925_mcu_hw_scan() [auto: cve already created]
+64cbf0d7ce9a wifi: mt76: mt7996: Fix possible OOB access in mt7996_tx() [auto: cve already created]
+a886d26f2c8f drm/amdgpu: fix use-after-free in amdgpu_userq_suspend+0x51a/0x5a0 [auto: cve already created]
+f9f68bf1d0ef drm/rockchip: vop2: fail cleanly if missing a primary plane for a video-port [auto: cve already created]
+fe69a3918084 drm/panthor: Fix UAF in panthor_gem_create_with_handle() debugfs code [auto: cve already created]
+ec8e0e3d7ade net/sched: Restrict conditions for adding duplicating netems to qdisc tree [auto: cve already created]
+532c8b51b3a8 xen: fix UAF in dmabuf_exp_from_pages() [auto: cve already created]
+16ecdab5446f wifi: mac80211: reject TDLS operations when station is not associated
+2c5dee15239f wifi: cfg80211: Add missing lock in cfg80211_check_and_end_cac()
+c57e5b9819df wifi: mac80211: fix WARN_ON for monitor mode on some devices
+f0b9d31c6edd iommu/vt-d: Fix UAF on sva unbind with pending IOPFs [auto: cve already created]
+b505902c66a2 Bluetooth: btusb: Fix potential NULL dereference on kmalloc failure
+2935e556850e Bluetooth: hci_sync: fix double free in 'hci_discovery_filter_clear()' [auto: cve already created]
+7af4d7b53502 Bluetooth: hci_devcd_dump: fix out-of-bounds via dev_coredumpv [auto: cve already created]
+17ce3e5949bc bpf: Disable migration in nf_hook_run_bpf().
+e09299225d5b bpf: Reject narrower access to pointer ctx fields [auto: cve already created]
+bf58e667af7d netfilter: xt_nfacct: don't assume acct name is null-terminated
+6d19c44b5c6d net/mlx5e: Remove skb secpath if xfrm state is not found [auto: cve already created]
+e80d65561571 net/mlx5e: Fix potential deadlock by deferring RX timeout recovery
+1bbb76a89948 neighbour: Fix null-ptr-deref in neigh_flush_dev(). [auto: cve already created]
+ea2f921db7a4 ipv6: add a retry logic in net6_rt_notify()
+54e6fe9dd3b0 ipv6: prevent infinite loop in rt6_nlmsg_size() [auto: cve already created]
+f8d8ce1b515a ipv6: fix possible infinite loop in fib6_info_uses_dev() [auto: cve already created]
+b114fcee766d bpf, arm64: Fix fp initialization for exception boundary [auto: cve already created]
+7f904ff6e58d rv: Use strings in da monitors tracepoints
+ee4cf798202d staging: media: atomisp: Fix stack buffer overflow in gmin_get_var_int() [auto: cve already created]
+4cc871ad0173 crypto: qat - use unmanaged allocation for dc_data
+71203f68c774 padata: Fix pd UAF once and for all [auto: cve already created]
+0fa766726c09 crypto: ccp - Fix dereferencing uninitialized error pointer
+13de464f445d clk: davinci: Add NULL check in davinci_lpsc_clk_register()
+3b0abc443ac2 clk: xilinx: vcu: unregister pll_post only if registered correctly [auto: cve already created]
+d9fa3aae08f9 power: supply: cpcap-charger: Fix null check for power_supply_get_by_name
+65bd0be48639 pinctrl: canaan: k230: add NULL check in DT parse
+d94a32ac688f pinctrl: canaan: k230: Fix order of DT parse and pinctrl register
+7554729de27d clk: spacemit: mark K1 pll1_d8 as critical
+c6957b95ecc5 RDMA/hns: Fix double destruction of rsv_qp [auto: cve already created]
+181698af38d3 crypto: ccp - Fix crash when rebind ccp device for ccp.ko [auto: cve already created]
+ff7ec8dc1b64 proc: use the same treatment to check proc_lseek as ones for proc_read_iter et.al
+0b075c011032 pinmux: fix race causing mux_owner NULL with active mux_usecount
+c678bdc99875 ext4: fix inode use after free in ext4_end_io_rsv_work() [auto: cve already created]
+b08217a25721 clk: imx95-blk-ctl: Fix synchronous abort
+da11e6a30e0b fbdev: imxfb: Check fb_add_videomode to prevent null-ptr-deref
+df485a4b2b3e ALSA: usb: scarlett2: Fix missing NULL check
+abad3d0bad72 bpf: Fix oob access in cgroup local storage [auto: cve already created]
+cc51a6681599 vdpa/mlx5: Fix release of uninitialized resources on error path
+39868685c2a9 f2fs: compress: fix UAF of f2fs_inode_info in f2fs_free_dic
+154467f4ad03 f2fs: fix KMSAN uninit-value in extent_info usage [auto: cve already created]
+7c30d7993013 f2fs: fix to avoid UAF in f2fs_sync_inode_meta() [auto: cve already created]
+a509a55f8eec f2fs: fix to avoid panic in f2fs_evict_inode [auto: cve already created]
+5661998536af f2fs: fix to avoid out-of-boundary access in devs.path
+1005a3ca28e9 f2fs: fix to trigger foreground gc during f2fs_map_blocks() in lfs mode
+fe24d5bc635e vfio/pds: Fix missing detach_ioas op
+466861909255 PCI: pnv_php: Clean up allocated IRQs on unplug
+1010b4c012b0 powerpc/eeh: Make EEH driver device hotplug safe [auto: cve already created]
+a2a2a6fc2469 PCI: pnv_php: Fix surprise plug detection and recovery
+de9c4861fb42 pptp: ensure minimal skb length in pptp_xmit() [auto: cve already created]
+ffcfd071eec7 spi: cs42l43: Property entry should be a null-terminated array [auto: cve already created]
+d45cf1e7d718 ipv6: reject malicious packets in ipv6_gso_segment() [auto: cve already created]
+d46e51f1c78b net: drop UFO packets in udp_rcv_segment()
+13017b427118 md: make rdev_addable usable for rcu mode
+cc5d59081fa2 sunrpc: fix client side handling of tls alerts [auto: cve already created]
+4b31bcb025cb eth: fbnic: unlink NAPIs from queues on error to open [auto: cve already created]
+5a40f8af2ba1 benet: fix BUG when creating VFs [auto: cve already created]
+ffd2dc4c6c49 net/sched: mqprio: fix stack out-of-bounds write in tc entry parsing [auto: cve already created]
+e5a73150776f nfsd: avoid ref leak in nfsd_open_local_fh() [auto: cve already created]
+bee47cb026e7 sunrpc: fix handling of server side tls alerts [auto: cve already created]
+07091aade394 perf/core: Exit early on perf_mmap() fail [auto: cve already created]
+f74b9f4ba63f perf/core: Handle buffer mapping fail correctly in perf_mmap() [auto: cve already created]
+b024d7b56c77 perf/core: Prevent VMA split of buffer mappings [auto: cve already created]
+aba0c94f61ec vsock: Do not allow binding to VMADDR_PORT_ANY
+9b493ab6f351 ksmbd: fix null pointer dereference error in generate_encryptionkey [auto: cve already created]
+44a3059c4c8c ksmbd: fix Preauh_HashValue race condition [auto: cve already created]
+e6bb91939740 ksmbd: limit repeated connections from clients with the same IP [auto: cve already created]
+7b306dfa326f x86/sev: Evict cache lines during SNP memory validation [auto: cve already created]
+54d5cd4719c5 platform/x86/intel/pmt: fix a crashlog NULL pointer access [auto: cve already created]
+765761851d89 zloop: fix KASAN use-after-free of tag set
+152c1339dc13 mm: swap: fix potential buffer overflow in setup_clusters()
+323a80a1a5ac usb: gadget: uvc: Initialize frame-based format color matching descriptor [auto: cve already created]
+ae42c6fe5314 media: ti: j721e-csi2rx: fix list_del corruption
+1bb3363da862 HID: apple: validate feature-report field count to prevent NULL pointer dereference [auto: cve already created]
+a6b87bfc2ab5 HID: core: Harden s32ton() against conversion to 0 bits [auto: cve already created]
+151c0aa896c4 usb: gadget : fix use-after-free in composite_dev_cleanup() [auto: cve already created]
+9bbffee67ffd mm: fix a UAF when vma->mm is freed after vma->vm_refcnt got dropped [auto: cve already created]
+19272b37aa4f Linux 6.16-rc1 [auto: cve already created]
