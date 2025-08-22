@@ -1,0 +1,72 @@
+add4c4850363 scsi: bfa: Double-free fix
+736a0516a162 hfs: fix general protection fault in hfs_find_init()
+87c6efc5ce9c net/sched: ets: use old 'nbands' while purging unused classes
+33caa208dba6 hv_netvsc: Fix panic during namespace deletion with VF
+7d34ec36abb8 smb3: fix for slab out of bounds on mount to ksmbd
+cd39d9e6b7e4 LoongArch: BPF: Fix jump offset calculation in tailcall
+fd60d8a08619 sctp: linearize cloned gso packets in sctp_rcv
+c80aa2aaaa5e hfsplus: fix slab-out-of-bounds in hfsplus_bnode_read()
+94458781aee6 hfsplus: fix slab-out-of-bounds read in hfsplus_uni2asc()
+90c09d57caec rcu: Protect ->defer_qs_iw_pending from data race
+3ea3a256ed81 scsi: libiscsi: Initialize iscsi_conn->dd_data only if memory is allocated
+d1534ae23c2b mm/kmemleak: avoid soft lockup in __kmemleak_do_cleanup()
+04a2c4b4511d fs: Prevent file descriptor table allocations exceeding INT_MAX
+cf5fb87fcdaa netfilter: nf_tables: reject duplicate device on updates
+65c430906eff arm64: Handle KCOV __init vs inline mismatches
+5c8f12cf1e64 gfs2: Set .migrate_folio in gfs2_{rgrp,meta}_aops
+8d71351d88e4 rcutorture: Fix rcutorture_one_extend_check() splat in RT kernels
+4126cb327a2e drm/xe/migrate: don't overflow max copy size
+f7fa8520f303 iommu/arm-smmu-qcom: Add SM6115 MDSS compatible
+4289b494ac55 btrfs: do not allow relocation of partially dropped subvolumes
+1c24e5fc0c70 i2c: core: Fix double-free of fwnode in i2c_unregister_device()
+41b70df5b38b io_uring/net: commit partial buffers on retry
+d832ccbc301f ALSA: usb-audio: Validate UAC3 power domain descriptors, too
+ecfd41166b72 ALSA: usb-audio: Validate UAC3 cluster segment descriptors
+59f7d2138591 RDMA: hfi1: fix possible divide-by-zero in find_hw_thread_mask()
+782b6a718651 media: uvcvideo: Fix 1-byte out-of-bounds read in uvc_parse_format()
+06d6770ff0d8 media: venus: Fix OOB read due to missing payload bound check
+42e42562c9cf xfrm: flush all states in xfrm_state_fini
+52565a935213 net: kcm: Fix race condition in kcm_unattach()
+c7c6363ca186 hfsplus: don't use BUG_ON() in hfsplus_create_attributes_file()
+557c024ca725 gfs2: Validate i_depth for exhash directories
+7e49538288e5 loop: Avoid updating block size under exclusive owner
+1a11201668e8 udf: Verify partition map count
+e841ecb13933 fs/ntfs3: Add sanity check for file name
+6279846b9b25 bpf: Forget ranges when refining tnum after JSET
+099b847ccc6c ext4: do not BUG when INLINE_DATA_FL lacks system.data xattr
+2d91b3765cd0 jfs: truncate good inode pages when hard link is 0
+2d04df811642 jfs: Regular file corruption check
+c214006856ff jfs: upper bound check of tree index in dbAllocAG
+b42497e3c0e7 iommufd: Prevent ALIGN() overflow
+35b6fc51c666 comedi: fix race between polling and detaching
+aba6faec0103 userfaultfd: fix a crash in UFFDIO_MOVE when PMD is a migration entry
+af0db3c1f898 fbdev: Fix vmalloc out-of-bounds write in fast_imageblit
+2ae826799932 ocfs2: reset folio to NULL when get folio fails
+33927f3d0ecd habanalabs: fix UAF in export_dmabuf()
+145832fbdd17 drm/xe/migrate: prevent potential UAF
+e9f4a6b3421e MIPS: Don't crash in stack_top() for tasks without ABI or vDSO
+6db015fc4b5d tls: handle data disappearing from under the TLS ULP
+a431930c9bac hfs: fix slab-out-of-bounds in hfs_bnode_read()
+00c9c9628b49 drbd: add missing kref_get in handle_write_conflicts
+4a2bf707270f wifi: ath12k: Correct tid cleanup when tid setup fails
+c256a94d1b1b wifi: ath10k: shutdown driver when hardware is unreliable
+ce5cac69b2ed media: dvb-frontends: dib7090p: fix null-ptr-deref in dib7090p_rw_on_apb()
+ed0234c8458b media: dvb-frontends: w7090p: fix null-ptr-deref in w7090p_tuner_write_serpar and w7090p_tuner_read_serpar
+d524d40e3a61 drm/amd/pm: fix null pointer access
+4faff70959d5 net: usb: asix_devices: add phy_mask for ax88772 mdio bus
+2d91cb261cac ASoC: core: Check for rtd == NULL in snd_soc_remove_pcm_runtime()
+1c8c354098ea drm/msm: Add error handling for krealloc in metadata setup
+6698796282e8 scsi: lpfc: Check for hdwq null ptr when cleaning up lpfc_vport structure
+9768797c2193 pNFS: Fix uninited ptr deref in block/scsi layout
+31cd31c9e17e x86/fpu: Fix NULL dereference in avx512_status()
+964314344eab samples/damon/mtier: support boot time enable setup
+59305202c67f mm/ptdump: take the memory hotplug lock inside ptdump_walk_pgd()
+e88fbc30dda1 net: ftgmac100: fix potential NULL pointer access in ftgmac100_phy_disconnect
+1bba3900ca18 rcu/nocb: Fix possible invalid rdp's->nocb_cb_kthread pointer access
+6bd90e700b42 drm/xe: Make dma-fences compliant with the safe access rules
+bf8bbaefaa6a drm/sched: Avoid memory leaks with cancel_job() callback
+9d7a1cbebbb6 drm/xe/migrate: prevent infinite recursion
+a409c60111e6 ALSA: hda/ca0132: Fix buffer overflow in add_tuning_control
+47b0f6d8f0d2 mm/kmemleak: avoid deadlock by moving pr_warn() outside kmemleak_lock
+c875503a9b90 net: hibmcge: fix rtnl deadlock issue
+7004b26f0b64 net: hibmcge: fix the division by zero issue
