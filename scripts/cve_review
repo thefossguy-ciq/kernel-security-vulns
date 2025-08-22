@@ -228,8 +228,11 @@ bad unlock balance detected!|\
 bogus|\
 false[-\s_\n]*alarm|false[-\s_\n]*positive|\
 integer|\
+Invalid wait context|\
 locking dependency detected|\
 Nested lock was not taken|\
+sleeping function called from invalid context|\
+suspicious RCU usage|\
 theory[a-z]*|theoretical[a-z]*|\
  tools/.* \| .*|\
 selftests|\
