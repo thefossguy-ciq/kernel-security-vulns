@@ -1,0 +1,11 @@
+94d077c33173 xfrm: state: initialize state_ptrs earlier in xfrm_state_find
+a90b2a1aaacb xfrm: interface: fix use-after-free after changing collect_md xfrm interface [auto: cve already created]
+6bea85979d05 ASoC: mediatek: mt8365-dai-i2s: pass correct size to mt8365_dai_set_priv
+8346c6af27f1 platform/x86: alienware-wmi-wmax: Fix `dmi_system_id` array
+fb4ef4a52b79 Revert "drm/prime: Use dma_buf from GEM object instance"
+2712ca878b68 Revert "drm/gem-framebuffer: Use dma_buf from GEM object instance"
+1918e79be908 Revert "drm/gem-dma: Use dma_buf from GEM object instance"
+a7982a14b301 i2c: qup: jump out of the loop in case of timeout
+d42e6c20de61 arm64/entry: Mask DAIF in cpu_switch_to(), call_on_irq_stack()
+9f1e8cd0b7c4 mm/vmscan: fix hwpoisoned large folio handling in shrink_folio_list
+6d496e956998 Revert "drm/gem-shmem: Use dma_buf from GEM object instance"
