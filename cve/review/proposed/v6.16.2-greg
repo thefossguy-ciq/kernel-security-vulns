@@ -70,3 +70,15 @@ a409c60111e6 ALSA: hda/ca0132: Fix buffer overflow in add_tuning_control
 47b0f6d8f0d2 mm/kmemleak: avoid deadlock by moving pr_warn() outside kmemleak_lock
 c875503a9b90 net: hibmcge: fix rtnl deadlock issue
 7004b26f0b64 net: hibmcge: fix the division by zero issue
+759dfc7d04ba netlink: avoid infinite retry looping in netlink_unicast()
+908e4ead7f75 nfsd: handle get_client_locked() failure in nfsd4_setclientid_confirm()
+45d19b4b6c2d mm/smaps: fix race between smaps_hugetlb_range and migration
+de788b2e6227 netfilter: ctnetlink: fix refcount leak on table dump
+d5fc1400a34b smb/server: avoid deadlock when linking with ReplaceIfExists
+d3ed6d6981f4 hfs: fix not erasing deleted b-tree node issue
+7cdb433bb44c ARM: rockchip: fix kernel hang during smp initialization
+6bca1e955830 pps: clients: gpio: fix interrupt handling order in remove path
+b41642c87716 rcu: Fix rcu_read_unlock() deadloop due to IRQ work
+523b84dc7cce fbdev: fix potential buffer overflow in do_register_framebuffer()
+99f9a97dce39 exfat: add cluster chain loop check for dir
+1773f63d108b f2fs: handle nat.blkaddr corruption in f2fs_get_node_info()
