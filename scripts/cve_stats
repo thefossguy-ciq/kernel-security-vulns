@@ -408,6 +408,10 @@ if [[ " $* " =~ " --summary " ]]; then
     # Get current date components
     current_year=$(date +%Y)
     current_month=$(date +%m)
+    # "08" does not play well with bash math, it thinks it is octal
+    if [[ "${current_month}" == "08" ]]; then
+        current_month="8"
+    fi
 
     # Calculate statistics per year
     print_header "CVEs Published Per Year"
