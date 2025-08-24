@@ -12,11 +12,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str;
 use walkdir::WalkDir;
-use git2::{Repository, Oid};
-use cve_utils::{
-    git_utils::{self, resolve_reference},
-    cve_utils::extract_cve_id_from_path,
-};
+use cve_utils::cve_utils::extract_cve_id_from_path;
 
 #[derive(Parser)]
 #[command(author, version, about = "CVE statistics utility")]
@@ -118,10 +114,15 @@ fn main() {
     }
 
     // Test opening the kernel repository to ensure it's a valid git repo
-    match Repository::open(&kernel_tree) {
-        Ok(_) => {},
-        Err(e) => {
-            eprintln!("Error: Failed to open kernel git repository: {e}");
+    let output = std::process::Command::new("git")
+        .args(["rev-parse", "--git-dir"])
+        .current_dir(&kernel_tree)
+        .output();
+
+    match output {
+        Ok(output) if output.status.success() => {},
+        _ => {
+            eprintln!("Error: {} is not a valid git repository", kernel_tree.display());
             std::process::exit(1);
         }
     }
@@ -256,11 +257,9 @@ fn get_first_cve_date(vulns_dir: &Path) -> Result<String> {
         // Try to parse the directory name as a year
         if let Some(name) = path.file_name() {
             let name_str = name.to_string_lossy();
-            if let Ok(year) = name_str.parse::<i32>() {
-                if year < min_year && year >= 2000 {  // Sanity check for valid years
-                    min_year = year;
-                    earliest_date = Some(format!("{year}-01-01"));
-                }
+            if let Ok(year) = name_str.parse::<i32>() && year < min_year && year >= 2000 {  // Sanity check for valid years
+                min_year = year;
+                earliest_date = Some(format!("{year}-01-01"));
             }
         }
     }
@@ -282,48 +281,63 @@ fn get_first_cve_date(vulns_dir: &Path) -> Result<String> {
 fn count_cves_in_range(vulns_dir: &Path, start_date: &str, end_date: &str) -> Result<usize> {
     let git_dir = vulns_dir;
 
-    // Open the repository
-    let repo = git2::Repository::open(git_dir)
-        .context(format!("Failed to open repository at {}", git_dir.display()))?;
+    // Verify it's a git repository
+    let output = std::process::Command::new("git")
+        .args(["rev-parse", "--git-dir"])
+        .current_dir(git_dir)
+        .output()
+        .context("Failed to verify git repository")?;
+
+    if !output.status.success() {
+        return Err(anyhow!("Not a valid git repository: {}", git_dir.display()));
+    }
 
     let mut unique_cves = HashSet::new();
 
     // Get commit range
-    let range = format!("--after={start_date} --before={end_date}");
+    let after_arg = format!("--after={start_date}");
+    let before_arg = format!("--before={end_date}");
 
     // Use git rev-list to get commits in the range
     let output = std::process::Command::new("git")
-        .args(["rev-list", "--all", &range])
+        .args(["rev-list", "--all", &after_arg, &before_arg])
         .current_dir(git_dir)
         .output()
         .context("Failed to run git rev-list")?;
 
-    let commits = String::from_utf8_lossy(&output.stdout)
+    let commits: Vec<String> = String::from_utf8_lossy(&output.stdout)
         .lines()
         .map(|s| s.trim().to_string())
-        .collect::<Vec<_>>();
+        .filter(|s| !s.is_empty())
+        .collect();
 
-    // Process each commit to find CVEs
-    for commit_sha in &commits {
-        // Skip empty commit hashes
-        if commit_sha.is_empty() {
-            continue;
-        }
+    // Process commits in parallel to find CVEs
+    let cve_sets: Vec<HashSet<String>> = commits.par_iter()
+        .map(|commit_sha| {
+            let mut commit_cves = HashSet::new();
 
-        // Resolve the reference to a git object
-        if let Ok(obj) = resolve_reference(&repo, commit_sha) {
-            // Get affected files using the git_utils module
-            if let Ok(affected_files) = git_utils::get_affected_files(&repo, &obj) {
-                for file_path in affected_files {
-                    if file_path.starts_with("cve/published/") {
-                        // Use the consolidated function from cve_utils
-                        if let Ok(cve_id) = extract_cve_id_from_path(&file_path) {
-                            unique_cves.insert(cve_id);
-                        }
+            // Get only ADDED files (not modified) for this commit in the vulns repo
+            // Using --diff-filter=A to only count newly created CVEs, not updates
+            let output = std::process::Command::new("git")
+                .args(["show", "--pretty=format:", "--name-only", "--diff-filter=A", commit_sha])
+                .current_dir(git_dir)
+                .output();
+
+            if let Ok(output) = output && output.status.success() {
+                let files = String::from_utf8_lossy(&output.stdout);
+                for file_path in files.lines() {
+                    if file_path.starts_with("cve/published/") && let Ok(cve_id) = extract_cve_id_from_path(file_path) {
+                        commit_cves.insert(cve_id);
                     }
                 }
             }
-        }
+            commit_cves
+        })
+        .collect();
+
+    // Merge all CVE sets into unique_cves
+    for cve_set in cve_sets {
+        unique_cves.extend(cve_set);
     }
 
     Ok(unique_cves.len())
@@ -334,14 +348,26 @@ fn show_summary_stats(cve_root: &Path, first_cve_date: &str) -> Result<()> {
     // Print header for yearly stats
     println!("\n=== CVEs Published Per Year ===");
 
-    // Calculate statistics per year
+    // Calculate statistics per year in parallel
     let current_year = Utc::now().year();
-    for year in 2019..=current_year {
-        let start_date = format!("{year}-01-01");
-        let next_year = year + 1;
-        let end_date = format!("{next_year}-01-01");
-        let count = count_cves_in_range(cve_root, &start_date, &end_date)?;
-        println!("{year}: {count:4} CVEs");
+    let years: Vec<i32> = (2019..=current_year).collect();
+
+    let year_counts: Vec<(i32, Result<usize>)> = years.par_iter()
+        .map(|&year| {
+            let start_date = format!("{year}-01-01");
+            let next_year = year + 1;
+            let end_date = format!("{next_year}-01-01");
+            let count = count_cves_in_range(cve_root, &start_date, &end_date);
+            (year, count)
+        })
+        .collect();
+
+    // Print results in order
+    for (year, count_result) in year_counts {
+        match count_result {
+            Ok(count) => println!("{year}: {count} CVEs"),
+            Err(e) => eprintln!("Error calculating CVEs for {year}: {e}"),
+        }
     }
 
     // Print header for last 6 months stats
@@ -354,34 +380,53 @@ fn show_summary_stats(cve_root: &Path, first_cve_date: &str) -> Result<()> {
     #[allow(clippy::cast_possible_wrap)]
     let current_month = now.month() as i32;
 
-    // Calculate statistics for last 6 months
-    for i in (0..=5).rev() {
-        let mut month = current_month - i;
-        let mut year = current_year;
+    // Build month ranges
+    let month_ranges: Vec<(i32, i32, i32)> = (0..=5).rev()
+        .map(|i| {
+            let mut month = current_month - i;
+            let mut year = current_year;
 
-        if month <= 0 {
-            month += 12;
-            year -= 1;
+            if month <= 0 {
+                month += 12;
+                year -= 1;
+            }
+            (i, year, month)
+        })
+        .collect();
+
+    // Calculate statistics for last 6 months in parallel
+    let month_counts: Vec<(String, String, Result<usize>)> = month_ranges.par_iter()
+        .map(|&(_i, year, month)| {
+            let mut next_month = month + 1;
+            let mut next_year = year;
+
+            if next_month > 12 {
+                next_month = 1;
+                next_year += 1;
+            }
+
+            // Format dates
+            let start_date = format!("{year}-{month:02}-01");
+            let end_date = format!("{next_year}-{next_month:02}-01");
+
+            // Get count for this month
+            let count = count_cves_in_range(cve_root, &start_date, &end_date);
+
+            // Use chrono to format the month name
+            let date = NaiveDate::parse_from_str(&start_date, "%Y-%m-%d")
+                .unwrap_or_else(|_| NaiveDate::from_ymd_opt(year, month as u32, 1).unwrap());
+            let formatted_date = date.format("%B %Y").to_string();
+
+            (start_date, formatted_date, count)
+        })
+        .collect();
+
+    // Print results in order (they're already in chronological order from the collection)
+    for (_start_date, formatted_date, count_result) in month_counts {
+        match count_result {
+            Ok(count) => println!("{:>15}: {} CVEs", formatted_date, count),
+            Err(e) => eprintln!("Error calculating CVEs for {}: {}", formatted_date, e),
         }
-
-        let mut next_month = month + 1;
-        let mut next_year = year;
-
-        if next_month > 12 {
-            next_month = 1;
-            next_year += 1;
-        }
-
-        // Format dates
-        let start_date = format!("{year}-{month:02}-01");
-        let end_date = format!("{next_year}-{next_month:02}-01");
-
-        // Get count for this month
-        let count = count_cves_in_range(cve_root, &start_date, &end_date)?;
-
-        // Use chrono to format the month name
-        let date = NaiveDate::parse_from_str(&start_date, "%Y-%m-%d")?;
-        println!("{:>15}: {:4} CVEs", date.format("%B %Y"), count);
     }
 
     // Calculate overall averages
@@ -429,78 +474,41 @@ fn show_author_stats(cve_root: &Path, kernel_tree: &Path, num_authors: usize) ->
 
     println!("Found {} SHA1 files", sha1_files.len());
 
-    // Open the kernel repository once
-    let repo = match Repository::open(kernel_tree) {
-        Ok(repo) => repo,
-        Err(e) => return Err(anyhow!("Failed to open kernel git repository: {}", e)),
-    };
+    // Process SHA1 files in parallel to get authors
+    let author_results: Vec<Option<String>> = sha1_files.par_iter()
+        .map(|sha1_file| {
+            // Read the SHA1 from the file
+            let sha1_content = fs::read_to_string(sha1_file).ok()?;
+            let sha1_content = sha1_content.trim();
 
+            if sha1_content.is_empty() {
+                return None;
+            }
+
+            // Handle multiple SHAs in the file (split by newlines)
+            let sha1 = sha1_content.lines().next().unwrap_or(sha1_content).trim();
+
+            // Get the author name using git command
+            let output = std::process::Command::new("git")
+                .args(["show", "--format=%an", "-s", sha1])
+                .current_dir(kernel_tree)
+                .output()
+                .ok()?;
+
+            if output.status.success() {
+                let author_name = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !author_name.is_empty() {
+                    return Some(author_name);
+                }
+            }
+            None
+        })
+        .collect();
+
+    // Count authors from results
     let mut author_counts: HashMap<String, usize> = HashMap::new();
-    let mut errors = 0;
-
-    // For each SHA1 file, get the commit author
-    for sha1_file in &sha1_files {
-        // Read the SHA1 from the file
-        let sha1_content = match fs::read_to_string(sha1_file) {
-            Ok(content) => content.trim().to_string(),
-            Err(e) => {
-                errors += 1;
-                if errors <= 5 {
-                    eprintln!("Error reading SHA1 file {}: {}", sha1_file.display(), e);
-                }
-                continue;
-            }
-        };
-
-        if sha1_content.is_empty() {
-            errors += 1;
-            if errors <= 5 {
-                eprintln!("Empty SHA1 in file {}", sha1_file.display());
-            }
-            continue;
-        }
-
-        // Parse the SHA1 as git object ID
-        let oid = match Oid::from_str(&sha1_content) {
-            Ok(oid) => oid,
-            Err(e) => {
-                errors += 1;
-                if errors <= 5 {
-                    eprintln!("Failed to parse SHA1 {sha1_content} as Oid: {e}");
-                }
-                continue;
-            }
-        };
-
-        // Find the commit
-        let commit = match repo.find_commit(oid) {
-            Ok(commit) => commit,
-            Err(e) => {
-                errors += 1;
-                if errors <= 5 {
-                    eprintln!("Failed to find commit for SHA1 {sha1_content}: {e}");
-                }
-                continue;
-            }
-        };
-
-        // Get the author name
-        let author = commit.author();
-        let Some(name) = author.name() else {
-            errors += 1;
-            if errors <= 5 {
-                eprintln!("No author name for commit {sha1_content}");
-            }
-            continue;
-        };
-        let author_name = name.to_string();
-
-        // Increment the count for this author
+    for author_name in author_results.into_iter().flatten() {
         *author_counts.entry(author_name).or_insert(0) += 1;
-    }
-
-    if errors > 0 {
-        println!("Encountered {errors} errors during processing");
     }
 
     // Sort authors by count (descending)
@@ -529,23 +537,29 @@ fn get_commit_subsystem(kernel_tree: &Path, sha1_file: &Path) -> Result<Option<(
         return Ok(None);
     }
 
-    // Open repository
-    let repo = match Repository::open(kernel_tree) {
-        Ok(repo) => repo,
-        Err(e) => {
-            return Err(anyhow!("Failed to open git repository: {}", e));
-        }
-    };
+    // Handle multiple SHAs in the file (take first line)
+    let sha1 = sha1.lines().next().unwrap_or(&sha1).trim();
 
-    // Resolve the commit to a git object
-    let Ok(obj) = resolve_reference(&repo, &sha1) else {
+    // Get affected files using git show command
+    let output = std::process::Command::new("git")
+        .args(["show", "--pretty=format:", "--name-only", sha1])
+        .current_dir(kernel_tree)
+        .output();
+
+    let Ok(output) = output else {
         return Ok(None);
     };
 
-    // Get affected files using the cve_utils module - more efficient than doing diff traversal manually
-    let Ok(affected_files) = git_utils::get_affected_files(&repo, &obj) else {
+    if !output.status.success() {
         return Ok(None);
-    };
+    }
+
+    let files_output = String::from_utf8_lossy(&output.stdout);
+    let affected_files: Vec<String> = files_output
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(String::from)
+        .collect();
 
     // Get the first file (if any)
     if let Some(path) = affected_files.first() {
@@ -572,7 +586,7 @@ type SubsystemData = (
     Vec<PathBuf>,                  // SHA1 files
     HashMap<String, Vec<String>>,  // Main subsystems
     HashMap<String, Vec<String>>,  // Sub subsystems
-    Option<Repository>             // Git repository
+    bool                           // Whether author stats are enabled
 );
 
 /// Collect subsystem data from SHA1 files
@@ -595,18 +609,6 @@ fn collect_subsystem_data(
     let mut main_subsystems: HashMap<String, Vec<String>> = HashMap::new();
     let mut sub_subsystems: HashMap<String, Vec<String>> = HashMap::new();
 
-    // Open the repository if we'll need it for author stats
-    let repo = if show_authors {
-        match Repository::open(kernel_tree) {
-            Ok(r) => Some(r),
-            Err(e) => {
-                eprintln!("Warning: Could not open kernel repo for author stats: {e}");
-                None
-            }
-        }
-    } else {
-        None
-    };
 
     // Process files in parallel using rayon
     let results: Vec<(PathBuf, Option<(String, String)>)> = sha1_files.par_iter()
@@ -636,42 +638,55 @@ fn collect_subsystem_data(
         }
     }
 
-    (sha1_files, main_subsystems, sub_subsystems, repo)
+    (sha1_files, main_subsystems, sub_subsystems, show_authors)
 }
 
 /// Get author statistics for a subsystem
 fn get_author_stats(
     cve_list: &[String],
     sha1_files: &[PathBuf],
-    repo_ref: &Repository,
+    kernel_tree: &Path,
 ) -> Vec<(String, usize)> {
     // Create a map to store author counts
     let mut author_counts: HashMap<String, usize> = HashMap::new();
 
-    // Get authors for each CVE
-    for cve_id in cve_list {
-        // Find the sha1 file for this CVE
-        for sha1_file in sha1_files {
-            if sha1_file.file_stem().unwrap().to_string_lossy() == *cve_id {
-                // Read the SHA1 from the file
-                if let Ok(sha1_content) = fs::read_to_string(sha1_file) {
-                    let sha1_str = sha1_content.trim();
-                    if !sha1_str.is_empty() {
-                        if let Ok(oid) = Oid::from_str(sha1_str) {
-                            if let Ok(commit) = repo_ref.find_commit(oid) {
-                                if let Some(name) = commit.author().name() {
-                                    let author_name = name.to_string();
-                                    if !author_name.is_empty() {
-                                        *author_counts.entry(author_name).or_insert(0) += 1;
-                                    }
+    // Get authors for each CVE in parallel
+    let author_results: Vec<Option<String>> = cve_list.par_iter()
+        .map(|cve_id| {
+            // Find the sha1 file for this CVE
+            for sha1_file in sha1_files {
+                if sha1_file.file_stem().unwrap().to_string_lossy() == *cve_id {
+                    // Read the SHA1 from the file
+                    if let Ok(sha1_content) = fs::read_to_string(sha1_file) {
+                        let sha1_str = sha1_content.trim();
+                        if !sha1_str.is_empty() {
+                            // Handle multiple SHAs in the file (take first line)
+                            let sha1 = sha1_str.lines().next().unwrap_or(sha1_str).trim();
+
+                            // Get author using git command
+                            let output = std::process::Command::new("git")
+                                .args(["show", "--format=%an", "-s", sha1])
+                                .current_dir(kernel_tree)
+                                .output();
+
+                            if let Ok(output) = output && output.status.success() {
+                                let author_name = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                                if !author_name.is_empty() {
+                                    return Some(author_name);
                                 }
                             }
                         }
                     }
+                    break;
                 }
-                break;
             }
-        }
+            None
+        })
+        .collect();
+
+    // Count authors from results
+    for author_name in author_results.into_iter().flatten() {
+        *author_counts.entry(author_name).or_insert(0) += 1;
     }
 
     // Sort authors by count
@@ -695,7 +710,7 @@ fn show_subsystem_stats(
     let published_dir = cve_root.join("cve").join("published");
 
     // Collect the subsystem data
-    let (sha1_files, main_subsystems, sub_subsystems, repo) =
+    let (sha1_files, main_subsystems, sub_subsystems, _show_authors_flag) =
         collect_subsystem_data(&published_dir, kernel_tree, show_authors);
 
     // Convert to vec and sort by CVE count
@@ -723,27 +738,23 @@ fn show_subsystem_stats(
 
         // If authors flag is set, show top authors for this subsystem
         if show_authors {
-            if let Some(repo_ref) = &repo {
-                println!("  Top authors for {subsystem}:");
+            println!("  Top authors for {subsystem}:");
 
-                // Get all CVE IDs for this subsystem
-                if let Some(cve_list) = main_subsystems.get(subsystem) {
-                    // Get author statistics
-                    let authors = get_author_stats(cve_list, &sha1_files, repo_ref);
+            // Get all CVE IDs for this subsystem
+            if let Some(cve_list) = main_subsystems.get(subsystem) {
+                // Get author statistics
+                let authors = get_author_stats(cve_list, &sha1_files, kernel_tree);
 
-                    // Show top 5 authors
-                    if authors.is_empty() {
-                        println!("    No author information available");
-                    } else {
-                        for (author, count) in authors.iter().take(5) {
-                            println!("    {author}: {count} CVEs");
-                        }
+                // Show top 5 authors
+                if authors.is_empty() {
+                    println!("    No author information available");
+                } else {
+                    for (author, count) in authors.iter().take(5) {
+                        println!("    {author}: {count} CVEs");
                     }
                 }
-                println!();
-            } else {
-                println!("  Author information not available (could not open repository)");
             }
+            println!();
         }
         println!();
     }
@@ -865,7 +876,7 @@ fn show_version_stats(cve_root: &Path, num_versions: usize) {
         if version == "0" {
             println!("Unknown: {count} CVEs fixed");
         } else {
-            println!("Linux {version}:\t{count:4} CVEs fixed");
+            println!("Linux {version}:\t{count} CVEs fixed");
         }
     }
 
@@ -875,7 +886,7 @@ fn show_version_stats(cve_root: &Path, num_versions: usize) {
         if version == "0" {
             println!("Unknown: {count} CVEs introduced");
         } else {
-            println!("Linux {version}:\t{count:4} CVEs introduced");
+            println!("Linux {version}:\t{count} CVEs introduced");
         }
     }
 }
@@ -906,47 +917,42 @@ fn collect_time_to_fix_data(
     println!("Found {} dyad files", dyad_files.len());
 
     // Process dyad files in parallel to get TTF data
-    // This is thread-safe because we're not sharing the repository between threads
     let results: Vec<(String, Option<i64>)> = dyad_files.par_iter()
         .filter_map(|(sha1_file, dyad_file)| {
             let cve_id = sha1_file.file_stem().unwrap().to_string_lossy().to_string();
 
-            // For each dyad file, open a new repository instance
-            // This is necessary because Repository cannot be shared between threads safely
-            if let Ok(repo) = Repository::open(kernel_tree) {
-                // Read dyad file to get vulnerable and fixed commits
-                if let Ok(content) = fs::read_to_string(dyad_file) {
-                    for line in content.lines() {
-                        // Skip comments and empty lines
-                        if line.starts_with('#') || line.trim().is_empty() {
-                            continue;
-                        }
+            // Read dyad file to get vulnerable and fixed commits
+            if let Ok(content) = fs::read_to_string(dyad_file) {
+                for line in content.lines() {
+                    // Skip comments and empty lines
+                    if line.starts_with('#') || line.trim().is_empty() {
+                        continue;
+                    }
 
-                        // Dyad format: vulnerable_ver:vulnerable_commit:fixed_ver:fixed_commit
-                        let parts: Vec<&str> = line.split(':').collect();
-                        if parts.len() != 4 {
-                            continue;
-                        }
+                    // Dyad format: vulnerable_ver:vulnerable_commit:fixed_ver:fixed_commit
+                    let parts: Vec<&str> = line.split(':').collect();
+                    if parts.len() != 4 {
+                        continue;
+                    }
 
-                        let vuln_commit = parts[1].trim();
-                        let fix_commit = parts[3].trim();
+                    let vuln_commit = parts[1].trim();
+                    let fix_commit = parts[3].trim();
 
-                        // Skip if either commit is "0" (unknown)
-                        if vuln_commit == "0" || fix_commit == "0" {
-                            continue;
-                        }
+                    // Skip if either commit is "0" (unknown)
+                    if vuln_commit == "0" || fix_commit == "0" {
+                        continue;
+                    }
 
-                        // Get the commit dates
-                        let Ok(Some(vuln_date)) = get_commit_author_date(&repo, vuln_commit) else { continue };
-                        let Ok(Some(fix_date)) = get_commit_author_date(&repo, fix_commit) else { continue };
+                    // Get the commit dates
+                    let Ok(Some(vuln_date)) = get_commit_author_date_git(kernel_tree, vuln_commit) else { continue };
+                    let Ok(Some(fix_date)) = get_commit_author_date_git(kernel_tree, fix_commit) else { continue };
 
-                        // Calculate days between dates
-                        let days = (fix_date - vuln_date).num_days();
+                    // Calculate days between dates
+                    let days = (fix_date - vuln_date).num_days();
 
-                        // Only consider valid TTF (positive days)
-                        if days > 0 {
-                            return Some((cve_id, Some(days)));
-                        }
+                    // Only consider valid TTF (positive days)
+                    if days > 0 {
+                        return Some((cve_id, Some(days)));
                     }
                 }
             }
@@ -1059,19 +1065,26 @@ fn show_time_to_fix_stats(cve_root: &Path, kernel_tree: &Path) {
     process_time_to_fix_stats(&results);
 }
 
-/// Get the author date for a commit by hash
-fn get_commit_author_date(repo: &Repository, commit_hash: &str) -> Result<Option<chrono::NaiveDate>> {
-    // Parse the commit hash
-    let oid = Oid::from_str(commit_hash).context("Failed to parse commit hash")?;
+/// Get the author date for a commit by hash using git command
+fn get_commit_author_date_git(kernel_tree: &Path, commit_hash: &str) -> Result<Option<chrono::NaiveDate>> {
+    // Get the author date using git command
+    // --format=%at gives us the author timestamp in Unix epoch seconds
+    let output = std::process::Command::new("git")
+        .args(["show", "--format=%at", "-s", commit_hash])
+        .current_dir(kernel_tree)
+        .output()
+        .context("Failed to run git show command")?;
 
-    // Get the commit
-    let commit = repo.find_commit(oid).context("Failed to find commit")?;
+    if !output.status.success() {
+        return Ok(None);
+    }
 
-    // Get the author time
-    let time = commit.author().when();
+    let timestamp_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let timestamp = timestamp_str.parse::<i64>()
+        .context(format!("Failed to parse timestamp: {}", timestamp_str))?;
 
     // Convert to chrono date
-    let dt = DateTime::<Utc>::from_timestamp(time.seconds(), 0)
+    let dt = DateTime::<Utc>::from_timestamp(timestamp, 0)
         .context("Failed to convert git time to DateTime")?;
 
     Ok(Some(dt.naive_utc().date()))
