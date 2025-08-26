@@ -21,16 +21,16 @@ struct Args {
     #[arg(long)]
     summary: bool,
 
-    /// Show top N CVE commit authors
-    #[arg(long, value_name = "N")]
+    /// Show top N CVE commit authors (default: 10)
+    #[arg(long, value_name = "N", default_missing_value = "10", num_args = 0..=1)]
     authors: Option<usize>,
 
-    /// Show top M subsystems with S sub-subsystems each
-    #[arg(long, value_name = "M[,S]", value_parser = parse_subsystem_args)]
+    /// Show top M subsystems with S sub-subsystems each (default: M=10,S=3)
+    #[arg(long, value_name = "M[,S]", value_parser = parse_subsystem_args, default_missing_value = "10,3", num_args = 0..=1)]
     subsystem: Option<(usize, usize)>,
 
-    /// Show top N kernel versions with CVE fixes
-    #[arg(long, value_name = "N")]
+    /// Show top N kernel versions with CVE fixes (default: 10)
+    #[arg(long, value_name = "N", default_missing_value = "10", num_args = 0..=1)]
     versions: Option<usize>,
 
     /// Show Time to Fix analysis
@@ -224,50 +224,28 @@ fn run(args: &Args, cve_root: &Path, kernel_tree: &Path) -> Result<()> {
 }
 
 fn get_first_cve_date(vulns_dir: &Path) -> Result<String> {
-    let published_dir = vulns_dir.join("cve").join("published");
+    // Use git log to find the first CVE date (matching bash script behavior)
+    let output = std::process::Command::new("git")
+        .args(["log", "--diff-filter=A", "--reverse", "--pretty=format:%ad", "--date=short", "cve/published/"])
+        .current_dir(vulns_dir)
+        .output()
+        .context("Failed to run git log to find first CVE date")?;
 
-    // Ensure the directory exists
-    if !published_dir.exists() || !published_dir.is_dir() {
-        return Err(anyhow!("Published CVE directory not found: {}", published_dir.display()));
+    if !output.status.success() {
+        return Err(anyhow!("Failed to get first CVE date from git history"));
     }
 
-    // Look for the earliest year directory
-    let mut min_year = 9999;
-    let mut earliest_date = None;
+    let dates = String::from_utf8_lossy(&output.stdout);
+    let first_date = dates.lines().next();
 
-    let entries = match fs::read_dir(&published_dir) {
-        Ok(entries) => entries,
-        Err(e) => {
-            return Err(anyhow!("Failed to read published directory: {}", e));
-        }
-    };
-
-    for entry_result in entries {
-        let Ok(entry) = entry_result else {
-            continue;
-        };
-
-        let path = entry.path();
-
-        // Skip non-directories and hidden files
-        if !path.is_dir() || path.file_name().is_none_or(|n| n.to_string_lossy().starts_with('.')) {
-            continue;
-        }
-
-        // Try to parse the directory name as a year
-        if let Some(name) = path.file_name() {
-            let name_str = name.to_string_lossy();
-            if let Ok(year) = name_str.parse::<i32>() && year < min_year && year >= 2000 {  // Sanity check for valid years
-                min_year = year;
-                earliest_date = Some(format!("{year}-01-01"));
-            }
+    match first_date {
+        Some(date) if !date.is_empty() => Ok(date.to_string()),
+        _ => {
+            // Fallback: if no git history, use a default date
+            // This matches the bash script's fallback behavior
+            Ok("2019-01-01".to_string())
         }
     }
-
-    earliest_date.map_or_else(
-        || Err(anyhow!("No valid year directories found in {}", published_dir.display())),
-        Ok,
-    )
 }
 
 /// Count CVEs created in a specific time period
@@ -326,7 +304,9 @@ fn count_cves_in_range(vulns_dir: &Path, start_date: &str, end_date: &str) -> Re
             if let Ok(output) = output && output.status.success() {
                 let files = String::from_utf8_lossy(&output.stdout);
                 for file_path in files.lines() {
-                    if file_path.starts_with("cve/published/") && let Ok(cve_id) = extract_cve_id_from_path(file_path) {
+                    // Only count .json files (matching bash script behavior)
+                    // This avoids counting duplicates and skips bulk .dyad additions
+                    if file_path.starts_with("cve/published/") && file_path.ends_with(".json") && let Ok(cve_id) = extract_cve_id_from_path(file_path) {
                         commit_cves.insert(cve_id);
                     }
                 }
@@ -806,11 +786,15 @@ fn get_kernel_versions(sha1_file: &Path, version_type: &str) -> Result<Option<St
                 continue;
             }
 
-            // Extract major.minor from versions like 5.10.227
+            // Match bash script behavior: only accept versions that are exactly major.minor format
+            // (e.g., "6.1" but not "6.1.120")
             let parts: Vec<&str> = version_str.split('.').collect();
-            if parts.len() >= 2 {
-                let main_version = format!("{}.{}", parts[0], parts[1]);
-                return Ok(Some(main_version));
+            if parts.len() == 2 {
+                // Only accept if it matches the pattern ^\d+\.\d+$
+                if parts[0].chars().all(|c| c.is_ascii_digit()) &&
+                   parts[1].chars().all(|c| c.is_ascii_digit()) {
+                    return Ok(Some(version_str.to_string()));
+                }
             }
         }
     }
