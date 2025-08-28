@@ -1,0 +1,110 @@
+5dd0b96118e0 drm/radeon: Do not hold console lock while suspending clients
+d99208b91933 fs/ntfs3: cancle set bad inode after removing name fails
+fcb96956c921 hfsplus: remove mutex_lock check in hfsplus_free_extents
+a49f0abd8959 Revert "fs/ntfs3: Replace inode_trylock with inode_lock"
+deb016c16690 gfs2: No more self recovery
+bd4f35786d5f arm64: dts: qcom: qcs615: fix a crash issue caused by infinite loop for Coresight
+168c3896f32e usb: typec: ucsi: yoga-c630: fix error and remove paths
+21f1c800f662 spi: stm32: Check for cfg availability in stm32_spi_probe
+bfb4cf9fb97e vmci: Prevent the dispatching of uninitialized payloads
+46dc57406887 powercap: dtpm_cpu: Fix NULL pointer dereference in get_pd_power_uw()
+bab7834c0382 PM / devfreq: Check governor before using governor->name
+3157f7e29996 bpf: handle jset (if a & b ...) as a jump in CFG computation
+36670b67de18 wifi: ath12k: Avoid accessing uninitialized arvif->ar during beacon miss
+05062834350f wifi: ath12k: Pass ab pointer directly to ath12k_dp_tx_get_encap_type()
+7e04f01bb94f wifi: rtw89: avoid NULL dereference when RX problematic packet on unsupported 6 GHz band
+16d8fd74dbfc wifi: rtl818x: Kill URBs before clearing tx status queue
+90a0d9f33996 iwlwifi: Add missing check for alloc_ordered_workqueue
+bfb4fb77f9a8 team: replace team lock with rtnl lock
+a5b46aa7cf5f wifi: ath11k: clear initialized flag for deinit-ed srng lists
+70f238c902b8 net/mlx5: Check device memory pointer before usage
+cf80c02a9fdb wifi: iwlwifi: Fix error code in iwl_op_mode_dvm_start()
+64cbf0d7ce9a wifi: mt76: mt7996: Fix possible OOB access in mt7996_tx()
+f9f68bf1d0ef drm/rockchip: vop2: fail cleanly if missing a primary plane for a video-port
+532c8b51b3a8 xen: fix UAF in dmabuf_exp_from_pages()
+16ecdab5446f wifi: mac80211: reject TDLS operations when station is not associated
+2c5dee15239f wifi: cfg80211: Add missing lock in cfg80211_check_and_end_cac()
+c57e5b9819df wifi: mac80211: fix WARN_ON for monitor mode on some devices
+2935e556850e Bluetooth: hci_sync: fix double free in 'hci_discovery_filter_clear()'
+7af4d7b53502 Bluetooth: hci_devcd_dump: fix out-of-bounds via dev_coredumpv
+17ce3e5949bc bpf: Disable migration in nf_hook_run_bpf().
+bf58e667af7d netfilter: xt_nfacct: don't assume acct name is null-terminated
+6d19c44b5c6d net/mlx5e: Remove skb secpath if xfrm state is not found
+1bbb76a89948 neighbour: Fix null-ptr-deref in neigh_flush_dev().
+f388f807eca1 vrf: Drop existing dst reference in vrf_ip6_input_dst
+54e6fe9dd3b0 ipv6: prevent infinite loop in rt6_nlmsg_size()
+f8d8ce1b515a ipv6: fix possible infinite loop in fib6_info_uses_dev()
+b114fcee766d bpf, arm64: Fix fp initialization for exception boundary
+ee4cf798202d staging: media: atomisp: Fix stack buffer overflow in gmin_get_var_int()
+4cc871ad0173 crypto: qat - use unmanaged allocation for dc_data
+71203f68c774 padata: Fix pd UAF once and for all
+13de464f445d clk: davinci: Add NULL check in davinci_lpsc_clk_register()
+3b0abc443ac2 clk: xilinx: vcu: unregister pll_post only if registered correctly
+d9fa3aae08f9 power: supply: cpcap-charger: Fix null check for power_supply_get_by_name
+e3507c56cbb2 pinctrl: sunxi: Fix memory leak on krealloc failure
+8f6f30355110 pinctrl: berlin: fix memory leak in berlin_pinctrl_build_state()
+65bd0be48639 pinctrl: canaan: k230: add NULL check in DT parse
+d94a32ac688f pinctrl: canaan: k230: Fix order of DT parse and pinctrl register
+c6957b95ecc5 RDMA/hns: Fix double destruction of rsv_qp
+181698af38d3 crypto: ccp - Fix crash when rebind ccp device for ccp.ko
+ff7ec8dc1b64 proc: use the same treatment to check proc_lseek as ones for proc_read_iter et.al
+0b075c011032 pinmux: fix race causing mux_owner NULL with active mux_usecount
+c678bdc99875 ext4: fix inode use after free in ext4_end_io_rsv_work()
+b19f1ab8d5bf crypto: krb5 - Fix memory leak in krb5_test_one_prf()
+b08217a25721 clk: imx95-blk-ctl: Fix synchronous abort
+da11e6a30e0b fbdev: imxfb: Check fb_add_videomode to prevent null-ptr-deref
+856db3759202 jfs: fix metapage reference count leak in dbAllocCtl
+df485a4b2b3e ALSA: usb: scarlett2: Fix missing NULL check
+cc51a6681599 vdpa/mlx5: Fix release of uninitialized resources on error path
+d9ea58b5dc6b vdpa: Fix IDR memory leak in VDUSE module exit
+ead3d7b2b6af bpf: Check flow_dissector ctx accesses are aligned
+9e6448f7b1ef bpf: Check netfilter ctx accesses are aligned
+bc4a09d8e79c i3c: master: svc: Fix npcm845 FIFO_EMPTY quirk
+554d9b7242a7 f2fs: fix bio memleak when committing super block
+90d5c9ba3ed9 f2fs: fix to avoid invalid wait context issue
+154467f4ad03 f2fs: fix KMSAN uninit-value in extent_info usage
+7c30d7993013 f2fs: fix to avoid UAF in f2fs_sync_inode_meta()
+a509a55f8eec f2fs: fix to avoid panic in f2fs_evict_inode
+5661998536af f2fs: fix to avoid out-of-boundary access in devs.path
+08a7efc5b02a f2fs: vm_unmap_ram() may be called from an invalid context
+1005a3ca28e9 f2fs: fix to trigger foreground gc during f2fs_map_blocks() in lfs mode
+33ac5155891c i2c: muxes: mule: Fix an error handling path in mule_i2c_mux_probe()
+b25e271b3779 vfio: Fix unbalanced vfio_df_close call in no-iommu mode
+fe24d5bc635e vfio/pds: Fix missing detach_ioas op
+3e90b38781e3 scsi: mpt3sas: Fix a fw_event memory leak
+7bdc68921481 scsi: Revert "scsi: iscsi: Fix HW conn removal use after free"
+466861909255 PCI: pnv_php: Clean up allocated IRQs on unplug
+1010b4c012b0 powerpc/eeh: Make EEH driver device hotplug safe
+a2a2a6fc2469 PCI: pnv_php: Fix surprise plug detection and recovery
+de9c4861fb42 pptp: ensure minimal skb length in pptp_xmit()
+ffcfd071eec7 spi: cs42l43: Property entry should be a null-terminated array
+d45cf1e7d718 ipv6: reject malicious packets in ipv6_gso_segment()
+d46e51f1c78b net: drop UFO packets in udp_rcv_segment()
+ae8508b25def net/sched: taprio: enforce minimum value for picos_per_byte
+cc5d59081fa2 sunrpc: fix client side handling of tls alerts
+4b31bcb025cb eth: fbnic: unlink NAPIs from queues on error to open
+5a40f8af2ba1 benet: fix BUG when creating VFs
+ffd2dc4c6c49 net/sched: mqprio: fix stack out-of-bounds write in tc entry parsing
+ae633388cae3 pptp: fix pptp_xmit() error path
+e5a73150776f nfsd: avoid ref leak in nfsd_open_local_fh()
+bee47cb026e7 sunrpc: fix handling of server side tls alerts
+5468c0fbccbb perf/core: Don't leak AUX buffer refcount on allocation failure
+07091aade394 perf/core: Exit early on perf_mmap() fail
+f74b9f4ba63f perf/core: Handle buffer mapping fail correctly in perf_mmap()
+b024d7b56c77 perf/core: Prevent VMA split of buffer mappings
+aba0c94f61ec vsock: Do not allow binding to VMADDR_PORT_ANY
+9b493ab6f351 ksmbd: fix null pointer dereference error in generate_encryptionkey
+44a3059c4c8c ksmbd: fix Preauh_HashValue race condition
+59b33fab4ca4 smb: client: fix netns refcount leak after net_passive changes
+e6bb91939740 ksmbd: limit repeated connections from clients with the same IP
+7b306dfa326f x86/sev: Evict cache lines during SNP memory validation
+54d5cd4719c5 platform/x86/intel/pmt: fix a crashlog NULL pointer access
+1cec9ac2d071 x86/fpu: Delay instruction pointer fixup until after warning
+152c1339dc13 mm: swap: fix potential buffer overflow in setup_clusters()
+323a80a1a5ac usb: gadget: uvc: Initialize frame-based format color matching descriptor
+ae42c6fe5314 media: ti: j721e-csi2rx: fix list_del corruption
+1bb3363da862 HID: apple: validate feature-report field count to prevent NULL pointer dereference
+62783c30d78a USB: gadget: f_hid: Fix memory leak in hidg_bind error path
+a6b87bfc2ab5 HID: core: Harden s32ton() against conversion to 0 bits
+151c0aa896c4 usb: gadget : fix use-after-free in composite_dev_cleanup()
+9bbffee67ffd mm: fix a UAF when vma->mm is freed after vma->vm_refcnt got dropped
