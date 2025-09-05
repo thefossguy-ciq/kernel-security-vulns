@@ -1,0 +1,58 @@
+a3de58b12ce0 netfs: Fix unbuffered write error handling
+3d4df408ba9b crypto: qat - flush misc workqueue during device shutdown
+d79123d79a81 PCI: endpoint: Fix configfs group list head handling
+9d98cf463225 jbd2: prevent softlockup in jbd2_log_do_checkpoint()
+0c92c49fc688 media: ivsc: Fix crash at shutdown due to missing mei_cldev_disable() calls
+7e6c3130690a mm/damon/ops-common: ignore migration request to invalid nodes
+dde30854bddf mm/debug_vm_pgtable: clear page table entries at destroy_args()
+7375f22495e7 fs/buffer: fix use-after-free when call bh_read() helper
+6a909ea83f22 tracing: Limit access to parser->buffer when trace_get_user failed
+d1547bf460ba net: bridge: fix soft lockup in br_multicast_query_expired()
+d9cef55ed491 net/smc: fix UAF on smcsk after smc_listen_out()
+111fb43a5577 drm/xe: Fix vm_bind_ioctl double free bug
+02c7f7219ac0 ext4: fix hole length calculation overflow in non-extent inodes
+9989e0ca7462 PCI: Fix link speed calculation on retrain failure
+ddf7233fcab6 sched/ext: Fix invalid task state transitions on class switch
+772e5b4a5e83 mm/mremap: fix WARN with uffd that has remap events disabled
+447be50598c0 regulator: pca9450: Use devm_register_sys_off_handler
+864e3396976e net: gso: Forbid IPv6 TSO with extensions on devices with only IPV6_CSUM
+4611d88a37cf bnxt_en: Fix lockdep warning during rmmod
+5003a65790ed ALSA: timer: fix ida_free call while not allocated
+91a79b792204 netfilter: nf_reject: don't leak dst refcount for loopback packets
+7af76e9d18a9 net, hsr: reject HSR frame if skb can't hold tag
+eea51c6e3f66 cgroup: avoid null de-ref in css_rstat_exit()
+3c3e9a9f2972 RDMA/rxe: Flush delayed SKBs while releasing RXE resources
+96cb948408b3 comedi: pcl726: Prevent invalid irq number
+3cd212e895ca comedi: Fix use of uninitialized memory in do_insn_ioctl() and do_insnlist_ioctl()
+5f1c8965e748 ovl: use I_MUTEX_PARENT when locking parent in ovl_create_temp()
+24ef2f53c07f net: usb: asix_devices: Fix PHY address mask in MDIO bus initialization
+7f8fdd4dbffc serial: 8250: fix panic due to PSLVERR
+b1511360c8ac btrfs: subpage: keep TOWRITE tag until folio is cleaned
+9dcf111dd3e7 scsi: qla4xxx: Prevent a potential error pointer dereference
+3200144a2fa4 media: venus: protect against spurious interrupts during probe
+0f837559ccdd media: iris: Fix NULL pointer dereference
+b4a69f7f29c8 drm/amdgpu: check if hubbub is NULL in debugfs/amdgpu_dm_capabilities
+1bcf63a44381 drm/amd/display: fix a Null pointer dereference vulnerability
+99d4d1a07087 iommu/riscv: prevent NULL deref in iova_to_phys
+07b93a5704b0 drm/amd/display: Avoid a NULL pointer dereference
+2c78fb287e1f platform/x86/amd/hsmp: Ensure sock->metric_tbl_addr is non-NULL
+7a2ca2ea64b1 drm/amd/display: Add null pointer check in mod_hdcp_hdcp1_create_session()
+6300d5c54387 scsi: ufs: ufs-qcom: Fix ESI null pointer dereference
+0417adf367a0 ppp: fix race conditions in ppp_fill_forward_path
+75a9a46d67f4 gve: prevent ethtool ops after shutdown
+3f4422e7c943 ALSA: hda: tas2781: Fix wrong reference of tasdevice_priv
+fec7bdfe7f86 s390/hypfs: Avoid unnecessary ioctl registration in debugfs
+3868f910440c s390/hypfs: Enable limited access during lockdown
+89bb430f6211 ksmbd: fix refcount leak causing resource not released
+bac7b996d42e smb: server: split ksmbd_rdma_stop_listening() out of ksmbd_rdma_destroy()
+57f312b95593 i2c: rtl9300: Fix out-of-bounds bug in rtl9300_i2c_smbus_xfer
+453a6d2a68e5 cifs: Fix oops due to uninitialised variable
+77de19b6867f f2fs: fix to avoid out-of-boundary access in dnode page
+7afba9221f70 comedi: Make insn_rw_emulate_bits() do insn->n samples
+63dbd8fb2af3 LoongArch: Optimize module load time by optimizing PLT/GOT counting
+7e40e0bb7789 media: usbtv: Lock resolution while streaming
+962ddc5a7a4b crypto: acomp - Fix CFI failure due to type punning
+c69e13965f26 iio: adc: rzg2l_adc: Set driver data before enabling runtime PM
+bfb336cf97df ftrace: Also allocate and copy hash for reading of filter files
+433b99e92294 iio: light: as73211: Ensure buffer holes are zeroed
+4e5b705cc614 iio: accel: sca3300: fix uninitialized iio scan data
