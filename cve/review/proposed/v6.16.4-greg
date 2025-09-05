@@ -56,3 +56,34 @@ c69e13965f26 iio: adc: rzg2l_adc: Set driver data before enabling runtime PM
 bfb336cf97df ftrace: Also allocate and copy hash for reading of filter files
 433b99e92294 iio: light: as73211: Ensure buffer holes are zeroed
 4e5b705cc614 iio: accel: sca3300: fix uninitialized iio scan data
+5ffc47feddcf crypto: caam - Prevent crash on suspend with iMX8QM / iMX8ULP
+399b883ec828 iio: imu: bno055: fix OOB access of hw_xlate array
+0dab92484474 vsock/virtio: Validate length in packet header before skb_put()
+9308366f0621 open_tree_attr: do not allow id-mapping changes without OPEN_TREE_CLONE
+4eab1c27ce1f parisc: Drop WARN_ON_ONCE() from flush_cache_vmap
+89f686a0fb6e parisc: Revise __get_user() to probe user read access
+f6334f4ae9a4 parisc: Revise gateway LWS calls to probe user read access
+7af160aea26c media: rainshadow-cec: fix TOCTOU race condition in rain_interrupt()
+298d1471cf83 media: mt9m114: Fix deadlock in get_frame_interval/set_frame_interval
+49befc830daa media: venus: Add a check for packet size after reading from shared memory
+2e58401a24e7 drm/amdkfd: Destroy KFD debugfs after destroy KFD wq
+5c68549c81bc LoongArch: KVM: Fix stack protector issue in send_ipi_data()
+a458b2902115 ipv6: sr: Fix MAC comparison to be constant-time
+8151320c747e ACPI: pfr_update: Fix the driver update version check
+508c1314b342 io_uring/futex: ensure io_futex_wait() cleans up properly on failure
+76d2e3890fb1 NFS: Fix a race when updating an existing write
+b64700d41bdc squashfs: fix memory leak in squashfs_fill_super
+430fa71027b6 s390/sclp: Fix SCCB present check
+aa5fc4362fac drm/amdgpu: fix task hang from failed job submission during process kill
+593d9e4c3d63 fs: fix incorrect lflags value in the move_mount syscall
+a2c1f82618b0 signal: Fix memory leak for PIDFD_SELF* sentinels
+62708b9452f8 tls: fix handling of zero-length records on the rx_list
+d8df126349da x86/cpu/hygon: Add missing resctrl_cpu_detect() in bsp_init helper
+bb8aeaa3191b drm/nouveau/nvif: Fix potential memory leak in nvif_vmm_ctor().
+5634c8cb298a iosys-map: Fix undefined behavior in iosys_map_clear()
+ba60a1e8cbbd RDMA/bnxt_re: Fix a possible memory leak in the driver
+52bf272636bd net/sched: Fix backlog accounting in qdisc_dequeue_internal
+93a08f856fcc drm/hisilicon/hibmc: fix the hibmc loaded failed bug
+4a842b1bf18a net/mlx5: HWS, fix complex rules rehash error flow
+93f616ff870a s390/mm: Do not map lowcore with identity mapping
+15de71d06a40 net/sched: Make cake_enqueue return NET_XMIT_CN when past buffer_limit
