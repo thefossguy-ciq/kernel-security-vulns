@@ -8,3 +8,5 @@ c1f3f9797c1f can: netlink: can_changelink(): fix NULL pointer deref of struct ca
 ca46946a4822 regulator: core: fix NULL dereference on unbind due to stale coupling data
 4ff12d82dac1 ice: Fix a null pointer dereference in ice_copy_and_init_pkg()
 94d077c33173 xfrm: state: initialize state_ptrs earlier in xfrm_state_find
+897e8601b9cf s390/ism: fix concurrency management in ism_cmd()
+9f1e8cd0b7c4 mm/vmscan: fix hwpoisoned large folio handling in shrink_folio_list
