@@ -120,3 +120,11 @@ ffcfd071eec7 spi: cs42l43: Property entry should be a null-terminated array
 cc5d59081fa2 sunrpc: fix client side handling of tls alerts
 4b31bcb025cb eth: fbnic: unlink NAPIs from queues on error to open
 ffd2dc4c6c49 net/sched: mqprio: fix stack out-of-bounds write in tc entry parsing
+08a7efc5b02a f2fs: vm_unmap_ram() may be called from an invalid context
+0fa766726c09 crypto: ccp - Fix dereferencing uninitialized error pointer
+152c1339dc13 mm: swap: fix potential buffer overflow in setup_clusters()
+65c12b104cb9 wifi: ath11k: fix sleeping-in-atomic in ath11k_mac_op_set_bitrate_mask()
+a49f0abd8959 Revert "fs/ntfs3: Replace inode_trylock with inode_lock"
+ae633388cae3 pptp: fix pptp_xmit() error path
+bfb4fb77f9a8 team: replace team lock with rtnl lock
+ef93a685e01a NFS: Fix filehandle bounds checking in nfs_fh_to_dentry()
