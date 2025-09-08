@@ -24,6 +24,28 @@
 # Requires:
 #  cve
 
+# Initialize our color variables if we are a normal terminal
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)          # Red
+	txtgrn=$(tput setaf 2)          # Green
+	txtblu=$(tput setaf 4)          # Blue
+	txtcyn=$(tput setaf 6)          # Cyan
+	txtrst=$(tput sgr0)             # Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
+
+# Should we take the cve id on the command line to not require a "dirty"
+# filesystem to determine what id to upload?
+#CVE_ID=$1
+#if [[ "${CVE_ID}" == "" ]]; then
+#	CVE_ID="0"
+#fi
+
 # don't use unset variables
 set -o nounset
 
@@ -50,7 +72,7 @@ for file in ${files}; do
 	sha_file="${root}.sha1"
 	sha=$(cat "${sha_file}")
 	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
-	#echo "id=${id} sha=${sha} cve=${cve}"
+	#echo "sha=${sha} cve=${cve}"
 
 #	if cve -o Linux list | grep ${cve} | grep -q PUBLISHED; then
 #		echo -n "${cve} is already published - are you sure you wish to update it (N/y)? "
@@ -60,13 +82,25 @@ for file in ${files}; do
 #		fi
 #	fi
 
-	echo "Uploading ${cve} for commit ${sha}"
-	cve -o Linux publish "${cve}" -f "${root}.json"
+	# Attempt to upload the file to cve.org using the `cve` tool, and
+	# capture any output, including error output.
+	echo "Uploading ${txtcyn}${cve}${txtrst} for commit ${txtgrn}${sha}${txtrst}"
+	output=$(cve -o Linux publish "${cve}" -f "${root}.json" 2>&1)
 	good=$?
+
+	# Semi-pretty-print the output
+	echo "${txtblu}"
+	while IFS= read -r line; do
+		echo "	${line}"
+	done <<< "${output}"
+	echo "${txtrst}"
+
+	# Say if this succeeded or not
 	if [[ "${good}" == 0 ]]; then
-		echo "CVE published successfully at: https://cve.org/CVERecord/?id=${cve}"
+		echo "${txtgrn}SUCCESS:${txtrst} ${txtcyn}${cve}${txtrst} published successfully at: https://cve.org/CVERecord/?id=${cve}"
 	else
-		echo "ERROR: Something went wrong submitting ${cve}"
+		echo "${txtred}ERROR:${txtrst} Something went wrong submitting ${txtcyn}${cve}${txtcyn}"
+		exit ${good}
 	fi
 	echo ""
 done
