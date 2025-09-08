@@ -24,10 +24,6 @@
 # Requires:
 #  cve
 
-
-# FIXME: Is only using the test database for now.
-
-
 # don't use unset variables
 set -o nounset
 
@@ -73,8 +69,4 @@ for file in ${files}; do
 		echo "ERROR: Something went wrong submitting ${cve}"
 	fi
 	echo ""
-	#cve -u gregkh@linuxfoundation.org -o Linux -e test publish ${cve} -f "${root}.json"
 done
-
-# to list all published entries:
-# cve -u gregkh@linuxfoundation.org -o Linux -e test list
