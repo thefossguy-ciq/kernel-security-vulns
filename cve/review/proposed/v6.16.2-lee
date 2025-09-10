@@ -1,0 +1,87 @@
+41b70df5b38b io_uring/net: commit partial buffers on retry [auto: cve already created]
+d832ccbc301f ALSA: usb-audio: Validate UAC3 power domain descriptors, too [auto: cve already created]
+ecfd41166b72 ALSA: usb-audio: Validate UAC3 cluster segment descriptors
+7d34ec36abb8 smb3: fix for slab out of bounds on mount to ksmbd [auto: cve already created]
+759dfc7d04ba netlink: avoid infinite retry looping in netlink_unicast() [auto: cve already created]
+e88fbc30dda1 net: ftgmac100: fix potential NULL pointer access in ftgmac100_phy_disconnect [auto: cve already created]
+4faff70959d5 net: usb: asix_devices: add phy_mask for ax88772 mdio bus [auto: cve already created]
+908e4ead7f75 nfsd: handle get_client_locked() failure in nfsd4_setclientid_confirm() [auto: cve already created]
+cd39d9e6b7e4 LoongArch: BPF: Fix jump offset calculation in tailcall [auto: cve already created]
+04a2c4b4511d fs: Prevent file descriptor table allocations exceeding INT_MAX
+31ee723d6fc5 ACPI: processor: perflib: Move problematic pr->performance check
+33927f3d0ecd habanalabs: fix UAF in export_dmabuf() [auto: cve already created]
+45d19b4b6c2d mm/smaps: fix race between smaps_hugetlb_range and migration
+de788b2e6227 netfilter: ctnetlink: fix refcount leak on table dump [auto: cve already created]
+1492e3dcb2be netfilter: ctnetlink: remove refcounting in expectation dumpers
+c875503a9b90 net: hibmcge: fix rtnl deadlock issue [auto: cve already created]
+7004b26f0b64 net: hibmcge: fix the division by zero issue [auto: cve already created]
+fd60d8a08619 sctp: linearize cloned gso packets in sctp_rcv [auto: cve already created]
+6db015fc4b5d tls: handle data disappearing from under the TLS ULP [auto: cve already created]
+cf5fb87fcdaa netfilter: nf_tables: reject duplicate device on updates [auto: cve already created]
+52565a935213 net: kcm: Fix race condition in kcm_unattach() [auto: cve already created]
+736a0516a162 hfs: fix general protection fault in hfs_find_init() [auto: cve already created]
+a431930c9bac hfs: fix slab-out-of-bounds in hfs_bnode_read() [auto: cve already created]
+c80aa2aaaa5e hfsplus: fix slab-out-of-bounds in hfsplus_bnode_read() [auto: cve already created]
+94458781aee6 hfsplus: fix slab-out-of-bounds read in hfsplus_uni2asc() [auto: cve already created]
+c7c6363ca186 hfsplus: don't use BUG_ON() in hfsplus_create_attributes_file() [auto: cve already created]
+d5fc1400a34b smb/server: avoid deadlock when linking with ReplaceIfExists [auto: cve already created]
+557c024ca725 gfs2: Validate i_depth for exhash directories [auto: cve already created]
+5c8f12cf1e64 gfs2: Set .migrate_folio in gfs2_{rgrp,meta}_aops
+7e49538288e5 loop: Avoid updating block size under exclusive owner [auto: cve already created]
+00c9c9628b49 drbd: add missing kref_get in handle_write_conflicts [auto: cve already created]
+e841ecb13933 fs/ntfs3: Add sanity check for file name [auto: cve already created]
+3cb4f1879724 ACPI: APEI: send SIGBUS to current task if synchronous memory error not recovered
+877d4218fd99 remoteproc: imx_rproc: skip clock enable when M-core is managed by the SCU
+7cdb433bb44c ARM: rockchip: fix kernel hang during smp initialization
+398e67e0f5ae ARM: tegra: Use I/O memcpy to write to IRAM
+2d91cb261cac ASoC: core: Check for rtd == NULL in snd_soc_remove_pcm_runtime() [auto: cve already created]
+a409c60111e6 ALSA: hda/ca0132: Fix buffer overflow in add_tuning_control
+4a2bf707270f wifi: ath12k: Correct tid cleanup when tid setup fails
+d524d40e3a61 drm/amd/pm: fix null pointer access [auto: cve already created]
+90c09d57caec rcu: Protect ->defer_qs_iw_pending from data race
+6279846b9b25 bpf: Forget ranges when refining tnum after JSET
+1bba3900ca18 rcu/nocb: Fix possible invalid rdp's->nocb_cb_kthread pointer access [auto: cve already created]
+1c8c354098ea drm/msm: Add error handling for krealloc in metadata setup
+158b9201c17f drm/amd/display: add null check
+c256a94d1b1b wifi: ath10k: shutdown driver when hardware is unreliable
+8d71351d88e4 rcutorture: Fix rcutorture_one_extend_check() splat in RT kernels
+7c0884fcd2dd wifi: ath12k: Decrement TID on RX peer frag setup error handling
+6bd90e700b42 drm/xe: Make dma-fences compliant with the safe access rules [auto: cve already created]
+b41642c87716 rcu: Fix rcu_read_unlock() deadloop due to IRQ work
+523b84dc7cce fbdev: fix potential buffer overflow in do_register_framebuffer() [auto: cve already created]
+099b847ccc6c ext4: do not BUG when INLINE_DATA_FL lacks system.data xattr [auto: cve already created]
+3ea3a256ed81 scsi: libiscsi: Initialize iscsi_conn->dd_data only if memory is allocated [auto: cve already created]
+add4c4850363 scsi: bfa: Double-free fix [auto: cve already created]
+2d91b3765cd0 jfs: truncate good inode pages when hard link is 0
+2d04df811642 jfs: Regular file corruption check [auto: cve already created]
+c214006856ff jfs: upper bound check of tree index in dbAllocAG [auto: cve already created]
+e9f4a6b3421e MIPS: Don't crash in stack_top() for tasks without ABI or vDSO [auto: cve already created]
+59f7d2138591 RDMA: hfi1: fix possible divide-by-zero in find_hw_thread_mask()
+6698796282e8 scsi: lpfc: Check for hdwq null ptr when cleaning up lpfc_vport structure [auto: cve already created]
+ce5cac69b2ed media: dvb-frontends: dib7090p: fix null-ptr-deref in dib7090p_rw_on_apb() [auto: cve already created]
+ed0234c8458b media: dvb-frontends: w7090p: fix null-ptr-deref in w7090p_tuner_write_serpar and w7090p_tuner_read_serpar [auto: cve already created]
+99f9a97dce39 exfat: add cluster chain loop check for dir [auto: cve already created]
+9768797c2193 pNFS: Fix uninited ptr deref in block/scsi layout [auto: cve already created]
+9d7a1cbebbb6 drm/xe/migrate: prevent infinite recursion [auto: cve already created]
+4126cb327a2e drm/xe/migrate: don't overflow max copy size
+145832fbdd17 drm/xe/migrate: prevent potential UAF
+31cd31c9e17e x86/fpu: Fix NULL dereference in avx512_status() [auto: cve already created]
+f7fa8520f303 iommu/arm-smmu-qcom: Add SM6115 MDSS compatible
+b42497e3c0e7 iommufd: Prevent ALIGN() overflow [auto: cve already created]
+cf16f408364e usb: core: config: Prevent OOB read in SS endpoint companion parsing
+35b6fc51c666 comedi: fix race between polling and detaching [auto: cve already created]
+e12496677503 btrfs: qgroup: fix race between quota disable and quota rescan ioctl
+4289b494ac55 btrfs: do not allow relocation of partially dropped subvolumes
+aba6faec0103 userfaultfd: fix a crash in UFFDIO_MOVE when PMD is a migration entry [auto: cve already created]
+af0db3c1f898 fbdev: Fix vmalloc out-of-bounds write in fast_imageblit [auto: cve already created]
+87c6efc5ce9c net/sched: ets: use old 'nbands' while purging unused classes [auto: cve already created]
+33caa208dba6 hv_netvsc: Fix panic during namespace deletion with VF [auto: cve already created]
+1c24e5fc0c70 i2c: core: Fix double-free of fwnode in i2c_unregister_device() [auto: cve already created]
+59305202c67f mm/ptdump: take the memory hotplug lock inside ptdump_walk_pgd() [auto: cve already created]
+d1534ae23c2b mm/kmemleak: avoid soft lockup in __kmemleak_do_cleanup()
+47b0f6d8f0d2 mm/kmemleak: avoid deadlock by moving pr_warn() outside kmemleak_lock
+782b6a718651 media: uvcvideo: Fix 1-byte out-of-bounds read in uvc_parse_format() [auto: cve already created]
+06d6770ff0d8 media: venus: Fix OOB read due to missing payload bound check [auto: cve already created]
+c18646248fed RDMA/siw: Fix the sendmsg byte count in siw_tcp_sendpages
+61399e0c5410 rcu: Fix racy re-initialization of irq_work causing hangs
+675f94057635 dm: split write BIOs on zone boundaries when zone append is not emulated
