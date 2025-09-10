@@ -1,0 +1,98 @@
+7f8fdd4dbffc serial: 8250: fix panic due to PSLVERR [auto: cve already created]
+4a26df233266 cpufreq: armada-8k: Fix off by one in armada_8k_cpufreq_free_table()
+e549663849e5 dm: dm-crypt: Do not partially accept write BIOs with zoned targets
+5bd398e20f08 bus: mhi: host: Detect events pointing to unexpected TREs
+a3de58b12ce0 netfs: Fix unbuffered write error handling [auto: cve already created]
+5ffc47feddcf crypto: caam - Prevent crash on suspend with iMX8QM / iMX8ULP [auto: cve already created]
+3d4df408ba9b crypto: qat - flush misc workqueue during device shutdown [auto: cve already created]
+3d9eb180fbe8 crypto: x86/aegis - Add missing error checks
+89bb430f6211 ksmbd: fix refcount leak causing resource not released [auto: cve already created]
+5c4b93f4c8e5 btrfs: zoned: fix write time activation failure for metadata block group
+5b9f1ef29342 scsi: ufs: exynos: Fix programming of HCI_UTRL_NEXUS_TYPE
+9f9967fed9d0 soc: qcom: mdt_loader: Ensure we don't read past the ELF header
+399b883ec828 iio: imu: bno055: fix OOB access of hw_xlate array [auto: cve already created]
+0eb8d7b25397 iio: adc: ad7173: fix channels index for syscalib_mode
+9989e0ca7462 PCI: Fix link speed calculation on retrain failure
+d79123d79a81 PCI: endpoint: Fix configfs group list head handling
+0dab92484474 vsock/virtio: Validate length in packet header before skb_put() [auto: cve already created]
+77de19b6867f f2fs: fix to avoid out-of-boundary access in dnode page [auto: cve already created]
+9d98cf463225 jbd2: prevent softlockup in jbd2_log_do_checkpoint()
+9308366f0621 open_tree_attr: do not allow id-mapping changes without OPEN_TREE_CLONE [auto: cve already created]
+4eab1c27ce1f parisc: Drop WARN_ON_ONCE() from flush_cache_vmap
+89f686a0fb6e parisc: Revise __get_user() to probe user read access [auto: cve already created]
+f6334f4ae9a4 parisc: Revise gateway LWS calls to probe user read access [auto: cve already created]
+7e40e0bb7789 media: usbtv: Lock resolution while streaming [auto: cve already created]
+7af160aea26c media: rainshadow-cec: fix TOCTOU race condition in rain_interrupt() [auto: cve already created]
+298d1471cf83 media: mt9m114: Fix deadlock in get_frame_interval/set_frame_interval [auto: cve already created]
+0c92c49fc688 media: ivsc: Fix crash at shutdown due to missing mei_cldev_disable() calls [auto: cve already created]
+49befc830daa media: venus: Add a check for packet size after reading from shared memory [auto: cve already created]
+3200144a2fa4 media: venus: protect against spurious interrupts during probe [auto: cve already created]
+0f837559ccdd media: iris: Fix NULL pointer dereference [auto: cve already created]
+b4a69f7f29c8 drm/amdgpu: check if hubbub is NULL in debugfs/amdgpu_dm_capabilities [auto: cve already created]
+2e58401a24e7 drm/amdkfd: Destroy KFD debugfs after destroy KFD wq [auto: cve already created]
+1bcf63a44381 drm/amd/display: fix a Null pointer dereference vulnerability [auto: cve already created]
+5c68549c81bc LoongArch: KVM: Fix stack protector issue in send_ipi_data() [auto: cve already created]
+7af76e9d18a9 net, hsr: reject HSR frame if skb can't hold tag [auto: cve already created]
+ddf7233fcab6 sched/ext: Fix invalid task state transitions on class switch
+a458b2902115 ipv6: sr: Fix MAC comparison to be constant-time [auto: cve already created]
+8151320c747e ACPI: pfr_update: Fix the driver update version check [auto: cve already created]
+7e6c3130690a mm/damon/ops-common: ignore migration request to invalid nodes [auto: cve already created]
+33e8f24b52d2 btrfs: abort transaction on unexpected eb generation at btrfs_copy_root()
+b1511360c8ac btrfs: subpage: keep TOWRITE tag until folio is cleaned
+962ddc5a7a4b crypto: acomp - Fix CFI failure due to type punning
+99d4d1a07087 iommu/riscv: prevent NULL deref in iova_to_phys [auto: cve already created]
+508c1314b342 io_uring/futex: ensure io_futex_wait() cleans up properly on failure [auto: cve already created]
+99d7ab8db9d8 memstick: Fix deadlock by moving removing flag earlier
+76d2e3890fb1 NFS: Fix a race when updating an existing write [auto: cve already created]
+dde30854bddf mm/debug_vm_pgtable: clear page table entries at destroy_args()
+772e5b4a5e83 mm/mremap: fix WARN with uffd that has remap events disabled
+3f4422e7c943 ALSA: hda: tas2781: Fix wrong reference of tasdevice_priv [auto: cve already created]
+3c3e9a9f2972 RDMA/rxe: Flush delayed SKBs while releasing RXE resources [auto: cve already created]
+430fa71027b6 s390/sclp: Fix SCCB present check [auto: cve already created]
+07b93a5704b0 drm/amd/display: Avoid a NULL pointer dereference [auto: cve already created]
+bac7b996d42e smb: server: split ksmbd_rdma_stop_listening() out of ksmbd_rdma_destroy() [auto: cve already created]
+7375f22495e7 fs/buffer: fix use-after-free when call bh_read() helper [auto: cve already created]
+4e5b705cc614 iio: accel: sca3300: fix uninitialized iio scan data [auto: cve already created]
+bfb336cf97df ftrace: Also allocate and copy hash for reading of filter files [auto: cve already created]
+433b99e92294 iio: light: as73211: Ensure buffer holes are zeroed [auto: cve already created]
+c69e13965f26 iio: adc: rzg2l_adc: Set driver data before enabling runtime PM
+7afba9221f70 comedi: Make insn_rw_emulate_bits() do insn->n samples [auto: cve already created]
+96cb948408b3 comedi: pcl726: Prevent invalid irq number [auto: cve already created]
+3cd212e895ca comedi: Fix use of uninitialized memory in do_insn_ioctl() and do_insnlist_ioctl() [auto: cve already created]
+45eae113dcca usb: dwc3: Remove WARN_ON for device endpoint command timeouts
+6a909ea83f22 tracing: Limit access to parser->buffer when trace_get_user failed [auto: cve already created]
+62708b9452f8 tls: fix handling of zero-length records on the rx_list [auto: cve already created]
+d8df126349da x86/cpu/hygon: Add missing resctrl_cpu_detect() in bsp_init helper [auto: cve already created]
+57f312b95593 i2c: rtl9300: Fix out-of-bounds bug in rtl9300_i2c_smbus_xfer [auto: cve already created]
+bb8aeaa3191b drm/nouveau/nvif: Fix potential memory leak in nvif_vmm_ctor(). [auto: cve already created]
+65f97cc81b0a cgroup/cpuset: Use static_branch_enable_cpuslocked() on cpusets_insane_config_key
+2c78fb287e1f platform/x86/amd/hsmp: Ensure sock->metric_tbl_addr is non-NULL [auto: cve already created]
+d1547bf460ba net: bridge: fix soft lockup in br_multicast_query_expired()
+52bf272636bd net/sched: Fix backlog accounting in qdisc_dequeue_internal [auto: cve already created]
+9dcf111dd3e7 scsi: qla4xxx: Prevent a potential error pointer dereference [auto: cve already created]
+8503d0fcb108 iommu/amd: Avoid stack buffer overflow from kernel cmdline [auto: cve already created]
+8bed4ec42a4e drm/hisilicon/hibmc: fix irq_request()'s irq name variable is local
+93a08f856fcc drm/hisilicon/hibmc: fix the hibmc loaded failed bug
+447be50598c0 regulator: pca9450: Use devm_register_sys_off_handler
+7a2ca2ea64b1 drm/amd/display: Add null pointer check in mod_hdcp_hdcp1_create_session() [auto: cve already created]
+864e3396976e net: gso: Forbid IPv6 TSO with extensions on devices with only IPV6_CSUM
+4611d88a37cf bnxt_en: Fix lockdep warning during rmmod
+eabcac808ca3 scsi: ufs: core: Fix IRQ lock inversion for the SCSI host lock
+e5203d89d59b scsi: ufs: core: Remove WARN_ON_ONCE() call from ufshcd_uic_cmd_compl()
+6300d5c54387 scsi: ufs: ufs-qcom: Fix ESI null pointer dereference [auto: cve already created]
+0417adf367a0 ppp: fix race conditions in ppp_fill_forward_path [auto: cve already created]
+453a6d2a68e5 cifs: Fix oops due to uninitialised variable [auto: cve already created]
+24ef2f53c07f net: usb: asix_devices: Fix PHY address mask in MDIO bus initialization [auto: cve already created]
+75a9a46d67f4 gve: prevent ethtool ops after shutdown [auto: cve already created]
+d9cef55ed491 net/smc: fix UAF on smcsk after smc_listen_out() [auto: cve already created]
+4a842b1bf18a net/mlx5: HWS, fix complex rules rehash error flow
+63dbd8fb2af3 LoongArch: Optimize module load time by optimizing PLT/GOT counting
+93f616ff870a s390/mm: Do not map lowcore with identity mapping [auto: cve already created]
+15de71d06a40 net/sched: Make cake_enqueue return NET_XMIT_CN when past buffer_limit
+5003a65790ed ALSA: timer: fix ida_free call while not allocated
+f5a6604f7a44 block: fix lockdep warning caused by lock dependency in elv_iosched_store
+04225d13aef1 block: fix potential deadlock while running nr_hw_queue update
+370ac285f23a block: avoid cpu_hotplug_lock depedency on freeze_lock
+91a79b792204 netfilter: nf_reject: don't leak dst refcount for loopback packets [auto: cve already created]
+111fb43a5577 drm/xe: Fix vm_bind_ioctl double free bug [auto: cve already created]
+19272b37aa4f Linux 6.16-rc1 [auto: cve already created]
