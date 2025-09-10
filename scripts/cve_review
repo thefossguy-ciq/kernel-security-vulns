@@ -219,6 +219,7 @@ underflow|\
 uninitial[a-z]*|\
 vuln[a-z]*|\
 BUG:|\
+BUG_ON|\
 KSPP|\
 WARN[A-Z]*\
 "
