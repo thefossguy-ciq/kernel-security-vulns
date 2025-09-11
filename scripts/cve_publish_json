@@ -70,7 +70,7 @@ for file in ${files}; do
 	cve=$(echo "${file}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${file}" | cut -f 1 -d '.' )
 	sha_file="${root}.sha1"
-	sha=$(cat "${sha_file}")
+	sha=$(cat "${sha_file}" | head -n 1)
 	#echo "file=${file} cve=${cve} sha_file=${sha_file} sha=${sha}"
 	#echo "sha=${sha} cve=${cve}"
 
