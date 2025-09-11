@@ -508,6 +508,14 @@ impl CVEClassifier {
     pub fn construct_prompt(commit_text: &str, similar_commits: &[(String, bool)], fixes_context: Option<&str>) -> String {
         // Template for the prompt
         let prompt_template = r#"You are a security expert analyzing kernel commits to determine if they should be assigned a CVE.
+
+IMPORTANT INSTRUCTIONS:
+- You MUST conduct a deep, thorough, and complete research of this commit and its security implications
+- You should use ANY and ALL agents available to you for comprehensive research and analysis
+- Leverage all specialized agents to gather information about security patterns, vulnerability types, and historical context
+- The Linux kernel source code is available at the path specified in environment variable $CVEKERNELTREE - use this for reference and deeper analysis when needed
+- Do not make superficial assessments - every decision must be backed by thorough investigation
+
 Analyze both the commit message and the code changes carefully to identify security implications.
 
 Consider:
@@ -535,8 +543,15 @@ Commits with similar characteristics to those marked with "CVE Status: YES" are 
 New Commit to analyze:
 {commit_info}
 
-Based on your analysis of both the commit message AND code changes, should this commit be assigned a CVE?
-Provide your answer as YES or NO, followed by a brief explanation that references specific parts of the code changes."#;
+RESEARCH REQUIREMENTS:
+- Use available agents to perform deep analysis of the code changes
+- Research the subsystem and component being modified in the Linux kernel at $CVEKERNELTREE
+- Investigate the history and context of the affected code
+- Analyze the potential attack vectors and exploitation scenarios
+- Consider the broader security implications beyond the immediate fix
+
+Based on your THOROUGH and COMPLETE analysis of both the commit message AND code changes, should this commit be assigned a CVE?
+Provide your answer as YES or NO, followed by a comprehensive explanation that references specific parts of the code changes and your research findings."#;
 
         // Format the context from similar commits
         let mut context_parts = Vec::new();
