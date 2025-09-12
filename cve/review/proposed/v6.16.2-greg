@@ -82,3 +82,11 @@ b41642c87716 rcu: Fix rcu_read_unlock() deadloop due to IRQ work
 523b84dc7cce fbdev: fix potential buffer overflow in do_register_framebuffer()
 99f9a97dce39 exfat: add cluster chain loop check for dir
 1773f63d108b f2fs: handle nat.blkaddr corruption in f2fs_get_node_info()
+2df7168717b7 dm: Always split write BIOs to zoned device limits
+33503c083fda io_uring/memmap: cast nr_pages to size_t before shifting
+398e67e0f5ae ARM: tegra: Use I/O memcpy to write to IRAM
+448dfecc7ff8 block: avoid possible overflow for chunk_sectors check in blk_stack_limits()
+53898ebabe84 net: lapbether: ignore ops-locked netdevs
+94f39804d891 xfrm: Duplicate SPI Handling
+b01f21cacde9 NFS: Fix the setting of capabilities when automounting a new filesystem
+d405ec23df13 ACPI: processor: perflib: Move problematic pr->performance check
