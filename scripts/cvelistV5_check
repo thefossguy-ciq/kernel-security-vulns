@@ -71,16 +71,27 @@ done < ${FILE}
 pushd ${CVELISTV5}> /dev/null
 
 for s in ${SHAS[@]}; do
-	echo -n "${txtblu}Checking id: ${txtcyn}${s}${txtrst}... "
+	echo -n "${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
 	result=$(${DIR}/cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
 	if [[ "${result}" != "" ]]; then
 		echo "${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
 		continue
 	fi
-	result=$(git grep "${s}")
+	result=$(git grep -l "${s}")
 	if [[ "${result}" != "" ]] ; then
-		echo "${txtred}warning${txtrst}: was found in cvelistV5:"
-		echo "	${result}"
+		# found in file, BUT if this is one of our CVE ids, then it is
+		# probably just fine as it would be a "vulnerable" entry, not
+		# the fix, so check for that:
+		assigner=$(grep "assignerShortName" ${result})
+		#echo "assigner='${assigner}'"
+		if [[ "${assigner}" == "        \"assignerShortName\": \"Linux\"," ]]; then
+			echo "${txtgrn}found in${txtrst} ${txtcyn}${result}${txtrst} ${txtgrn}which is one of ours.${txtrst}"
+			continue
+		fi
+		#echo "${txtred}warning${txtrst}: was found in cvelistV5:"
+		#echo "	${result}"
+		echo "${txtred}warning${txtrst}: was found in ${txtcyn}${result}${txtrst}"
+		#echo "	${result}"
 	else
 		echo "${txtgrn}all good.${txtrst}"
 	fi
