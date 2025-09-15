@@ -87,3 +87,8 @@ ba60a1e8cbbd RDMA/bnxt_re: Fix a possible memory leak in the driver
 4a842b1bf18a net/mlx5: HWS, fix complex rules rehash error flow
 93f616ff870a s390/mm: Do not map lowcore with identity mapping
 15de71d06a40 net/sched: Make cake_enqueue return NET_XMIT_CN when past buffer_limit
+33e8f24b52d2 btrfs: abort transaction on unexpected eb generation at btrfs_copy_root()
+45eae113dcca usb: dwc3: Remove WARN_ON for device endpoint command timeouts
+52c3e242f4d0 lib/crypto: arm/poly1305: Fix register corruption in no-SIMD contexts
+e5203d89d59b scsi: ufs: core: Remove WARN_ON_ONCE() call from ufshcd_uic_cmd_compl()
+eec76ea5a721 lib/crypto: arm64/poly1305: Fix register corruption in no-SIMD contexts
