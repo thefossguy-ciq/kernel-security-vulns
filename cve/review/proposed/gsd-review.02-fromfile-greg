@@ -1,0 +1,55 @@
+15e4dabda11b kcm: annotate data-races around kcm->rx_psock
+160fe8f6fdb1 btrfs: add handling for RAID1C23/DUP to btrfs_reduce_alloc_profile
+16194958f888 drm/msm/dp: fix bridge lifetime
+162d053e15fe btrfs: do not BUG_ON() on ENOMEM when dropping extent items for a range
+1634b7adcc5b media: pci: tw68: Fix null-ptr-deref bug in buf prepare and finish
+16a03958618f wifi: libertas: fix memory leak in lbs_init_adapter()
+16bbdfe5fb0e io_uring/msg_ring: Fix NULL pointer dereference in io_msg_send_fd()
+16c546e148fa UM: cpuinfo: Fix a warning for CONFIG_CPUMASK_OFFSTACK
+16ef02bad239 wifi: ath9k: verify the expected usb_endpoints are present
+16f14551d0df slimbus: qcom-ngd: cleanup in probe error path
+1727fd5015d8 md: Replace snprintf with scnprintf
+1742e1c90c3d btrfs: fix extent map use-after-free when handling missing device in read_one_chunk
+175544ad48cb scsi: storvsc: Fix handling of virtual Fibre Channel timeouts
+179a88a8558b cifs: fix DFS traversal oops without CONFIG_CIFS_DFS_UPCALL
+17b17fcd6d44 btrfs: set_page_extent_mapped after read_folio in btrfs_cont_expand
+184233a52027 iommu/omap: Fix buffer overflow in debugfs
+187916e6ed9d drm/amdgpu: install stub fence into potential unused fence pointers
+188d070de913 clk: imx: clk-imx8mn: fix memory leak in imx8mn_clocks_probe
+18e126e97c96 firmware: dmi-sysfs: Fix null-ptr-deref in dmi_sysfs_register_handle
+18ebd35b61b4 lockd: set other missing fields when unlocking files
+1902f1953b8b wifi: iwlwifi: pcie: fix NULL pointer dereference in iwl_pcie_irq_rx_msix_handler()
+195ef75e1928 Bluetooth: use RCU for hci_conn_params and iterate safely in hci_sync
+197d3143520f HID: nvidia-shield: Reference hid_device devm allocation of input_dev name
+198102c9103f cacheinfo: Fix shared_cpu_map to handle shared caches at different levels
+1995f15590ca firmware: stratix10-svc: Fix a potential resource leak in svc_create_memory_pool()
+19b8766459c4 firmware: arm_ffa: Fix FFA device names for logical partitions
+19e4a47ee747 wifi: mac80211: check S1G action frame size
+1a4bcdbea431 drm/amd/display: Fix possible underflow for displays with large vblank
+1a726cb47fd2 VMCI: check context->notify_page after call to get_user_pages_fast() to avoid GPF
+1a73f5b8f079 ovl: fix null pointer dereference in ovl_permission()
+1a799c4c190e drm/amdkfd: Fix double release compute pasid
+1a9e02673e25 coresight: Fix memory leak in acpi_buffer->pointer
+1aa161e43106 f2fs: fix scheduling while atomic in decompression path
+1aadf01e5076 mtd: core: fix possible resource leak in init_mtd()
+1b254b791d7b drm/nouveau/disp: fix use-after-free in error handling of nouveau_connector_create
+1b280598ab3b clk: imx: clk-imxrt1050: fix memory leak in imxrt1050_clocks_probe
+1b41beaa7a58 ASoC: sof_es8336: fix possible use-after-free in sof_es8336_remove()
+1b42b1a36fc9 ubi: ensure that VID header offset + VID header size <= alloc, size
+1b45cc5c7b92 ext4: fix potential out of bound read in ext4_fc_replay_scan()
+1b561d3949f8 arm64: acpi: Fix possible memory leak of ffh_ctxt
+1b6074112742 s390/cio: fix out-of-bounds access on cio_ignore free
+1bea534991b9 driver: soc: xilinx: fix memory leak in xlnx_add_cb_for_notify_event()
+1bf5ee979076 ASoC: qcom: Add checks for devm_kcalloc
+1c34890273a0 ASoC: fsl_mqs: move of_node_put() to the correct location
+1c78f19c3a0e media: xilinx: vipp: Fix refcount leak in xvip_graph_dma_init
+1ca695207ed2 ip6mr: fix UAF issue in ip6mr_sk_done() when addrconf_init_net() failed
+1d09697ff229 cxl: Fix refcount leak in cxl_calc_capp_routing
+1d1665279a84 block: ublk: make sure that block size is set correctly
+1d5859ef229e drivers: serial: jsm: fix some leaks in probe
+1dd73601a1cb erofs: fix order >= MAX_ORDER warning due to crafted negative i_size
+1de7c3cf48fc nbd: Fix hung when signal interrupts nbd_start_device_ioctl()
+1dedde690303 ext4: fix i_disksize exceeding i_size problem in paritally written case
+1e41e693f458 ata: ahci: Match EM_MAX_SLOTS with SATA_PMP_MAX_PORTS
+1e591ea072df ubi: Fix unreferenced object reported by kmemleak in ubi_resize_volume()
+1e9cb763e9ba net: ena: fix shift-out-of-bounds in exponential backoff
