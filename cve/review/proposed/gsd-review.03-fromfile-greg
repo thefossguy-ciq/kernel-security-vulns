@@ -1,0 +1,56 @@
+1eb65c868731 Drivers: vmbus: Check for channel allocation before looking up relids
+1eb8d61ac5c9 clk: mediatek: mt8183: Add back SSPM related clocks
+1f2c0e8a587b orangefs: Fix kmemleak in orangefs_sysfs_init()
+1f4a08fed450 ALSA: hda: fix a possible null-pointer dereference due to data race in snd_hdac_regmap_sync()
+1fb815b38bb3 ubifs: Free memory for tmpfile name
+1fdeb8b9f29d wifi: iwl3945: Add missing check for create_singlethread_workqueue
+1ff673333d46 drm/bridge: megachips: Fix a null pointer dereference bug
+1ff9dd6e7071 perf/x86/intel/uncore: Fix reference count leak in hswep_has_limit_sbox()
+203a55f04f66 ubifs: Fix memory leak in ubifs_sysfs_init()
+209cdbd07cfa misc: vmw_balloon: fix memory leak with using debugfs_lookup()
+20ee8c223f79 coresight: trbe: remove cpuhp instance node before remove cpuhp state
+20fce500b232 scsi: qla2xxx: Remove unused nvme_ls_waitq wait queue
+211391bf04b3 ACPI: tables: FPDT: Don't call acpi_os_map_memory() on invalid phys address
+212fde3fe76e wifi: brcmfmac: fix potential memory leak in brcmf_netdev_start_xmit()
+215792eda008 drivers: staging: rtl8723bs: Fix locking in _rtw_join_timeout_handler()
+21681b81b9ae scsi: lpfc: Fix use-after-free KFENCE violation during sysfs firmware write
+21a235bce123 xen/virtio: Fix NULL deref when a bridge of PCI root bus has no parent
+21b8a1dd56a1 rtc: msc313: Fix function prototype mismatch in msc313_rtc_probe()
+21e9a838f505 drm/msm/dpu: check for null return of devm_kzalloc() in dpu_writeback_init()
+2220eaf90992 ext4: add bounds checking in get_max_inline_xattr_value_size()
+22664c06e997 RDMA/mlx5: Return the firmware result upon destroying QP/RQ
+228ebc41dfab net: do not sense pfmemalloc status in skb_append_pagefrags()
+2319b9c87fe2 usb: cdns3: Put the cdns set active part outside the spin lock
+2329cc7a101a drm/client: Fix memory leak in drm_client_modeset_probe
+2371adeab717 media: bdisp: Add missing check for create_workqueue
+238ec850b95a x86/srso: Fix return thunks in generated code
+2399401feee2 mtd: maps: pxa2xx-flash: fix memory leak in probe
+23acb14af191 samples/bpf: Fix fout leak in hbm's run_bpf_prog
+23ae34e033b2 ASoC: Intel: avs: Fix potential RX buffer overflow
+23bc5eb55f8c media: airspy: fix memory leak in airspy probe
+23fc8df26dea rcu/rcuscale: Stop kfree_scale_thread thread(s) after unloading rcuscale
+2437513a814b ACPI: processor: idle: Check acpi_fetch_acpi_dev() return value
+243d1a5d505d jbd2: fix potential use-after-free in jbd2_fc_wait_bufs
+245165658e1c blk-mq: fix NULL dereference on q->elevator in blk_mq_elv_switch_none
+246cf66e300b block, bfq: fix uaf for bfqq in bfq_exit_icq_bfqq
+2526d6bf27d1 crypto: cavium - prevent integer overflow loading firmware
+253cf30e8d3d Bluetooth: btrtl: check for NULL in btrtl_set_quirks()
+254e69f284d7 fs/ntfs3: Fix null-ptr-deref on inode->i_op in ntfs_lookup()
+256fe4162f8b udf: Do not update file length for failed writes to inline files
+2584024b2355 sctp: check send stream number after wait_for_sndbuf
+258ad2fe5ede wwan_hwsim: fix possible memory leak in wwan_hwsim_dev_new()
+25a6688f27ff video/aperture: Call sysfb_disable() before removing PCI devices
+25a9c8a4431c netlink: Add __sock_i_ino() for __netlink_diag_dump().
+25e70c6162f2 fs: jfs: fix shift-out-of-bounds in dbDiscardAG
+25e97f7b1866 Bluetooth: L2CAP: fix "bad unlock balance" in l2cap_disconnect_rsp
+25ff6f8a5a3b nfc: fix memory leak of se_io context in nfc_genl_se_io
+26208a7cffd0 md/raid10: fix leak of 'r10bio->remaining' for recovery
+26215b7ee923 hugetlbfs: fix null-ptr-deref in hugetlbfs_parse_param()
+26273ade77f5 9p: set req refcount to zero to avoid uninitialized usage
+2649c1a20e8e media: hi846: Fix memleak in hi846_init_controls()
+267c159f9c7b f2fs: fix kernel crash due to null io->bio
+2681631c2973 fs/ntfs3: Add null pointer check to attr_load_runs_vcn
+26e6775f7551 wifi: iwl4965: Add missing check for create_singlethread_workqueue()
+27158c72678b ocxl: fix pci device refcount leak when calling get_function_0()
+27a594bc7a7c binder: fix UAF of alloc->vma in race with munmap()
+281f65d29d6d net: microchip: vcap api: Fix possible memory leak for vcap_dup_rule()
