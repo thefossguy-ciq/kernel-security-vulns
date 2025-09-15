@@ -72,9 +72,14 @@ pushd ${CVELISTV5}> /dev/null
 
 for s in ${SHAS[@]}; do
 	echo -n "${txtblu}Checking id: ${txtcyn}${s}${txtrst}... "
+	result=$(${DIR}/cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
+	if [[ "${result}" != "" ]]; then
+		echo "${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
+		continue
+	fi
 	result=$(git grep "${s}")
 	if [[ "${result}" != "" ]] ; then
-		echo "${txtred}Warning${txtrst}: id ${txtcyn}${s}${txtrst} was found in cvelistV5:"
+		echo "${txtred}warning${txtrst}: was found in cvelistV5:"
 		echo "	${result}"
 	else
 		echo "${txtgrn}all good.${txtrst}"
