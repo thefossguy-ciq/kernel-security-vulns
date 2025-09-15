@@ -1,0 +1,71 @@
+00374d9b6d9f xfrm: add NULL check in xfrm_update_ae_params
+004d25060c78 igb: Fix igb_down hung on surprise removal
+0091bfc81741 io_uring/af_unix: defer registered files gc to io_uring release
+00927931cb63 io_uring: fix fdinfo sqe offsets calculation
+00b4492686e0 NFSD: Protect against send buffer overflow in NFSv2 READDIR
+00d873c17e29 ext4: avoid deadlock in fs reclaim with page writeback
+00eca15319d9 scsi: qla2xxx: Pointer may be dereferenced
+00ef8885a945 iommu/mediatek: Fix crash on isr after kexec()
+01039fb8e90c cpufreq: qcom: fix writes in read-only memory region
+010444623e7f md/raid10: prevent soft lockup while flush writes
+013825015098 drm/amdgpu: fix calltrace warning in amddrm_buddy_fini
+015ac18be7de binder: fix UAF of alloc->vma in race with munmap()
+015b8cc5e7c4 wifi: cfg80211: Fix use after free for wext
+019805fea915 NFSD: fix use-after-free on source server when doing inter-server copy
+01de1123322e drivers: net: qlcnic: Fix potential memory leak in qlcnic_sriov_init()
+022152aaebe1 sctp: handle the error returned from sctp_auth_asoc_init_active_key
+0226635c304c fs/ntfs3: don't hold ni_lock when calling truncate_setsize()
+02298b7bae12 irqchip/ti-sci: Fix refcount leak in ti_sci_intr_irq_domain_probe
+028f6055c912 udf: Fix uninitialized array access for some pathnames
+029a443b9b64 power: supply: bq25890: Fix external_power_changed race
+02b0095e2fbb tracing: Fix null pointer dereference in tracing_err_log_open()
+02cd3032b154 cxl: fix possible null-ptr-deref in cxl_pci_init_afu|adapter()
+02d210f43424 usb: ucsi_acpi: Increase the command completion timeout
+02d7d89f8169 rapidio: fix possible UAF when kfifo_alloc() fails
+0384e87e3fec usb: typec: tcpci: fix of node refcount leak in tcpci_register_port()
+03a88b0bafbe usb: xhci-mtk: fix leakage of shared hcd when fail to set wakeup irq
+0424a7dfe912 x86/resctrl: Clear staged_config[] before and after it is used
+04499f28b40b net: dsa: Removed unneeded of_node_put in felix_parse_ports_node
+046eca5018f8 vfio/type1: prevent underflow of locked_vm via exec()
+0473cbae2137 wifi: iwlwifi: mvm: fix double free on tx path.
+04839139213c fsverity: reject FS_IOC_ENABLE_VERITY on mode 3 fds
+04a189c720aa tty: pcn_uart: fix memory leak with using debugfs_lookup()
+04b5b5cb0136 scsi: core: Fix possible memory leak if device_add() fails
+04bbe863241a PCI: hv: Fix a crash in hv_pci_restore_msi_msg() during hibernation
+04e82793f068 serial: 8250: Reinit port->pm on port specific driver unbind
+04fc06f6dc15 media: hi846: fix usage of pm_runtime_get_if_in_use()
+04fc7816089c mm: fix zswap writeback race condition
+050d91c03b28 netfilter: ipset: add the missing IP_SET_HASH_WITH_NET0 macro for ip_set_hash_netportnet.c
+05215fb32010 memory: of: Fix refcount leak bug in of_get_ddr_timings()
+054b5580a36e wifi: ath12k: Avoid NULL pointer access during management transmit cleanup
+0591b14ce039 regulator: core: fix use_count leakage when handling boot-on
+05abb3be91d8 dma-buf/dma-resv: Stop leaking on krealloc() failure
+05bb0167c80b ACPICA: Avoid undefined behavior: applying zero offset to null pointer
+05d7ce504545 btrfs: exit gracefully if reloc roots don't match
+05d881b85b48 arm64/sme: Set new vector length before reallocating
+0613ad2401f8 mmc: vub300: fix return value check of mmc_add_host()
+061b0cb9327b wifi: ath9k: don't allow to overwrite ENDPOINT0 attributes
+0646dc31ca88 skbuff: Fix a race between coalescing and releasing SKBs
+0657b20c5a76 btrfs: fix use-after-free of new block group that became unused
+0668716506ca igb: Do not free q_vector unless new one was allocated
+066b86787fa3 net: openvswitch: fix race on port output
+06a0716949c2 ipv6/addrconf: fix a potential refcount underflow for idev
+06bf62944144 vxlan: Fix memory leaks in error path
+071d068b89e9 irqchip/alpine-msi: Fix refcount leak in alpine_msix_init_domains
+0756384fb1bd vxlan: Fix nexthop hash size
+07ec7b502800 bpf: make sure skb->len != 0 when redirecting to a tunneling device
+080e0b740485 media: ov8865: Fix an error handling path in ov8865_probe()
+08c677cb0b43 drm/amdgpu: fix amdgpu_irq_put call trace in gmc_v10_0_hw_fini
+08e8cf5f2d9e fs/ntfs3: Add length check in indx_get_root
+08fc75735fda mlxsw: minimal: fix potential memory leak in mlxsw_m_linecards_init
+0934ae9977c2 tracing: Fix reading strings from synthetic events
+097fb3ee710d usb: dwc3: qcom: Fix potential memory leak
+09847723c12f drm/meson: remove drm bridges at aggregate driver unbind time
+0991028cd495 xen/gntdev: Prevent leaking grants
+0a06cadcc2a0 wifi: brcmfmac: Fix potential stack-out-of-bounds in brcmf_c_preinit_dcmds()
+0a182f8d6074 bpf, sockmap: fix race in sock_map_free()
+0a3f82c79c86 USB: uhci: fix memory leak with using debugfs_lookup()
+0a58d2ae572a drm/msm: Make .remove and .shutdown HW shutdown consistent
+0a78cf7264d2 raw: Fix NULL deref in raw_get_next().
+0aa2988e4fd2 brd: use radix_tree_maybe_preload instead of radix_tree_preload
+0ad811cc08a9 drm/sti: Fix return type of sti_{dvo,hda,hdmi}_connector_mode_valid()

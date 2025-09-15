@@ -1,0 +1,73 @@
+0af54343a762 wifi: ath9k: hif_usb: clean up skbs if ath9k_hif_usb_rx_stream() fails
+0af8c09c8968 netfilter: x_tables: fix percpu counter block leak on error path when creating new netns
+0af91306e17e RDMA/bnxt_re: wraparound mbox producer index
+0b6200e1e9f5 PM: domains: fix memory leak with using debugfs_lookup()
+0b6604626669 fs/ntfs3: Validate BOOT record_size
+0b7a04a30eef vdpasim: fix memory leak when freeing IOTLBs
+0b8ba891ad4d clk: socfpga: Fix memory leak in socfpga_gate_init()
+0b8e2d69467f wifi: mt76: mt7996: rely on mt76_connac2_mac_tx_rate_val
+0bc36c0650b2 af_unix: Fix data-races around user->unix_inflight.
+0bc380beb78a KVM: s390/diag: fix racy access of physical cpu number in diag 9c handler
+0bd66784274a hwmon: (pmbus_core) Fix NULL pointer dereference
+0c0cbd4ebc37 ublk: fail to recover device if queue setup is interrupted
+0c745b5141a4 kcm: annotate data-races around kcm->rx_wait
+0c76ef3f26d5 kprobes: Fix check for probe enabled in kill_kprobe()
+0c87db77423a mmc: rtsx_pci: fix return value check of mmc_add_host()
+0c94e2468491 KVM: nSVM: Load L1's TSC multiplier based on L1 state, not L2 state
+0ca18d09c744 mmc: moxart: fix return value check of mmc_add_host()
+0cc80943ef51 wifi: mac80211_hwsim: Fix possible NULL dereference
+0d0b368b9d10 drm/vkms: Fix memory leak in vkms_init()
+0d0bd28c5001 md/raid5-cache: fix null-ptr-deref for r5l_flush_stripe_to_raid()
+0d150f967e84 driver core: location: Free struct acpi_pld_info *pld before return false
+0d8f7cc80578 xenbus: check xen_domain in xenbus_probe_initcall
+0da40e018fd0 wifi: brcmfmac: slab-out-of-bounds read in brcmf_get_assoc_ies()
+0db18eec0d9a f2fs: fix the assign logic of iocb
+0dbbf0fb38d5 f2fs: fix to avoid potential memory corruption in __update_iostat_latency()
+0dd37d6dd33a sched/fair: Don't balance task to its current running CPU
+0e3f72931fc4 vhost/vsock: Use kvmalloc/kvfree for larger packets.
+0e68b5517d37 arm64: efi: Make efi_rt_lock a raw_spinlock
+0e96647cff92 nubus: Partially revert proc_create_single_data() conversion
+0eb362d25481 rxrpc: Make it so that a waiting process can be aborted
+0ed554fd769a media: dvb-usb: az6027: fix null-ptr-deref in az6027_i2c_xfer()
+0ef4ca04a3f9 f2fs: fix to do sanity check on destination blkaddr during recovery
+0f5bb36bf9b3 media: netup_unidvb: fix use-after-free at del_timer()
+0fc044b2b5e2 media: dvbdev: adopts refcnt to avoid UAF
+10276a20be11 drm/radeon: Add the missed acpi_put_table() to fix memory leak
+1047f9343011 media: az6007: Fix null-ptr-deref in az6007_i2c_xfer()
+104bb8a66345 power: supply: fix null pointer dereferencing in power_supply_get_battery_info
+105c78e12468 ext4: don't allow journal inode to have encrypt flag
+108598c39eef bpf: Fix memleak due to fentry attach failure
+110d7b0325c5 PNP: fix name memory leak in pnp_alloc_dev()
+11509910c599 jfs: jfs_dmap: Validate db_l2nbperpage while mounting
+115906ca7b53 drm/msm/dsi: Add missing check for alloc_ordered_workqueue
+117dbeda22ec wifi: rtlwifi: Fix global-out-of-bounds bug in _rtl8812ae_phy_set_txpower_limit()
+118901ad1f25 ext4: Fix function prototype mismatch for ext4_feat_ktype
+11933cf1d91d pnode: terminate at peers of source
+11951c9e3f36 spi: imx: Don't skip cleanup in remove's error path
+119585281617 wifi: mwifiex: Fix OOB and integer underflow when rx packets
+11bec9cba4de MIPS: SGI-IP27: Fix platform-device leak in bridge_platform_create()
+11fa7fefe3d8 chardev: fix error handling in cdev_device_add()
+122deabfe142 ubifs: dirty_cow_znode: Fix memleak in error handling path
+1253685f0d3e drm/amdgpu: drop redundant sched job cleanup when cs is aborted
+12b220a6171f wifi: mac80211: fix invalid drv_sta_pre_rcu_remove calls for non-uploaded sta
+12b58961de0b mtd: core: add missing of_node_get() in dynamic partitions code
+12b677f2c697 ipc: fix memory leak in init_mqueue_fs()
+12c30f33cc67 smb: client: fix warning in cifs_smb3_do_mount()
+12d0a24afd9e erofs: Fix detection of atomic context
+12db28c3ef31 mt76: mt7921: fix kernel panic by accessing unallocated eeprom.data
+12df140f0bdf mm,hugetlb: take hugetlb_lock before decrementing h->resv_huge_pages
+13085e1b5cab net/smc: fix deadlock triggered by cancel_delayed_work_syn()
+131294c35ed6 ext4: fix delayed allocation bug in ext4_clu_mapped for bigalloc + inline
+13721a2ac66b watchdog: Fix kmemleak in watchdog_cdev_register
+1382901f75a5 drm/i915/bios: fix a memory leak in generate_lfp_data_ptrs
+139a27854bf5 drm/tests: helpers: Avoid a driver uaf
+13a0d1ae7ee6 iommufd: Do not corrupt the pfn list when doing batch carry
+13a7c8964afc qlcnic: prevent ->dcb use-after-free on qlcnic_dcb_enable() failure
+13af556104fa drm/amdgpu: fix amdgpu_irq_put call trace in gmc_v11_0_hw_fini
+13b6269dd022 ocfs2: fix memory leak in ocfs2_stack_glue_init()
+13c088cf3657 phy: hisilicon: Fix an out of bounds check in hisi_inno_phy_probe()
+13e5afd3d773 wifi: mac80211: fix memory leak in ieee80211_if_add()
+13fcfcb2a9a4 drm/msm/mdp5: Add check for kzalloc
+1596dae2f17e xsk: check IFF_UP earlier in Tx path
+15a8b55dbb1b nfsd: call op_release, even when op_func returns an error
+15cc25829a97 thermal/drivers/hisi: Drop second sensor hi3660
