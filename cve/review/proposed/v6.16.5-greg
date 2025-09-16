@@ -27,3 +27,10 @@ d84291fc7453 smb: client: fix race with concurrent opens in rename(2)
 c81f6ce16785 of: dynamic: Fix memleak when of_pci_add_properties() failed
 4013aef2ced9 ftrace: Fix potential warning in trace_printk_seq during ftrace_dump
 2747328ba271 bnxt_en: Fix memory corruption when FW resources change during ifdown
+2c0a959bebdc net/mlx5: HWS, Fix memory leak in hws_pool_buddy_init error path
+6ede14a2c636 fbnic: Move phylink resume out of service_task and into open/close
+902a8bc23a24 net/mlx5: Fix lockdep assertion on sync reset unload event
+97766512a995 mISDN: hfcpci: Fix warning when deleting uninitialized timer
+a630f83592cd net/mlx5: HWS, Fix memory leak in hws_action_get_shared_stc_nic error flow
+ae668cd567a6 xfs: do not propagate ENODATA disk errors into xattr code
+c5e81e672699 efi: stmm: Fix incorrect buffer allocation method
