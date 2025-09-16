@@ -1,0 +1,117 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024, 2025 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+#
+# cve_return - Return a CVE id that we had reserved but never used
+#
+# Usage:
+#	cve_return [CVE_ENTRY]
+#
+
+KERNEL_TREE=${CVEKERNELTREE}
+
+if [ ! -d "${KERNEL_TREE}" ]; then
+       echo "CVEKERNELTREE needs setting to the stable repo directory"
+       echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+       echo "See HOWTO in the root of this repo"
+       exit 1
+fi
+
+# Colors are good!
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtylw=$(tput setaf 3)		# Yellow
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtylw=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
+
+# don't use unset variables
+set -o nounset
+
+# set where the tool was run from,
+# the name of our script,
+# and the git version of it
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+SCRIPT=${0##*/}
+SCRIPT_VERSION=$(cd "${DIR}" && git ls-tree --abbrev=12 HEAD | grep "${SCRIPT}" | awk '{print $3}')
+
+help() {
+	echo "${SCRIPT} [CVE_ENTRY]"
+	exit 1
+}
+
+CVE_ENTRY="${1:-}"
+if [[ "${CVE_ENTRY}" == "" ]] ; then
+	help
+fi
+
+
+year_from_cve()
+{
+	local cve=$1
+	local array=(${cve//-/ })
+	local year=${array[1]}
+	echo "${year}"
+}
+
+
+CVE_ROOT="${DIR}/../cve/"
+
+# make sure that this is even a valid CVE for us to handle
+f=$(find "${CVE_ROOT}/" -type f | grep "${CVE_ENTRY}")
+if [[ "${f}" == "" ]]; then
+	echo "${txtred}No CVE entry found for ${txtcyn}${CVE_ENTRY}${txtrst}, are you sure it is correct?"
+	exit 1
+fi
+
+year=$(year_from_cve "${CVE_ENTRY}")
+#echo "year=${year}"
+
+RETURNED_DIR="${CVE_ROOT}returned/${year}/"
+
+# find the files for a published CVE
+files=()
+f=$(find "${CVE_ROOT}/reserved" -type f | grep "${CVE_ENTRY}")
+if [[ "$f" != "" ]]; then
+	# found something, let's figure out if we have enough
+	for entry in ${f}; do
+		files+=(${entry})
+	done
+	#echo "files found = ${#files[@]}"
+	if [[ "${#files[@]}" != "1" ]]; then
+		echo "${txtred}The number of files found is ${txtcyn}${#files[@]}${txtrst}, when is should be only 1, what is going on?"
+		echo "${txtred}files are:${txtrst}"
+		for entry in "${files[@]}"; do
+			echo "	${txtcyn}${entry}${txtrst}"
+			done
+		echo "${txtred}Exiting, please fix up!${txtrst}"
+		exit 1
+	fi
+
+	# let's move all the files to the reserved directory for this year
+	mkdir "${RETURNED_DIR}" 2> /dev/null
+	for entry in "${files[@]}"; do
+		mv --force "${entry}" "${RETURNED_DIR}"
+	done
+
+else
+	echo "${txtred}FIXME!${txtrst}  ${txtcyn}${CVE_ENTRY}${txtrst} not found in the reserved area, is it somewhere else?"
+	echo "the file ${txtcyn}${f}${txtrst} seemed to match???"
+	exit 1
+fi
+
+echo "To reject the CVE with cve.org, please run:"
+echo "	${txtgrn}cve -o Linux reject ${CVE_ENTRY} -j '{\"rejectedReasons\": [{\"lang\": \"en\", \"value\": \"** REJECT ** DO NOT USE THIS CVE RECORD. ConsultIDs: none. Reason: This record was in a CNA pool that was not assigned to any issues during ${year}. Notes: none.\"}]}'${txtrst}"
+
+
+exit
