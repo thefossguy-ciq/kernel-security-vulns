@@ -1,6 +1,6 @@
 List of CVEs assigned to the Linux project.
 
-They are in one of 3 states, that map directly to the subdirectories here:
+They are in one of 4 states, that map directly to the subdirectories here:
 
 	- reserved
 		CVE identifer that we can use for a future issue as it has been
@@ -17,4 +17,11 @@ They are in one of 3 states, that map directly to the subdirectories here:
 	- rejected
 		CVE identifier that we have rejected.  The text in the
 		identifier should explain the reasons.
+	- returned
+		CVE identifier that was previously reserved, but never actually
+		used, so it was "rejected".  It can not be reused by any other
+		orginization, but does not count against our quota of
+		reserved-but-not-assigned cve ids.
 
+See the file "schema" for more details about these directories and the contents
+of the files in them.

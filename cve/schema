@@ -3,13 +3,14 @@ The "schema" of the files in this directory.
 We are treating this directory as a "database", as hey, what else is a
 filesystem but one?
 
-This directory contains 3 "root" directories:
+This directory contains a number of "important" directories:
+	- reserved
 	- published
 	- rejected
-	- reserved
+	- returned
 
-These 3 directories contain the CVE ids allocated to us that are in one of the
-three states.
+These directories contain the CVE ids allocated to us that are in one of the
+four states.
 
 
 Reserved
@@ -92,3 +93,18 @@ Rejected
 Ids become "rejected" when they are not deemed to be actual issues.  When
 rejected, any previously published information shall move to the rejected/
 directory, and the CVE will be submitted to cve.org to be rejected.
+
+
+Returned
+--------
+
+Ids become "returned" when they are given back to CVE.org.  They were
+previously reserved, but for one reason or another, were never used and so
+instead of having them count against our quota, and to confuse people as to
+why we have ids reserved that are not ever used, they were "returned" back
+to cve.org.
+
+Note, this is not a "real" state in the cve.org schema/database.  What
+happens here is that the ids are rejected, but with a special text saying
+that they were never used.  See the script, cve_return, for the details as
+to how to make this happen.
