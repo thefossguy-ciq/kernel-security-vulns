@@ -110,8 +110,7 @@ else
 	exit 1
 fi
 
-echo "To reject the CVE with cve.org, please run:"
-echo "	${txtgrn}cve -o Linux reject ${CVE_ENTRY} -j '{\"rejectedReasons\": [{\"lang\": \"en\", \"value\": \"** REJECT ** DO NOT USE THIS CVE RECORD. ConsultIDs: none. Reason: This record was in a CNA pool that was not assigned to any issues during ${year}. Notes: none.\"}]}'${txtrst}"
-
+#echo "To reject the CVE with cve.org, please run:"
+echo "${txtgrn}cve -o Linux reject ${CVE_ENTRY} -j '{\"rejectedReasons\": [{\"lang\": \"en\", \"value\": \"** REJECT ** DO NOT USE THIS CVE RECORD. ConsultIDs: none. Reason: This record was in a CNA pool that was not assigned to any issues during ${year}. Notes: none.\"}]}'${txtrst}"
 
 exit
