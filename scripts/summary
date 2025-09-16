@@ -12,14 +12,16 @@ DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 total_reserved=0
 total_assigned=0
 total_rejected=0
+total_returned=0
 total_sum=0
 
-printf " Year\tReserved\tAssigned\tRejected\t  A+R\t\tTotal\n"
+printf " Year\tReserved\tAssigned\tRejected\t  A+R\t\tReturned\tTotal\n"
 
 for year in {2010..2030}; do
 	reserved=0
 	assigned=0
 	rejected=0
+	returned=0
 	sum=0
 
 	d="${DIR}/../cve/reserved/${year}"
@@ -40,11 +42,17 @@ for year in {2010..2030}; do
 		total_rejected=$((total_rejected + rejected))
 	fi
 
-	sum=$((reserved + assigned + rejected))
+	d="${DIR}/../cve/returned/${year}"
+	if [[ -d "${d}" ]]; then
+		returned=$(find "${d}/" -type f | wc -l)
+		total_returned=$((total_returned + returned))
+	fi
+
+	sum=$((reserved + assigned + rejected + returned))
 	total_sum=$((total_sum + sum))
 	if [[ "${sum}" != "0" ]]; then
-		printf "  %d:\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "${year}" "${reserved}" "${assigned}" "${rejected}" "$((assigned + rejected))" "${sum}"
+		printf "  %d:\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "${year}" "${reserved}" "${assigned}" "${rejected}" "$((assigned + rejected))" "${returned}" "${sum}"
 	fi
 
 done
-printf " %s:\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "Total" "${total_reserved}" "${total_assigned}" "${total_rejected}" "$((total_assigned + total_rejected))" "${total_sum}"
+printf " %s:\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\t\t%5d\n" "Total" "${total_reserved}" "${total_assigned}" "${total_rejected}" "$((total_assigned + total_rejected))" "${total_returned}" "${total_sum}"
