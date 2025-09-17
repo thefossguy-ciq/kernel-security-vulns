@@ -1,0 +1,56 @@
+283861a4c52c RDMA/cxgb4: Fix potential null-ptr-deref in pass_establish()
+284be5693163 media: ipu-bridge: Fix null pointer deref on SSDB/PLD parsing warnings
+28a65b49eb53 nilfs2: do not write dirty data after degenerating to read-only
+29276d56f6ed mmc: wmt-sdmmc: fix return value check of mmc_add_host()
+29b22badb7a8 lwt: Fix return values of BPF xmit ops
+29d48b87db64 drm/amdkfd: Fix kfd_process_device_init_vm error handling
+29eefa6d0d07 btrfs: fix BUG_ON condition in btrfs_cancel_balance
+2a0a935fb64e net/mlx5: Collect command failures data only for known commands
+2a12187d5853 of/fdt: run soc memory setup when early_init_dt_scan_memory fails
+2a2db520e3ca staging: vt6655: fix some erroneous memory clean-up loops
+2a3fc78210b9 net: sched: sfb: fix null pointer access issue when sfb_init() fails
+2a735e4b5580 usb: dwc3: core: fix some leaks in probe
+2aa71b4b294e net: marvell: prestera: fix handling IPv4 routes with nhid
+2aaa8a15de73 icmp6: Fix null-ptr-deref of ip6_null_entry->rt6i_idev in icmp6_dev().
+2aca4f3734bd brcmfmac: return error when getting invalid max_flowrings from dongle
+2b064d91440b media: cx88: Fix a null-ptr-deref bug in buffer_prepare()
+2b4c99f7d9a5 can: bcm: bcm_tx_setup(): fix KMSAN uninit-value in vfs_write
+2b57f726611e drm/msm/dp: fix aux-bus EP lifetime
+2b5fdc0f5caa rxrpc: Fix potential data race in rxrpc_wait_to_be_connected()
+2b88974ecb35 wifi: wilc1000: add missing unregister_netdev() in wilc_netdev_ifc_init()
+2bb3669f5765 kernel/fail_function: fix memory leak with using debugfs_lookup()
+2be5bd42a5bb net/mlx5: Handle pairing of E-switch via uplink un/load APIs
+2cbb95883c99 dmaengine: hisilicon: Add multi-thread support for a DMA channel
+2d1f274b95c6 skmsg: pass gfp argument to alloc_sk_msg()
+2d47b79d2bd3 i2c: mux: reg: check return value after calling platform_get_resource()
+2d7afdcbc9d3 skbuff: Account for tail adjustment during pull operations
+2d82a40aa7d6 btrfs: fix deadlock when aborting transaction during relocation with scrub
+2d899592ed78 media: ov2740: Fix memleak in ov2740_init_controls()
+2d9354001438 powercap: intel_rapl: fix UBSAN shift-out-of-bounds issue
+2d956177b7c9 accel/qaic: Fix slicing memory leak
+2da5bffe9eaa drm/sched: Check scheduler work queue before calling timeout handling
+2dedcf414bb0 drm/ttm: check null pointer before accessing when swapping
+2e488f13755f fs: fix UAF/GPF bug in nilfs_mdt_destroy
+2e786eb2f9ce drm/msm/dsi: fix memory corruption with too many bridges
+2e8e9a895c45 accel/habanalabs: postpone mem_mgr IDR destruction to hpriv_release()
+2ea35288c83b skbuff: skb_segment, Call zero copy functions before using skbuff frags
+2f36e789e540 staging: pi433: fix memory leak with using debugfs_lookup()
+2f6ecb89fe8f usb: gadget: u_serial: Add null pointer check in gserial_suspend
+2fe2a8f40c21 drm/vkms: Fix null-ptr-deref in vkms_release()
+301867b1c168 md/raid10: check slab-out-of-bounds in md_bitmap_get_counter
+301c8f5c32c8 i2c: designware: Fix handling of real but unexpected device interrupts
+30210947a343 ksmbd: fix racy issue under cocurrent smb2 tree disconnect
+3031993b3474 led: qcom-lpg: Fix sleeping in atomic
+30374434edab USB: fix memory leak with using debugfs_lookup()
+303a78052091 NFSv4.2: Rework scratch handling for READ_PLUS (again)
+303be4b33562 LoongArch: mm: Add p?d_leaf() definitions
+303c9c63abb9 bus: fsl-mc: don't assume child devices are all fsl-mc devices
+30b2d7f8f136 cifs: Fix memory leak when build ntlmssp negotiate blob failed
+30ba2d09edb5 PCI: Fix use-after-free in pci_bus_release_domain_nr()
+30c694fd4a99 regulator: da9063: better fix null deref with partial DT
+30e0191b16e8 ip6mr: Fix skb_under_panic in ip6mr_cache_report()
+30ea3257e876 fs: dlm: fix race in lowcomms
+310726c33ad7 block: be a bit more careful in checking for NULL bdev while polling
+3124d320c22f Bluetooth: hci_{ldisc,serdev}: check percpu_init_rwsem() failure
+314a7ffd7c19 accel/habanalabs: fix mem leak in capture user mappings
+3163f635b20e tracing: Fix race issue between cpu buffer write and swap
