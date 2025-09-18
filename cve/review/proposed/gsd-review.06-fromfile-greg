@@ -1,0 +1,48 @@
+3bc8edc98bd4 nfsd: under NFSv4.1, fix double svc_xprt_put on rpc_create failure
+3bd548e5b819 drivers/md/md-bitmap: check the return value of md_bitmap_get_counter()
+3bf678a0f9c0 ext4: fix undefined behavior in bit shift for ext4_check_flag_values
+3c1566bca3f8 rcu: Protect rcu_print_task_exp_stall() ->exp_tasks access
+3c3bfb8586f8 fbdev: fbcon: release buffer when fbcon_do_set_font() failed
+3c675ddffb17 ntfs: Fix panic about slab-out-of-bounds caused by ntfs_listxattr()
+3cf7203ca620 net/tunnel: wait until all sk_user_data reader finish before releasing the sock
+3d2af77e31ad blk-cgroup: Reinit blkg_iostat_set after clearing in blkcg_reset_stats()
+3d5f3ba1ac28 iomap: iomap: fix memory corruption when recording errors during writeback
+3d90d2f4a018 wifi: iwlwifi: fw: fix memory leak in debugfs
+3da73f102309 objtool: Fix memory leak in create_static_call_sections()
+3db7285e0441 clk: mediatek: fix of_iomap memory leak
+3df55cd773e8 media: platform: mediatek: vpu: fix NULL ptr dereference
+3e019d8a05a3 xsk: Fix xsk_diag use-after-free error during socket cleanup
+3e161c2791f8 cifs: Fix warning and UAF when destroy the MR list
+3e767d6850f8 powercap: arm_scmi: Remove recursion while parsing zones
+3e92499e3b00 btrfs: don't check PageError in __extent_writepage
+3efe90af4c0c crypto: hisilicon/qm - increase the memory of local variables
+3f42faf6db43 wifi: brcmfmac: fix use-after-free bug in brcmf_netdev_start_xmit()
+3f7dda36e0b6 wifi: mt76: dma: fix memory leak running mt76_dma_tx_cleanup
+3f8ef65af927 net: If sock is dead don't access sock's sk_wq in sk_stream_wait_memory
+3fe97ff3d949 scsi: ses: Don't attach if enclosure has no components
+3ff256751a28 firewire: net: fix use after free in fwnet_finish_incoming_packet()
+401bc1f90874 NFSD: Protect against send buffer overflow in NFSv2 READ
+404ec60438ad ACPICA: Fix error code path in acpi_ds_call_control_method()
+4063384ef762 net: add vlan_get_protocol_and_depth() helper
+408ec1ff0caa remoteproc: imx_dsp_rproc: Add custom memory copy implementation for i.MX DSP Cores
+40cdb02cb9f9 drm: bridge: adv7511: unregister cec i2c device after cec adapter
+40fb87129049 wifi: mac80211: fix use-after-free
+412cd77a2c24 cassini: Fix a memory leak in the error handling path of cas_init_one()
+41320b18a0e0 scsi: snic: Fix possible memory leak if device_add() fails
+4155658cee39 scsi: fcoe: Fix transport not deattached when fcoe_if_init() fails
+41ddb251c68a media: uvcvideo: Handle cameras with invalid descriptors
+41f563ab3c33 parisc: led: Fix potential null-ptr-deref in start_task()
+4208d4faf365 irqchip/wpcm450: Fix memory leak in wpcm450_aic_of_init()
+4217c6ac8174 drm/panfrost: Fix GEM handle creation ref-counting
+4240e2ebe679 x86/MCE: Always save CS register on AMD Zen IF Poison errors
+424f8416bb39 net: skb_partial_csum_set() fix against transport header magic value
+42560f9c92cc nilfs2: fix sysfs interface lifetime
+436901649731 bpf: cpumap: Fix memory leak in cpu_map_update_elem
+43d00e102d9e ice: Block switchdev mode when ADQ is active and vice versa
+43e7c3505ec7 wifi: ath11k: mhi: fix potential memory leak in ath11k_mhi_register()
+4414a7ab80ce mfd: arizona: Use pm_runtime_resume_and_get() to prevent refcnt leak
+4481913607e5 drm/ttm: fix bulk_move corruption when adding a entry
+448a496f7606 Bluetooth: hci_sysfs: Fix attempting to call device_add multiple times
+44d807320000 net: qrtr: Fix a refcount bug in qrtr_recvmsg()
+456d8aa37d0f PCI/ASPM: Disable ASPM on MFD function removal to avoid use-after-free
+458c15dfbce6 f2fs: don't reset unchangable mount option in f2fs_remount()
