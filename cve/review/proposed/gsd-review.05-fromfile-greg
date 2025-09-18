@@ -1,0 +1,59 @@
+316ae95c175a tty: serial: fsl_lpuart: disable dma rx/tx use flags in lpuart_dma_shutdown
+31720a2b109b orangefs: Fix kmemleak in orangefs_{kernel,client}_debug_init()
+318cdc822c63 ext4: check and assert if marking an no_delete evicting inode dirty
+31c519981eb1 drm/meson: reorder driver deinit sequence to fix use-after-free bug
+31d49ba03309 net: dcb: choose correct policy to parse DCB_ATTR_BCN
+31d7c3a4fc3d drm/amdgpu: fix memory leak in mes self test
+3250affdc658 net/mlx5e: fix memory leak in mlx5e_fs_tt_redirect_any_create
+32832a2caf82 sctp: fix a potential overflow in sctp_ifwdtsn_skip
+32e62025e5e5 crypto: seqiv - Handle EBUSY correctly
+331cd9461412 btrfs: fix race between quota enable and quota rescan ioctl
+3344d318337d Bluetooth: hci_conn: fail SCO/ISO via hci_conn_failed if ACL gone early
+3357c6e42964 tracing: Free error logs of tracing instances
+339e61565f81 scsi: mpi3mr: Use number of bits to manage bitmap sizes
+33f736187d08 cifs: prevent use-after-free by freeing the cfile later
+33fc9e26b7cb mm: /proc/pid/smaps_rollup: fix no vma's null-deref
+341097ee5357 md: fix a crash in mempool_free
+3413881e1ecc drm/i915/dpt: Treat the DPT BO as a framebuffer
+342161c11403 usb: phy: phy-tahvo: fix memory leak in tahvo_usb_probe()
+34817a244174 md/raid10: fix null-ptr-deref of mreplace in raid10_sync_request
+34c3a47d20ae padata: Always leave BHs disabled when running ->parallel()
+34e8f9ec4c9a NFSD: fix leaked reference count of nfsd4_ssc_umount_item
+35112271672a net/smc: Reset connection when trying to use SMCRv2 fails.
+3568ecd3f3a6 media: mediatek: vcodec: Can't set dst buffer to done when lat decode error
+357057ee55d3 staging: vme_user: Fix possible UAF in tsi148_dma_list_add
+35727af2b15d irqchip/gicv3: Workaround for NVIDIA erratum T241-FABRIC-4
+35a7a1ce7c7d wifi: mwifiex: avoid possible NULL skb pointer dereference
+35ca8ce49536 media: mdp3: Fix resource leaks in of_find_device_by_node
+35e3b6ae8493 NFS: Fix an Oops in nfs_d_automount()
+35fcbc4243aa Bluetooth: L2CAP: Fix user-after-free
+363cc87767f6 net: hinic: fix the issue of CMDQ memory leaks
+3659fb5ac29a nvme: fix multipath crash caused by flush request when blktrace is enabled
+3673952cf0c6 Bluetooth: Fix potential use-after-free when clear keys
+36822124f9de scsi: ufs: core: Fix device management cmd timeout flow
+36aa8c61af55 drm/mediatek: Clean dangling pointer on bind error path
+36b617f7e4ae drm/mediatek: dp: Only trigger DRM HPD events if bridge is attached
+36c893d3a759 drivers: base: dd: fix memory leak with using debugfs_lookup()
+36ce9d76b0a9 shmem: use ramfs_kill_sb() for kill_sb method of ramfs-based tmpfs
+37e90c374dd1 tpm: tpm_crb: Add the missed acpi_put_table() to fix memory leak
+38518593ec55 HID: intel-ish-hid: Fix kernel panic during warm reset
+387659939c00 drm/ttm: fix undefined behavior in bit shift for TTM_TT_FLAG_PRIV_POPULATED
+38b50aa44495 RDMA/mlx5: Fix mlx5_ib_get_hw_stats when used for device
+38ce7c9bdfc2 mm/mempolicy: fix memory leak in set_mempolicy_home_node system call
+38eef3be38ab ASoC: mediatek: mt8183: fix refcount leak in mt8183_mt6358_ts3a227_max98357_dev_probe()
+3913f0179ba3 drm/amdgpu: SDMA update use unlocked iterator
+39244cc75482 i2c: ismt: Fix an out-of-bounds bug in ismt_access()
+39419ef7af09 integrity: Fix memory leakage in keyring allocation error path
+39646d9bcd1a net/mlx5e: xsk: Fix crash on regular rq reactivation
+399ab7fe0fa0 net: sched: fix memory leak in tcindex_set_parms
+3a21ffdbc825 ACPICA: Add AML_NO_OPERAND_RESOLVE flag to Timer
+3a36d20e0129 ubifs: Fix memory leak in do_rename
+3a3f1e573a10 modpost: fix off by one in is_executable_section()
+3a4d061c699b net/ieee802154: reject zero-sized raw_sendmsg()
+3a50cf1e8e51 mlx5: fix possible ptp queue fifo use-after-free
+3a661247967a drm/msm/dp: add atomic_check to bridge ops
+3a664569b71b media: dvbdev: fix refcnt bug
+3ac00a2ab69b ksmbd: fix NULL pointer dereference in smb2_get_info_filesystem()
+3ad290194bb0 media: atomisp: prevent integer overflow in sh_css_set_black_frame()
+3b44ec8c5c44 ALSA: hda: Fix Oops by 9.1 surround channel names
+3b8abb323953 mm: kmem: fix a NULL pointer dereference in obj_stock_flush_required()
