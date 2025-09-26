@@ -85,6 +85,7 @@ impl CVEClassifier {
 
     /// Retrieve the content of a commit referenced by a Fixes tag
     /// Returns a tuple with (subject, full message, diff) for the fixed commit
+    /// Skips commits with diffs longer than 1000 lines to avoid overwhelming context
     pub fn get_fix_commit_content(&self, commit_sha: &str) -> Option<(String, String, String)> {
         let repo_path = self.repo_path.as_ref()?;
 
@@ -127,7 +128,15 @@ impl CVEClassifier {
         let diff = match cmd.output() {
             Ok(output) if output.status.success() => {
                 match String::from_utf8(output.stdout) {
-                    Ok(s) => s,
+                    Ok(s) => {
+                        // Check if diff is too large (more than 1000 lines)
+                        let line_count = s.lines().count();
+                        if line_count > 1000 {
+                            debug!("Skipping large diff for commit {} ({} lines)", commit_sha, line_count);
+                            return None;
+                        }
+                        s
+                    },
                     Err(_) => return None,
                 }
             },
