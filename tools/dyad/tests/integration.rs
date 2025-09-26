@@ -136,14 +136,13 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
 
     // Build command with git SHA
     let mut cmd = Command::new(&dyad_path);
-    cmd.arg("--sha1").arg(&test_case.git_sha.trim());
+    cmd.arg("--sha1").arg(test_case.git_sha.trim());
 
     // If we have a .vulnerable file, read its content and pass it with --vulnerable
-    if let Some(v_path) = &test_case.vulnerable_path {
-        if let Ok(content) = std::fs::read_to_string(v_path) {
+    if let Some(v_path) = &test_case.vulnerable_path
+        && let Ok(content) = std::fs::read_to_string(v_path) {
             cmd.arg("--vulnerable").arg(content.trim());
         }
-    }
 
     // Run dyad
     let dyad_result = cmd.output();
@@ -267,36 +266,34 @@ fn get_test_cases(cve_dir: &Path) -> Vec<TestCase> {
                     let path = cve_entry.path();
 
                     // Only process .sha1 files
-                    if path.extension().map_or(false, |ext| ext == "sha1") {
-                        if let Ok(content) = std::fs::read_to_string(&path) {
-                            if let Some(cve_id) = path.file_stem().and_then(|s| s.to_str()) {
-                                let git_sha = content.trim().to_string();
+                    if path.extension().is_some_and(|ext| ext == "sha1")
+                        && let Ok(content) = std::fs::read_to_string(&path)
+                        && let Some(cve_id) = path.file_stem().and_then(|s| s.to_str()) {
+                            let git_sha = content.trim().to_string();
 
-                                // Find corresponding vulnerable file if it exists
-                                let vulnerable_path = path.with_extension("vulnerable");
-                                let vulnerable_file = if vulnerable_path.exists() {
-                                    Some(vulnerable_path)
-                                } else {
-                                    None
-                                };
+                            // Find corresponding vulnerable file if it exists
+                            let vulnerable_path = path.with_extension("vulnerable");
+                            let vulnerable_file = if vulnerable_path.exists() {
+                                Some(vulnerable_path)
+                            } else {
+                                None
+                            };
 
-                                // Check for existing .dyad file
-                                let dyad_path = path.with_extension("dyad");
-                                let dyad_file = if dyad_path.exists() {
-                                    Some(dyad_path)
-                                } else {
-                                    None
-                                };
+                            // Check for existing .dyad file
+                            let dyad_path = path.with_extension("dyad");
+                            let dyad_file = if dyad_path.exists() {
+                                Some(dyad_path)
+                            } else {
+                                None
+                            };
 
-                                test_cases.push(TestCase {
-                                    cve_id: cve_id.to_string(),
-                                    git_sha,
-                                    vulnerable_path: vulnerable_file,
-                                    dyad_path: dyad_file,
-                                });
-                            }
+                            test_cases.push(TestCase {
+                                cve_id: cve_id.to_string(),
+                                git_sha,
+                                vulnerable_path: vulnerable_file,
+                                dyad_path: dyad_file,
+                            });
                         }
-                    }
                 }
             }
         }
@@ -311,8 +308,7 @@ fn find_dyad_binary() -> Option<PathBuf> {
     if let Ok(output) = Command::new("cargo")
         .args(["build", "--bin", "dyad"])
         .output()
-    {
-        if output.status.success() {
+        && output.status.success() {
             // Get the path from Cargo's output
             let target_dir = env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
 
@@ -321,15 +317,13 @@ fn find_dyad_binary() -> Option<PathBuf> {
             if dyad_path.exists() {
                 return Some(dyad_path);
             }
-        }
     }
 
     // Try to find it in PATH
-    if let Ok(output) = Command::new("which").arg("dyad").output() {
-        if output.status.success() {
+    if let Ok(output) = Command::new("which").arg("dyad").output()
+        && output.status.success() {
             let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
             return Some(PathBuf::from(path_str));
-        }
     }
 
     None

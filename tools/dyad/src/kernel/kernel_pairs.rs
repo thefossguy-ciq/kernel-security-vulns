@@ -131,8 +131,8 @@ fn find_best_mainline_match(
     let mut best_match_score = i32::MAX;
 
     for vuln in mainline_vulns {
-        if let Some(distance) = calculate_version_distance(vuln, fixed_kernel) {
-            if distance < best_match_score {
+        if let Some(distance) = calculate_version_distance(vuln, fixed_kernel)
+            && distance < best_match_score {
                 best_match_score = distance;
                 best_match = Some(vuln);
                 debug!(
@@ -142,7 +142,6 @@ fn find_best_mainline_match(
                     distance
                 );
             }
-        }
     }
 
     if let Some(best_vuln) = best_match {
@@ -184,8 +183,8 @@ fn find_best_version_match(
     let mut best_match_score = i32::MAX;
 
     for vuln in vulnerabilities {
-        if let Some(distance) = calculate_version_distance(vuln, fixed_kernel) {
-            if distance < best_match_score {
+        if let Some(distance) = calculate_version_distance(vuln, fixed_kernel)
+            && distance < best_match_score {
                 best_match_score = distance;
                 best_match = Some(vuln);
                 debug!(
@@ -195,7 +194,6 @@ fn find_best_version_match(
                     distance
                 );
             }
-        }
     }
 
     if let Some(vuln) = best_match {
@@ -363,27 +361,24 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
         }
 
         // Priority 4: Best mainline match based on version proximity
-        if !create && !mainline_vulns.is_empty() {
-            if let Some(pair) = find_best_mainline_match(fixed_kernel, &mainline_vulns) {
+        if !create && !mainline_vulns.is_empty()
+            && let Some(pair) = find_best_mainline_match(fixed_kernel, &mainline_vulns) {
                 fixed_pairs.push(pair);
                 create = true;
             }
-        }
 
         // Priority 5: Distance-based scoring for all vulnerabilities
-        if !create {
-            if let Some(pair) = find_best_version_match(fixed_kernel, &sorted_vulnerabilities) {
+        if !create
+            && let Some(pair) = find_best_version_match(fixed_kernel, &sorted_vulnerabilities) {
                 fixed_pairs.push(pair);
                 create = true;
             }
-        }
 
         // Default: Use oldest mainline vulnerability as default
-        if !create {
-            if let Some(pair) = find_default_match(fixed_kernel, &state.vulnerable_set) {
+        if !create
+            && let Some(pair) = find_default_match(fixed_kernel, &state.vulnerable_set) {
                 fixed_pairs.push(pair);
             }
-        }
     }
 
     // Process unfixed vulnerabilities

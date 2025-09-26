@@ -231,11 +231,10 @@ fn find_cve_files(dir: &Path, cve_entry: &str) -> Vec<PathBuf> {
             let path = entry.path();
             if path.is_file() {
                 // Try the consolidated extraction function
-                if let Ok(id) = extract_cve_id_from_path(path) {
-                    if id == cve_entry {
+                if let Ok(id) = extract_cve_id_from_path(path)
+                    && id == cve_entry {
                         files.push(path.to_path_buf());
                     }
-                }
             }
         }
     }
@@ -281,7 +280,7 @@ mod tests {
 
         // Create some test files
         let cve_id = "CVE-2023-TEST";
-        fs::write(temp_path.join(cve_id.to_string()), "").unwrap();
+        fs::write(temp_path.join(cve_id), "").unwrap();
         fs::write(temp_path.join(format!("{}.json", cve_id)), "").unwrap();
         fs::write(temp_path.join(format!("{}.mbox", cve_id)), "").unwrap();
         fs::write(temp_path.join(format!("{}.sha1", cve_id)), "").unwrap();

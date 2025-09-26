@@ -993,7 +993,7 @@ fn process_time_to_fix_stats(results: &[(String, Option<i64>)]) {
 
         // Calculate median
         ttf_days.sort_unstable();  // Using sort_unstable as it's faster for primitives
-        let median_days = if total_cves % 2 == 0 {
+        let median_days = if total_cves.is_multiple_of(2) {
             let mid = total_cves / 2;
             #[allow(clippy::cast_precision_loss)]
             let median = (ttf_days[mid - 1] + ttf_days[mid]) as f64 / 2.0;

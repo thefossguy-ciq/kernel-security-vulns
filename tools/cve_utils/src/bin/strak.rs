@@ -194,11 +194,10 @@ fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<V
                 if let Some(year) = cve_id.split('-').nth(1) {
                     let sha_file = published_dir.join(year).join(format!("{cve_id}.sha1"));
 
-                    if sha_file.exists() {
-                        if let Ok(commit) = fs::read_to_string(&sha_file) {
+                    if sha_file.exists()
+                        && let Ok(commit) = fs::read_to_string(&sha_file) {
                             results.push((cve_id, commit.trim().to_string()));
                         }
-                    }
                 }
             }
         }

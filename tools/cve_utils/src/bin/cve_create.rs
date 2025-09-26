@@ -59,13 +59,12 @@ fn main() {
     }
 
     // Process a single Git SHA
-    if let Some(git_sha) = args.git_sha {
-        if let Err(e) = create_cve(&git_sha, args.cve_id.as_deref()) {
+    if let Some(git_sha) = args.git_sha
+        && let Err(e) = create_cve(&git_sha, args.cve_id.as_deref()) {
             error!("Error creating CVE: {e}");
             print_git_error_details(&e);
             std::process::exit(1);
         }
-    }
 }
 
 /// Process a batch file containing Git SHAs
@@ -352,7 +351,7 @@ mod tests {
         let reader = BufReader::new(file);
         let mut shas = Vec::new();
 
-        for line in reader.lines().filter_map(Result::ok) {
+        for line in reader.lines().map_while(Result::ok) {
             let trimmed = line.trim();
             if trimmed.starts_with('-') || trimmed.is_empty() || trimmed.starts_with('#') {
                 continue;
@@ -406,7 +405,7 @@ mod tests {
         let reader = BufReader::new(file);
         let mut shas = Vec::new();
 
-        for line in reader.lines().filter_map(Result::ok) {
+        for line in reader.lines().map_while(Result::ok) {
             let trimmed = line.trim();
             // Skip annotations or empty lines
             if trimmed.starts_with('-') || trimmed.is_empty() || trimmed.starts_with('#') {
@@ -478,12 +477,11 @@ mod tests {
             let file = file.unwrap().path();
             if file.is_file() && file.to_string_lossy().ends_with(".sha1") {
                 let content = fs::read_to_string(&file).unwrap();
-                if content.trim() == git_sha {
-                    if let Some(file_name) = file.file_stem() {
+                if content.trim() == git_sha
+                    && let Some(file_name) = file.file_stem() {
                         found_cve = Some(file_name.to_string_lossy().into_owned());
                         break;
                     }
-                }
             }
         }
 

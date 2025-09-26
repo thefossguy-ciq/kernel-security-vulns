@@ -110,13 +110,11 @@ fn update_all_years(cve_root: &Path, num_threads: usize, dry_run: bool) -> Resul
         let year_entry = year_entry?;
         let year_path = year_entry.path();
 
-        if year_path.is_dir() {
-            if let Some(year) = year_path.file_name().and_then(|s| s.to_str()) {
-                if is_valid_year(year) {
-                    years.push(year.to_string());
-                }
+        if year_path.is_dir()
+            && let Some(year) = year_path.file_name().and_then(|s| s.to_str())
+            && is_valid_year(year) {
+                years.push(year.to_string());
             }
-        }
     }
 
     // Sort years numerically (newest first)
@@ -663,7 +661,7 @@ mod tests {
                 let message_file = year_dir.join(format!("{}.message", cve_id));
                 let mut file = File::create(&message_file).unwrap();
                 writeln!(file, "This is a custom CVE description from a .message file.").unwrap();
-                writeln!(file, "").unwrap();
+                writeln!(file).unwrap();
                 writeln!(file, "It overrides the commit message for better clarity.").unwrap();
             }
 

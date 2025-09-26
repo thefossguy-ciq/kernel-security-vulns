@@ -781,12 +781,12 @@ mod tests {
         // Should have one OR node with one CPE match
         assert_eq!(cpe_nodes.len(), 1);
         assert_eq!(cpe_nodes[0].operator, "OR");
-        assert_eq!(cpe_nodes[0].negate, false);
+        assert!(!cpe_nodes[0].negate);
         assert_eq!(cpe_nodes[0].cpe_match.len(), 1);
 
         // Check CPE match details
         let cpe_match = &cpe_nodes[0].cpe_match[0];
-        assert_eq!(cpe_match.vulnerable, true);
+        assert!(cpe_match.vulnerable);
         assert_eq!(
             cpe_match.criteria,
             "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*"

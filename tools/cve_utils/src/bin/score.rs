@@ -139,14 +139,12 @@ fn collect_reviewers_and_files(review_dir: &Path) -> HashMap<String, Vec<PathBuf
             // Check if filename matches v*-*
             if let Some(captures) = regex::Regex::new(r"v[\d.]+-([^/]+)$").ok()
                 .and_then(|re| re.captures(&file_name))
-            {
-                if let Some(reviewer) = captures.get(1) {
+                && let Some(reviewer) = captures.get(1) {
                     let reviewer_name = reviewer.as_str().to_string();
                     reviewer_files.entry(reviewer_name)
                         .or_default()
                         .push(path.to_path_buf());
                 }
-            }
         });
 
     reviewer_files

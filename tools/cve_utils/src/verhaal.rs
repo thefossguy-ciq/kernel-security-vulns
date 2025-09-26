@@ -128,8 +128,8 @@ impl Verhaal {
             FROM commits
             WHERE id IN (SELECT id FROM fix_ids)";
 
-        if let Ok(mut stmt) = self.conn.prepare(sql) {
-            if let Ok(rows) = stmt.query([git_sha]) {
+        if let Ok(mut stmt) = self.conn.prepare(sql)
+            && let Ok(rows) = stmt.query([git_sha]) {
                 let mapped_rows =
                     rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
@@ -139,7 +139,6 @@ impl Verhaal {
                     }
                 }
             }
-        }
 
         if fixed_kernels.is_empty() {
             return Err(anyhow!("No fixes for {} were found", git_sha))
@@ -248,8 +247,8 @@ impl Verhaal {
 
         // Also check for the mainline commit itself
         let sql_mainline = "SELECT id, release FROM commits WHERE id = ?1";
-        if let Ok(mut stmt) = self.conn.prepare(sql_mainline) {
-            if let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
+        if let Ok(mut stmt) = self.conn.prepare(sql_mainline)
+            && let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
                 Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
             }) {
                 for result in mainline_rows.flatten() {
@@ -258,7 +257,6 @@ impl Verhaal {
                     }
                 }
             }
-        }
 
         if kernels.is_empty() {
             return Err(anyhow!("git id {} was not backported anywhere", git_sha));
@@ -313,11 +311,10 @@ mod tests {
         };
 
         let version = verhaal.get_version(&git_id);
-        let version = match version {
+        match version {
             Ok(version) => version,
             Err(error) => panic!("{:?}", error),
-        };
-        version
+        }
     }
 
     #[test]

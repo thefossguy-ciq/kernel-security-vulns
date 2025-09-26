@@ -597,7 +597,6 @@ mod tests {
         assert!(!processed.contains("Original commit message"));
 
         // Test process_commit_text without message file
-        let tags = vec!["Signed-off-by".to_string()];
         fs::write(script_dir.join("tags"), "Signed-off-by\n").unwrap();
         let processed_no_message = process_commit_text(script_dir, commit_text, None);
         assert!(processed_no_message.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));

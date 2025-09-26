@@ -107,8 +107,8 @@ pub mod common {
         }
 
         // Second attempt: look from executable directory
-        if let Ok(exec_path) = env::current_exe() {
-            if let Some(exec_dir) = exec_path.parent() {
+        if let Ok(exec_path) = env::current_exe()
+            && let Some(exec_dir) = exec_path.parent() {
                 let mut current_dir = exec_dir.to_path_buf();
 
                 // Check if we're already in the vulns repo
@@ -127,7 +127,6 @@ pub mod common {
                     }
                 }
             }
-        }
 
         Err(anyhow!(
             "Could not find vulns directory. Please run from within the vulns directory."
@@ -194,19 +193,16 @@ pub mod common {
                         .unwrap()
                         .to_string_lossy()
                         .ends_with(".sha1")
-                {
-                    if let Ok(content) = fs::read_to_string(path) {
+                    && let Ok(content) = fs::read_to_string(path) {
                         // Match either exact SHA or if it starts with the provided partial SHA
-                        if content.trim() == sha || content.trim().starts_with(sha) {
-                            if let Some(filename) = path.file_name() {
+                        if (content.trim() == sha || content.trim().starts_with(sha))
+                            && let Some(filename) = path.file_name() {
                                 let filename_str = filename.to_string_lossy();
                                 if let Some(cve_id) = filename_str.strip_suffix(".sha1") {
                                     return Some(cve_id.to_string());
                                 }
                             }
-                        }
                     }
-                }
             }
         }
 
@@ -228,16 +224,14 @@ pub mod common {
                 continue;
             }
 
-            if let Some(filename) = path.file_name() {
-                if filename.to_string_lossy() == cve_id {
+            if let Some(filename) = path.file_name()
+                && filename.to_string_lossy() == cve_id {
                     let sha_file = path.with_extension("sha1");
-                    if sha_file.exists() {
-                        if let Ok(sha) = fs::read_to_string(sha_file) {
+                    if sha_file.exists()
+                        && let Ok(sha) = fs::read_to_string(sha_file) {
                             return Some(sha.trim().to_string());
                         }
-                    }
                 }
-            }
         }
 
         None
@@ -631,11 +625,10 @@ pub mod git_utils {
                 continue;
             }
 
-            if let Some(path) = entry.path() {
-                if patterns.iter().any(|pattern| match_pattern(path, pattern)) {
+            if let Some(path) = entry.path()
+                && patterns.iter().any(|pattern| match_pattern(path, pattern)) {
                     modified_files.push(PathBuf::from(path));
                 }
-            }
         }
 
         Ok(modified_files)
@@ -742,19 +735,18 @@ pub mod cve_utils {
             if file_name_str.starts_with("CVE-") {
                 // Handle filenames with extensions (e.g., CVE-2023-12345.mbox)
                 if file_name_str.contains('.') {
-                    if let Some(name_part) = file_name_str.split('.').next() {
-                        if name_part.starts_with("CVE-") {
+                    if let Some(name_part) = file_name_str.split('.').next()
+                        && name_part.starts_with("CVE-") {
                             return Ok(name_part.to_string());
                         }
-                    }
                 } else {
                     return Ok(file_name_str.to_string());
                 }
             }
 
             // If filename is file stem without the "CVE-" prefix, try the parent directory
-            if let Some(parent) = path.parent() {
-                if let Some(parent_name) = parent.file_name() {
+            if let Some(parent) = path.parent()
+                && let Some(parent_name) = parent.file_name() {
                     let parent_str = parent_name.to_string_lossy();
                     if parent_str.starts_with("CVE-") {
                         return Ok(parent_str.to_string());
@@ -768,7 +760,6 @@ pub mod cve_utils {
                         }
                     }
                 }
-            }
         }
 
         // If we got to this point, try to find CVE pattern in the entire path string

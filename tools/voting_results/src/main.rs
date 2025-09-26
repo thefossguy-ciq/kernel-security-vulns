@@ -175,11 +175,10 @@ impl VotingResults {
             for entry in entries.filter_map(Result::ok) {
                 let file_name = entry.file_name().to_string_lossy().to_string();
 
-                if regex.is_match(&file_name) {
-                    if let Some(reviewer) = file_name.split('-').next_back() {
+                if regex.is_match(&file_name)
+                    && let Some(reviewer) = file_name.split('-').next_back() {
                         reviewer_set.insert(reviewer.to_string());
                     }
-                }
             }
         }
 
@@ -370,11 +369,10 @@ impl VotingResults {
             let message = commit.message().unwrap_or("");
 
             // Use the existing UPSTREAM_REGEX to extract the SHA
-            if let Some(captures) = UPSTREAM_REGEX.captures(message) {
-                if let Some(sha_match) = captures.get(0) {
+            if let Some(captures) = UPSTREAM_REGEX.captures(message)
+                && let Some(sha_match) = captures.get(0) {
                     return sha_match.as_str().to_string();
                 }
-            }
         }
 
         // If all else fails, return original SHA
@@ -454,14 +452,12 @@ impl VotingResults {
                             };
 
                             // Check if this commit's subject matches our target subject
-                            if let Some(c) = commit {
-                                if let Some(commit_subject) = c.summary() {
-                                    if commit_subject == subject {
-                                        reviewer_votes.insert(reviewer.to_string(), true);
-                                        break;
-                                    }
+                            if let Some(c) = commit
+                                && let Some(commit_subject) = c.summary()
+                                && commit_subject == subject {
+                                    reviewer_votes.insert(reviewer.to_string(), true);
+                                    break;
                                 }
-                            }
                         }
 
                         // If we can't match by SHA, try matching by subject (the original method)
@@ -621,8 +617,8 @@ impl VotingResults {
                 while let Some(Ok(line)) = lines_iter.next() {
                     if line.contains(short_sha) {
                         // If found, check if there's a next line (the annotation)
-                        if let Some(Ok(annotation_line)) = lines_iter.next() {
-                            if !annotation_line.is_empty() {
+                        if let Some(Ok(annotation_line)) = lines_iter.next()
+                            && !annotation_line.is_empty() {
                                 println!("  {annotation_line}");
 
                                 // Check for multi-line annotations (lines starting with two spaces)
@@ -634,7 +630,6 @@ impl VotingResults {
                                     }
                                 }
                             }
-                        }
                         break;
                     }
                 }
@@ -968,8 +963,8 @@ mod tests {
             .status()
             .unwrap();
         assert!(status_success.success());
-        let cve_result: anyhow::Result<bool> = Ok(status_success.success());
-        assert_eq!(cve_result.unwrap(), true);
+        let cve_result = status_success.success();
+        assert!(cve_result);
 
         // Test case 2: Failure (no CVE found)
         let status_failure = Command::new("test")
@@ -979,8 +974,8 @@ mod tests {
             .status()
             .unwrap();
         assert!(!status_failure.success());
-        let cve_result: anyhow::Result<bool> = Ok(status_failure.success());
-        assert_eq!(cve_result.unwrap(), false);
+        let cve_result = status_failure.success();
+        assert!(!cve_result);
     }
 
     // Test print_annotations function

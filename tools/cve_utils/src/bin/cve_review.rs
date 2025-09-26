@@ -74,7 +74,7 @@ fn main() -> Result<()> {
     }
 
     // Check if in vulns directory early to fail fast
-    if let Err(_) = common::find_vulns_dir() {
+    if common::find_vulns_dir().is_err() {
         return Err(anyhow!(
             "Could not find 'vulns' directory.\n\
              \n\
@@ -990,11 +990,10 @@ fn get_terminal_height() -> usize {
         }
     }
     // Fallback to environment variables
-    if let Ok(lines) = env::var("LINES") {
-        if let Ok(height) = lines.parse::<usize>() {
+    if let Ok(lines) = env::var("LINES")
+        && let Ok(height) = lines.parse::<usize>() {
             return height;
         }
-    }
 
     // Default value if we couldn't get terminal height
     // Most modern terminals are much taller than 24 lines
@@ -1167,13 +1166,12 @@ mod tests {
             }
 
             // Check if this file contains our commit subject and mainline SHA
-            if let Ok(file_content) = fs::read_to_string(&path) {
-                if file_content.contains(&commit.subject) && file_content.contains(&mainline_sha) {
+            if let Ok(file_content) = fs::read_to_string(&path)
+                && file_content.contains(&commit.subject) && file_content.contains(&mainline_sha) {
                     // Extract CVE ID from filename
                     let cve_id = path.file_stem()?.to_str()?.to_string();
                     return Some(cve_id);
                 }
-            }
         }
 
         None

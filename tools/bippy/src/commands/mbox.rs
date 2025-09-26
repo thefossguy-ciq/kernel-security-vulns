@@ -284,11 +284,9 @@ mod tests {
     fn create_test_kernel(_version: &str, git_id: &str) -> Kernel {
         // In tests, we don't have real git commit IDs to look up,
         // so we'll create dummy kernels with the provided info
-        let kernel = Kernel::from_id(git_id).unwrap_or_else(|_| Kernel::empty_kernel());
-
         // We can't directly modify the fields, but for testing
         // purposes, we're assuming these are valid git IDs and versions
-        kernel
+        Kernel::from_id(git_id).unwrap_or_else(|_| Kernel::empty_kernel())
     }
 
     #[test]
@@ -326,7 +324,7 @@ mod tests {
         // so we'll just verify that entries were generated
 
         // Test with an array containing only same-version entries
-        let _same_version_entries = vec![DyadEntry {
+        let _same_version_entries = [DyadEntry {
             vulnerable: create_test_kernel("6.1", "5b503c8598d1b232e7fc7526bce9326d92331544"),
             fixed: create_test_kernel("6.1", "6b503c8598d1b232e7fc7526bce9326d92331545"),
         }];

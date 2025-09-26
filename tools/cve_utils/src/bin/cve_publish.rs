@@ -292,10 +292,4 @@ mod tests {
         // This is a placeholder test
     }
 
-    #[test]
-    fn test_dry_run() {
-        // Test that dry run mode doesn't execute commands
-        // This is a placeholder test for dry run functionality
-        assert!(true);
-    }
 }
