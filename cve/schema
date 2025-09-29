@@ -75,10 +75,10 @@ commits that do NOT have a "Fixes:" tag, or if the "Fixes:" tag is incorrect.
 Note, this file can contain multiple vulnerable git ids, separated by a space.
 
 If a:
-	published/YEAR/CVE-YEAR-ID.diff
-file is present, the cve_update script will use that as a diff against the
-kernel changelog text to replace the cve text wording with the modified text.
-This allows us to modify the CVE entry text for when it is wrong or confusing.
+	published/YEAR/CVE-YEAR-ID.message
+file is present, the cve_update script will use the text in that file as the
+text for the cve entry itself.  This allows us to modify the CVE entry text for
+when it is wrong or confusing.
 
 If a:
 	published/YEAR/CVE-YEAR-ID.reference
