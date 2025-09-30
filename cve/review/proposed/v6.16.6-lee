@@ -1,0 +1,48 @@
+168873ca1799 ASoC: soc-core: care NULL dirver name on snd_soc_lookup_component_nolocked()
+d02d2c98d257 fs: writeback: fix use-after-free in __mark_inode_dirty() [auto: cve already created]
+e4a718a3a47e tee: fix NULL pointer dereference in tee_shm_put [auto: cve already created]
+26e84445f02c wifi: cfg80211: fix use-after-free in cmp_bss() [auto: cve already created]
+9cb83d4be0b9 wifi: brcmfmac: fix use-after-free when rescheduling brcmf_btcoex_info work [auto: cve already created]
+065c79df595a wifi: mt76: mt7915: fix list corruption after hardware restart [auto: cve already created]
+479a54ab9208 netfilter: br_netfilter: do not check confirmed bit in br_nf_local_in() after confirm
+28010791193a Bluetooth: vhci: Prevent use-after-free by removing debugfs files early [auto: cve already created]
+862c62810856 Bluetooth: Fix use-after-free in l2cap_sock_cleanup_listen() [auto: cve already created]
+9f74c0ea9b26 net_sched: gen_estimator: fix est_timer() vs CONFIG_PREEMPT_RT=y
+8bf935cf7898 ptp: ocp: fix use-after-free bugs causing by ptp_ocp_watchdog [auto: cve already created]
+e580beaf43d5 eth: mlx4: Fix IS_ERR() vs NULL check bug in mlx4_en_create_rx_ring [auto: cve already created]
+ba1e9421cf1a net/smc: fix one NULL pointer dereference in smc_ib_is_sg_need_sync() [auto: cve already created]
+a6099f263e1f net: ethernet: ti: am65-cpsw-nuss: Fix null pointer dereference for ndev [auto: cve already created]
+403bf043d934 ice: fix NULL access of tx->in_use in ice_ptp_ts_irq [auto: cve already created]
+f6486338fde3 ice: fix NULL access of tx->in_use in ice_ll_ts_intr [auto: cve already created]
+9fcdb1c3c4ba i40e: remove read access to debugfs files
+a556f06338e1 i40e: Fix potential invalid access when MAC list is empty [auto: cve already created]
+b7e5c3e3bfa9 ixgbe: fix incorrect map used in eee linkmode
+fa390321aba0 net/tcp: Fix socket memory leak in TCP-AO failure handling for IPv6 [auto: cve already created]
+6ead38147ebb vxlan: Fix NPD when refreshing an FDB entry with a nexthop object [auto: cve already created]
+1f5d2fd1ca04 vxlan: Fix NPD in {arp,neigh}_reduce() when using nexthop objects [auto: cve already created]
+62b635dcd69c wifi: cfg80211: sme: cap SSID length in __cfg80211_connect_result() [auto: cve already created]
+8156210d36a4 ax25: properly unshare skbs in ax25_kiss_rcv() [auto: cve already created]
+8bbceba7dc50 net: xilinx: axienet: Add error handling for RX metadata pointer retrieval
+4844123fe0b8 ppp: fix memory leak in pad_compress_skb [auto: cve already created]
+69a79ada8eb0 accel/ivpu: Prevent recovery work from being queued during device removal
+44822df89e8f pcmcia: Fix a NULL pointer dereference in __iodyn_find_io_region() [auto: cve already created]
+b4efccec8d06 mm/slub: avoid accessing metadata when pointer is invalid in object_err()
+6659d0279980 x86/mm/64: define ARCH_PAGE_TABLE_SYNC_MASK and arch_sync_kernel_mappings() [auto: cve already created]
+9614d8bee663 mm/userfaultfd: fix kmap_local LIFO ordering for CONFIG_HIGHPTE
+7cc183f2e67d mm: move page table sync declarations to linux/pgtable.h [auto: cve already created]
+c873ccbb2f8d mm: fix possible deadlock in kmemleak
+850470a8413a mm: slub: avoid wake up kswapd in set_track_prepare [auto: cve already created]
+5ebf512f3350 sched: Fix sched_numa_find_nth_cpu() if mask offline
+f46e8ef8bb7b ocfs2: prevent release journal inode after journal shutdown [auto: cve already created]
+2ce3d282bd50 proc: fix missing pde_set_flags() for net proc files
+ee4d098cbc91 of_numa: fix uninitialized memory nodes causing kernel panic
+0e20450829ca wifi: mwifiex: Initialize the chan_stats array to zero
+89e7353f522f spi: microchip-core-qspi: stop checking viability of op->max_freq in supports_op callback
+9dba9a45c348 scsi: lpfc: Fix buffer free/clear order in deferred receive path [auto: cve already created]
+4540f1d23e7f audit: fix out-of-bounds read in audit_compare_dname_path() [auto: cve already created]
+d77b6ff0ce35 batman-adv: fix OOB read/write in network-coding decode [auto: cve already created]
+70bccd9855da cifs: prevent NULL pointer dereference in UTF16 conversion [auto: cve already created]
+90fb7db49c6d e1000e: fix heap overflow in e1000_set_eeprom
+4a81f78caa53 pcmcia: Add error handling for add_interval() in do_validate_mem()
+5549202b9c02 platform/x86: asus-wmi: Fix racy registrations [auto: cve already created]
+1991a4585285 spi: spi-qpic-snand: unregister ECC engine on probe error and device remove
