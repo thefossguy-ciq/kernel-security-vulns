@@ -1,0 +1,35 @@
+9d81ba6d49a7 fuse: Block access to folio overlimit [auto: cve already created]
+992203a1fba5 nfs/localio: restore creds before releasing pageio data
+c1628c00c435 tracing/osnoise: Fix null-ptr-deref in bitmap_parselist() [auto: cve already created]
+cd4453c5e983 tracing: Silence warning when chunk allocation fails in trace_pid_write
+f9bb6ffa7f5a bpf: Fix out-of-bounds dynptr write in bpf_crypto_crypt
+6d78b4473cdb bpf: Tell memcg to use allow_spinning=false path in bpf_timer_init() [auto: cve already created]
+a3967baad4d5 tcp_bpf: Call sk_msg_free() when tcp_bpf_send_verdict() fails to allocate psock->cork.
+04d3cd43700a arm64: kexec: initialize kexec_buf struct in load_other_segments()
+04100f775c2e ocfs2: fix recursive semaphore deadlock in fiemap call [auto: cve already created]
+f6a6c280059c btrfs: fix subvolume deletion lockup caused by inodes xarray race [auto: cve already created]
+513c40e59d5a mtd: rawnand: stm32_fmc2: avoid overlapping mappings on ECC buffer
+79357cd06d41 mm/vmalloc, mm/kasan: respect gfp mask in kasan_populate_vmalloc()
+d613f53c83ec mm/memory-failure: fix VM_BUG_ON_PAGE(PagePoisoned(page)) when unpoison memory [auto: cve already created]
+711f19dfd783 mm/damon/lru_sort: avoid divide-by-zero in damon_lru_sort_apply_parameters()
+4de37a48b6b5 drm/mediatek: fix potential OF node use-after-free [auto: cve already created]
+c686124bcf06 drm/amd/display: remove oem i2c adapter on finish
+3c9ba2777d6c kernfs: Fix UAF in polling when open file is released [auto: cve already created]
+cdbc9836c7af libceph: fix invalid accesses to ceph_connection_v1_info [auto: cve already created]
+cce7c15faaac ceph: always call ceph_shift_unused_folios_left() [auto: cve already created]
+249e0a47cdb4 ceph: fix crash after fscrypt_encrypt_pagecache_blocks() error [auto: cve already created]
+3260a3f0828e mm/damon/sysfs: fix use-after-free in state_show() [auto: cve already created]
+e6b543ca9806 mm/damon/reclaim: avoid divide-by-zero in damon_reclaim_apply_parameters()
+03e79de4608b net: fec: Fix possible NPD in fec_enet_phy_reset_after_clk_enable() [auto: cve already created]
+0ba5b2f2c381 net: phylink: add lock for serializing concurrent pl->phydev writes with resolver
+e2a10daba849 net: phy: transfer phy_config_inband() locking responsibility to phylink
+75871a525a59 igb: Fix NULL pointer dereference in ethtool loopback test [auto: cve already created]
+915470e1b44e i40e: fix IRQ freeing in i40e_vsi_request_irq_msix error path
+686cab5a18e4 net: dev_ioctl: take ops lock in hwtstamp lower paths
+0f82c3ba66c6 macsec: sync features on RTM_NEWLINK [auto: cve already created]
+ef79f00be72b can: xilinx_can: xcan_write_frame(): fix use-after-free of transmitted SKB [auto: cve already created]
+847748fc66d0 hsr: hold rcu and dev lock for hsr_get_port_ndev [auto: cve already created]
+f41c538881ee dmaengine: idxd: Remove improper idxd_free [auto: cve already created]
+39aaa337449e dmaengine: idxd: Fix double free in idxd_setup_wqs() [auto: cve already created]
+e63419dbf2ce dmaengine: ti: edma: Fix memory allocation size for queue_priority_map [auto: cve already created]
+181993bb0d62 erofs: fix runtime warning on truncate_folio_batch_exceptionals() [auto: cve already created]
