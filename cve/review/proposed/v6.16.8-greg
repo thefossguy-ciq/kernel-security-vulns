@@ -32,3 +32,9 @@ aa2e1e4563d3 dmaengine: dw: dmamux: Fix device reference leak in rzn1_dmamux_rou
 0f82c3ba66c6 macsec: sync features on RTM_NEWLINK
 9d81ba6d49a7 fuse: Block access to folio overlimit
 847748fc66d0 hsr: hold rcu and dev lock for hsr_get_port_ndev
+06418cb5a1a5 i2c: rtl9300: ensure data length is within supported range
+131897c65e2b erofs: fix invalid algorithm for encoded extents
+15f519e9f883 ceph: fix race condition validating r_parent before applying state
+1dbfb0363224 genetlink: fix genl_bind() invoking bind() after -EPERM
+5068b5254812 dmaengine: qcom: bam_dma: Fix DT error handling for num-channels/ees
+7fcbe5b2c6a4 can: j1939: implement NETDEV_UNREGISTER notification handler
