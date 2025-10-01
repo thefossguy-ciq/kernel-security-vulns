@@ -41,3 +41,8 @@ d02d2c98d257 fs: writeback: fix use-after-free in __mark_inode_dirty()
 fa390321aba0 net/tcp: Fix socket memory leak in TCP-AO failure handling for IPv6
 8156210d36a4 ax25: properly unshare skbs in ax25_kiss_rcv()
 4844123fe0b8 ppp: fix memory leak in pad_compress_skb
+49fba87205be wifi: mt76: fix linked list corruption
+4a522b01e368 wifi: mt76: mt7996: add missing check for rx wcid entries
+4a81f78caa53 pcmcia: Add error handling for add_interval() in do_validate_mem()
+89e7353f522f spi: microchip-core-qspi: stop checking viability of op->max_freq in supports_op callback
+b7e5c3e3bfa9 ixgbe: fix incorrect map used in eee linkmode
