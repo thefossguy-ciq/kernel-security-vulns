@@ -1,0 +1,65 @@
+45e6319bd5f2 crypto: hisilicon/hpre - fix resource leak in remove process
+45fcc058a75b fbdev: imxfb: Removed unneeded release_mem_region
+460e9bed82e4 s390/dasd: Fix potential memleak in dasd_eckd_init()
+463808f237cf ext4: remove a BUG_ON in ext4_mb_release_group_pa()
+464ea494a40c scsi: qla2xxx: Fix potential NULL pointer dereference
+467233a4ac29 rpmsg: char: Avoid double destroy of default endpoint
+46ba53c30666 scsi: libsas: Fix use-after-free bug in smp_execute_task_sg()
+470188b09e92 ACPICA: Fix use-after-free in acpi_ut_copy_ipackage_to_ipackage()
+47180ecf4541 wifi: mt76: mt7921: resource leaks at mt7921_check_offload_capability()
+471f0aa7fa64 x86/fpu: Fix copy_xstate_to_uabi() to copy init states correctly
+47515664ecfb wifi: rtw89: fix potential race condition between napi_init and napi_enable
+4773fadedca9 drm/radeon: free iio for atombios when driver shutdown
+479439463529 HID: multitouch: Correct devm device reference for hidinput input_dev name
+479d4f0be423 drm/vc4: drop all currently held locks if deadlock happens
+47cd3770e31d scsi: qla4xxx: Add length check when parsing nlattrs
+47cfdc338d67 FS: JFS: Fix null-ptr-deref Read in txBegin
+47e6ab07018e remoteproc: imx_dsp_rproc: Add mutex protection for workqueue
+47e8b73bc35d media: cx23885: Fix a null-ptr-deref bug in buffer_prepare() and buffer_finish()
+47e91fdfa511 HID: mcp-2221: prevent UAF in delayed work
+48181d285623 wifi: rtw88: fix memory leak in rtw_usb_probe()
+4826c59453b3 io_uring: wait interruptibly for request completions on exit
+484b4833c604 hsr: Fix uninit-value access in fill_frame_info()
+48538ccb825b ibmvnic: Do not reset dql stats on NON_FATAL err
+4881bda5ea05 ALSA: ac97: fix possible memory leak in snd_ac97_dev_register()
+48a6a66db82b ext4: fix off-by-one errors in fast-commit block filling
+48af14fb0eaa memory: of: Fix refcount leak bug in of_lpddr3_get_ddr_timings()
+48b19b79cfa3 scsi: iscsi_tcp: Check that sock is valid before iscsi_set_param()
+490937d479ab soundwire: qcom: fix storing port config out-of-bounds
+49bd78282e79 wifi: mt76: mt7915: fix memory leak in mt7915_mcu_exit
+4a0e218cc9c4 wifi: rtw89: fix potential leak in rtw89_append_probe_req_ie()
+4a1ff3c5d04b ubifs: Fix memory leak in alloc_wbufs()
+4a3fcfc3b517 af_unix: Fix null-ptr-deref in unix_stream_sendpage().
+4a44cd249604 mmc: vub300: fix warning - do not call blocking ops when !TASK_RUNNING
+4a4c8482e370 ALSA: aoa: i2sbus: fix possible memory leak in i2sbus_add_dev()
+4a54903ff68d ionic: catch failure from devlink_alloc
+4a7668031133 drm/amdgpu/gfx: disable gfx9 cp_ecc_error_irq only when enabling legacy gfx ras
+4aae44f65827 pwm: lpc32xx: Remove handling of PWM channels
+4abc99652812 kernfs: fix use-after-free in __kernfs_remove
+4b017e59f010 efi: ssdt: Don't free memory if ACPI table was loaded successfully
+4b3cb1d108bf ext4: improve error handling from ext4_dirhash()
+4b7a21c57b14 blk-mq: fix possible memleak when register 'hctx' failed
+4bb26f2885ac ext4: avoid crash when inline data creation follows DIO write
+4c0d5778385c ext4: don't set up encryption key during jbd2 transaction
+4c1294da6aed drm/msm/hdmi: fix memory corruption with too many bridges
+4c1cdec319b9 x86/MCE/AMD: Use an u64 for bank_map
+4c1f602df895 net: hinic: fix memory leak when reading function table
+4c7f9d2e413d usb: xhci: tegra: fix sleep in atomic call
+4ca446b127c5 iw_cxgb4: Fix potential NULL dereference in c4iw_fill_res_cm_id_entry()
+4cbb264d4e91 ASoC: mediatek: mt8173: Enable IRQ when pdata is ready
+4cc59f386991 ipv6: Add lwtunnel encap size of all siblings in nexthop calculation
+4ccf11c4e8a8 tracing/synthetic: Fix races on freeing last_cmd
+4cf67d3cc999 cxl/acpi: Fix a use-after-free in cxl_parse_cfmws()
+4cf949c7fafe drm/vmwgfx: Validate the box size for the snooped cursor
+4d0fe8c52bb3 kobject: Add sanity check for kset->kobj.ktype in kset_register()
+4d1c1379d717 net/mlx5: Lag, fix failure to cancel delayed bond work
+4d42ecda239c fs/ntfs3: Validate buffer length while parsing index
+4d57a7333e26 ubi: ubi_wl_put_peb: Fix infinite loop when wear-leveling work failed
+4daa861174d5 iommu: Fix error unwind in iommu_group_alloc()
+4dba27f1a145 drm/rockchip: lvds: fix PM usage counter unbalance in poweron
+4dea41775d95 ACPI: processor: Check for null return of devm_kzalloc() in fch_misc_setup()
+4e0473f1060a lib: cpu_rmap: Avoid use after free on rmap->obj array entries
+4e302336d5ca fs: jfs: Fix UBSAN: array-index-out-of-bounds in dbAllocDmapLev
+4e343bafe03f clk: tegra20: Fix refcount leak in tegra20_clock_init
+4f082a753122 fs/ntfs3: Enhance the attribute size check
+4f3175979e62 powerpc/rtas_flash: allow user copy to flash block cache objects

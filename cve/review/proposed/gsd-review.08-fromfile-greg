@@ -1,0 +1,72 @@
+4f4920669d21 xfrm: Reinject transport-mode packets through workqueue
+4fd9df10cb7a ARC: mm: fix leakage of memory allocated for PTE
+4fdfaef71fce IB/hfi1: Fix possible panic during hotplug remove
+50749f2dd685 tcp/udp: Fix memleaks of sk and zerocopy skbs with TX timestamp.
+50757a259ba7 Bluetooth: hci_conn: Fix crash on hci_create_cis_sync
+50e2fc36e72d drm/amdkfd: Fix UBSAN shift-out-of-bounds warning
+511b90e39250 mptcp: fix disconnect vs accept race
+514ca14ed544 start_kernel: Add __no_stack_protector function attribute
+515778e2d790 mm/uffd: fix warning without PTE_MARKER_UFFD_WP compiled in
+515ad530795c netfilter: nf_tables: do not ignore genmask when looking up chain by id
+5174e5b0d1b6 clk: samsung: Fix memory leak in _samsung_clk_register_pll()
+51b56382ed2a accel/qaic: tighten bounds checking in decode_message()
+51c082514c2d crypto: xts - Handle EBUSY correctly
+51deedc9b868 libbpf: Use elf_getshdrnum() instead of e_shnum
+51e76a232f8c fs/ntfs3: Fix memory leak on ntfs_fill_super() error path
+51f9a8921cea net: sched: cake: fix null pointer access issue when cake_init() fails
+51fe0a470543 net: ethernet: mvpp2_main: fix possible OOB write in mvpp2_ethtool_get_rxnfc()
+5290e88ba2c7 x86/platform/uv: Use alternate source for socket to node data
+52d8caca3d53 media: vsp1: Replace vb2_is_streaming() with vb2_start_streaming_called()
+52f1783ff414 drm/amd/display: Fix potential null dereference
+5306623a9826 virtio_net: Fix error unwinding of XDP initialization
+53223f2ed1ef xfrm: fix slab-use-after-free in decode_session6
+533aae7c94db gpiolib: cdev: fix NULL-pointer dereferences
+534103bcd52c iommu/amd/iommu_v2: Fix pasid_state refcount dec hit 0 warning on pasid unbind
+534fc31d09b7 xen/netback: Fix buffer overrun triggered by unusual packet
+5354b2af3406 ext4: allow ext4_get_group_info() to fail
+5363fc488da5 RDMA/bnxt_re: Properly order ib_device_unalloc() to avoid UAF
+53a06e5924c0 clk: tegra: tegra124-emc: Fix potential memory leak
+53cafe1d6d8e udf: Do not bother merging very long extents
+53d737dfd3d7 net/mlx5: Unregister devlink params in case interface is down
+53e7d08f6d6e ublk: fail to start device if queue setup is interrupted
+5401c3e09928 qed: allow sleep in qed_mcp_trace_dump()
+540dfd188ea2 drm/nouveau: fix a use-after-free in nouveau_gem_prime_import_sg_table()
+549e91a9bbaa scsi: ufs: core: Fix handling of lrbp->cmd
+54aa7f2330b8 io_uring: fix fget leak when fs don't support nowait buffered read
+54dd96015e8d scsi: mpt3sas: Fix a memory leak
+5559405df652 nfs: fix possible null-ptr-deref when parsing param
+55793ea54d77 nbd: fix incomplete validation of ioctl arg
+55879dad0f3a gpu: host1x: Fix memory leak of device names
+55bf243c5145 kernel/printk/index.c: fix memory leak with using debugfs_lookup()
+55c91fedd03d virtio-mmio: don't break lifecycle of vm_dev
+55cef78c244d macvlan: add forgotten nla_policy for IFLA_MACVLAN_BC_CUTOFF
+56077b56cd3f tipc: do not update mtu if msg_max is too small in mtu negotiation
+560840afc3e6 btrfs: fix resolving backrefs for inline extent followed by prealloc
+56570bdad5e3 mtd: core: Fix refcount error in del_mtd_device()
+5693d077595d PM / devfreq: Fix leak in devfreq_dev_release()
+56b5c3e67b0f media: v4l2-mem2mem: add lock to protect parameter num_rdy
+56c78cb1f00a clk: tegra: Fix refcount leak in tegra210_clock_init
+573ebae16211 Bluetooth: Fix hci_suspend_sync crash
+57569c37f0ad scsi: iscsi: iscsi_tcp: Fix null-ptr-deref while calling getpeername()
+575e079c782b cifs: Fix xid leak in cifs_flock()
+578797f0c8cb scsi: ses: Fix slab-out-of-bounds in ses_intf_remove()
+57dcd64c7e03 cgroup,freezer: hold cpu_hotplug_lock before freezer_mutex
+5821504f5073 net: ethernet: ti: am65-cpsw: Fix PM runtime leakage in am65_cpsw_nuss_ndo_slave_open()
+5822e8cc84ee MIPS: vpe-mt: fix possible memory leak while module exiting
+5836947613ef powerpc/52xx: Fix a resource leak in an error handling path
+5886e4d5ecec can: gs_usb: fix time stamp counter initialization
+58d1b717879b wifi: iwlwifi: pcie: Fix integer overflow in iwl_write_to_user_buf
+58e84f6b3e84 RDMA/cma: Allow UD qp_type to join multicast only
+590a809ff743 jbd2: check 'jh->b_transaction' before removing it from checkpoint
+5938196cc188 mt76: mt7915: Fix PCI device refcount leak in mt7915_pci_init_hif2()
+594bc43b4103 ext4: fix leaking uninitialized memory in fast-commit journal
+594d2a14f216 fs/binfmt_elf: Fix memory leak in load_elf_binary()
+596a5123cc78 thunderbolt: Fix memory leak in tb_handle_dp_bandwidth_request()
+5993b75d0bc7 RDMA/rxe: Fix unsafe drain work queue code
+59a3a3120097 wifi: rtw88: Fix memory leak in rtw88_usb
+59b7e210a522 scsi: lpfc: Fix null ndlp ptr dereference in abnormal exit path for GFT_ID
+59f10a05b5c7 scsi: qla2xxx: Use raw_smp_processor_id() instead of smp_processor_id()
+5a26e45edb46 null_blk: fix poll request timeout handling
+5a2d96623670 platform/chrome: cros_usbpd_notify: Fix error handling in cros_usbpd_notify_init()
+5a5aa9cce621 staging: rtl8723bs: fix potential memory leak in rtw_init_drv_sw()
+5a78ac33e3cb wifi: ath11k: fix deinitialization of firmware resources
