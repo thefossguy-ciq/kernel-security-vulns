@@ -22,6 +22,11 @@
 # don't use unset variables
 set -o nounset
 
+# send a message to stdout
+echoerr() {
+	printf "%s\n" "$*" >&2;
+}
+
 # Colors are good!
 if [[ -t 1 ]]; then
 	txtred=$(tput setaf 1)		# Red
@@ -70,11 +75,14 @@ done < ${FILE}
 
 pushd ${CVELISTV5}> /dev/null
 
+
 for s in ${SHAS[@]}; do
-	echo -n "${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
+	out=""
+	out+="${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
 	result=$(${DIR}/cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
 	if [[ "${result}" != "" ]]; then
-		echo "${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
+		out+="${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
+		echoerr "${out}"
 		continue
 	fi
 	result=$(git grep -l "${s}")
@@ -85,16 +93,19 @@ for s in ${SHAS[@]}; do
 		assigner=$(grep "assignerShortName" ${result})
 		#echo "assigner='${assigner}'"
 		if [[ "${assigner}" == "        \"assignerShortName\": \"Linux\"," ]]; then
-			echo "${txtgrn}found in${txtrst} ${txtcyn}${result}${txtrst} ${txtgrn}which is one of ours.${txtrst}"
-			continue
+			out+="${txtgrn}found in${txtrst} ${txtcyn}${result}${txtrst} ${txtgrn}which is one of ours.${txtrst}"
+			break
 		fi
 		#echo "${txtred}warning${txtrst}: was found in cvelistV5:"
 		#echo "	${result}"
-		echo "${txtred}warning${txtrst}: was found in ${txtcyn}${result}${txtrst}"
+		out+="${txtred}warning${txtrst}: was found in ${txtcyn}${result}${txtrst}"
+		echoerr "${out}"
+		continue
 		#echo "	${result}"
 	else
-		echo "${txtgrn}all good.${txtrst}"
+		out+="${txtgrn}all good.${txtrst}"
 	fi
+	echo "${out}"
 done
 
 popd > /dev/null # ${CVELISTV5}
