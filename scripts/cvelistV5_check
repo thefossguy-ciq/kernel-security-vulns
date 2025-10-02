@@ -94,10 +94,9 @@ for s in ${SHAS[@]}; do
 		#echo "assigner='${assigner}'"
 		if [[ "${assigner}" == "        \"assignerShortName\": \"Linux\"," ]]; then
 			out+="${txtgrn}found in${txtrst} ${txtcyn}${result}${txtrst} ${txtgrn}which is one of ours.${txtrst}"
-			break
+			echo "${out}"
+			continue
 		fi
-		#echo "${txtred}warning${txtrst}: was found in cvelistV5:"
-		#echo "	${result}"
 		out+="${txtred}warning${txtrst}: was found in ${txtcyn}${result}${txtrst}"
 		echoerr "${out}"
 		continue
