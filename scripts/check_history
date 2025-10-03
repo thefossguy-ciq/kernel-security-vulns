@@ -1,0 +1,113 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2024-2025 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+# Copyright 2024 Google LLC
+#
+# Usage
+#   check_history filename
+#
+# Takes a file containing an upstream SHA in the first column and searches in
+# the https://github.com/nluedtke/linux_kernel_cves/ git tree to try to
+# determine if the git id already has a CVE assigned to it.  Not the most
+# through check, as MANY CVE entries in the past never actually referenced the
+# git commit that fixed the problem {cough Red Hat cough} but it's a good test
+# so that we don't create duplicate entries for things already assigned a CVE
+# in the past.
+#
+# This is primarily used when assigning "old" CVEs for commits that happened
+# before March 2024, when the kernel.org group took over being the Linux Kernel
+# CNA.
+
+# set -x                        # Uncomment to enable debugging
+# don't use unset variables
+set -o nounset
+
+# send a message to stdout
+echoerr() {
+	printf "%s\n" "$*" >&2;
+}
+
+# Colors are good!
+if [[ -t 1 ]]; then
+	txtred=$(tput setaf 1)		# Red
+	txtgrn=$(tput setaf 2)		# Green
+	txtblu=$(tput setaf 4)		# Blue
+	txtcyn=$(tput setaf 6)		# Cyan
+	txtrst=$(tput sgr0)		# Text reset
+else
+	txtred=""
+	txtgrn=""
+	txtblu=""
+	txtcyn=""
+	txtrst=""
+fi
+
+FILE=${1}
+if [ ! -s "${FILE}" ]; then
+	echo "The only argument should be the file to parse"
+	exit 1
+fi
+
+KERNEL_TREE=${CVEKERNELTREE}
+if [ ! -d ${KERNEL_TREE} ]; then
+	echo "CVEKERNELTREE needs setting to the stable repo directory"
+	echo "Either manually export it or add it to your .bashrc/.zshrc et al."
+	echo "See HOWTO in the root of this repo"
+	exit 1
+fi
+
+# set where the tool was run from and the name of our script
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+SCRIPT=${0##*/}
+
+#CVELISTV5="${DIR}/../cve/cvelistV5/"
+CVELISTV5="${DIR}/../../tmp/linux_kernel_cves/"
+
+SHAS=""
+
+while read line; do
+    # Skip annotations
+    if echo ${line} | grep -q "^\s*-"; then
+        continue
+    fi
+
+    SHAS+=($(echo ${line} | grep -oE "^\s*[a-f0-9]{7,}"))
+done < ${FILE}
+
+pushd ${CVELISTV5}> /dev/null
+
+
+for s in ${SHAS[@]}; do
+	out=""
+	out+="${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
+	result=$(${DIR}/cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
+	if [[ "${result}" != "" ]]; then
+		out+="${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
+		echoerr "${out}"
+		continue
+	fi
+	result=$(git grep "${s}" data/kernel_cves.json | grep "fixes")
+	if [[ "${result}" != "" ]] ; then
+#		# found in file, BUT if this is one of our CVE ids, then it is
+#		# probably just fine as it would be a "vulnerable" entry, not
+#		# the fix, so check for that:
+#		assigner=$(grep "assignerShortName" ${result})
+#		#echo "assigner='${assigner}'"
+#		if [[ "${assigner}" == "        \"assignerShortName\": \"Linux\"," ]]; then
+#			out+="${txtgrn}found in${txtrst} ${txtcyn}${result}${txtrst} ${txtgrn}which is one of ours.${txtrst}"
+#			echo "${out}"
+#			continue
+#		fi
+		out+="${txtred}warning${txtrst}: was found in ${txtcyn}data/kernel_cve.json${txtrst}"
+		echoerr "${out}"
+		continue
+		#echo "	${result}"
+	else
+		out+="${txtgrn}all good.${txtrst}"
+	fi
+	echo "${out}"
+done
+
+popd > /dev/null # ${CVELISTV5}
+
