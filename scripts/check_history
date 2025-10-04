@@ -77,35 +77,15 @@ done < ${FILE}
 
 pushd ${CVELISTV5}> /dev/null
 
-
 for s in ${SHAS[@]}; do
-	out=""
-	out+="${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
-	result=$(${DIR}/cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
-	if [[ "${result}" != "" ]]; then
-		out+="${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
-		echoerr "${out}"
-		continue
-	fi
+	out="${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
 	result=$(git grep "${s}" data/kernel_cves.json | grep "fixes")
 	if [[ "${result}" != "" ]] ; then
-#		# found in file, BUT if this is one of our CVE ids, then it is
-#		# probably just fine as it would be a "vulnerable" entry, not
-#		# the fix, so check for that:
-#		assigner=$(grep "assignerShortName" ${result})
-#		#echo "assigner='${assigner}'"
-#		if [[ "${assigner}" == "        \"assignerShortName\": \"Linux\"," ]]; then
-#			out+="${txtgrn}found in${txtrst} ${txtcyn}${result}${txtrst} ${txtgrn}which is one of ours.${txtrst}"
-#			echo "${out}"
-#			continue
-#		fi
 		out+="${txtred}warning${txtrst}: was found in ${txtcyn}data/kernel_cve.json${txtrst}"
 		echoerr "${out}"
 		continue
-		#echo "	${result}"
-	else
-		out+="${txtgrn}all good.${txtrst}"
 	fi
+	out+="${txtgrn}all good.${txtrst}"
 	echo "${out}"
 done
 
