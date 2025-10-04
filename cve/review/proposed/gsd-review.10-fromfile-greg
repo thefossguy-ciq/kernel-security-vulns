@@ -1,0 +1,59 @@
+64dc8c732f5c block, bfq: fix possible uaf for 'bfqq->bic'
+65dadb2beeb7 USB: Gadget: core: Help prevent panic during UVC unconfigure
+65e64640e97c net/mlx5e: Check for NOT_READY flag state after locking
+660145d708be wifi: brcmfmac: ensure CLM version is null-terminated to prevent stack-out-of-bounds
+66843b14fb71 perf: RISC-V: Remove PERF_HES_STOPPED flag checking in riscv_pmu_start()
+668a8f17b529 drm/mipi-dsi: Detach devices when removing the host
+66a7a92e4d0d bpf: Propagate error from htab_lock_bucket() to userspace
+66f4742e9352 ubifs: ubifs_releasepage: Remove ubifs_assert(0) to valid this process
+67312adc96b5 bpf: reject unhashed sockets in bpf_sk_assign
+673db054d7a2 scsi: target: Fix multiple LUN_RESET handling
+6746eae4bbad coresight: cti: Fix hang in cti_disable_hw()
+675751bb2063 ring-buffer: Sync IRQ works before buffer destruction
+67dfa589aa88 wifi: mac80211: check for station first in client probe
+6808abdb33bf drm/msm: fix use-after-free on probe deferral
+682b6dc29d98 wifi: iwlwifi: mvm: don't trust firmware n_channels
+68ad83188d78 scsi: qla2xxx: Fix crash when I/O abort times out
+68b99e94a4a2 thermal: intel_powerclamp: Use get_cpu() instead of smp_processor_id() to avoid crash
+68ba44639537 sctp: add a refcnt in sctp_stream_priorities to avoid a nested loop
+69143f60868b x86/xen: Fix memory leak in xen_smp_intr_init{_pv}()
+691c041bf208 net/mlx5e: Fix deadlock in tc route query code
+694175cd8a16 gpio: sifive: Fix refcount leak in sifive_gpio_probe
+69513dd669e2 cifs: Release folio lock on fscache read hit.
+6977b1a5d670 driver core: fix resource leak in device_add()
+699af748c615 octeontx2-pf: mcs: Fix NULL pointer dereferences
+699fb50d9903 drivers: base: Free devm resources when unregistering a device
+69cba9d3c128 cifs: fix mid leak during reconnection after timeout threshold
+6a0c637bfee6 bus: mhi: host: Range check CHDBOFF and ERDBOFF
+6a459d8edbdb dm cache: Fix UAF in destroy()
+6a46bf558803 binfmt_misc: fix shift-out-of-bounds in check_special_flags
+6a4b8aa0a916 crypto: af_alg - Fix missing initialisation affecting gcm-aes-s390
+6a7ac3d20593 tunnels: fix kasan splat when generating ipv4 pmtu error
+6a940abdef31 bonding: do not assume skb mac_header is set
+6aafa1c2d3e3 wifi: ath11k: fix memory leak in WMI firmware stats
+6ad1c94e1e7e eth: alx: take rtnl_lock on resume
+6b0d0477fce7 media: dvb-core: Fix double free in dvb_register_device()
+6b1da9f7126f netdevsim: fix memory leak in nsim_drv_probe() when nsim_dev_resources_register() failed
+6b504d06976f scsi: qla2xxx: Avoid fcport pointer dereference
+6b79a428c027 dm integrity: call kmem_cache_destroy() in dm_integrity_init() error path
+6b8082238fb8 media: coda: Add check for dcoda_iram_alloc
+6b8701be1f66 drm: amd: display: Fix memory leakage
+6ba434cb1a8d nfsd: clean up potential nfsd_file refcount leaks in COPY codepath
+6bb8769326c4 mm: /proc/pid/smaps_rollup: fix no vma's null-deref
+6bdd45d795ad mtd: lpddr2_nvm: Fix possible null-ptr-deref
+6be2e7522eb5 ALSA: ymfpci: Fix BUG_ON in probe function
+6be49d100c22 nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_thread()
+6be6d1124197 blk-mq: fix tags UAF when shrinking q->nr_hw_queues
+6c606e57eecc powerpc/rtas: avoid scheduling in rtas_os_term()
+6ca9818d1624 scsi: Revert "scsi: core: Do not increase scsi_device's iorequest_cnt if dispatch failed"
+6caa5a2b78f5 irqchip: Fix refcount leak in platform_irqchip_probe
+6cf0981c2233 iommu/amd: Fix pci device refcount leak in ppr_notifier()
+6cf1a126de29 ipmi_si: fix a memleak in try_smi_init()
+6d03bbff456b hwmon: (coretemp) Simplify platform device handling
+6d24b170a9db dax: Fix dax_mapping_release() use after free
+6d42ddf7f27b drbd: only clone bio if we have a backing device
+6db504ce55bd mm/ksm: fix race with VMA iteration and mm_struct teardown
+6db620863f85 fs/ntfs3: Validate data run offset
+6dfe4344c168 scsi: qla2xxx: Fix deletion race condition
+6e1abc51c945 wifi: mt76: mt76x0: fix oob access in mt76x0_phy_get_target_power
+6e2bda2c192d jfs: fix invalid free of JFS_IP(ipimap)->i_imap in diUnmount
