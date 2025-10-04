@@ -1,0 +1,65 @@
+5aed5b7c2430 xhci: Remove device endpoints from bandwidth list when freeing the device
+5bca3688bdbc Input: raspberrypi-ts - fix refcount leak in rpi_ts_probe
+5bf1e3bd7da6 drm/mediatek: mtk_drm_crtc: Add checks for devm_kcalloc
+5c0862c2c962 net: bcmgenet: Add a check for oversized packets
+5c13a4a0291b xen/gntdev: Accommodate VMA splitting
+5c20311d76cb IB/mad: Don't call to function that might sleep while in atomic context
+5c51054896bc cpufreq: Init completion before kobject_init_and_add()
+5c7cb9445290 blk-crypto: make blk_crypto_evict_key() more robust
+5ca86eae55a2 macintosh: fix possible memory leak in macio_add_one_device()
+5cdb422c8391 f2fs: fix to avoid use-after-free for cached IPU bio
+5cead5422a0e btrfs: insert tree mod log move in push_node_left
+5d122db2ff80 RDMA/rxe: Fix incomplete state save in rxe_requester
+5d4e04bf3a0f wifi: cfg80211: reject auth/assoc to AP with our address
+5d53244186c9 mtd: rawnand: brcmnand: Fix potential out-of-bounds access in oob write
+5d5aa219a790 ARM: dts: exynos: Use Exynos5420 compatible for the MIPI video phy
+5d6ba607d6cb vdpa: Add max vqp attr to vdpa_nl_policy for nlattr length check
+5d8f384a9b4f cpufreq: davinci: Fix clk use after free
+5daff15cd013 drm/amdgpu: unmap and remove csa_va properly
+5dd77585dd9d net/mlx5: DR, fix memory leak in mlx5dr_cmd_create_reformat_ctx
+5e08e9c742a0 drm/amdgpu: Fix sdma v4 sw fini error
+5e15ff29b156 RDMA/core: Make sure "ib_port" is valid when access sysfs node
+5e1627cb43dd net: usbnet: Fix WARNING in usbnet_start_xmit/usb_submit_urb
+5e29dc36bd5e netfilter: ipset: Rework long task execution when adding/deleting entries
+5e720f8c8c9d cpufreq: amd-pstate: fix global sysfs attribute type
+5ec63fdbca60 usb: gadget: u_serial: Add null pointer check in gserial_resume
+5eefc5307c98 drm/i915: mark requests for GuC virtual engines to avoid use-after-free
+5f151364b1da HID: hyperv: avoid struct memcpy overrun warning
+5f1c7031e044 staging: ks7010: potential buffer overflow in ks_wlan_set_encode_ext()
+5f1fc67f2cb8 mm/damon/core: initialize damo_filter->list from damos_new_filter()
+5f4fa1672d98 iavf: Fix use-after-free in free_netdev
+5f7d78b2b12a ntb_netdev: Use dev_kfree_skb_any() in interrupt context
+5f81018753df fprobe: Release rethook after the ftrace_ops is unregistered
+5fc8cbe4cf0f rcu-tasks: Avoid pr_info() with spin lock in cblist_init_generic()
+6018a266279b ip_vti: fix potential slab-use-after-free in decode_session6
+6018b585e8c6 tracing/histograms: Add histograms to hist_vars if they have referenced variables
+60829145f1e2 net: wwan: iosm: fix NULL pointer dereference when removing device
+60d476af9601 drm/msm: fix vram leak on bind errors
+60da73808298 rtc: class: Fix potential memleak in devm_rtc_allocate_device()
+60dd28380447 cpufreq: amd-pstate-ut: Fix kernel panic when loading the driver
+60eed1e3d450 ocfs2: fix defrag path triggering jbd2 ASSERT
+60fc756fc8e6 wifi: brcmfmac: Check for probe() id argument being NULL
+610a2a3d7d8b nilfs2: fix shift-out-of-bounds/overflow in nilfs_sb2_bad_offset()
+6160216fd2c9 drm/amd: fix potential memory leak
+61ae320a29b0 netfilter: nft_set_rbtree: fix null deref on element insertion
+61b3c876c1cb memory: pl353-smc: Fix refcount leak bug in pl353_smc_probe()
+61c80d1c3833 cxl: fix possible null-ptr-deref in cxl_guest_init_afu|adapter()
+61f49171a43a spi: qup: Don't skip cleanup in remove's error path
+620bf9f98136 iommu/vt-d: Clean up si_domain in the init_dmars() error path
+6252f47b7803 s390/zcrypt: don't leak memory if dev_set_name() fails
+628050ec952d net: enetc: avoid buffer leaks on xdp_do_redirect() failure
+62aeb94433fc ext2: Check block size validity during mount
+6311071a0562 wifi: nl80211: fix integer overflow in nl80211_parse_mbssid_elems()
+631420b06597 drm/i915: Make intel_get_crtc_new_encoder() less oopsy
+632c60ecd25d clk: imx: scu: use _safe list iterator to avoid a use after free
+632e04739c8f clk: rs9: Fix suspend/resume
+634fcbcaa406 wifi: rtw88: delete timer and free skb queue when unloading
+637452360ecd wifi: iwlwifi: mvm: fix potential array out of bounds access
+6382da082899 ALSA: usb-audio: Fix potential memory leaks
+63b1e9bccb71 ext4: add EXT4_IGET_BAD flag to prevent unexpected bad inode
+63f8793ee605 null_blk: Always check queue mode setting from configfs
+63fe6ff674a9 net: ethernet: ti: Fix return type of netcp_ndo_start_xmit()
+640a604585aa bpf, cpumap: Make sure kthread is running before map update returns
+640f87c190e0 NFSD: Protect against send buffer overflow in NFSv3 READDIR
+6417070918de net: qrtr: Fix an uninit variable access bug in qrtr_tx_resume()
+644ee70267a9 gpio: mvebu: fix irq domain leak
