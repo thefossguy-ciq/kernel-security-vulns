@@ -1,5 +1,5 @@
 ba28afbd9eff blk-mq: fix blk_mq_tags double free while nr_requests grown
-
+27e06650a5ea scsi: target: target_core_configfs: Add length check to avoid buffer overflow
 9f2c0ac1423d ALSA: usb-audio: fix race condition to UAF in snd_usbmidi_free
 3e31a6bc0731 wifi: rtw89: fix use-after-free in rtw89_core_tx_kick_off_and_wait()
 01e03fb7db41 media: b2c2: Fix use-after-free causing by irq_check_work in flexcop_pci_remove
