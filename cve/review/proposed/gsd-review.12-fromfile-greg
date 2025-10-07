@@ -1,0 +1,54 @@
+7a29fb4a4771 rcu: Avoid stack overflow due to __rcu_irq_enter_check_tick() being kprobe-ed
+7a6a9f1c5a0a drivers/perf: hisi: Don't migrate perf to the CPU going to teardown
+7a7175a2cd84 drm/amd/display: Fix potential null-deref in dm_resume
+7a9841ca0252 bpf, sockmap: Fix repeated calls to sock_put() when msg has more_data
+7aa529a69e92 ice: Don't tx before switchdev is fully configured
+7b51161696e8 firmware: raspberrypi: fix possible memory leak in rpi_firmware_probe()
+7bef797d707f vme: Fix error not catched in fake_init()
+7c1f23ad34fc spi: bcm-qspi: return error if neither hif_mspi nor mspi is available
+7c32919a3787 ARM: OMAP2+: omap4-common: Fix refcount leak bug
+7c4bced3caa7 iavf: Fix out-of-bounds when setting channels on remove
+7c62b75cd1a7 bpf, cpumap: Handle skb as well when clean up ptr_ring
+7c6dddc239ab bnxt: avoid overflow in bnxt_get_nvram_directory()
+7c8765308371 dmaengine: qcom-adm: fix wrong sizeof config in slave_config
+7c94dcfa8fcf dmaengine: ti: k3-udma: Reset UDMA_CHAN_RT byte counters to prevent overflow
+7ca4b085f430 ext4: fix memory leaks in ext4_fname_{setup_filename,prepare_lookup}
+7cafe9b8e22b KVM: nSVM: Check instead of asserting on nested TSC scaling support
+7d21e0b1b41b media: si470x: Fix use-after-free in si470x_int_in_callback()
+7d984dac8f6b RDMA/rxe: Fix mr->map double free
+7ddd8deb1c3c OPP: Fix potential null ptr dereference in dev_pm_opp_get_required_pstate()
+7deac114be5f md: don't dereference mddev after export_rdev()
+7dfae2631bfb ASoC: codecs: wcd938x: fix missing mbhc init error handling
+7e01c7f7046e net: cdc_ncm: Deal with too low values of dwNtbOutMaxSize
+7e271f42a5cc usb: host: xhci: Fix potential memory leak in xhci_alloc_stream_info()
+7e42907f3a7b ring-buffer: Fix deadloop issue on reading trace_pipe
+7e43039a49c2 r6040: Fix kmemleak in probe and remove
+7e692df39336 tcp: fix skb_copy_ubufs() vs BIG TCP
+7ea71af94eaa ext4: fix uninititialized value in 'ext4_evict_inode'
+7ed5cf8e6d9b nvme-core: fix dev_pm_qos memleak
+7f24626d6dd8 srcu: Delegate work to the boot cpu if using SRCU_SIZE_SMALL
+7f5866dd96d9 media: solo6x10: fix possible memory leak in solo_sysfs_init()
+7f72f50547b7 btrfs: output extra debug info if we failed to find an inline backref
+7f7cfcb6f082 Bluetooth: hci_event: call disconnect callback before deleting conn
+7fb933e56f77 clk: Fix memory leak in devm_clk_notifier_register()
+80113026d415 media: i2c: hi846: Fix memory leak in hi846_parse_dt()
+801ab13d50cf scsi: ses: Fix possible desc_ptr out-of-bounds accesses
+801f287c93ff scsi: target: iscsi: Fix buffer overflow in lio_target_nacl_info_show()
+803033c148f7 drm/i915: Fix memory leaks in i915 selftests
+8038510b1fe4 drm/i915: Fix system suspend without fbdev being initialized
+803f3176c5df wifi: mt7601u: fix an integer underflow
+804d8e0a6e54 NFSD: Avoid calling OPDESC() with ops->opnum == OP_ILLEGAL
+80fca8a10b60 bcache: Fix __bch_btree_node_alloc to make the failure behavior consistent
+8111964f1b85 dm thin: Fix ABBA deadlock between shrink_slab and dm_pool_abort_metadata
+813cc94c7847 hwmon: (xgene) Fix ioremap and memremap leak
+813e693023ba blk-iolatency: Fix memory leak on add_disk() failures
+81b21c0f0138 fs: hfsplus: remove WARN_ON() from hfsplus_cat_{read,write}_inode()
+81d17f6f3331 wifi: brcmfmac: Fix potential shift-out-of-bounds in brcmf_fw_alloc_request()
+8222d5910dae xfrm: Zero padding when dumping algos and encap
+8237c01f1696 blk-mq: use quiesced elevator switch when reinitializing queues
+82470f7d9044 tracing/hist: Fix out-of-bound write on 'action_data.var_ref_idx'
+82b2bc279467 tun: Fix memory leak for detached NAPI queue.
+82ba0ff7bf04 net/handshake: fix null-ptr-deref in handshake_nl_done_doit()
+82c229476b8f blk-mq: avoid double ->queue_rq() because of early timeout
+82cb4e4612c6 tipc: fix a null-ptr-deref in tipc_topsrv_accept
+832e231cff47 tty: serial: samsung_tty: Fix a memory leak in s3c24xx_serial_getclk() when iterating clk

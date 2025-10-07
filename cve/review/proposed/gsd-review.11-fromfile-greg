@@ -1,0 +1,64 @@
+6e5e5defdb8b media: coda: Add check for kmalloc
+6e6d847a8ce1 soc: aspeed: socinfo: Add kfree for kstrdup
+6ebcd021c92b btrfs: reject invalid reloc tree root keys with stack dump
+6eef7a2b9338 netfilter: conntrack: Avoid nf_ct_helper_hash uses after free
+6efddf1e32e2 md: fix soft lockup in status_resync
+6f0df8e16eb5 memcontrol: ensure memcg acquired by id is properly set up
+6f2d566b4643 perf/smmuv3: Fix hotplug callback leak in arm_smmu_pmu_init()
+6fa0a72cbbe4 gfs2: Fix possible data races in gfs2_show_options()
+6fe7d6b99211 mm/swap: fix swap_info_struct race between swapoff and get_swap_pages()
+6fe888c4d2fb lib/fonts: fix undefined behavior in bit shift for get_default_font
+7041101ff6c3 net/sched: sch_fq: fix integer overflow of "credit"
+704f3384f322 drm/i915/gvt: fix vgpu debugfs clean in remove
+7069d105c1f1 ext4: fix potential memory leak in ext4_fc_record_regions()
+708056fba733 staging: rtl8723bs: fix a potential memory leak in rtw_init_cmd_priv()
+70a3288a7586 usb: gadget: f_hid: fix refcount leak on error path
+70e42feab2e2 ext4: fix possible double unlock when moving a directory
+7136f956c73c drm/amdgpu: Fix memory leak in hpd_rx_irq_create_workqueue()
+7175e131ebba fs: dlm: fix invalid derefence of sb_lvbptr
+71e2d666ef85 mm/huge_memory: do not clobber swp_entry_t during THP split
+71fb36b5ff11 scsi: hisi_sas: Grab sas_dev lock when traversing the members of sas_dev.list
+720b47229a5b drm/amdgpu: drop gfx_v11_0_cp_ecc_error_irq_funcs
+7236aae5f81f parisc: Fix locking in pdc_iodc_print() firmware call
+723ac751208f nilfs2: replace WARN_ONs by nilfs_error for checkpoint acquisition failure
+724b6bab0d75 fs: dlm: fix use after free in midcomms commit
+725a521a1873 drm/radeon: Fix PCI device refcount leak in radeon_atrm_get_bios()
+727c28c1cef2 iommufd: Fix unpinning of pages when an access is present
+727cc0147f50 platform/x86: mxm-wmi: fix memleak in mxm_wmi_call_mx[ds|mx]()
+728ac3389296 mcb: mcb-parse: fix error handing in chameleon_parse_gdd()
+7295a996fdab platform/x86: dell-sysman: Fix reference leak
+72cc65497065 net/mlx5e: Take RTNL lock when needed before calling xdp_set_features()
+73274c33d961 accel/qaic: Fix a leak in map_user_pages()
+738a96c4a8c3 bpf, arm64: Fixed a BTI error on returning to patched function
+739a6a6bbdb7 clk: rockchip: Fix memory leak in rockchip_clk_register_pll()
+73b6924cdebc iommu/mediatek: Check return value after calling platform_get_resource()
+73db1b8f2bb6 netfilter: conntrack: fix wrong ct->timeout value
+73f5fc5f884a iommu/fsl_pamu: Fix resource leak in fsl_pamu_probe()
+74466e46e754 drm/msm/dp: fix memory corruption with too many bridges
+7455b7007b9e clk: microchip: fix potential UAF in auxdev release callback
+7485edb2b6ca media: i2c: ov772x: Fix memleak in ov772x_probe()
+7554886daa31 drm/amdgpu: Fix size validation for non-exclusive domains (v4)
+75818afff631 drm/amdkfd: Fix memory leakage
+758c91078165 octeon_ep: cancel queued works in probe error path
+75c4a8154cb6 wifi: ath6kl: reduce WARN to dev_dbg() in callback
+75e5fab7db0c ASoC: lpass: Fix for KASAN use_after_free out of bounds
+7610615e8cdb test_firmware: fix memory leak in test_firmware_init()
+7654cc03eb69 wifi: ath9k: hif_usb: fix memory leak of remain_skbs
+76ce32682635 x86: fix clear_user_rep_good() exception handling annotation
+76d54bf20cdc nvme-tcp: don't access released socket during error recovery
+76dd298094f4 blk-mq: fix null pointer dereference in blk_mq_clear_rq_mapping()
+76e31045ba03 media: radio-shark: Add endpoint checks
+777ecaabd614 tipc: fix an information leak in tipc_topsrv_kern_subscr
+7793fc3babe9 bpf: Make bpf_refcount_acquire fallible for non-owning refs
+78316e9dfc24 scsi: mpt3sas: Fix possible resource leaks in mpt3sas_transport_port_add()
+785b3f667b4b drm/i915/perf: add sentinel to xehp_oa_b_counters
+78a6a43aaf87 wifi: mac80211: mlme: fix null-ptr deref on failed assoc
+78e04bbff849 Drivers: hv: vmbus: Don't dereference ACPI root object handle
+79597c8bf64c ALSA: ac97: Fix possible NULL dereference in snd_ac97_mixer
+7962ef13651a perf trace: Really free the evsel->priv area
+7991dbff6849 dm thin: Use last transaction's pmd->root when commit failed
+79a3908d1ea6 fbdev: omapfb: lcd_mipid: Fix an error handling path in mipid_spi_probe()
+79c81d137d36 Input: exc3000 - properly stop timer on shutdown
+79c865158750 vdpa: Add features attr to vdpa_nl_policy for nlattr length check
+79d3bafaecc1 media: amphion: fix REVERSE_INULL issues reported by coverity
+79ebb53772c9 octeontx2-af: Add validation before accessing cgx and lmac
