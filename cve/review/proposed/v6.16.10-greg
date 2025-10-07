@@ -1,0 +1,39 @@
+b549113738e8 futex: Prevent use-after-free during requeue-PI
+d9c70e93ec59 octeontx2-pf: Fix potential use after free in otx2_tc_add_flow()
+390b3a300d78 nexthop: Forbid FDB status change while nexthop is in a group
+28aa29986dde fs/proc/task_mmu: check p->vec_buf for NULL
+85e1ff61060a kmsan: fix out-of-bounds access to shadow memory
+e4414b01c1cd bpf: Check the helper function is valid in get_helper_proto
+cd8ae32e4e46 xfrm: xfrm_alloc_spi shouldn't use 0 as SPI
+1091860a16a8 net: tun: Update napi->skb after XDP process
+4ec3c15462b9 futex: Use correct exit on failure from futex_hash_allocate_default()
+1a194e6c8e1e fbcon: fix integer overflow in fbcon_do_set_font
+4e034bf045b1 iommufd: Fix race during abort for file descriptors
+2e128683176a Bluetooth: hci_event: Fix UAF in hci_conn_tx_dequeue
+9e622804d57e Bluetooth: hci_event: Fix UAF in hci_acl_create_conn_sync
+302a1f674c00 Bluetooth: MGMT: Fix possible UAFs
+a2501032de0d tracing/osnoise: Fix slab-out-of-bounds in _parse_integer_limit()
+7b7387650dcf mm/hugetlb: fix folio is still mapped when deleted
+a35c04de2565 net/smc: fix warning in smc_rx_splice() when calling get_page()
+352e66900cde drm/gma500: Fix null dereference in hdmi teardown
+9739d5830497 i40e: fix input validation logic for action_meta
+9158c6bb2451 afs: Fix potential null pointer dereference in afs_put_server
+4d428dca252c netfs: fix reference leak
+9b2f5ef00e85 fbcon: Fix OOB access in font allocation
+7446284023e8 spi: cadence-quadspi: Implement refcount to handle unbind during busy
+30dbc1c8d50f spi: cadence-qspi: defer runtime support on socfpga if reset bit is enabled
+55d225670def i40e: add validation for ring_len param
+aa68d3c3ac8d i40e: fix idx validation in i40e_validate_queue_map
+f1ad24c5abe1 i40e: fix idx validation in config queues msg
+877b7e6ffc23 i40e: fix validation of VF state in get resources
+cb79fa7118c1 i40e: add max boundary check for VF filters
+eac04428abe9 i40e: add mask to apply valid bits for itr_idx
+b99dd77076bd i40e: improve VF MAC filters accounting
+5c793afa07da can: rcar_can: rcar_can_resume(): fix s2ram with PSCI
+38c0abad45b1 can: etas_es58x: populate ndo_change_mtu() to prevent buffer overflow
+ac1c7656fa71 can: hi311x: populate ndo_change_mtu() to prevent buffer overflow
+61da0bd4102c can: sun4i_can: populate ndo_change_mtu() to prevent buffer overflow
+17c8d794527f can: mcba_usb: populate ndo_change_mtu() to prevent buffer overflow
+6043819e707c net/mlx5: fs, fix UAF in flow counter release
+3bd44edd6c55 gpio: regmap: fix memory leak of gpio_regmap structure
+fbe2dc6a9c73 smb: client: fix wrong index reference in smb2_compound_op()
