@@ -1,0 +1,9 @@
+#!/bin/bash
+
+year=$(gum input --prompt="# What year do you want to allocate ids for? " --value="2025")
+num=$(gum input --prompt="# How many CVE ids for ${year} do you want to allocate? " --value="1")
+
+echo "mkdir ../cve/reserved/${year}"
+echo "cve -u gregkh@kernel.org -o Linux reserve -y ${year} ${num} > x.${year}"
+echo "grep CVE- x.${year} > x"
+echo "for id in \$(cat x); do touch ../cve/reserved/${year}/\${id}; done"
