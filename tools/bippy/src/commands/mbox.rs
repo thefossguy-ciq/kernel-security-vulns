@@ -2,10 +2,9 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
+use cve_utils::dyad::DyadEntry;
 use cve_utils::version_utils::compare_kernel_versions;
 use std::fmt::Write;
-
-use crate::models::DyadEntry;
 
 /// Parameters for generating an mbox-formatted CVE announcement
 pub struct MboxParams<'a> {
@@ -278,7 +277,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::DyadEntry;
+    use cve_utils::dyad::DyadEntry;
     use cve_utils::Kernel;
 
     fn create_test_kernel(_version: &str, git_id: &str) -> Kernel {

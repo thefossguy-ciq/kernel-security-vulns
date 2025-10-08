@@ -2,8 +2,8 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-use crate::models::dyad::DyadEntry;
 use crate::models::{CpeMatch, CpeNodes, VersionRange};
+use cve_utils::dyad::DyadEntry;
 use cve_utils::version_utils::compare_kernel_versions;
 use cve_utils::version_utils::version_is_mainline;
 use log::debug;
@@ -691,7 +691,7 @@ fn log_final_ranges(kernel_versions: &[VersionRange]) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::dyad::DyadEntry;
+    use cve_utils::dyad::DyadEntry;
 
     // Helper function to create a DyadEntry from string representation
     fn dyad_entry(s: &str) -> DyadEntry {

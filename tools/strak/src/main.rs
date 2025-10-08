@@ -171,7 +171,7 @@ fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<V
 
     // Use grep-like search to find mentions in all files, case insensitive
     let output = Command::new("grep")
-        .args(["-r", "-i", "-l", &format!("fixed in {version}"), "."])
+        .args(["-R", "-i", "-l", &format!("fixed in {version}"), "."])
         .current_dir(published_dir)
         .output()
         .context("Failed to execute grep command")?;

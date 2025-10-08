@@ -494,56 +494,6 @@ mod tests {
     }
 
     #[test]
-    fn test_dyad_entry_parsing() {
-        let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
-        assert_eq!(entry.vulnerable.version(), "5.15");
-        assert_eq!(
-            entry.vulnerable.git_id(),
-            "11c52d250b34a0862edc29db03fbec23b30db6da"
-        );
-        assert_eq!(entry.fixed.version(), "5.16");
-        assert_eq!(
-            entry.fixed.git_id(),
-            "2b503c8598d1b232e7fc7526bce9326d92331541"
-        );
-        assert!(entry.is_fixed());
-        assert!(entry.is_cross_version());
-
-        // Test with a vulnerability that isn't fixed
-        let entry =
-            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
-        assert_eq!(entry.vulnerable.version(), "5.15");
-        assert_eq!(
-            entry.vulnerable.git_id(),
-            "11c52d250b34a0862edc29db03fbec23b30db6da"
-        );
-        assert!(entry.fixed.is_empty());
-        assert_eq!(entry.fixed.version(), "0");
-        assert_eq!(entry.fixed.git_id(), "0");
-        assert!(!entry.is_fixed());
-
-        // Test with an unknown introduction point
-        let entry =
-            DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
-        assert!(entry.vulnerable.is_empty());
-        assert_eq!(entry.vulnerable.version(), "0");
-        assert_eq!(entry.vulnerable.git_id(), "0");
-        assert_eq!(entry.fixed.version(), "5.16");
-        assert_eq!(
-            entry.fixed.git_id(),
-            "2b503c8598d1b232e7fc7526bce9326d92331541"
-        );
-        assert!(entry.is_fixed());
-        assert!(!entry.is_cross_version());
-    }
-
-    #[test]
-    fn test_invalid_dyad_entry() {
-        let result = DyadEntry::from_str("invalid:format");
-        assert!(result.is_err());
-    }
-
-    #[test]
     fn test_strip_commit_text() {
         let tags = vec![
             "Signed-off-by".to_string(),

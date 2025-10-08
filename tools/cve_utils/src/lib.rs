@@ -2,6 +2,7 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
+pub mod dyad;
 pub mod kernel;
 pub mod verhaal;
 pub mod version_utils;

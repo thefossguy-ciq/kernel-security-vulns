@@ -330,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_generate_references() {
-        use crate::models::dyad::DyadEntry;
+        use cve_utils::dyad::DyadEntry;
         use cve_utils::Kernel;
 
         // Helper function to create test kernels
