@@ -4,17 +4,17 @@
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use owo_colors::OwoColorize;
 use cve_utils::common;
-use cve_utils::print_git_error_details;
 use cve_utils::dyad::DyadEntry;
+use cve_utils::print_git_error_details;
+use git2::{Oid, Repository};
+use log::{debug, error};
+use owo_colors::OwoColorize;
 use rayon::prelude::*;
 use std::env;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use git2::{Repository, Oid};
-use log::{debug, error};
 
 /// Lists all CVE IDs that are NOT fixed for a given Git commit.
 ///
@@ -54,7 +54,6 @@ impl DyadRecord {
         }
     }
 }
-
 
 fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
     let mut dyad_records: Vec<DyadRecord> = Vec::new();
@@ -129,7 +128,6 @@ fn initialize_logging(verbose: bool) -> log::LevelFilter {
     logging_level
 }
 
-
 fn main() -> Result<()> {
     let args = Args::parse();
 
@@ -144,7 +142,9 @@ fn main() -> Result<()> {
         Ok(path) => path,
         Err(e) => {
             error!("Error: CVEKERNELTREE environment variable must be set to the kernel tree directory: {e}");
-            return Err(anyhow!("CVEKERNELTREE environment variable must be set to the kernel tree directory"));
+            return Err(anyhow!(
+                "CVEKERNELTREE environment variable must be set to the kernel tree directory"
+            ));
         }
     };
 
@@ -170,8 +170,8 @@ fn main() -> Result<()> {
     let _dyads = match read_dyad(&published_dir) {
         Ok(d) => d,
         Err(e) => {
-                error!("Error reading all dyad entries: {e}");
-                return Err(anyhow!("failed to read dyad entries: {e}"));
+            error!("Error reading all dyad entries: {e}");
+            return Err(anyhow!("failed to read dyad entries: {e}"));
         }
     };
 
@@ -250,7 +250,10 @@ fn list_fixed_version(version: &str, vulns_dir: &Path) -> Result<()> {
 }
 
 /// Find CVEs that mention being fixed in a specific version
-fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<Vec<(String, String)>> {
+fn find_cves_with_fixed_version(
+    version: &str,
+    published_dir: &Path,
+) -> Result<Vec<(String, String)>> {
     let mut results = Vec::new();
 
     // Use grep-like search to find mentions in all files, case insensitive
@@ -278,10 +281,11 @@ fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<V
                 if let Some(year) = cve_id.split('-').nth(1) {
                     let sha_file = published_dir.join(year).join(format!("{cve_id}.sha1"));
 
-                    if sha_file.exists()
-                        && let Ok(commit) = fs::read_to_string(&sha_file) {
+                    if sha_file.exists() {
+                        if let Ok(commit) = fs::read_to_string(&sha_file) {
                             results.push((cve_id, commit.trim().to_string()));
                         }
+                    }
                 }
             }
         }
@@ -291,7 +295,13 @@ fn find_cves_with_fixed_version(version: &str, published_dir: &Path) -> Result<V
 }
 
 /// Process all CVEs for a specific year
-fn search_year(git_sha: &str, year: &str, vulns_dir: &Path, kernel_tree: &str, debug: bool) -> Result<()> {
+fn search_year(
+    git_sha: &str,
+    year: &str,
+    vulns_dir: &Path,
+    kernel_tree: &str,
+    debug: bool,
+) -> Result<()> {
     // Find all SHA1 files for this year
     let year_dir = vulns_dir.join("cve").join("published").join(year);
 
@@ -311,7 +321,8 @@ fn search_year(git_sha: &str, year: &str, vulns_dir: &Path, kernel_tree: &str, d
     }
 
     if debug {
-        println!("{} Searching {} CVE IDs for {} with {} threads",
+        println!(
+            "{} Searching {} CVE IDs for {} with {} threads",
             "#".cyan(),
             sha_files.len().to_string().cyan(),
             year.green(),
@@ -320,17 +331,18 @@ fn search_year(git_sha: &str, year: &str, vulns_dir: &Path, kernel_tree: &str, d
     }
 
     // Process in parallel using Rayon
-    let results: Vec<_> = sha_files.par_iter()
-        .filter_map(|path| {
-            match check_id(git_sha, path, vulns_dir, kernel_tree, debug) {
+    let results: Vec<_> = sha_files
+        .par_iter()
+        .filter_map(
+            |path| match check_id(git_sha, path, vulns_dir, kernel_tree, debug) {
                 Ok(Some(cve_id)) => Some(cve_id),
                 Ok(None) => None,
                 Err(e) => {
                     error!("Error checking {}: {}", path.display(), e);
                     None
                 }
-            }
-        })
+            },
+        )
         .collect();
 
     // Sort and print results
@@ -347,9 +359,16 @@ fn search_year(git_sha: &str, year: &str, vulns_dir: &Path, kernel_tree: &str, d
 }
 
 /// Check if a CVE is fixed in the given Git SHA
-fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: &str, debug: bool) -> Result<Option<String>> {
+fn check_id(
+    git_sha: &str,
+    sha_file_path: &Path,
+    vulns_dir: &Path,
+    kernel_tree: &str,
+    debug: bool,
+) -> Result<Option<String>> {
     // Extract CVE ID from the path
-    let cve_id = sha_file_path.file_stem()
+    let cve_id = sha_file_path
+        .file_stem()
         .and_then(|stem| stem.to_str())
         .ok_or_else(|| anyhow!("Invalid file name: {}", sha_file_path.display()))?;
 
@@ -361,7 +380,8 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     let _sha = fs::read_to_string(sha_file_path)?.trim().to_string();
 
     // Get the root part of the path for related files
-    let relative_path = sha_file_path.strip_prefix(vulns_dir)
+    let relative_path = sha_file_path
+        .strip_prefix(vulns_dir)
         .unwrap_or(sha_file_path)
         .to_str()
         .ok_or_else(|| anyhow!("Invalid path"))?;
@@ -389,7 +409,8 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     let dyad_content = fs::read_to_string(&dyad_file)?;
 
     // Parse each dyad entry
-    let entries: Vec<DyadEntry> = dyad_content.lines()
+    let entries: Vec<DyadEntry> = dyad_content
+        .lines()
         .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
         .filter_map(|line| match DyadEntry::new(line) {
             Ok(entry) => Some(entry),
@@ -437,7 +458,12 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     }
 
     if debug {
-        println!("  {} must_look={} found_fix={}", "#".cyan(), must_look, found_fix);
+        println!(
+            "  {} must_look={} found_fix={}",
+            "#".cyan(),
+            must_look,
+            found_fix
+        );
     }
 
     // If we need to check and no fix was found, the commit is vulnerable
@@ -451,28 +477,30 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
 /// Check if the ancestor commit is in the history of the descendant commit
 fn is_commit_ancestor(ancestor: &str, descendant: &str, kernel_tree: &str) -> Result<bool> {
     // Open the repository
-    let repo = Repository::open(kernel_tree)
-        .context("Failed to open git repository")?;
+    let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
 
     // Parse the commit IDs
-    let ancestor_oid = Oid::from_str(ancestor)
-        .context(format!("Invalid ancestor git SHA: {ancestor}"))?;
+    let ancestor_oid =
+        Oid::from_str(ancestor).context(format!("Invalid ancestor git SHA: {ancestor}"))?;
 
-    let descendant_oid = Oid::from_str(descendant)
-        .context(format!("Invalid descendant git SHA: {descendant}"))?;
+    let descendant_oid =
+        Oid::from_str(descendant).context(format!("Invalid descendant git SHA: {descendant}"))?;
 
     // Check if ancestor exists
-    let _ancestor_commit = repo.find_commit(ancestor_oid)
+    let _ancestor_commit = repo
+        .find_commit(ancestor_oid)
         .context(format!("Ancestor commit not found: {ancestor}"))?;
 
     // Check if descendant exists
-    let _descendant_commit = repo.find_commit(descendant_oid)
+    let _descendant_commit = repo
+        .find_commit(descendant_oid)
         .context(format!("Descendant commit not found: {descendant}"))?;
 
     // For git merge-base --is-ancestor A B, we need to check if A is an ancestor of B
     // Check if ancestor is actually an ancestor of descendant by using libgit2's graph_descendant_of
     // This function checks if one commit is a descendant of another (which is the opposite direction)
-    let result = repo.graph_descendant_of(descendant_oid, ancestor_oid)
+    let result = repo
+        .graph_descendant_of(descendant_oid, ancestor_oid)
         .context("Failed to determine ancestor relationship between commits")?;
 
     // If the descendant is a descendant of the ancestor, then the ancestor is an ancestor of the descendant
@@ -491,7 +519,9 @@ mod tests {
         let kernel_tree = match env::var("CVEKERNELTREE") {
             Ok(path) => path,
             Err(_) => {
-                println!("Skipping test_real_kernel_check: CVEKERNELTREE environment variable not set");
+                println!(
+                    "Skipping test_real_kernel_check: CVEKERNELTREE environment variable not set"
+                );
                 return;
             }
         };
@@ -554,7 +584,8 @@ mod tests {
                                 if parts.len() >= 2 {
                                     vuln_commit = parts[1].to_string();
                                     if vuln_commit == "0" {
-                                        vuln_commit = "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string();
+                                        vuln_commit =
+                                            "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string();
                                     }
                                     break;
                                 }
@@ -576,7 +607,10 @@ mod tests {
             return;
         }
 
-        println!("Testing real CVE: {} with fix {} and vuln {}", cve_id, fix_commit, vuln_commit);
+        println!(
+            "Testing real CVE: {} with fix {} and vuln {}",
+            cve_id, fix_commit, vuln_commit
+        );
 
         // Test case 1: The vulnerable commit should be vulnerable
         let result = check_id(&vuln_commit, &sha_file, &vulns_dir, &kernel_tree, true).unwrap();
