@@ -254,7 +254,7 @@ fn run_dyad_and_parse(
             }
 
             // Parse the line directly as DyadEntry
-            if let Ok(entry) = DyadEntry::from_str(line) {
+            if let Ok(entry) = DyadEntry::new(line) {
                 dyad_entries.push(entry);
             }
         }
@@ -564,7 +564,7 @@ mod tests {
     fn test_determine_default_status() {
         // Test with vulnerable_version = 0
         let entries =
-            vec![DyadEntry::from_str("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap()];
+            vec![DyadEntry::new("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap()];
         assert_eq!(
             utils::version::determine_default_status(&entries),
             "affected"
@@ -572,7 +572,7 @@ mod tests {
 
         // Test with invalid git id
         /* FIXME, does not build, but you get the idea of what we should be testing...
-        match DyadEntry::from_str("5.10:abcdef123456:5.15:11c52d250b34a0862edc29db03fbec23b30db6da") {
+        match DyadEntry::new("5.10:abcdef123456:5.15:11c52d250b34a0862edc29db03fbec23b30db6da") {
             Ok(d) => {
                 assert_eq!(0, 0);
             }
@@ -583,7 +583,7 @@ mod tests {
 
         // Test with mainline vulnerable version that's different from the fixed version
         let entries = vec![
-            DyadEntry::from_str("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
+            DyadEntry::new("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
         ];
         assert_eq!(
             utils::version::determine_default_status(&entries),
@@ -593,7 +593,7 @@ mod tests {
         // Test with mainline version that's both vulnerable and fixed in the same version
         // This should be "unaffected" because no actually released version was affected
         let entries = vec![
-            DyadEntry::from_str("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
+            DyadEntry::new("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(
             utils::version::determine_default_status(&entries),
@@ -602,8 +602,8 @@ mod tests {
 
         // Test with multiple entries, one with vulnerable_version = 0
         let entries = vec![
-            DyadEntry::from_str("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
-            DyadEntry::from_str("0:0:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
+            DyadEntry::new("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
+            DyadEntry::new("0:0:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(
             utils::version::determine_default_status(&entries),
@@ -612,8 +612,8 @@ mod tests {
 
         // Test with multiple entries, mix of same-version fixes and different-version fixes
         let entries = vec![
-            DyadEntry::from_str("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a").unwrap(),
-            DyadEntry::from_str("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
+            DyadEntry::new("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a").unwrap(),
+            DyadEntry::new("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(
             utils::version::determine_default_status(&entries),
@@ -625,7 +625,7 @@ mod tests {
     fn test_generate_version_ranges() {
         // Test with a single entry for a stable kernel
         let entries = vec![
-            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
+            DyadEntry::new("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
         ];
 
         let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected");
@@ -655,7 +655,7 @@ mod tests {
 
         // Test with default status "affected"
         let entries = vec![
-            DyadEntry::from_str("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
+            DyadEntry::new("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
         let kernel_versions = utils::version::generate_version_ranges(&entries, "affected");
@@ -683,8 +683,8 @@ mod tests {
 
         // Test with multiple entries
         let entries = vec![
-            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
-            DyadEntry::from_str("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
+            DyadEntry::new("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
+            DyadEntry::new("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
         let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected");

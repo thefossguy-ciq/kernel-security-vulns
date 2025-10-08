@@ -74,7 +74,7 @@ fn prepare_vulnerability_data(
     // If no entries were created, use the fix commit as a fallback
     if dyad_entries.is_empty() {
         // Create a dummy entry using the fix commit
-        if let Ok(entry) = DyadEntry::from_str(&format!("0:0:0:{git_sha_full}")) {
+        if let Ok(entry) = DyadEntry::new(&format!("0:0:0:{git_sha_full}")) {
             dyad_entries.push(entry);
         }
     }

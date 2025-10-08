@@ -695,7 +695,7 @@ mod tests {
 
     // Helper function to create a DyadEntry from string representation
     fn dyad_entry(s: &str) -> DyadEntry {
-        DyadEntry::from_str(s).unwrap()
+        DyadEntry::new(s).unwrap()
     }
 
     #[test]

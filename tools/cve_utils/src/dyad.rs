@@ -28,7 +28,7 @@ pub struct DyadEntry {
 
 impl DyadEntry {
     /// Create a new `DyadEntry` from a colon-separated string
-    pub fn from_str(s: &str) -> Result<Self, DyadError> {
+    pub fn new(s: &str) -> Result<Self, DyadError> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 4 {
             return Err(DyadError::InvalidDyadEntry(s.to_string()));
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_dyad_entry_parsing() {
-        let entry = DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
+        let entry = DyadEntry::new("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
         assert_eq!(
             entry.vulnerable.git_id(),
@@ -111,7 +111,7 @@ mod tests {
 
         // Test with a vulnerability that isn't fixed
         let entry =
-            DyadEntry::from_str("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
+            DyadEntry::new("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:0:0").unwrap();
         assert_eq!(entry.vulnerable.version(), "5.15");
         assert_eq!(
             entry.vulnerable.git_id(),
@@ -124,7 +124,7 @@ mod tests {
 
         // Test with an unknown introduction point
         let entry =
-            DyadEntry::from_str("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
+            DyadEntry::new("0:0:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap();
         assert!(entry.vulnerable.is_empty());
         assert_eq!(entry.vulnerable.version(), "0");
         assert_eq!(entry.vulnerable.git_id(), "0");
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_invalid_dyad_entry() {
-        let result = DyadEntry::from_str("invalid:format");
+        let result = DyadEntry::new("invalid:format");
         assert!(result.is_err());
     }
 
