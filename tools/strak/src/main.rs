@@ -14,6 +14,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 use git2::{Repository, Oid};
+use log::{debug, error};
 
 /// Lists all CVE IDs that are NOT fixed for a given Git commit.
 ///
@@ -35,8 +36,105 @@ struct Args {
     verbose: bool,
 }
 
+/// A whole "dyad" record, assigned to a specific CVE id
+#[derive(Debug, Clone)]
+struct DyadRecord {
+    /// CVE identifier (e.g., "CVE-2023-12345")
+    pub cve_number: String,
+    /// Dyad entries containing vulnerability and fix information
+    pub dyad_entries: Vec<DyadEntry>,
+}
+
+impl DyadRecord {
+    /// Create a new `DyadRecord` from a colon-separated string
+    pub fn new(s: &str) -> Self {
+        Self {
+            cve_number: s.to_string(),
+            dyad_entries: Vec::new(),
+        }
+    }
+}
+
+
+fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
+    let mut dyad_records: Vec<DyadRecord> = Vec::new();
+
+    // Iterate through all year directories
+    let dir_result = match fs::read_dir(&published_dir) {
+        Ok(result) => result,
+        Err(e) => {
+            error!("Error reading published directory: {e}");
+            return Err(anyhow!("Failed to read published directory: {e}"));
+        }
+    };
+
+    for entry_result in dir_result {
+        let entry = match entry_result {
+            Ok(entry) => entry,
+            Err(e) => {
+                error!("Error reading directory entry: {e}");
+                continue;
+            }
+        };
+
+        let file_type = match entry.file_type() {
+            Ok(ft) => ft,
+            Err(e) => {
+                error!("Error getting file type: {e}");
+                continue;
+            }
+        };
+
+        if file_type.is_dir() {
+            let year_str = entry.file_name().to_string_lossy().to_string();
+            debug!("{} Searching year {}", "#".cyan(), year_str);
+            let subdir = published_dir.join(year_str);
+            let _s = match read_dyad(&subdir) {
+                Ok(d) => d,
+                Err(e) => {
+                    error!("Error reading all dyad entries: {e}");
+                    return Err(anyhow!("failed to read dyad entries: {e}"));
+                }
+            };
+        } else if file_type.is_file() {
+            let file_name = entry.file_name().to_string_lossy().to_string();
+            // Only look at files that end in .dyad
+            if file_name.ends_with(".dyad") {
+                debug!("{} Reading {}", "#".cyan(), file_name);
+                // FIXME put reading logic in here!
+
+                // FIXME strip the .dyad for the string
+                let dyad_record = DyadRecord::new(&file_name.to_string());
+                dyad_records.push(dyad_record);
+            }
+        }
+    }
+
+    Ok(dyad_records)
+}
+
+/// Initialize and configure the logging system
+fn initialize_logging(verbose: bool) -> log::LevelFilter {
+    let logging_level = if verbose {
+        log::LevelFilter::max()
+    } else {
+        log::LevelFilter::Error
+    };
+
+    env_logger::builder()
+        .format_timestamp(None)
+        .filter_level(logging_level)
+        .init();
+
+    logging_level
+}
+
+
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    // Initialize logging system
+    initialize_logging(args.verbose);
 
     // Set up debug output based on verbose flag
     let debug = args.verbose;
@@ -45,7 +143,7 @@ fn main() -> Result<()> {
     let kernel_tree = match env::var("CVEKERNELTREE") {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error: CVEKERNELTREE environment variable must be set to the kernel tree directory: {e}");
+            error!("Error: CVEKERNELTREE environment variable must be set to the kernel tree directory: {e}");
             return Err(anyhow!("CVEKERNELTREE environment variable must be set to the kernel tree directory"));
         }
     };
@@ -61,9 +159,19 @@ fn main() -> Result<()> {
     let vulns_dir = match common::find_vulns_dir() {
         Ok(dir) => dir,
         Err(e) => {
-            eprintln!("Error finding vulns directory: {e}");
+            error!("Error finding vulns directory: {e}");
             print_git_error_details(&e);
             return Err(e);
+        }
+    };
+
+    let published_dir = vulns_dir.join("cve").join("published");
+
+    let _dyads = match read_dyad(&published_dir) {
+        Ok(d) => d,
+        Err(e) => {
+                error!("Error reading all dyad entries: {e}");
+                return Err(anyhow!("failed to read dyad entries: {e}"));
         }
     };
 
@@ -71,19 +179,18 @@ fn main() -> Result<()> {
     if let Some(fixed_version) = &args.fixed {
         // Show CVEs fixed in a specific version
         if let Err(e) = list_fixed_version(fixed_version, &vulns_dir) {
-            eprintln!("Error listing fixed version: {e}");
+            error!("Error listing fixed version: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
     } else if let Some(git_sha) = &args.git_sha {
         // Check for unfixed CVEs in a specific Git SHA
-        let published_dir = vulns_dir.join("cve").join("published");
 
         // Iterate through all year directories
         let dir_result = match fs::read_dir(&published_dir) {
             Ok(result) => result,
             Err(e) => {
-                eprintln!("Error reading published directory: {e}");
+                error!("Error reading published directory: {e}");
                 return Err(anyhow!("Failed to read published directory: {e}"));
             }
         };
@@ -92,7 +199,7 @@ fn main() -> Result<()> {
             let entry = match entry_result {
                 Ok(entry) => entry,
                 Err(e) => {
-                    eprintln!("Error reading directory entry: {e}");
+                    error!("Error reading directory entry: {e}");
                     continue;
                 }
             };
@@ -100,18 +207,16 @@ fn main() -> Result<()> {
             let file_type = match entry.file_type() {
                 Ok(ft) => ft,
                 Err(e) => {
-                    eprintln!("Error getting file type: {e}");
+                    error!("Error getting file type: {e}");
                     continue;
                 }
             };
 
             if file_type.is_dir() {
                 let year_str = entry.file_name().to_string_lossy().to_string();
-                if debug {
-                    println!("{} Searching year {}", "#".cyan(), year_str);
-                }
+                debug!("{} Searching year {}", "#".cyan(), year_str);
                 if let Err(e) = search_year(git_sha, &year_str, &vulns_dir, &kernel_tree, debug) {
-                    eprintln!("Error searching year {year_str}: {e}");
+                    error!("Error searching year {year_str}: {e}");
                     print_git_error_details(&e);
                     // Continue with other years instead of aborting
                 }
@@ -119,8 +224,8 @@ fn main() -> Result<()> {
         }
     } else {
         // No parameters provided, show help
-        eprintln!("Error: You must provide either a Git SHA or --fixed option.");
-        eprintln!("Run with --help for usage information.");
+        error!("Error: You must provide either a Git SHA or --fixed option.");
+        error!("Run with --help for usage information.");
         std::process::exit(1);
     }
 
@@ -221,7 +326,7 @@ fn search_year(git_sha: &str, year: &str, vulns_dir: &Path, kernel_tree: &str, d
                 Ok(Some(cve_id)) => Some(cve_id),
                 Ok(None) => None,
                 Err(e) => {
-                    eprintln!("Error checking {}: {}", path.display(), e);
+                    error!("Error checking {}: {}", path.display(), e);
                     None
                 }
             }
@@ -289,7 +394,7 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
         .filter_map(|line| match DyadEntry::new(line) {
             Ok(entry) => Some(entry),
             Err(e) => {
-                eprintln!("Error parsing dyad entry '{line}': {e}");
+                error!("Error parsing dyad entry '{line}': {e}");
                 None
             }
         })
