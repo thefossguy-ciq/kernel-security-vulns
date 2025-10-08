@@ -7,6 +7,7 @@ use clap::Parser;
 use owo_colors::OwoColorize;
 use cve_utils::common;
 use cve_utils::print_git_error_details;
+use cve_utils::dyad::DyadEntry;
 use rayon::prelude::*;
 use std::env;
 use std::fs;
@@ -32,28 +33,6 @@ struct Args {
     /// Enable verbose output
     #[clap(short, long)]
     verbose: bool,
-}
-
-/// A kernel vulnerability range from a dyad file
-#[derive(Debug, Clone)]
-struct DyadEntry {
-    vulnerable_git: String,
-    fixed_git: String,
-}
-
-impl DyadEntry {
-    /// Create a new `DyadEntry` from a colon-separated string
-    fn from_str(s: &str) -> Result<Self> {
-        let parts: Vec<&str> = s.split(':').collect();
-        if parts.len() != 4 {
-            return Err(anyhow!("Invalid dyad entry: {s}"));
-        }
-
-        Ok(Self {
-            vulnerable_git: parts[1].to_string(),
-            fixed_git: parts[3].to_string(),
-        })
-    }
 }
 
 fn main() -> Result<()> {
@@ -307,7 +286,7 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     // Parse each dyad entry
     let entries: Vec<DyadEntry> = dyad_content.lines()
         .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-        .filter_map(|line| match DyadEntry::from_str(line) {
+        .filter_map(|line| match DyadEntry::new(line) {
             Ok(entry) => Some(entry),
             Err(e) => {
                 eprintln!("Error parsing dyad entry '{line}': {e}");
@@ -325,11 +304,11 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
     let mut found_fix = false;
 
     for entry in &entries {
-        let vuln_git = if entry.vulnerable_git == "0" {
+        let vuln_git = if entry.vulnerable.git_id() == "0" {
             // Use the first commit in Linux history if vulnerability origin is unknown
             "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string()
         } else {
-            entry.vulnerable_git.clone()
+            entry.vulnerable.git_id().clone()
         };
 
         // Check if our SHA is a descendant of the vulnerable commit
@@ -339,12 +318,12 @@ fn check_id(git_sha: &str, sha_file_path: &Path, vulns_dir: &Path, kernel_tree: 
             must_look = true;
 
             // If not fixed in any version, we're done - it's vulnerable
-            if entry.fixed_git == "0" {
+            if entry.fixed.git_id() == "0" {
                 continue;
             }
 
             // Check if our SHA is a descendant of the fix commit
-            let is_fixed = is_commit_ancestor(&entry.fixed_git, git_sha, kernel_tree)?;
+            let is_fixed = is_commit_ancestor(&entry.fixed.git_id(), git_sha, kernel_tree)?;
 
             if is_fixed {
                 found_fix = true;
@@ -400,28 +379,6 @@ mod tests {
     use super::*;
     use std::env;
     use std::path::PathBuf;
-
-    #[test]
-    fn test_dyad_entry_parsing() {
-        // Valid dyad entry
-        let entry = DyadEntry::from_str("5.15:abcdef123456:5.16:789abcdef012").unwrap();
-        assert_eq!(entry.vulnerable_git, "abcdef123456");
-        assert_eq!(entry.fixed_git, "789abcdef012");
-
-        // Dyad entry with unknown vulnerable version (0)
-        let entry = DyadEntry::from_str("0:0:5.16:789abcdef012").unwrap();
-        assert_eq!(entry.vulnerable_git, "0");
-        assert_eq!(entry.fixed_git, "789abcdef012");
-
-        // Dyad entry with unfixed vulnerability (0)
-        let entry = DyadEntry::from_str("5.15:abcdef123456:0:0").unwrap();
-        assert_eq!(entry.vulnerable_git, "abcdef123456");
-        assert_eq!(entry.fixed_git, "0");
-
-        // Invalid entry (missing parts)
-        let result = DyadEntry::from_str("5.15:abcdef123456");
-        assert!(result.is_err());
-    }
 
     #[test]
     fn test_real_kernel_check() {
