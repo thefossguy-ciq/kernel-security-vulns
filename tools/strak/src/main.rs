@@ -59,7 +59,7 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
     let mut dyad_records: Vec<DyadRecord> = Vec::new();
 
     // Iterate through all year directories
-    let dir_result = match fs::read_dir(&published_dir) {
+    let dir_result = match fs::read_dir(published_dir) {
         Ok(result) => result,
         Err(e) => {
             error!("Error reading published directory: {e}");
@@ -100,10 +100,24 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
             // Only look at files that end in .dyad
             if file_name.ends_with(".dyad") {
                 debug!("{} Reading {}", "#".cyan(), file_name);
-                // FIXME put reading logic in here!
-
                 // FIXME strip the .dyad for the string
-                let dyad_record = DyadRecord::new(&file_name.to_string());
+                let mut dyad_record = DyadRecord::new(&file_name.to_string());
+                let full_path = published_dir.join(file_name);
+                let dyad_content = fs::read_to_string(full_path)?;
+
+                // Parse each dyad entry
+                let mut entries: Vec<DyadEntry> = dyad_content
+                    .lines()
+                    .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
+                    .filter_map(|line| match DyadEntry::new(line) {
+                        Ok(entry) => Some(entry),
+                        Err(e) => {
+                            error!("Error parsing dyad entry '{line}': {e}");
+                            None
+                        }
+                    })
+                    .collect();
+                dyad_record.dyad_entries.append(&mut entries);
                 dyad_records.push(dyad_record);
             }
         }
