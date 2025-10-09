@@ -88,20 +88,31 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
             let year_str = entry.file_name().to_string_lossy().to_string();
             debug!("{} Searching year {}", "#".cyan(), year_str);
             let subdir = published_dir.join(year_str);
-            let _s = match read_dyad(&subdir) {
+            let mut subdir_records = match read_dyad(&subdir) {
                 Ok(d) => d,
                 Err(e) => {
                     error!("Error reading all dyad entries: {e}");
                     return Err(anyhow!("failed to read dyad entries: {e}"));
                 }
             };
+            dyad_records.append(&mut subdir_records);
         } else if file_type.is_file() {
             let file_name = entry.file_name().to_string_lossy().to_string();
             // Only look at files that end in .dyad
             if file_name.ends_with(".dyad") {
                 debug!("{} Reading {}", "#".cyan(), file_name);
-                // FIXME strip the .dyad for the string
-                let mut dyad_record = DyadRecord::new(&file_name.to_string());
+                // strip the .dyad for the string
+                let mut cve_name = file_name.to_string();
+                let mut dot = cve_name.len();
+
+                let dot_pos_check = cve_name.rfind('.');
+                if let Some(dot_pos) = dot_pos_check {
+                    dot = dot_pos;
+                }
+                cve_name.truncate(dot);
+
+                // Create a new dyad record for this CVE id
+                let mut dyad_record = DyadRecord::new(&cve_name);
                 let full_path = published_dir.join(file_name);
                 let dyad_content = fs::read_to_string(full_path)?;
 
@@ -181,13 +192,14 @@ fn main() -> Result<()> {
 
     let published_dir = vulns_dir.join("cve").join("published");
 
-    let _dyads = match read_dyad(&published_dir) {
+    let dyads = match read_dyad(&published_dir) {
         Ok(d) => d,
         Err(e) => {
             error!("Error reading all dyad entries: {e}");
             return Err(anyhow!("failed to read dyad entries: {e}"));
         }
     };
+    debug!("Found {} cve ids", dyads.len());
 
     // Process based on input
     if let Some(fixed_version) = &args.fixed {
