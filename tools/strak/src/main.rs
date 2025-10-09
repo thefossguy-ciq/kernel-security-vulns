@@ -137,6 +137,19 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
     Ok(dyad_records)
 }
 
+fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str)
+{
+    for dyad_record in dyad_records {
+        for dyad in &dyad_record.dyad_entries {
+            if dyad.fixed.version() == fixed_version {
+                println!("  {} is fixed in {} with commit {}",
+                    dyad_record.cve_number, fixed_version, dyad.fixed.git_id())
+            }
+        }
+    }
+
+}
+
 /// Initialize and configure the logging system
 fn initialize_logging(verbose: bool) -> log::LevelFilter {
     let logging_level = if verbose {
@@ -200,6 +213,11 @@ fn main() -> Result<()> {
         }
     };
     debug!("Found {} cve ids", dyads.len());
+
+    // Is this a "fixed" request?
+    if let Some(fixed_version) = &args.fixed {
+        print_fixed_commits(&dyads, fixed_version);
+    }
 
     // Process based on input
     if let Some(fixed_version) = &args.fixed {
