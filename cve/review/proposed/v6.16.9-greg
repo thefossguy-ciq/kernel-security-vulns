@@ -1,14 +1,11 @@
-01a8e68396a6 LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_eiointc_sw_status_access()
 0aeb54ac4cd5 tls: make sure to abort the stream if headers are bogus
 1071d560afb4 dm-stripe: fix a possible integer overflow
 2e7bba08923e net/tcp: Fix a NULL pointer dereference when using TCP-AO with TCP_REPAIR
 45c8a6cc2bcd tcp: Clear tcp_sk(sk)->fastopen_rsk in tcp_disconnect().
 46834d90a9a1 crypto: ccp - Always pass in an error pointer to __sev_platform_shutdown_locked()
-47256c4c8b1b LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_eiointc_ctrl_access()
 5282491fc49d ksmbd: smbdirect: validate data_offset and data_length field of smb_direct_data_transfer
 528eb4e19ec0 igc: don't fail igc_probe() on LED setup error
 56c0a2a9ddc2 qed: Don't collect too many protection override GRC elements
-62f11796a0df LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_eiointc_regs_access()
 68f27f7c7708 ASoC: qcom: q6apm-lpass-dais: Fix NULL pointer dereference if source graph failed
 6b4be64fd9fe net/mlx5e: Harden uplink netdev access against device unbind
 78338108b5a8 ASoC: codec: sma1307: Fix memory corruption in sma1307_setting_loaded()
@@ -16,7 +13,6 @@
 7e2f3213e85e wifi: mac80211: increase scan_ies_len for S1G
 7ebf70cf1816 um: virtio_uml: Fix use-after-free after put_device in probe
 84bf1ac85af8 ice: fix Rx page leak on multi-buffer frames
-8dc5245673cf LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_pch_pic_regs_access()
 923b70581cb6 iommu/amd: Fix ivrs_base memleak in early_amd_iommu_init()
 9574b2330dbd crypto: af_alg - Set merge to zero early in af_alg_sendmsg
 9ffaf5229055 iommu/s390: Make attach succeed when the device was surprise removed
@@ -31,3 +27,7 @@ e1868ba37fd2 ksmbd: smbdirect: verify remaining_data_length respects max_fragmen
 f57e53ea2523 smb: client: let recv_done verify data_offset, data_length and remaining_data_length
 f8b468715102 octeontx2-pf: Fix use-after-free bugs in otx2_sync_tstamp()
 fe9e4d0c3931 wifi: wilc1000: avoid buffer overflow in WID string configuration
+19c839a98c73 gpiolib: acpi: initialize acpi_gpio_info struct
+1e56310b40fd iommu/amd/pgtbl: Fix possible race while increase page table level
+2429a1976481 rxrpc: Fix untrusted unsigned subtract
+2c139a47eff8 io_uring: fix incorrect io_kiocb reference in io_link_skb
