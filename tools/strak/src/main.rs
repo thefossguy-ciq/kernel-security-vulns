@@ -7,6 +7,7 @@ use clap::Parser;
 use cve_utils::common;
 use cve_utils::dyad::DyadEntry;
 use cve_utils::print_git_error_details;
+use cve_utils::Kernel;
 use git2::{Oid, Repository};
 use log::{debug, error};
 use owo_colors::OwoColorize;
@@ -14,7 +15,6 @@ use rayon::prelude::*;
 use std::env;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 
 /// Lists all CVE IDs that are NOT fixed for a given Git commit.
 ///
@@ -100,7 +100,7 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
             let file_name = entry.file_name().to_string_lossy().to_string();
             // Only look at files that end in .dyad
             if file_name.ends_with(".dyad") {
-                debug!("{} Reading {}", "#".cyan(), file_name);
+                //debug!("{} Reading {}", "#".cyan(), file_name);
                 // strip the .dyad for the string
                 let mut cve_name = file_name.to_string();
                 let mut dot = cve_name.len();
@@ -139,13 +139,34 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
 
 fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str)
 {
+    #[derive(Clone)]
+    struct Fixes {
+        cve_number: String,
+        kernel: Kernel,
+    }
+
+    let mut fixes: Vec<Fixes> = Vec::new();
+
     for dyad_record in dyad_records {
         for dyad in &dyad_record.dyad_entries {
             if dyad.fixed.version() == fixed_version {
-                println!("  {} is fixed in {} with commit {}",
-                    dyad_record.cve_number, fixed_version, dyad.fixed.git_id())
+                let fix = Fixes {
+                    kernel: dyad.fixed.clone(),
+                    cve_number: dyad_record.cve_number.clone(),
+                };
+                fixes.push(fix.clone());
             }
         }
+    }
+
+    if fixes.len() == 0 {
+        println!("Kernel version {} did not fix any CVE ids.", fixed_version.cyan());
+        return;
+    }
+
+    println!("Kernel version {} contains {} CVE fixes:", fixed_version.blue(), fixes.len().cyan());
+    for fix in fixes {
+        println!("  {} is fixed with commit {}", fix.cve_number.green(), fix.kernel.git_id().cyan());
     }
 
 }
@@ -216,17 +237,8 @@ fn main() -> Result<()> {
 
     // Is this a "fixed" request?
     if let Some(fixed_version) = &args.fixed {
-        print_fixed_commits(&dyads, fixed_version);
-    }
-
-    // Process based on input
-    if let Some(fixed_version) = &args.fixed {
         // Show CVEs fixed in a specific version
-        if let Err(e) = list_fixed_version(fixed_version, &vulns_dir) {
-            error!("Error listing fixed version: {e}");
-            print_git_error_details(&e);
-            return Err(e);
-        }
+        print_fixed_commits(&dyads, fixed_version);
     } else if let Some(git_sha) = &args.git_sha {
         // Check for unfixed CVEs in a specific Git SHA
 
@@ -274,68 +286,6 @@ fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-/// List CVEs fixed in a specific kernel version
-fn list_fixed_version(version: &str, vulns_dir: &Path) -> Result<()> {
-    let published_dir = vulns_dir.join("cve").join("published");
-    let found_cves = find_cves_with_fixed_version(version, &published_dir)?;
-
-    if found_cves.is_empty() {
-        println!("{version} does not have any CVE IDs assigned yet.");
-        return Ok(());
-    }
-
-    for (cve_id, commit) in found_cves {
-        println!("{cve_id} is fixed in {version} with commit {commit}");
-    }
-
-    Ok(())
-}
-
-/// Find CVEs that mention being fixed in a specific version
-fn find_cves_with_fixed_version(
-    version: &str,
-    published_dir: &Path,
-) -> Result<Vec<(String, String)>> {
-    let mut results = Vec::new();
-
-    // Use grep-like search to find mentions in all files, case insensitive
-    let output = Command::new("grep")
-        .args(["-R", "-i", "-l", &format!("fixed in {version}"), "."])
-        .current_dir(published_dir)
-        .output()
-        .context("Failed to execute grep command")?;
-
-    if !output.status.success() && output.stdout.is_empty() {
-        return Ok(results); // No matches found
-    }
-
-    // Parse the grep output
-    let output_str = String::from_utf8_lossy(&output.stdout);
-    for line in output_str.lines() {
-        // Extract CVE ID from paths (like ./YEAR/CVE-XXXX-YYYY.json or similar)
-        let path = Path::new(line.trim());
-        if let Some(file_name) = path.file_stem() {
-            let file_name_str = file_name.to_string_lossy();
-            if file_name_str.starts_with("CVE-") {
-                let cve_id = file_name_str.to_string();
-
-                // Get the corresponding SHA
-                if let Some(year) = cve_id.split('-').nth(1) {
-                    let sha_file = published_dir.join(year).join(format!("{cve_id}.sha1"));
-
-                    if sha_file.exists() {
-                        if let Ok(commit) = fs::read_to_string(&sha_file) {
-                            results.push((cve_id, commit.trim().to_string()));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(results)
 }
 
 /// Process all CVEs for a specific year
