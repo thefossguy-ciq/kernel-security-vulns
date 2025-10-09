@@ -25,7 +25,7 @@ pub fn process_fixing_sha(state: &mut DyadState, git_sha: &str) -> bool {
                 && let Ok(git_sha_full) = cve_utils::get_full_sha(&path, git_sha) {
                     // It is valid, so let's make an "empty" kernel object and fill it in by hand
                     // without a valid version number just yet.
-                    let kernel = Kernel::from_id_no_validate(&git_sha_full);
+                    let kernel = Kernel::from_id_no_validate(&git_sha_full, "0");
                     debug!("git sha {git_sha_full} was validated, but not in a Linus release yet, so moving forward with it.");
                     state.git_sha_full.push(kernel);
                     found_valid_sha = true;

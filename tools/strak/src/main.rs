@@ -109,7 +109,7 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
                 let mut entries: Vec<DyadEntry> = dyad_content
                     .lines()
                     .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-                    .filter_map(|line| match DyadEntry::new(line) {
+                    .filter_map(|line| match DyadEntry::new_no_validate(line) {
                         Ok(entry) => Some(entry),
                         Err(e) => {
                             error!("Error parsing dyad entry '{line}': {e}");

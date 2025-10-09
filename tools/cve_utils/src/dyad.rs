@@ -64,6 +64,37 @@ impl DyadEntry {
         })
     }
 
+    /// Create a new `DyadEntry` from a colon-separated string with NO validation
+    /// Only do this if you know what you are doing (i.e. the output comes straight from dyad
+    /// directly.
+    pub fn new_no_validate(s: &str) -> Result<Self, DyadError> {
+        let parts: Vec<&str> = s.split(':').collect();
+        if parts.len() != 4 {
+            return Err(DyadError::InvalidDyadEntry(s.to_string()));
+        }
+
+        let vulnerable_version = parts[0].to_string();
+        let vulnerable_git = parts[1].to_string();
+        let fixed_version = parts[2].to_string();
+        let fixed_git = parts[3].to_string();
+
+        let vulnerable_kernel = Kernel::from_id_no_validate(&vulnerable_git, &vulnerable_version);
+        let fixed_kernel = Kernel::from_id_no_validate(&fixed_git, &fixed_version);
+
+        Ok(Self {
+            vulnerable: vulnerable_kernel,
+            fixed: fixed_kernel,
+        })
+    }
+
+    /// Check if this is a valid dyad entry by verifying that the sha values match the release, AND
+    /// that the sha values are "full".  Useful if you create a dyad object from calling
+    /// new_no_validate()
+    pub fn is_valid(&self) -> bool {
+        // FIXME
+        true
+    }
+
     /// Check if this vulnerability is found/fixed in the same kernel version
     pub fn is_same_version(&self) -> bool {
         self.vulnerable.version() == self.fixed.version()
