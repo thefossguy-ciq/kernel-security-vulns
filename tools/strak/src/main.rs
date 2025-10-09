@@ -137,8 +137,7 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
     Ok(dyad_records)
 }
 
-fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str)
-{
+fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str) {
     #[derive(Clone)]
     struct Fixes {
         cve_number: String,
@@ -160,15 +159,25 @@ fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str)
     }
 
     if fixes.is_empty() {
-        println!("Kernel version {} did not fix any CVE ids.", fixed_version.cyan());
+        println!(
+            "Kernel version {} did not fix any CVE ids.",
+            fixed_version.cyan()
+        );
         return;
     }
 
-    println!("Kernel version {} contains {} CVE fixes:", fixed_version.blue(), fixes.len().cyan());
+    println!(
+        "Kernel version {} contains {} CVE fixes:",
+        fixed_version.blue(),
+        fixes.len().cyan()
+    );
     for fix in fixes {
-        println!("  {} is fixed with commit {}", fix.cve_number.green(), fix.kernel.git_id().cyan());
+        println!(
+            "  {} is fixed with commit {}",
+            fix.cve_number.green(),
+            fix.kernel.git_id().cyan()
+        );
     }
-
 }
 
 /// Initialize and configure the logging system
