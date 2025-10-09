@@ -1,0 +1,37 @@
+79f919a89c9d cgroup: split cgroup_destroy_wq into 3 workqueues
+fe9e4d0c3931 wifi: wilc1000: avoid buffer overflow in WID string configuration
+7e2f3213e85e wifi: mac80211: increase scan_ies_len for S1G
+7ebf70cf1816 um: virtio_uml: Fix use-after-free after put_device in probe
+2e7bba08923e net/tcp: Fix a NULL pointer dereference when using TCP-AO with TCP_REPAIR
+af82e857df5d octeon_ep: Validate the VF ID
+56c0a2a9ddc2 qed: Don't collect too many protection override GRC elements
+84bf1ac85af8 ice: fix Rx page leak on multi-buffer frames
+316ba68175b0 ixgbe: destroy aci.lock later within ixgbe_remove path
+528eb4e19ec0 igc: don't fail igc_probe() on LED setup error
+6b4be64fd9fe net/mlx5e: Harden uplink netdev access against device unbind
+45c8a6cc2bcd tcp: Clear tcp_sk(sk)->fastopen_rsk in tcp_disconnect().
+0aeb54ac4cd5 tls: make sure to abort the stream if headers are bogus
+cfa7d9b1e3a8 cnic: Fix use-after-free bugs in cnic_delete_task
+f8b468715102 octeontx2-pf: Fix use-after-free bugs in otx2_sync_tstamp()
+5282491fc49d ksmbd: smbdirect: validate data_offset and data_length field of smb_direct_data_transfer
+e1868ba37fd2 ksmbd: smbdirect: verify remaining_data_length respects max_fragmented_recv_size
+ce4be9e4307c zram: fix slot write race condition
+025e87f8ea2a nilfs2: fix CFI failure when accessing /sys/fs/nilfs2/features/*
+1071d560afb4 dm-stripe: fix a possible integer overflow
+47256c4c8b1b LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_eiointc_ctrl_access()
+62f11796a0df LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_eiointc_regs_access()
+01a8e68396a6 LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_eiointc_sw_status_access()
+8dc5245673cf LoongArch: KVM: Avoid copy_*_user() with lock hold in kvm_pch_pic_regs_access()
+923b70581cb6 iommu/amd: Fix ivrs_base memleak in early_amd_iommu_init()
+1e56310b40fd iommu/amd/pgtbl: Fix possible race while increase page table level
+b3506e9bcc77 iommu/s390: Fix memory corruption when using identity domain
+9ffaf5229055 iommu/s390: Make attach succeed when the device was surprise removed
+68f27f7c7708 ASoC: qcom: q6apm-lpass-dais: Fix NULL pointer dereference if source graph failed
+b6f56a44e4c1 net: rfkill: gpio: Fix crash due to dereferencering uninitialized pointer
+46834d90a9a1 crypto: ccp - Always pass in an error pointer to __sev_platform_shutdown_locked()
+d7871f400cad ASoC: amd: acp: Fix incorrect retrival of acp_chip_info
+a10f910c77f2 drm: bridge: anx7625: Fix NULL pointer dereference with early IRQ
+d9dcbbcf9145 smb: client: let smbd_destroy() call disable_work_sync(&info->post_send_credits_work)
+9574b2330dbd crypto: af_alg - Set merge to zero early in af_alg_sendmsg
+2780505ec2b4 samples/damon/prcl: fix boot time enable crash
+25fbbaf515ac clk: sunxi-ng: mp: Fix dual-divider clock rate readback
