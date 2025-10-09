@@ -159,7 +159,7 @@ fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str)
         }
     }
 
-    if fixes.len() == 0 {
+    if fixes.is_empty() {
         println!("Kernel version {} did not fix any CVE ids.", fixed_version.cyan());
         return;
     }
