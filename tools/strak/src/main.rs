@@ -56,6 +56,9 @@ impl DyadRecord {
     }
 }
 
+/// Read all dyad entries in the specified directory and the ones below it.
+///
+/// This will recurse, so be careful
 fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
     let mut dyad_records: Vec<DyadRecord> = Vec::new();
 
@@ -181,6 +184,75 @@ fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str) {
     }
 }
 
+/// Wrapper for is_ancestor() so we can get some debugging output easier.
+fn do_is_ancestor(first: &Kernel, second: &Kernel) -> bool {
+    // "Fast" hack for doing a `git merge-base --is-ancestor first second`
+    //
+    // We "know" how our tree works, so we can rely on major versions and the like to do a few
+    // simple comparisons instead.
+
+    if first.is_empty() {
+        // The root of the tree, EVERYONE is an ancestor of that!
+        return true;
+    }
+
+    // If both majors are the same, we can do a simple compare
+    if first.version_major_match(second) && first < second {
+        return true;
+    }
+
+    // If this is a "mainline" release, than any kernel version larger than it is part of the graph
+    if first.is_mainline() {
+        return first < second;
+    }
+
+    false
+}
+
+/// determine if the first kernel is an ancestor of the second
+fn is_ancestor(first: &Kernel, second: &Kernel) -> bool {
+    let result = do_is_ancestor(first, second);
+
+    //debug!("is_ancestor: {} {:?} is ancestor of {:?}", result, first, second);
+    debug!("is_ancestor: {} {:?} is ancestor of {:?}", result, first.version(), second.version());
+
+    result
+}
+
+fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
+    for dyad_record in dyad_records {
+        debug!("Checking {}:", dyad_record.cve_number);
+        let mut must_look = false;
+        let mut found_fix = false;
+
+        for dyad in &dyad_record.dyad_entries {
+            let vuln = &dyad.vulnerable;
+            let fixed = &dyad.fixed;
+
+            if is_ancestor(vuln, test_kernel) {
+                // The vulnerable kernel is a root of our kernel, so we must determine if this is fixed or not.
+                must_look = true;
+
+                // If this is NOT fixed, then of course this is vulnerable
+                if fixed.is_empty() {
+                    continue;
+                }
+
+                // Check if the fixed git is a root of our test id
+                if is_ancestor(fixed, test_kernel) {
+                    found_fix = true;
+                }
+            }
+        }
+
+        debug!("    must_look={} found_fix={}", must_look, found_fix);
+        if must_look && !found_fix {
+            println!("{} is vulnerable to {}", test_kernel.version().green(), dyad_record.cve_number.red());
+        }
+        //debug!("    test: {} range: {:?}:{:?} is {}", test_kernel.version(), dyad.vulnerable.version(), dyad.fixed.version(), result);
+    }
+}
+
 /// Initialize and configure the logging system
 fn initialize_logging(verbose: bool) -> log::LevelFilter {
     let logging_level = if verbose {
@@ -254,7 +326,25 @@ fn main() -> Result<()> {
     if let Some(fixed_version) = &args.fixed {
         // Show CVEs fixed in a specific version
         print_fixed_commits(&dyads, fixed_version);
-    } else if let Some(git_sha) = &args.git_sha {
+        return Ok(());
+    }
+
+    if let Some(git_sha) = &args.git_sha {
+        // Turn the git sha into a valid kernel object
+        let test_kernel = match Kernel::from_id(git_sha) {
+            Ok(k) => k,
+            Err(e) => {
+                error!("Error creating a kernel for {git_sha}: {e}");
+                return Err(anyhow!("Invalid git sha specified: {e}"));
+            }
+        };
+
+        // Find all unfixed CVEs for a specific version
+        print_unfixed_cves(&dyads, &test_kernel);
+        return Ok(());
+    }
+
+    if let Some(git_sha) = &args.git_sha {
         // Check for unfixed CVEs in a specific Git SHA
 
         // Iterate through all year directories
@@ -293,14 +383,13 @@ fn main() -> Result<()> {
                 }
             }
         }
-    } else {
-        // No parameters provided, show help
-        error!("Error: You must provide either a Git SHA or --fixed option.");
-        error!("Run with --help for usage information.");
-        std::process::exit(1);
+        return Ok(());
     }
 
-    Ok(())
+    // No parameters provided, show help
+    error!("Error: You must provide either a Git SHA or --fixed option.");
+    error!("Run with --help for usage information.");
+    std::process::exit(1);
 }
 
 /// Process all CVEs for a specific year
