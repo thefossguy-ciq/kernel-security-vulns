@@ -137,12 +137,7 @@ impl FromStr for KernelVersion {
             .filter_map(|s| s.parse::<u32>().ok())
             .collect();
 
-        Ok(Self::new(
-            components,
-            rc_num,
-            is_queue,
-            is_rc_by_name,
-        ))
+        Ok(Self::new(components, rc_num, is_queue, is_rc_by_name))
     }
 }
 
@@ -263,7 +258,8 @@ pub fn compare_kernel_versions(version1: &str, version2: &str) -> Ordering {
 #[cfg(test)]
 mod tests {
     use crate::version_utils;
-//    use super::*;
+    use crate::version_utils::compare_kernel_versions;
+    use std::cmp::Ordering;
 
     #[test]
     fn test_version_is_mainline() {
@@ -294,5 +290,24 @@ mod tests {
         assert!(version_utils::version_is_queue("6.5-queue"));
         assert!(!version_utils::version_is_queue("5.4"));
         assert!(!version_utils::version_is_queue("5.4.123"));
+    }
+
+    #[test]
+    fn test_version_comparisons() {
+        assert!(compare_kernel_versions("5.4", "5.4") == Ordering::Equal);
+        assert!(compare_kernel_versions("5.4.1", "5.4.1") == Ordering::Equal);
+        assert!(compare_kernel_versions("5.4-rc3", "5.4-rc3") == Ordering::Equal);
+
+        assert!(compare_kernel_versions("5.4", "5.4.1") == Ordering::Less);
+        assert!(compare_kernel_versions("5.4.1", "5.4.2") == Ordering::Less);
+        assert!(compare_kernel_versions("5.4-rc2", "5.4-rc3") == Ordering::Less);
+
+        assert!(compare_kernel_versions("5.4.1", "5.4") == Ordering::Greater);
+        assert!(compare_kernel_versions("5.4.200", "5.4.1") == Ordering::Greater);
+        assert!(compare_kernel_versions("5.4-rc6", "5.4-rc3") == Ordering::Greater);
+
+        assert!(compare_kernel_versions("6.1", "6.0.100") == Ordering::Greater);
+        assert!(compare_kernel_versions("5.4.234", "5.3.600") == Ordering::Greater);
+        assert!(compare_kernel_versions("6.10.100", "3.2") == Ordering::Greater);
     }
 }
