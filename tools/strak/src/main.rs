@@ -15,6 +15,7 @@ use rayon::prelude::*;
 use std::env;
 use std::fs;
 use std::path::Path;
+use std::time::Instant;
 
 /// Lists all CVE IDs that are NOT fixed for a given Git commit.
 ///
@@ -235,6 +236,7 @@ fn main() -> Result<()> {
 
     let published_dir = vulns_dir.join("cve").join("published");
 
+    let before_read_dyad = Instant::now();
     let dyads = match read_dyad(&published_dir) {
         Ok(d) => d,
         Err(e) => {
@@ -242,7 +244,11 @@ fn main() -> Result<()> {
             return Err(anyhow!("failed to read dyad entries: {e}"));
         }
     };
-    debug!("Found {} cve ids", dyads.len());
+    debug!(
+        "Found {} cve ids in {:?}",
+        dyads.len(),
+        before_read_dyad.elapsed()
+    );
 
     // Is this a "fixed" request?
     if let Some(fixed_version) = &args.fixed {
