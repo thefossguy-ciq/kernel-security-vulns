@@ -10,7 +10,7 @@ use cve_utils::dyad::DyadEntry;
 use cve_utils::print_git_error_details;
 use cve_utils::Kernel;
 use log::{debug, error};
-use owo_colors::OwoColorize;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -164,21 +164,21 @@ fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str) {
     if fixes.is_empty() {
         println!(
             "Kernel version {} did not fix any CVE ids.",
-            fixed_version.cyan()
+            fixed_version.if_supports_color(Stdout, |x| x.cyan())
         );
         return;
     }
 
     println!(
         "Kernel version {} contains {} CVE fixes:",
-        fixed_version.blue(),
-        fixes.len().cyan()
+        fixed_version.if_supports_color(Stdout, |x| x.blue()),
+        fixes.len().if_supports_color(Stdout, |x| x.cyan())
     );
     for fix in fixes {
         println!(
             "  {} is fixed with commit {}",
-            fix.cve_number.green(),
-            fix.kernel.git_id().cyan()
+            fix.cve_number.if_supports_color(Stdout, |x| x.green()),
+            fix.kernel.git_id().if_supports_color(Stdout, |x| x.cyan())
         );
     }
 }
@@ -196,6 +196,7 @@ fn do_is_ancestor(first: &Kernel, second: &Kernel) -> bool {
     }
 
     // If both majors are the same, we can do a simple compare
+    // Note, this can be slow for when these are both in a major kernel release.
     if first.version_major_match(second) && first < second {
         return true;
     }
@@ -253,11 +254,10 @@ fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
         if must_look && !found_fix {
             println!(
                 "{} is vulnerable to {}",
-                test_kernel.version().green(),
-                dyad_record.cve_number.red()
+                test_kernel.version().if_supports_color(Stdout, |x| x.green()),
+                dyad_record.cve_number.if_supports_color(Stdout, |x| x.red())
             );
         }
-        //debug!("    test: {} range: {:?}:{:?} is {}", test_kernel.version(), dyad.vulnerable.version(), dyad.fixed.version(), result);
     }
 }
 
