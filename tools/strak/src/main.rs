@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
+// strak - dig in the CVE database and either show what CVEs are fixed for a
+// specific release, or what CVEs are still vulnerable for a specific commit
+//
+// "strak" meeans "fixed/tight" in Dutch
+//
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 // Copyright (c) 2025 - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
@@ -7,21 +12,31 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use cve_utils::common;
 use cve_utils::dyad::DyadEntry;
-use cve_utils::print_git_error_details;
+use cve_utils::get_kernel_tree;
 use cve_utils::Kernel;
-use log::{debug, error};
+use log::debug;
+use log::error;
 use owo_colors::{OwoColorize, Stream::Stdout};
-use std::env;
 use std::fs;
 use std::path::Path;
 use std::time::Instant;
 
-/// Lists all CVE IDs that are NOT fixed for a given Git commit.
+/// Dig in the CVE database for information about commits.
 ///
-/// In other words, all of the public vulnerabilities that this commit ID has in it.
+/// strak can be used to show what CVEs are fixed for a specific release,
+/// or what CVEs are still vulnerable for a specific release/commit.
+///
 /// "strak" means "fixed/tight" in Dutch.
+///
+/// Examples:
+///
+///   strak --fixed 6.12.3
+/// will show all CVE ids that are fixed for the 6.12.3 kernel release
+///
+///   strak v6.12.3
+/// will show all CVE ids that are currently vulnerable in the 6.12.3 release
 #[derive(Parser, Debug)]
-#[clap(author, version, about)]
+#[clap(author, version, about, verbatim_doc_comment)]
 struct Args {
     /// Git SHA to check for unfixed CVEs
     #[clap(index = 1)]
@@ -140,7 +155,7 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
     Ok(dyad_records)
 }
 
-fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str) {
+fn print_fixed_commits(kernel_tree: &Path, dyad_records: &Vec<DyadRecord>, fixed_version: &str) {
     #[derive(Clone)]
     struct Fixes {
         cve_number: String,
@@ -175,10 +190,15 @@ fn print_fixed_commits(dyad_records: &Vec<DyadRecord>, fixed_version: &str) {
         fixes.len().if_supports_color(Stdout, |x| x.cyan())
     );
     for fix in fixes {
+        let commit_details =
+            match cve_utils::get_commit_details(kernel_tree, &fix.kernel.git_id(), None) {
+                Ok(c) => c,
+                Err(_e) => fix.kernel.git_id(),
+            };
         println!(
             "  {} is fixed with commit {}",
             fix.cve_number.if_supports_color(Stdout, |x| x.green()),
-            fix.kernel.git_id().if_supports_color(Stdout, |x| x.cyan())
+            commit_details.if_supports_color(Stdout, |x| x.cyan())
         );
     }
 }
@@ -254,8 +274,12 @@ fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
         if must_look && !found_fix {
             println!(
                 "{} is vulnerable to {}",
-                test_kernel.version().if_supports_color(Stdout, |x| x.green()),
-                dyad_record.cve_number.if_supports_color(Stdout, |x| x.red())
+                test_kernel
+                    .version()
+                    .if_supports_color(Stdout, |x| x.green()),
+                dyad_record
+                    .cve_number
+                    .if_supports_color(Stdout, |x| x.red())
             );
         }
     }
@@ -283,33 +307,9 @@ fn main() -> Result<()> {
     // Initialize logging system
     initialize_logging(args.verbose);
 
-    // Get kernel tree path from environment
-    let kernel_tree = match env::var("CVEKERNELTREE") {
-        Ok(path) => path,
-        Err(e) => {
-            error!("Error: CVEKERNELTREE environment variable must be set to the kernel tree directory: {e}");
-            return Err(anyhow!(
-                "CVEKERNELTREE environment variable must be set to the kernel tree directory"
-            ));
-        }
-    };
-
-    // Validate the kernel tree exists
-    if !Path::new(&kernel_tree).is_dir() {
-        return Err(anyhow!(
-            "CVEKERNELTREE ({kernel_tree}) is not a valid directory"
-        ));
-    }
-
-    // Find the vulns directory
-    let vulns_dir = match common::find_vulns_dir() {
-        Ok(dir) => dir,
-        Err(e) => {
-            error!("Error finding vulns directory: {e}");
-            print_git_error_details(&e);
-            return Err(e);
-        }
-    };
+    // Make sure we can find our common directories
+    let kernel_tree = get_kernel_tree()?;
+    let vulns_dir = common::find_vulns_dir()?;
 
     let published_dir = vulns_dir.join("cve").join("published");
 
@@ -330,13 +330,16 @@ fn main() -> Result<()> {
     // Is this a "fixed" request?
     if let Some(fixed_version) = &args.fixed {
         // Show CVEs fixed in a specific version
-        print_fixed_commits(&dyads, fixed_version);
+        print_fixed_commits(&kernel_tree, &dyads, fixed_version);
         return Ok(());
     }
 
     if let Some(git_sha) = &args.git_sha {
+        // FIXME This will not work with a tag, must use revparse_ext() in get_full_sha()
+        let git_full_sha = cve_utils::get_full_sha(&kernel_tree, git_sha)?;
+
         // Turn the git sha into a valid kernel object
-        let test_kernel = match Kernel::from_id(git_sha) {
+        let test_kernel = match Kernel::from_id(&git_full_sha) {
             Ok(k) => k,
             Err(e) => {
                 error!("Error creating a kernel for {git_sha}: {e}");
