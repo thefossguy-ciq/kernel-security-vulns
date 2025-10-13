@@ -233,13 +233,21 @@ fn do_is_ancestor(first: &Kernel, second: &Kernel) -> bool {
 fn is_ancestor(first: &Kernel, second: &Kernel) -> bool {
     let result = do_is_ancestor(first, second);
 
-    //debug!("is_ancestor: {} {:?} is ancestor of {:?}", result, first, second);
-    debug!(
-        "is_ancestor: {} {:?} is ancestor of {:?}",
-        result,
-        first.version(),
-        second.version()
-    );
+    if result {
+        debug!(
+            "   {:>8} is ancestor of {:>8}: {}",
+            first.version(),
+            second.version(),
+            "true".if_supports_color(Stdout, |x| x.green())
+        );
+    } else {
+        debug!(
+            "   {:>8} is ancestor of {:>8}: {}",
+            first.version(),
+            second.version(),
+            "false".if_supports_color(Stdout, |x| x.red())
+        );
+    }
 
     result
 }
@@ -335,8 +343,11 @@ fn main() -> Result<()> {
     }
 
     if let Some(git_sha) = &args.git_sha {
-        // FIXME This will not work with a tag, must use revparse_ext() in get_full_sha()
-        let git_full_sha = cve_utils::get_full_sha(&kernel_tree, git_sha)?;
+        // We need to be explicit in our git_sha request.
+        // If this is a tag, turn it into a commit, if it is a commit, force it to be a commit.
+        // See `man git reference` for details about this format.
+        let git_sha_commit = format!("{}^{{commit}}", git_sha);
+        let git_full_sha = cve_utils::get_full_sha(&kernel_tree, &git_sha_commit)?;
 
         // Turn the git sha into a valid kernel object
         let test_kernel = match Kernel::from_id(&git_full_sha) {
