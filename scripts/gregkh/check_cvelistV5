@@ -60,7 +60,7 @@ fi
 DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
 
-CVELISTV5="${DIR}/../cve/cvelistV5/"
+CVELISTV5="${DIR}/../../cve/cvelistV5/"
 
 SHAS=""
 
@@ -79,7 +79,7 @@ pushd ${CVELISTV5}> /dev/null
 for s in ${SHAS[@]}; do
 	out=""
 	out+="${txtblu}Checking id: ${txtcyn}${s}${txtrst} "
-	result=$(${DIR}/cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
+	result=$(${DIR}/../cve_search ${s} | grep "CVE-" | cut -f 1 -d ' ')
 	if [[ "${result}" != "" ]]; then
 		out+="${txtred}warning${txtrst} already assigned to ${txtcyn}${result}${txtrst}"
 		echoerr "${out}"
