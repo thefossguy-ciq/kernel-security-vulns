@@ -62,7 +62,7 @@ DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
 
 #CVELISTV5="${DIR}/../cve/cvelistV5/"
-CVELISTV5="${DIR}/../../tmp/linux_kernel_cves/"
+CVELISTV5="${DIR}/../../../tmp/linux_kernel_cves/"
 
 SHAS=""
 
