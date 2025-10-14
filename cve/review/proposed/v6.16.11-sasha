@@ -1,0 +1,7 @@
+ba28afbd9eff ("blk-mq: fix blk_mq_tags double free while nr_requests grown")
+01e03fb7db41 ("media: b2c2: Fix use-after-free causing by irq_check_work in flexcop_pci_remove")
+79d10f4f21a9 ("media: i2c: tc358743: Fix use-after-free bugs caused by orphan timer in probe")
+40b7a19f321e ("media: tuner: xc5000: Fix use-after-free in xc5000_release")
+fa0f61cc1d82 ("media: rc: fix races with imon_disconnect()")
+1367da7eb875 ("mm: swap: check for stable address space before operating on the VMA")
+3fd2ef2ae2b5 ("wifi: ath11k: fix NULL dereference in ath11k_qmi_m3_load()")
