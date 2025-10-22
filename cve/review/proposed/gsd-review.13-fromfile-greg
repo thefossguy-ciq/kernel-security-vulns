@@ -1,0 +1,70 @@
+834c23e4f798 drm: Fix potential null-ptr-deref due to drmm_mode_config_init()
+835659598c67 ext4: fix use-after-free read in ext4_find_extent for bigalloc + inline
+83d18e9d9c01 drm/msm/a6xx: Fix kvzalloc vs state_kcalloc usage
+83e1bcaf8cef pinctrl: thunderbay: fix possible memory leak in thunderbay_build_functions()
+83e30f2bf86e USB: gadget: Fix the memory leak in raw_gadget driver
+84498d1fb35d regmap-irq: Use the new num_config_regs property in regmap_add_irq_chip_fwnode
+8547649981e6 riscv: ftrace: Fixup panic by disabling preemption
+855ae87a2073 clk: imx: scu: fix memleak on platform_device_add() fails
+85a37983ec69 udf: Detect system inodes linked into directory hierarchy
+85ade4010e13 scsi: qla2xxx: Fix memory leak in qla2x00_probe_one()
+85ae42c72142 nvdimm: Fix memleak of pmu attr_groups in unregister_nvdimm_pmu()
+85c2c79a0730 xsk: fix refcount underflow in error path
+85fadc0d0411 riscv: move memblock_allow_resize() after linear mapping is ready
+8616f2a0589a drm/meson: explicitly remove aggregate driver at module unload time
+8636c5fc7658 media: max9286: Fix memleak in max9286_v4l2_register()
+865728725050 netfilter: nf_tables: deactivate anonymous set from preparation phase
+86fdd15e10e4 iio: fix memory leak in iio_device_register_eventset()
+8703dd6b238d s390/crypto: use vector instructions only if available for ChaCha20
+8740a12ca2e2 tpm: acpi: Call acpi_put_table() to fix memory leak
+878543661764 HID: amd_sfh: Fix for shift-out-of-bounds
+878b02d5f3b5 clk: imx: clk-imx8mp: improve error handling in imx8mp_clocks_probe()
+878ecb0897f4 ipv6: Fix out-of-bounds access in ipv6_find_tlv()
+87a7ae75d738 mm/vmemmap/devdax: fix kernel crash when probing devdax devices
+87c2213e85bd drm/amdgpu: Fix integer overflow in amdgpu_cs_pass1
+883cf0d4cf28 ACPI: x86: s2idle: Catch multiple ACPI_TYPE_PACKAGE objects
+88430ebcbc0e dm thin: Fix UAF in run_timer_softirq()
+8843e06f67b1 ring-buffer: Handle race between rb_move_tail and rb_check_pages
+888d89034f9e wifi: mt76: mt7921: fix error code of return in mt7921_acpi_read
+88975a55969e NFS: Fix a potential data corruption
+88d86d18d7cf s390/netiucv: Fix return type of netiucv_tx()
+8922ba71c969 ARM: 9317/1: kexec: Make smp stop calls asynchronous
+893b24181b4c arm64: sme: Use STR P to clear FFR context field in streaming SVE mode
+895b3b06efc2 wifi: plfxlc: fix potential memory leak in __lf_x_usb_enable_rx()
+895d68a39481 mtd: Fix device name leak when register device failed in add_mtd_device()
+898a9e3f56db drm/stm: ltdc: fix late dereference check
+898f70669568 fs: jfs: fix shift-out-of-bounds in dbAllocAG
+89b89e52153f wifi: brcmfmac: cfg80211: Pass the PMK in binary instead of hex
+89ff3dfac604 usb: gadget: f_hid: fix f_hidg lifetime vs cdev
+8a02fb71d719 net: fix skb leak in __skb_tstamp_tx()
+8a04d2fc700f xfrm: Update ipcomp_scratches with NULL when freed
+8a07b45fd3c2 platform/chrome: fix memory corruption in ioctl
+8a1ae2781dee btrfs: call __btrfs_remove_free_space_cache_locked on cache load failure
+8a2f35b98306 wifi: ath9k: Fix potential stack-out-of-bounds write in ath9k_wmi_rsp_callback()
+8a96c0288d07 ring-buffer: Do not swap cpu_buffer during resize process
+8ab2d12c726f ASoC: audio-graph-card: fix refcount leak of cpu_ep in __graph_for_each_link()
+8ab5fc55d7f6 serial: arc_uart: fix of_iomap leak in `arc_serial_probe`
+8ac04a28144c net/mlx5e: Release the label when replacing existing ct entry
+8ad314da54c6 wifi: ath12k: Fix a NULL pointer dereference in ath12k_mac_op_hw_scan()
+8b0472b50bcf md: raid1: fix potential OOB in raid1_remove_disk()
+8b229ada2669 drm/amdgpu: disable sdma ecc irq only when sdma RAS is enabled in suspend
+8b25301af015 wifi: mt76: mt7915: fix mt7915_rate_txpower_get() resource leaks
+8b42057e6212 drm/omap: dss: Fix refcount leak bugs
+8b450dcff23a mfd: pcf50633-adc: Fix potential memleak in pcf50633_adc_async_read()
+8b5bf64c89c7 clocksource/drivers/cadence-ttc: Fix memory leak in ttc_timer_probe
+8b997b2bb2c5 xen/privcmd: Fix a possible warning in privcmd_ioctl_mmap_resource()
+8bd795fedb84 arm64: csum: Fix OoB access in IP checksum code for negative lengths
+8be3a7bf7737 serial: pch: Fix PCI device refcount leak in pch_request_dma()
+8c1d6a050a0f ima: Fix memory leak in __ima_inode_hash()
+8c21ab1bae94 net/sched: fq_pie: avoid stalls in fq_pie_timer()
+8c3e8a6bdb52 class: fix possible memory leak in __class_register()
+8c5c2a4898e3 bpf, sockmap: Revert buggy deadlock fix in the sockhash and sockmap
+8ce8849dd1e7 posix-timers: Ensure timer ID search-loop limit is valid
+8cfb08575c6d arm64: ftrace: fix module PLTs with mcount
+8d207400fd6b soc: qcom: qmi_encdec: Restrict string length in decode
+8d211554679d blk-iocost: use spin_lock_irqsave in adjust_inuse_and_calc_cost
+8d61f926d420 netlink: fix potential deadlock in netlink_set_err()
+8d6bbaada2e0 blk-throttle: prevent overflow while calculating wait time
+8d824e69d9f3 hfs: fix OOB Read in __hfs_brec_find
+8d8e16592022 regulator: core: Prevent integer underflow
+8dae4f6341e3 fs/ntfs3: Fix NULL dereference in ni_write_inode
