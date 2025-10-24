@@ -37,3 +37,8 @@ ac1c7656fa71 can: hi311x: populate ndo_change_mtu() to prevent buffer overflow
 6043819e707c net/mlx5: fs, fix UAF in flow counter release
 3bd44edd6c55 gpio: regmap: fix memory leak of gpio_regmap structure
 fbe2dc6a9c73 smb: client: fix wrong index reference in smb2_compound_op()
+456c32e3c431 tracing: dynevent: Add a missing lockdown check on dynevent
+500dad428e5b drm/xe/vf: Don't expose sysfs attributes not applicable for VFs
+afe16653e05d vhost: Take a reference on the task in struct vhost_task.
+c443be70aaee can: peak_usb: fix shift-out-of-bounds issue
+d0ca0df179c4 crypto: af_alg - Fix incorrect boolean values in af_alg_ctx
