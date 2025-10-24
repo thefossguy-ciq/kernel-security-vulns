@@ -1,0 +1,115 @@
+bea3e1d4467b hfsplus: fix slab-out-of-bounds read in hfsplus_uni2asc()
+6ab26555c9ff gfs2: Add proper lockspace locking
+f2863371f017 powerpc/603: Really copy kernel PGD entries into all PGDIRs
+105f56877f2d coresight: trbe: Prevent overflow in PERF_IDX2OFF()
+a29fea30dd93 perf: arm_spe: Prevent overflow in PERF_IDX2OFF()
+334c0e493c2a erofs: avoid reading more for fragment maps
+43796f305078 perf/x86/intel: Fix IA32_PMC_x_CFG_B MSRs access error
+661f951e371c sched/fair: Get rid of sched_domains_curr_level hack for tl->cpumask()
+67378b754608 btrfs: fix symbolic link reading when bs > ps
+11b3de1c03fa ACPI: processor: idle: Fix memory leak when register cpuidle device failed
+4c7ef92f6d4d blk-mq: check kobject state_in_sysfs before deleting in blk_mq_unregister_hctx
+fc33bf0e097c PM / devfreq: mtk-cci: Fix potential error pointer dereference in probe()
+bd9fd5be6bc0 blk-throttle: fix access race during throttle policy activation
+bfcd1fdaae92 irqchip/gic-v5: Fix loop in gicv5_its_create_itt_two_level() cleanup path
+9f7c02e03157 nbd: restrict sockets to TCP and UDP
+6ab4f79ea923 soc: mediatek: mtk-svs: fix device leaks on mt8183 probe failure
+f1a68ba5739e soc: mediatek: mtk-svs: fix device leaks on mt8192 probe failure
+626ff4f8ebcb blk-mq: convert to serialize updating nr_requests with update_nr_hwq_lock
+b86433721f46 blk-mq: fix potential deadlock while nr_requests grown
+8ca944fea4d6 ACPICA: Fix largest possible resource descriptor index
+fd2e08128944 riscv, bpf: Sign extend struct ops return values properly
+db5a5406fb7e nvmet-fc: move lsop put work to nvmet_fc_ls_req_op
+3448a934ba6f i3c: master: svc: Recycle unused IBI slot
+336aec7b06be blk-throttle: fix throtl_data leak during disk release
+6fabca2fc94d bpf: Explicitly check accesses to bpf_sock_addr
+a3c73d629ea1 bpf: dont report verifier bug for missing bpf_scc_visit on speculative path
+4540aed51b12 bpf: Enforce expected_attach_type for tailcall compatibility
+a84eeacbf932 HID: steelseries: refactor probe() and remove()
+186e8f2bdba5 usb: host: max3421-hcd: Fix error pointer dereference in probe cleanup
+c0485e864a2e usb: misc: qcom_eud: Access EUD_MODE_MANAGER2 through secure calls
+ab81f2f79c68 PCI/pwrctrl: Fix double cleanup on devm_add_action_or_reset() failure
+bf4e4b97d0fd drm/amd/display: Add NULL pointer checks in dc_stream cursor attribute functions
+251be2f6037f scsi: pm80xx: Fix array-index-out-of-of-bounds on rmmod
+930a9a6ee8e7 f2fs: fix to avoid NULL pointer dereference in f2fs_check_quota_consistency()
+fda55673ecda media: rj54n1cb0c: Fix memleak in rj54n1_probe()
+fce6fee0817b wifi: rtw88: Use led->brightness_set_blocking for PCI too
+d3fee10e40a9 PCI: rcar-host: Pass proper IRQ domain to generic_handle_domain_irq()
+9228facb3081 crypto: hisilicon/qm - request reserved interrupt for virtual function
+6fc616723bb5 drm/msm: Do not validate SSPP when it is not ready
+62e59ffe8787 fanotify: Validate the return value of mnt_ns_from_dentry() before dereferencing
+b0531cdba502 pps: fix warning in pps_register_cdev when register device fail
+278f8904434a drm/msm: Fix obj leak in VM_BIND error path
+b20eb0e8de38 ASoC: Intel: bytcht_es8316: Fix invalid quirk input mapping
+fba404e4b4af ASoC: Intel: bytcr_rt5640: Fix invalid quirk input mapping
+4336efb59ef3 ASoC: Intel: bytcr_rt5651: Fix invalid quirk input mapping
+f028bcafb6df drm/msm: Fix bootup splat with separate_gpu_drm modparam
+736fc7bf5f68 fs: ntfs3: Fix integer overflow in run_unpack()
+42754b7de2b1 wifi: mt76: fix potential memory leak in mt76_wmac_probe()
+fe5fffadc6c7 wifi: mt76: mt7996: Check phy before init msta_link in mt7996_mac_sta_add_links()
+9251a9e6e871 f2fs: fix to truncate first page in error path of f2fs_truncate()
+9fc4a3da9a02 ALSA: pcm: Disable bottom softirqs as part of spin_lock_irq() on PREEMPT_RT
+3d3466878afd smc: Fix use-after-free in __pnet_find_base_ndev().
+935d783e5de9 smc: Use __sk_dst_get() and dst_dev_rcu() in in smc_clc_prfx_set().
+235f81045c00 smc: Use __sk_dst_get() and dst_dev_rcu() in smc_clc_prfx_match().
+0b0e4d51c655 smc: Use __sk_dst_get() and dst_dev_rcu() in smc_vlan_by_tcpsk().
+c65f27b9c3be tls: Use __sk_dst_get() and dst_dev_rcu() in get_netdev_for_sock().
+108a86c71c93 mptcp: Call dst_release() in mptcp_active_enable().
+893c49a78d9f mptcp: Use __sk_dst_get() and dst_dev_rcu() in mptcp_active_enable().
+fbe6070c73ba iommu/vt-d: debugfs: Fix legacy mode page table dump logic
+87cab86925b7 ASoC: Intel: sof_sdw: Prevent jump to NULL add_sidecar callback
+acb59a4bb8ed vfio/pds: replace bitmap_free with vfree
+f75f66683ded crypto: comp - Use same definition of context alloc and free ops
+f0cafb02de88 crypto: hisilicon/qm - set NULL to qm->debug.qm_diff_regs
+7ca61ed8b3f3 wifi: ath12k: Fix peer lookup in ath12k_dp_mon_rx_deliver_msdu()
+8ca7eada62fc RDMA/rxe: Fix race in do_task() when draining
+a9f0064f4716 wifi: rtw89: fix leak in rtw89_core_send_nullfunc()
+8a55c161f7f9 coresight: trbe: Return NULL pointer for allocation failures
+70714eb7243e coresight: Fix incorrect handling for return value of devm_kzalloc
+134121bfd99a ipvs: Defer ip_vs_ftp unregister during netns cleanup
+79dde5f7dc7c scsi: ufs: core: Fix data race in CPU latency PM QoS request handling
+1703fe4f8ae5 scsi: mpt3sas: Fix crash in transport port remove by using ioc_info()
+958baf5eaee3 net: usb: Remove disruptive netif_wake_queue in rtl8150_set_multicast
+e9f35294e18d ptp: Add a upper bound on max_vclocks
+9950f095d6c8 Bluetooth: ISO: Fix possible UAF on iso_conn_free
+6ba85da5804e Bluetooth: ISO: free rx_skb if not consumed
+5bf863f4c5da Bluetooth: ISO: don't leak skb in ISO_CONT RX
+612b1dfeb414 hwrng: ks-sa - fix division by zero in ks_sa_rng_init
+20a8e0454d83 cramfs: fix incorrect physical page address calculation
+8f45f089337d ocfs2: fix double free in user_cluster_connect()
+0efdedfa537e drivers/base/node: fix double free in register_one_node()
+edf7e9040fc5 f2fs: fix UAF issue in f2fs_merge_page_bio()
+b9bd25f47eb7 idpf: fix mismatched free function for dma_alloc_coherent
+8169a6011c5f net: dlink: handle copy_thresh allocation failure
+998a67b95468 smb: client: fix crypto buffers in non-linear memory
+cd9ea7da41a4 octeontx2-vf: fix bitmap leak
+92e9f4faffca octeontx2-pf: fix bitmap leak
+34904582b502 bpf: Skip scalar adjustment for BPF_NEG if dst is a pointer
+eaba58355ecd hisi_acc_vfio_pci: Fix reference leak in hisi_acc_vfio_debug_init
+2f8229d53d98 io_uring/waitid: always prune wait queue entry in io_waitid_wait()
+09cfd3c52ea7 io_uring/zcrx: fix overshooting recv limit
+3bd5e45c2ce3 fs: udf: fix OOB read in lengthAllocDescs handling
+9cf9aa7b0acf tracing: Fix race condition in kprobe initialization causing NULL pointer dereference
+bda745ee8fbb tracing: Fix tracing_mark_raw_write() to use buf and not ubuf
+8d33a030c566 dm: fix NULL pointer dereference in __dm_suspend()
+8b51b11b3d81 LoongArch: BPF: Sign-extend struct ops return values properly
+e82406c7cbdd LoongArch: BPF: No support of struct argument in trampoline programs
+f04aad36a07c mm/ksm: fix flag-dropping behavior in ksm_madvise
+305853cce379 ksmbd: Fix race condition in RPC handle list access
+3c3fac6bc0a9 ext4: fix potential null deref in ext4_mb_init()
+da1bb9135213 fbdev: simplefb: Fix use after free in simplefb_detach_genpds()
+f52ce0ea90c8 mm: hugetlb: avoid soft lockup when mprotect to large memory area
+9031626ade38 misc: fastrpc: Fix fastrpc_map_lookup operation
+da1ba64176e0 misc: fastrpc: fix possible map leak in fastrpc_put_args
+d3366a04770e Input: uinput - zero-initialize uinput_ff_upload_compat to avoid info leak
+6df164e29bd4 sunrpc: fix null pointer dereference on zero-length checksum
+deb2f228388f PCI/AER: Avoid NULL pointer dereference in aer_ratelimit()
+d41e075b0771 remoteproc: pru: Fix potential NULL pointer dereference in pru_rproc_set_ctable()
+85afa9ea122d PCI: endpoint: pci-epf-test: Add NULL check for DMA channels before release
+67600ccfc4f3 thunderbolt: Fix use-after-free in tb_dp_dprx_work
+d5cf5b37064b tee: fix register_shm_helper()
+4002ee98c022 pinctrl: check the return value of pinmux_ops::get_function_name()
+25f526507b8c bus: fsl-mc: Check return value of platform_get_resource()
+c04db81cd028 net/9p: Fix buffer overflow in USB transport layer
+3d3c4cd5c62f net: usb: asix: hold PM usage ref to avoid PM/MDIO + RTNL deadlock
+1a0e57eb96c3 drm/amdgpu/vcn: Fix double-free of vcn dump buffer
