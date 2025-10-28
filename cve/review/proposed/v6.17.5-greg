@@ -1,0 +1,28 @@
+28412b489b08 ALSA: usb-audio: Fix NULL pointer deference in try_to_register_card
+5726b68473f7 ASoC: amd/sdw_utils: avoid NULL deref when devm_kasprintf() fails
+8527bbb33936 ALSA: hda: cs35l41: Fix NULL pointer dereference in cs35l41_get_acpi_mute_state()
+6447b0e35556 cifs: parse_dfs_referrals: prevent oob on malformed input
+c2b77f42205e smb: client: Fix refcount leak for cifs_sb_tlink
+88f170814fea ksmbd: fix recursive locking in RPC handle list access
+0aa1b76fe142 KVM: arm64: Prevent access to vCPU events before init
+a5a51bf4e9b7 btrfs: do not assert we found block group item when creating free space tree
+a375246fcf2b cxl/features: Add check for no entries in cxl_feature_info
+ee6e44dfe6e5 sched/deadline: Stop dl_server before CPU goes offline
+9f64b3cd051b drm/xe/guc: Check GuC running state before deregistering exec queue
+178aa3360220 media: nxp: imx8-isi: m2m: Fix streaming cleanup on release
+5feef67b646d ixgbe: fix too early devlink_free() in ixgbe_remove()
+327cd4b68b43 usbnet: Fix using smp_processor_id() in preemptible code warnings
+42520df65bf6 hfsplus: fix slab-out-of-bounds read in hfsplus_strcasecmp()
+d68886bae76a NFSD: Fix last write offset handling in layoutcommit
+4b47a8601b71 NFSD: Define a proc_layoutcommit for the FlexFiles layout type
+1cf11d80db5d ALSA: hda: Fix missing pointer check in hda_component_manager_init function
+a7075f501bd3 ixgbevf: fix mailbox API compatibility by negotiating supported features
+e603a342cf7e selftests/bpf: make arg_parsing.c more robust to crashes
+75a5b8d4ddd4 usb: gadget: f_ncm: Refactor bind path to use __free()
+47b2116e54b4 usb: gadget: f_acm: Refactor bind path to use __free()
+42988380ac67 usb: gadget: f_ecm: Refactor bind path to use __free()
+082289414360 usb: gadget: f_rndis: Refactor bind path to use __free()
+7ac74613e5f2 drm/xe: Don't allow evicting of BOs in same VM in array of VM binds
+5801e65206b0 drm/sched: Fix potential double free in drm_sched_job_add_resv_dependencies
+56094ad3eaa2 vfs: Don't leak disconnected dentries on umount
+fec9b9d3ced3 btrfs: fix memory leaks when rejecting a non SINGLE data profile without an RST
