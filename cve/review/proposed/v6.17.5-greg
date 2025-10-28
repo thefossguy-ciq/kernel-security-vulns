@@ -17,7 +17,6 @@ d68886bae76a NFSD: Fix last write offset handling in layoutcommit
 4b47a8601b71 NFSD: Define a proc_layoutcommit for the FlexFiles layout type
 1cf11d80db5d ALSA: hda: Fix missing pointer check in hda_component_manager_init function
 a7075f501bd3 ixgbevf: fix mailbox API compatibility by negotiating supported features
-e603a342cf7e selftests/bpf: make arg_parsing.c more robust to crashes
 75a5b8d4ddd4 usb: gadget: f_ncm: Refactor bind path to use __free()
 47b2116e54b4 usb: gadget: f_acm: Refactor bind path to use __free()
 42988380ac67 usb: gadget: f_ecm: Refactor bind path to use __free()
