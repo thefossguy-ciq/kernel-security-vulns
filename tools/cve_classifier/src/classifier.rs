@@ -516,22 +516,63 @@ impl CVEClassifier {
 
     pub fn construct_prompt(commit_text: &str, similar_commits: &[(String, bool)], fixes_context: Option<&str>) -> String {
         // Template for the prompt
-        let prompt_template = r#"You are a security expert analyzing kernel commits to determine if they should be assigned a CVE.
-Analyze both the commit message and the code changes carefully to identify security implications. Use any sub-agents as you see fit.
+        let prompt_template = r#"You are a security expert analyzing Linux kernel commits to determine if they should be assigned a CVE identifier.
 
-Consider:
-1. Does the commit fix a security vulnerability?
-2. What is the potential impact of the issue being fixed?
-3. Are there any sensitive components affected (memory management, access control, etc.)?
-4. Does the commit message mention security concerns?
-5. Do the code changes show:
-   - Buffer overflow fixes
-   - Memory leak fixes
-   - Access control changes
-   - Input validation improvements
-   - Race condition fixes
-   - Privilege escalation fixes
-   - Other security-relevant patterns
+Your task requires THOROUGH and DETAILED research. This is a critical security assessment that demands comprehensive analysis.
+
+## Available Tools and Sub-Agents
+
+**IMPORTANT: Use the semcode MCP when available** - The semcode MCP provides semantic code search capabilities for the Linux kernel codebase. It can help you:
+- Find function definitions and understand their purpose: `find_function <name>`
+- Analyze call chains to understand impact: `find_callchain <function_name>`
+- Find callers of a function: `find_callers <function_name>`
+- Find functions called by a function: `find_calls <function_name>`
+- Search for specific patterns in code: `grep_functions <pattern>`
+- Extract functions from diffs: `diff_functions <diff_content>`
+- Search for commits: `find_commit <git_ref>` or `find_commit --git-range <range>`
+- Understand type definitions: `find_type <type_name>`
+
+**Use sub-agents as necessary**: You have access to specialized sub-agents for different tasks:
+- Use the "Explore" agent for complex codebase exploration
+- Use the "kernel-code-researcher" agent to investigate design decisions and rationale
+- Use other specialized agents as you deem appropriate
+
+## Research Requirements
+
+Perform a THOROUGH and DETAILED analysis:
+1. **Understand the vulnerability context**:
+   - What is the root cause of the issue?
+   - Use semcode to examine the affected functions and their call chains
+   - Investigate the history and purpose of the code being fixed
+
+2. **Assess security impact**:
+   - What attack vectors does this enable?
+   - What are the consequences of exploitation?
+   - Who can trigger this vulnerability (local user, remote attacker, etc.)?
+   - What privileges are needed to exploit this?
+
+3. **Analyze code changes in depth**:
+   - Review the actual code diff line by line
+   - Use semcode to understand the context of modified functions
+   - Examine how the fix addresses the vulnerability
+   - Look for similar patterns in the codebase
+
+4. **Consider security-relevant indicators**:
+   - Buffer overflow/underflow vulnerabilities
+   - Use-after-free or double-free bugs
+   - Race conditions and TOCTOU issues
+   - Privilege escalation vectors
+   - Information disclosure vulnerabilities
+   - Denial of service conditions
+   - Memory corruption issues
+   - Access control bypasses
+   - Input validation failures
+   - Integer overflows/underflows
+
+5. **Evaluate scope and impact**:
+   - What subsystems are affected (memory management, networking, filesystem, etc.)?
+   - Is this a widespread issue or limited to specific configurations?
+   - Does this affect user data, system integrity, or availability?
 
 Historical similar commits and their CVE status for reference:
 {context}
@@ -544,8 +585,18 @@ Commits with similar characteristics to those marked with "CVE Status: YES" are 
 New Commit to analyze:
 {commit_info}
 
-Based on your analysis of both the commit message AND code changes, should this commit be assigned a CVE?
-Provide your answer as YES or NO, followed by a brief explanation that references specific parts of the code changes."#;
+## Your Task
+
+Based on your THOROUGH and DETAILED analysis (using semcode MCP and sub-agents as needed):
+1. Research the vulnerability deeply using all available tools
+2. Understand the security implications comprehensively
+3. Make an informed decision on CVE assignment
+
+Provide your answer as **YES** or **NO**, followed by a detailed explanation that:
+- References specific parts of the code changes
+- Explains the security impact (or lack thereof)
+- Justifies your decision with technical reasoning
+- Cites any relevant research you performed using semcode or other tools"#;
 
         // Format the context from similar commits
         let mut context_parts = Vec::new();
