@@ -240,13 +240,13 @@ selftests|\
 unmet direct dependencies detected|\
 "
 
-    mainlinesha=$(git --no-pager log -n1 ${h} | grep -i upstream | grep -oE "[a-f0-9]{40,}") || true
     commitmsgfile=$(mktemp /tmp/cve-review-XXXXX)
     commitfile0=$(mktemp /tmp/cve-review-XXXXX)
     commitfile=$(mktemp /tmp/cve-review-XXXXX)
     annotatefile=$(mktemp /tmp/cve-review-XXXXX)
 
     git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
+    mainlinesha=$(grep -i upstream ${commitmsgfile} | grep -oE "[a-f0-9]{40,}") || true
 
     cat ${commitmsgfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Piz "${GOODMATCHES}" > ${commitfile0} || true
     if [ ! -s ${commitfile0} ]; then
