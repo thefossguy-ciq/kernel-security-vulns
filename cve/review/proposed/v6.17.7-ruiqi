@@ -1,0 +1,1 @@
+efeeaac9ae97 sched_ext: Sync error_irq_work before freeing scx_sched

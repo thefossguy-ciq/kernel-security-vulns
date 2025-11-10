@@ -1,0 +1,38 @@
+a20b83cf45be nios2: ensure that memblock.current_limit is set when setting pfn limits
+738d5a51864e hfs: validate record offset in hfsplus_bmap_alloc
+28c4d9bc0708 gfs2: Fix unlikely race in gdlm_put_lock
+5671ce2a1fc6 s390/mm: Use __GFP_ACCOUNT for user page table allocations
+a429b76114aa erofs: fix crafted invalid cases for encoded extents
+50bd33f6b392 net: enetc: fix the deadlock of enetc_mdio_lock
+afd5ba577c10 net/mlx5e: RX, Fix generating skb from non-linear xdp_buff for legacy RQ
+87bcef158ac1 net/mlx5e: RX, Fix generating skb from non-linear xdp_buff for striding RQ
+e13d315ae077 erofs: avoid infinite loops due to corrupted subpage compact indexes
+441f0647f767 sctp: avoid NULL dereference when chunk data buffer is missing
+399d10934740 net: phy: micrel: always set shared->phydev for LAN8814
+664f76be38a1 net/mlx5: Fix IPsec cleanup over MPV device
+a7c4bb43bfdc fs/notify: call exportfs_encode_fid with s_umount
+c97513cddcfc hung_task: fix warnings caused by unaligned lock pointers
+c83aab85e181 mm: don't spin in add_stack_record when gfp flags don't allow
+b2284768c6b3 virtio-net: zero unused hash fields
+17679ac6df6c btrfs: directly free partially initialized fs_info in btrfs_check_leaked_roots()
+a49c4d48c3b6 platform/x86: alienware-wmi-wmax: Fix NULL pointer dereference in sleep handlers
+6ed8bfd24ce1 slab: Avoid race on slab->obj_exts in alloc_slab_obj_exts
+a91c8096590b devcoredump: Fix circular locking dependency with devcd->mutex.
+78a63493f8e3 ocfs2: clear extent cache after moving/defragmenting extents
+103541e6a585 rv: Fully convert enabled_monitors to use list_head as iterator
+f7c877e75352 vsock: fix lock inversion in vsock_assign_transport()
+75cea9860aa6 net: usb: rtl8150: Fix frame padding
+841a8bfcbad9 mm: prevent poison consumption when splitting THP
+bec947cbe9a6 drm/amd/display: increase max link count and fix link->enc NULL pointer access
+7071537159be mm/damon/core: fix potential memory leak by cleaning ops_filter in damon_destroy_scheme
+f0c5118ebb0e mm/damon/sysfs: catch commit test ctx alloc failure
+139e7a572af0 mm/damon/sysfs: dealloc commit test ctx always
+c7fbb8218b4a sysfs: check visibility before changing group attribute ownership
+4eabd0d8791e drm/panthor: Fix kernel panic on partial unmap of a GPU VA region
+a09a5aa8bf25 hwmon: (cgbc-hwmon) Add missing NULL check after devm_kzalloc()
+87b318ba81dd comedi: fix divide-by-zero in comedi_buf_munge()
+fff111bf45cb misc: fastrpc: Fix dma_buf object leak in fastrpc_map_lookup
+4b1270902609 most: usb: Fix use-after-free in hdm_disconnect
+ef8fef45c74b tty: serial: sh-sci: fix RSCI FIFO overrun handling
+4ba5a8a7faa6 vmw_balloon: indicate success when effectively deflating during migration
+6f40e50ceb99 ksmbd: transport_ipc: validate payload size before reading handle
