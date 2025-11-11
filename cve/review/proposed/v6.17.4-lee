@@ -1,0 +1,16 @@
+95920c2ed02b page_pool: Fix PP_MAGIC_MASK to avoid crashing on some 32-bit arches
+60cd16a3b743 scsi: mvsas: Fix use-after-free bugs in mvs_work_queue [auto: cve already created]
+2e7cbbbe3d61 tcp: Don't call reqsk_fastopen_remove() in tcp_conn_request().
+bc9ea7870796 net: mscc: ocelot: Fix use-after-free caused by cyclic delayed work [auto: cve already created]
+bb160e791ab1 mailbox: zynqmp-ipi: Fix SGI cleanup on unbind
+6bb73db6948c crypto: essiv - Check ssize for decryption and in-place encryption [auto: cve already created]
+2ba972bf71cb KVM: arm64: Fix debug checking for np-guests using huge mappings
+0dccbc75e18d x86/kvm: Force legacy PCI hole to UC when overriding MTRRs for TDX/SNP
+9d52b0b41be5 xen: take system_transition_mutex on suspend
+07ce121d93a5 xen/events: Return -EEXIST for bound VIRQs
+d0856a6dff57 bus: mhi: host: Do not use uninitialized 'dev' pointer in mhi_init_irq_setup()
+3a4b9d027e40 pwm: berlin: Fix wrong register in suspend/resume
+07ca98f906a4 xsk: Harden userspace-supplied xdp_desc validation
+fde38008fc4f media: iris: fix module removal if firmware download failed
+006568ab4c5c pid: Add a judgment for ns null in pid_nr_ns
+6c7ca6a02f8f mount: handle NULL values in mnt_ns_release()
