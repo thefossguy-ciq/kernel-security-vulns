@@ -1,0 +1,46 @@
+60cd16a3b743 scsi: mvsas: Fix use-after-free bugs in mvs_work_queue
+4f0d91ba7281 net/mlx4: prevent potential use after free in mlx4_en_do_uc_filter()
+dfe1323ab3c8 drm/vmwgfx: Fix Use-after-free in validation
+bc9ea7870796 net: mscc: ocelot: Fix use-after-free caused by cyclic delayed work
+006568ab4c5c pid: Add a judgment for ns null in pid_nr_ns
+49bdb63ff644 net: usb: lan78xx: Fix lost EEPROM read timeout error(-ETIMEDOUT) in lan78xx_read_raw_eeprom
+3f39f5652037 mailbox: mtk-cmdq: Remove pm_runtime APIs from cmdq_mbox_send_data()
+f359b809d54c netfilter: nft_objref: validate objref and objrefmap expressions
+4f375ade6aa9 bpf: Avoid RCU context warning when unpinning htab with internal structs
+2e7cbbbe3d61 tcp: Don't call reqsk_fastopen_remove() in tcp_conn_request().
+0dccbc75e18d x86/kvm: Force legacy PCI hole to UC when overriding MTRRs for TDX/SNP
+72b7ceca857f fs: quota: create dedicated workqueue for quota_release_work
+fde38008fc4f media: iris: fix module removal if firmware download failed
+0a6ce20c1564 ext4: verify orphan file size is not too big
+57295e835408 ext4: guard against EA inode refcount underflow in xattr update
+44d2a72f4d64 ext4: validate ea_ino and size in check_xattrs
+9f1c14c1de1b Squashfs: reject negative file sizes in squashfs_read_inode()
+8cfc8cec1b4d media: mc: Clear minor number before put device
+73861970938a minixfs: Verify inode mode when loading from disk
+7f9d34b0a7cb cramfs: Verify inode mode when loading from disk
+8ecb790ea8c3 ext4: avoid potential buffer over-read in parse_apply_sb_mount_options()
+23f3770e1a53 bpf: Fix metadata_dst leak __bpf_redirect_neigh_v{4,6}
+6c7ca6a02f8f mount: handle NULL values in mnt_ns_release()
+dd91c79e4f58 sctp: Fix MAC comparison to be constant-time
+eed0e3d30553 KEYS: trusted_tpm1: Compare HMAC values in constant time
+f37df9a0eb5e media: v4l2-subdev: Fix alloc failure check in v4l2_subdev_call_state_try()
+5ac2c0279053 drm/vmwgfx: Fix a null-ptr access in the cursor snooper
+b52da4054ee0 ipmi: Rework user message limit handling
+e2c69490dda5 ipmi: Fix handling of messages with provided receive message pointer
+95920c2ed02b page_pool: Fix PP_MAGIC_MASK to avoid crashing on some 32-bit arches
+bb160e791ab1 mailbox: zynqmp-ipi: Fix SGI cleanup on unbind
+229c586b5e86 crypto: skcipher - Fix reqsize handling
+69e5d50fcf40 cpufreq: intel_pstate: Fix object lifecycle issue in update_qos_request()
+5d5f08fd0cd9 xtensa: simdisk: add input size check in proc_write_simdisk
+e8c84e2082e6 statmount: don't call path_put() under namespace semaphore
+c1f86d0ac322 listmount: don't call path_put() under namespace semaphore
+2ba972bf71cb KVM: arm64: Fix debug checking for np-guests using huge mappings
+3a4b9d027e40 pwm: berlin: Fix wrong register in suspend/resume
+2db687f3469d ice: ice_adapter: release xa entry on adapter allocation failure
+2f3119686ef5 net/sctp: fix a null dereference in sctp_disposition sctp_sf_do_5_1D_ce()
+98b7bf54338b loop: fix backing file reference leak on validation error
+58e6fc2fb94f drm/amdkfd: Fix kfd process ref leaking when userptr unmapping
+5d09ee1bec87 Revert "ipmi: fix msg stack when IPMI is disconnected"
+0aead8197fc1 mailbox: zynqmp-ipi: Fix out-of-bounds access in mailbox cleanup loop
+dff4f9ff5d7f btrfs: avoid potential out-of-bounds in btrfs_encode_fh()
+a15f37a40145 kernel/sys.c: fix the racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths
