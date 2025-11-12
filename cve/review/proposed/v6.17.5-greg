@@ -25,3 +25,9 @@ a7075f501bd3 ixgbevf: fix mailbox API compatibility by negotiating supported fea
 5801e65206b0 drm/sched: Fix potential double free in drm_sched_job_add_resv_dependencies
 56094ad3eaa2 vfs: Don't leak disconnected dentries on umount
 fec9b9d3ced3 btrfs: fix memory leaks when rejecting a non SINGLE data profile without an RST
+11f08c30a3e4 ("accel/qaic: Treat remaining == 0 as error in find_and_map_user_pages()")
+21f4d45eba0b ("net/ip6_tunnel: Prevent perpetual tunnel growth")
+83b0177a6c48 ("x86/mm: Fix SMP ordering in switch_mm_irqs_off()")
+a3f8c0a27312 ("idpf: cleanup remaining SKBs in PTP flows")
+b8a6ff84abbc ("tls: wait for pending async decryptions if tls_strp_msg_hold fails")
+fd6e385528d8 ("accel/qaic: Fix bootlog initialization ordering")
