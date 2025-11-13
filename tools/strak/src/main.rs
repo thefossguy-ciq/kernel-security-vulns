@@ -253,6 +253,8 @@ fn is_ancestor(first: &Kernel, second: &Kernel) -> bool {
 }
 
 fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
+    let mut total_vulnerable = 0usize;
+
     for dyad_record in dyad_records {
         debug!("Checking {}:", dyad_record.cve_number);
         let mut must_look = false;
@@ -289,8 +291,19 @@ fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
                     .cve_number
                     .if_supports_color(Stdout, |x| x.red())
             );
+            total_vulnerable += 1;
         }
     }
+
+    println!(
+        "\nTotal Vulnerable CVE's in {} : {}",
+        test_kernel
+            .version()
+            .if_supports_color(Stdout, |x| x.green()),
+        total_vulnerable
+            .to_string()
+            .if_supports_color(Stdout, |x| x.red())
+    );
 }
 
 /// Initialize and configure the logging system
