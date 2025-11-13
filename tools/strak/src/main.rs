@@ -253,7 +253,7 @@ fn is_ancestor(first: &Kernel, second: &Kernel) -> bool {
 }
 
 fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
-    let mut total_vulnerable = 0usize;
+    let mut total_vulnerable = 0;
 
     for dyad_record in dyad_records {
         debug!("Checking {}:", dyad_record.cve_number);
