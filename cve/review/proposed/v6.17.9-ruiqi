@@ -1,0 +1,53 @@
+95af8f4fdce8 drm/xe/guc: Synchronize Dead CT worker with unbind
+33cc891b56b9 drm/amdgpu: hide VRAM sysfs attributes on GPUs without VRAM
+883f309add55 drm/amdgpu: Fix NULL pointer dereference in VRAM logic for APU devices
+9ff022f3820a NFS: check if suid/sgid was cleared after a write as needed
+82ebecdc74ff exfat: fix improper check of dentry.stream.valid_size
+6fced056d2cc smb/server: fix possible memory leak in smb2_read()
+379510a815cb smb/server: fix possible refcount leak in smb2_sess_setup()
+f2a12cc3b97f erofs: avoid infinite loop due to incomplete zstd-compressed data
+55fb52ffdd62 Bluetooth: MGMT: cancel mesh send timer when hdev removed
+23d22f2f7176 Bluetooth: btusb: reorder cleanup in btusb_disconnect to avoid UAF
+3b78f5091827 Bluetooth: 6lowpan: reset link-local header on ipv6 recv path
+1534ff77757e sctp: prevent possible shift-out-of-bounds in sctp_transport_update_rto
+0725e6afb551 tipc: Fix use-after-free in tipc_mon_reinit_self().
+62b656e43eae net: sched: act_connmark: initialize struct tc_ife to fix kernel leak
+ce50039be49e net: sched: act_ife: initialize struct tc_ife to fix KMSAN kernel-infoleak
+e5eba42f0134 mlx5: Fix default values in create CQ
+90918e3b6404 netfilter: nft_ct: add seqadj extension for natted connections
+636f4618b1cd regulator: fixed: fix GPIO descriptor leak on register failure
+7a7a3456520b NFS: sysfs: fix leak when nfs_client kobject add fails
+632108ec072a ALSA: usb-audio: Fix NULL pointer dereference in snd_usb_mixer_controls_badd
+4ef927436258 bpf: Add bpf_prog_run_data_pointers()
+b0c8e6d3d866 bpf: account for current allocated stack depth in widen_imprecise_scalars()
+e0fd4d42e27f posix-timers: Plug potential memory leak in do_timer_create()
+5f02151c411d sched_ext: Fix unsafe locking in the scx_dump_state()
+8513c154f8ad HID: playstation: Fix memory leak in dualshock4_get_calibration_data()
+a78eb69d60ce HID: uclogic: Fix potential memory leak in error path
+ae431059e75d KVM: guest_memfd: Remove bindings on memslot deletion when gmem is dying
+8a7348a9ed70 nfsd: fix refcount leak in nfsd_set_fh_dentry()
+4aa17144d5ab NFSD: free copynotify stateid in nfs4_free_ol_stateid()
+98a5fd31cbf7 ksmbd: close accepted socket when per-IP limit rejects connection
+b05addf6f059 kho: warn and exit when unpreserved page wasn't preserved
+4da4e4bde1c4 strparser: Fix signed/unsigned mismatch bug
+ac1499fcd40f ipv4: route: Prevent rt_bind_exception() from rebinding stale fnhe
+9a6b60cb147d nilfs2: avoid having an active sc_timer before freeing sci
+49c8d2c1f94c net: netpoll: fix incorrect refcount handling causing incorrect cleanup
+6f86d0534fdd mm/secretmem: fix use-after-free race in fault handler
+fa5a06170036 mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0 order
+895b4c0c79b0 fs/proc: fix uaf in proc_readdir_de()
+1c2a936edd71 mm, swap: fix potential UAF issue for VMA readahead
+f1d47cafe513 mm/huge_memory: fix folio split check for anon folios in swapcache
+82420bd4e17b ALSA: hda/hdmi: Fix breakage at probing nvhdmi-mcp driver
+05a1fc5efdd8 ALSA: usb-audio: Fix potential overflow of PCM transfer buffer
+1a58d865f423 ASoC: sdw_utils: fix device reference leak in is_sdca_endpoint_present()
+e8c73eb7db0a cifs: client: fix memory leak in smb3_fs_context_parse_param
+1abbdf3d57aa codetag: debug: handle existing CODETAG_EMPTY in mark_objexts_empty for slabobj_ext
+00fbff75c5ac crash: fix crashkernel resource shrink
+59b0afd01b2c crypto: hisilicon/qm - Fix device reference leak in qm_get_qos_value
+d3c9c213c0b8 io_uring/rw: ensure allocated iovec gets cleared for early failure
+5fea61aa1ca7 btrfs: scrub: put bio after errors in scrub_raid56_parity_stripe()
+c367af440e03 btrfs: release root after error in data_reloc_print_warning_inode()
+7458f72cc28f pmdomain: arm: scmi: Fix genpd leak on provider registration failure
+90c82941adf1 pmdomain: samsung: plug potential memleak during probe
+3f978e3f1570 isdn: mISDN: hfcsusb: fix memory leak in hfcsusb_probe()
