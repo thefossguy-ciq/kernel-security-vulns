@@ -1,0 +1,38 @@
+a20b83cf45be nios2: ensure that memblock.current_limit is set when setting pfn limits
+f584239a9ed2 net/smc: fix general protection fault in __smc_diag_dump
+664f76be38a1 net/mlx5: Fix IPsec cleanup over MPV device
+a7c4bb43bfdc fs/notify: call exportfs_encode_fid with s_umount
+17679ac6df6c btrfs: directly free partially initialized fs_info in btrfs_check_leaked_roots()
+4eabd0d8791e drm/panthor: Fix kernel panic on partial unmap of a GPU VA region
+4840ceadef42 hfsplus: fix KMSAN uninit-value issue in __hfsplus_ext_cache_extent()
+738d5a51864e hfs: validate record offset in hfsplus_bmap_alloc
+9b3d15a75891 hfsplus: fix KMSAN uninit-value issue in hfsplus_delete_cat()
+2048ec5b98db hfs: fix KMSAN uninit-value issue in hfs_find_set_zero_bits()
+a7b4747d8e0e platform/mellanox: mlxbf-pmc: add sysfs_attr_init() to count_clock init
+ee795e82e101 spi: rockchip-sfc: Fix DMA-API usage
+c7fbb8218b4a sysfs: check visibility before changing group attribute ownership
+ef8fef45c74b tty: serial: sh-sci: fix RSCI FIFO overrun handling
+c83aab85e181 mm: don't spin in add_stack_record when gfp flags don't allow
+b98c94eed4a9 arm64: mte: Do not warn if the page is already tagged in copy_highpage()
+78a63493f8e3 ocfs2: clear extent cache after moving/defragmenting extents
+f7c877e75352 vsock: fix lock inversion in vsock_assign_transport()
+87b318ba81dd comedi: fix divide-by-zero in comedi_buf_munge()
+4b1270902609 most: usb: Fix use-after-free in hdm_disconnect
+28c4d9bc0708 gfs2: Fix unlikely race in gdlm_put_lock
+441f0647f767 sctp: avoid NULL dereference when chunk data buffer is missing
+2eead1933451 arch_topology: Fix incorrect error check in topology_parse_cpu_capacity()
+a49c4d48c3b6 platform/x86: alienware-wmi-wmax: Fix NULL pointer dereference in sleep handlers
+6ed8bfd24ce1 slab: Avoid race on slab->obj_exts in alloc_slab_obj_exts
+a09a5aa8bf25 hwmon: (cgbc-hwmon) Add missing NULL check after devm_kzalloc()
+6f40e50ceb99 ksmbd: transport_ipc: validate payload size before reading handle
+a429b76114aa erofs: fix crafted invalid cases for encoded extents
+399d10934740 net: phy: micrel: always set shared->phydev for LAN8814
+103541e6a585 rv: Fully convert enabled_monitors to use list_head as iterator
+f0c5118ebb0e mm/damon/sysfs: catch commit test ctx alloc failure
+139e7a572af0 mm/damon/sysfs: dealloc commit test ctx always
+7071537159be mm/damon/core: fix potential memory leak by cleaning ops_filter in damon_destroy_scheme
+b2284768c6b3 virtio-net: zero unused hash fields
+c3fa5b1bfd83 mm/damon/core: fix list_add_tail() call on damon_call()
+841a8bfcbad9 mm: prevent poison consumption when splitting THP
+2290ab43b9d8 firmware: arm_scmi: Account for failed debug initialization
+289ce7e9a5e1 include: trace: Fix inflight count helper on failed initialization
