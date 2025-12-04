@@ -44,3 +44,8 @@ c1f86d0ac322 listmount: don't call path_put() under namespace semaphore
 0aead8197fc1 mailbox: zynqmp-ipi: Fix out-of-bounds access in mailbox cleanup loop
 dff4f9ff5d7f btrfs: avoid potential out-of-bounds in btrfs_encode_fh()
 a15f37a40145 kernel/sys.c: fix the racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths
+05703271c3cd ("PCI/IOV: Add PCI rescan-remove locking when enabling/disabling SR-IOV")
+26e5c67deb2e ("fuse: fix livelock in synchronous file put from fuseblk workers")
+3c17001b21b9 ("pidfs: validate extensible ioctls")
+b93af2cc8e03 ("mm/damon/vaddr: do not repeat pte_offset_map_lock() until success")
+c0d3f6969bb4 ("media: pci: mg4b: fix uninitialized iio scan data")
