@@ -1,0 +1,41 @@
+63b5aa01da0f vfat: fix missing sb_min_blocksize() return value checks
+ec33b59542d9 mm/mempool: fix poisoning order>0 pages with HIGHMEM
+0a2c5495b6d1 nvme: nvme-fc: Ensure ->ioerr_work is cancelled in nvme_fc_delete_ctrl()
+e6965188f84a scsi: target: tcm_loop: Fix segfault in tcm_loop_tpg_address_show()
+dfe28c4167a9 net: openvswitch: remove never-working support for setting nsh fields
+830d68f2cb8a drm/msm: Fix pgtable prealloc error path
+426358d9be7c mptcp: fix a race in mptcp_pm_del_add_timer()
+118082368c2b idpf: fix possible vport_config NULL pointer deref in remove
+678e1cc2f482 xfs: fix out of bounds memory read error in symlink repair
+035bca3f017e mptcp: fix race condition in mptcp_schedule_work()
+f796a8dec9be net: core: prevent NULL deref in generic_hwtstamp_ioctl_lower()
+90449f2d1e1f scsi: sg: Do not sleep in atomic context
+10deb6986484 xfrm: also call xfrm_state_delete_tunnel at destroy time for states that were never added
+7e4d9120cfa4 cifs: fix memory leak in smb3_fs_context_parse_param error path
+a26ec8f3d4e5 lib/test_kho: check if KHO is enabled
+949f1fd2225b nouveau/firmware: Add missing kfree() of nvkm_falcon_fw::boot
+da02a1824884 s390/ctcm: Fix double-kfree
+d47515af6ccc net/mlx5: Clean up only new IRQ glue on request_irq() failure
+e4185bed738d mtdchar: fix integer overflow in read/write ioctls
+14b46ba92bf5 MIPS: kernel: Fix random segmentation faults
+5127be409c6c scsi: ufs: ufs-qcom: Fix UFS OCP issue during UFS power down (PC=3)
+90a88306eb87 net: ethernet: ti: netcp: Standardize knav_dma_open_channel to return NULL on error
+eb6e7f520d6e drm/amdgpu: fix gpu page fault after hibernation on PF passthrough
+5c56bf214af8 mtd: rawnand: cadence: fix DMA device NULL pointer dereference
+7d277a7a5857 be2net: pass wrb_params in case of OS2BMC
+7b6216baae75 sched_ext: Fix scx_enable() crash on helper kthread creation failure
+cead55e24cf9 drm/plane: Fix create_in_format_blob() return value
+002541ef650b vsock: Ignore signal/timeout on connect() if already established
+d4cd0902c156 gpio: cdev: make sure the cdev fd is still active before emitting events
+e08969c4d65a Input: cros_ec_keyb - fix an invalid memory access
+d83f1512758f Input: imx_sc_key - fix memory corruption on unload
+103e17aac09c KVM: arm64: Check the untrusted offset in FF-A memory share
+20739af07383 timers: Fix NULL function pointer race in timer_shutdown_sync()
+677e6123e3d2 LoongArch: BPF: Disable trampoline for kernel module function trace
+6d87cd533578 nvme-multipath: fix lockdep WARN due to partition scan work
+896f1a2493b5 net: qlogic/qede: fix potential out-of-bounds read in qede_tpa_cont() and qede_tpa_end()
+23a5b9b12de9 ice: fix PTP cleanup on driver removal in error path
+97ea34defbb5 pinctrl: s32cc: fix uninitialized memory in s32_pinctrl_desc
+f94c1a114ac2 devlink: rate: Unset parent pointer in devl_rate_nodes_destroy
+7b5ab04f035f timekeeping: Fix resource leak in tk_aux_sysfs_init() error paths
+a0b7780602b1 scsi: core: Fix a regression triggered by scsi_host_busy()
