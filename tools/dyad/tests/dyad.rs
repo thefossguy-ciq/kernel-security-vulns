@@ -7,13 +7,12 @@
 // Initial test cases taken from dyad bats shell script testing,
 // others added as found and needed.
 //
-use assert_cmd::prelude::*;
+use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;
-use std::process::Command;
 
 #[test]
 fn can_run() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     cmd.assert()
         .failure()
@@ -24,7 +23,7 @@ fn can_run() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn invalid_git_id() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     cmd.arg("--sha1=5dce04fefe3e");
     cmd.assert().failure().stderr(predicate::str::contains(
@@ -36,7 +35,7 @@ fn invalid_git_id() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn invalid_vulnerable_git_id() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     cmd.arg("--vulnerable=5dce04fefe3e").arg("--sha1=d9407ff11809");
     cmd.assert()
@@ -48,7 +47,7 @@ fn invalid_vulnerable_git_id() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixed_single_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 2a8664583d4d3655cfe5d36cf03f56b11530b69b\n\
@@ -64,7 +63,7 @@ fn fixed_single_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixed_multiple_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 371a3bc79c11b707d7a1b7a2c938dc3cc042fffb\n\
@@ -84,7 +83,7 @@ fn fixed_multiple_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixed_only_mainline_branch() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 94959c0e796e41128483588d133b9a7003b409f9\n\
@@ -100,7 +99,7 @@ fn fixed_only_mainline_branch() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn vulnerable_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id d9407ff11809c6812bb84fe7be9c1367d758e5c8\n\
@@ -118,7 +117,7 @@ fn vulnerable_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::err
 
 #[test]
 fn vulnerable_always_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id c481016bb4f8a9c059c39ac06e7b65e233a61f6a\n\
@@ -136,7 +135,7 @@ fn vulnerable_always_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn s
 
 #[test]
 fn unfixed_stable_branches_1() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 34ab17cc6c2c1ac93d7e5d53bb972df9a968f085\n\
@@ -159,7 +158,7 @@ fn unfixed_stable_branches_1() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn unfixed_stable_branches_2() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id d375b98e0248980681e5e56b712026174d617198\n\
@@ -189,7 +188,7 @@ fn unfixed_stable_branches_2() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn loads_of_fixes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id fd94d9dadee58e09b49075240fe83423eb1dcd36\n\
@@ -211,7 +210,7 @@ fn loads_of_fixes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn no_fixes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id df77fbd8c5b222c680444801ffd20e8bbc90a56e\n\
@@ -229,7 +228,7 @@ fn no_fixes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn multiple_fixes_hard() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 5578de4834fe0f2a34fedc7374be691443396d1f\n\
@@ -252,7 +251,7 @@ fn multiple_fixes_hard() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn lots_vuln_fix_in_same_version() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 2ad5692db72874f02b9ad551d26345437ea4f7f3\n\
@@ -276,7 +275,7 @@ fn lots_vuln_fix_in_same_version() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn multiple_fixes_hard_to_pick_correct_pairs() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id aafe104aa9096827a429bc1358f8260ee565b7cc\n\
@@ -300,7 +299,7 @@ fn multiple_fixes_hard_to_pick_correct_pairs() -> Result<(), Box<dyn std::error:
 
 #[test]
 fn fake_fixes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 46a9ea6681907a3be6b6b0d43776dccc62cad6cf\n\
@@ -319,7 +318,7 @@ fn fake_fixes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn invalid_data_in_fixes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id a97709f563a078e259bf0861cd259aa60332890a\n\
@@ -339,7 +338,7 @@ fn invalid_data_in_fixes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn lots_stable_branches_4_x_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id d6938c1c76c64f42363d0d1f051e1b4641c2ad40\n\
@@ -362,7 +361,7 @@ fn lots_stable_branches_4_x_vulnerable() -> Result<(), Box<dyn std::error::Error
 
 #[test]
 fn lots_stable_branches_3_x_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id c95f919567d6f1914f13350af61a1b044ac85014\n\
@@ -385,7 +384,7 @@ fn lots_stable_branches_3_x_vulnerable() -> Result<(), Box<dyn std::error::Error
 
 #[test]
 fn stable_branches_have_git_ids_for_wrong_commits() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id b9b34ddbe2076ade359cd5ce7537d5ed019e9807\n\
@@ -408,7 +407,7 @@ fn stable_branches_have_git_ids_for_wrong_commits() -> Result<(), Box<dyn std::e
 
 #[test]
 fn old_vulnerablity_multiple_fixes_out_of_order() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id afd09b617db3786b6ef3dc43e28fe728cfea84df\n\
@@ -427,7 +426,7 @@ fn old_vulnerablity_multiple_fixes_out_of_order() -> Result<(), Box<dyn std::err
 #[test]
 fn complex_beast_old_stable_unfixed_stable_vulnerability_backported(
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 38d75297745f04206db9c29bdd75557f0344c7cc\n\
@@ -452,7 +451,7 @@ fn complex_beast_old_stable_unfixed_stable_vulnerability_backported(
 
 #[test]
 fn vulnerable_and_fixed_same_branch() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 97cba232549b9fe7e491fb60a69cf93075015f29\n\
@@ -470,7 +469,7 @@ fn vulnerable_and_fixed_same_branch() -> Result<(), Box<dyn std::error::Error>> 
 
 #[test]
 fn vulnerable_and_fixed_same_branch_some_not() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 2ad5692db72874f02b9ad551d26345437ea4f7f3\n\
@@ -494,7 +493,7 @@ fn vulnerable_and_fixed_same_branch_some_not() -> Result<(), Box<dyn std::error:
 
 #[test]
 fn fixes_line_corrupted() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id e41a49fadbc80b60b48d3c095d9e2ee7ef7c9a8e\n\
@@ -512,7 +511,7 @@ fn fixes_line_corrupted() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixes_line_is_not_real() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 8ee1b439b1540ae543149b15a2a61b9dff937d91\n\
@@ -534,7 +533,7 @@ fn fixes_line_is_not_real() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixes_line_sha_is_not_in_tree() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 259043e3b730e0aa6408bff27af7edf7a5c9101c\n\
@@ -550,7 +549,7 @@ fn fixes_line_sha_is_not_in_tree() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 547713d502f7b4b8efccd409cff84d731a23853b\n\
@@ -567,7 +566,7 @@ fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() -> Result<()
 
 #[test]
 fn reverts_in_some_branches_so_do_not_count_them() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id c45beebfde34aa71afbc48b2c54cdda623515037\n\
@@ -585,7 +584,7 @@ fn reverts_in_some_branches_so_do_not_count_them() -> Result<(), Box<dyn std::er
 
 #[test]
 fn revert_with_no_fixes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 7198bfc2017644c6b92d2ecef9b8b8e0363bb5fd\n\
@@ -604,7 +603,7 @@ fn revert_with_no_fixes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixes_line_requires_manual_lookup() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 40d442f969fb1e871da6fca73d3f8aef1f888558\n\
@@ -624,7 +623,7 @@ fn fixes_line_requires_manual_lookup() -> Result<(), Box<dyn std::error::Error>>
 
 #[test]
 fn multiple_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 0a4ed2d97cb6d044196cc3e726b6699222b41019\n\
@@ -645,7 +644,7 @@ fn multiple_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn fixes_line_hard_to_parse() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id e76946110137703c16423baf6ee177b751a34b7e\n\
@@ -663,7 +662,7 @@ fn fixes_line_hard_to_parse() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn vulnerable_for_stable_only() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 10d75984495f7fe62152c3b0dbfa3f0a6b739c9b\n\
@@ -681,7 +680,7 @@ fn vulnerable_for_stable_only() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn vulnerable_for_mainline() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 4ef9ad19e17676b9ef071309bc62020e2373705d\n\
@@ -702,7 +701,7 @@ fn vulnerable_for_mainline() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn vulnerable_for_backported_commit() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id a6dd15981c03f2cdc9a351a278f09b5479d53d2e\n\
@@ -727,7 +726,7 @@ fn vulnerable_for_backported_commit() -> Result<(), Box<dyn std::error::Error>> 
 
 #[test]
 fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 81665adf25d28a00a986533f1d3a5df76b79cad9\n\
@@ -749,7 +748,7 @@ fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn vulnerable_for_short_id() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 81665adf25d28a00a986533f1d3a5df76b79cad9\n\
@@ -768,7 +767,7 @@ fn vulnerable_for_short_id() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn multiple_fixes_same_stable_release() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 8ea607330a39184f51737c6ae706db7fdca7628e\n\
@@ -793,7 +792,7 @@ fn multiple_fixes_same_stable_release() -> Result<(), Box<dyn std::error::Error>
 
 #[test]
 fn sort_releases_properly() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 22207fd5c80177b860279653d017474b2812af5e\n\
@@ -813,7 +812,7 @@ fn sort_releases_properly() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn vulnerable_in_mainline_and_stable_same_branch() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id b628510397b5cafa1f5d3e848a28affd1c635302\n\
@@ -831,7 +830,7 @@ fn vulnerable_in_mainline_and_stable_same_branch() -> Result<(), Box<dyn std::er
 
 #[test]
 fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 4e32c25b58b945f976435bbe51f39b32d714052e\n\
@@ -848,7 +847,7 @@ fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id 258ea41c926b7b3a16d0d7aa210a1401c4a1601b\n\
@@ -874,7 +873,7 @@ fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Er
 
 #[test]
 fn single_fixed_multiple_vulnerable_sort_order() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("dyad")?;
+    let mut cmd = cargo_bin_cmd!("dyad");
 
     let output =
         "# 	getting vulnerable:fixed pairs for git id b16510a530d1e6ab9683f04f8fb34f2e0f538275\n\
