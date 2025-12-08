@@ -1,0 +1,46 @@
+8dec88070d96 kcsan: Avoid READ_ONCE() in read_instrumented_memory()
+8e1a2279ca2b md/raid0, raid10: Don't set discard sectors for request queue
+8e30538eca01 misc: pci_endpoint_test: Fix pci_endpoint_test_{copy,write,read}() panic
+8ebd16c11c34 perf/x86/intel/uncore: Fix reference count leak in snr_uncore_mmio_map()
+8ec9c1d5d0a5 PCI: Free released resource after coalescing
+8f3c307b580a soc: ti: pm33xx: Fix refcount leak in am33xx_pm_probe
+8f3cbcd6b440 regulator: core: Use different devices for resource allocation and DT lookup
+8f8033d5663b drm/amdgpu/powerplay/psm: Fix memory leak in power state init
+8f88c73afe48 um: vector: Fix memory leak in vector_config
+8f8cf767589f s390/vfio-ap: fix memory leak in vfio_ap device driver
+8fb9ea65c9d1 vc_screen: reload load of struct vc_data pointer in vcs_write() to avoid UAF
+8fbcf730cb89 media: mediatek: vcodec: Fix potential array out-of-bounds in decoder queue_setup
+90510aed20a2 x86: fix clear_user_rep_good() exception handling annotation
+9063777ca1e2 pinctrl: freescale: Fix a memory out of bounds when num_configs is 1
+90935f16f265 mmc: meson-gx: fix return value check of mmc_add_host()
+90bfee142af0 drm/amdkfd: Fix memory leak in kfd_mem_dmamap_userptr()
+90c49fce1c43 cifs: fix potential use-after-free bugs in TCP_Server_Info::hostname
+91586ce0d39a f2fs: fix to invalidate dcc->f2fs_issue_discard in error path
+915d975b2ffa net: deal with integer overflows in kmalloc_reserve()
+916ef6232cc4 dm: verity-loadpin: Only trust verity targets with enforcement
+9190d4a26326 drm/amd/display: fix mapping to non-allocated address
+91a0c0c14132 scsi: lpfc: Fix ioremap issues in lpfc_sli4_pci_mem_setup()
+928469986171 dmaengine: ptdma: check for null desc before calling pt_cmd_callback
+9305721a309f ext4: fix potential memory leak in ext4_fc_record_modified_inode()
+93827a0a3639 KVM: VMX: Fix crash due to uninitialized current_vmcs
+939bc5453b8c fpga: prevent integer overflow in dfl_feature_ioctl_set_irq()
+9419e700021a irqchip/irq-mvebu-gicp: Fix refcount leak in mvebu_gicp_probe
+944235896891 net: netsec: fix error handling in netsec_register_mdio()
+9448bc1dee65 spi: atmel-quadspi: Free resources even if runtime resume failed in .remove()
+944ee77dc6ec HID: hidraw: fix data race on device refcount
+948afc696151 scsi: ufs: core: mcq: Fix &hwq->cq_lock deadlock issue
+94cdb9f33698 serial: amba-pl011: avoid SBSA UART accessing DMACR register
+94d25e912898 USB: usbtmc: Fix direction for 0-length ioctl control messages
+94d90fb06b94 media: dvb-usb: fix memory leak in dvb_usb_adapter_init()
+94d9ba9f9888 Bluetooth: hci_sync: Fix UAF in hci_disconnect_all_sync
+950b43f8bd8a wifi: ath11k: fix monitor mode bringup crash
+951df98024f7 drm/gud: Fix UBSAN warning
+956fb851a6e1 wifi: rsi: Fix memory leak in rsi_coex_attach()
+958ccbbf1ce7 Revert "f2fs: fix to do sanity check on extent cache correctly"
+958f32ce832b mm: hugetlb: fix UAF in hugetlb_handle_userfault
+95a389e2ff32 wifi: ath12k: Handle lock during peer_id find
+95ab80a8a0fe dm cache: free background tracker's queued work in btracker_destroy
+95e2b352c03b FS: JFS: Check for read-only mounted filesystem in txBegin
+960412bee0ea wifi: ath12k: fix memory leak in ath12k_qmi_driver_event_work()
+963b54df82b6 regmap-irq: Fix out-of-bounds access when allocating config buffers
+965006103a14 virt/coco/sev-guest: Double-buffer messages
