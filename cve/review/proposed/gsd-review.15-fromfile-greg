@@ -1,0 +1,70 @@
+967c28b23f6c erofs: kill hooked chains to avoid loops on deduplicated compressed images
+96d3c1cadedb accel/qaic: Clean up integer overflow checking in map_user_pages()
+96da8f148396 mfd: dln2: Fix memory leak in dln2_probe()
+96df59b1ae23 RISC-V: kexec: Fix memory leak of fdt buffer
+972243f973eb drm/amd/display: fix FCLK pstate change underflow
+973ae93d80d9 drivers: perf: marvell_cn10k: Fix hotplug callback leak in tad_pmu_init()
+9744d2bf1976 smc: Fix use-after-free in tcp_write_timer_handler().
+977ad86c2a1b dccp: Fix out of bounds access in DCCP error handler
+97a48da1619b usb: dwc3: qcom: Fix memory leak in dwc3_qcom_interconnect_init
+97f2b4ddb0aa power: supply: cw2015: Fix potential null-ptr-deref in cw_bat_probe()
+97f88a3d7231 powerpc/kprobes: Fix null pointer reference in arch_prepare_kprobe()
+984af1e66b41 blk-iocost: fix divide by 0 error in calc_lcoefs()
+98703e4e061f drm: bridge: dw_hdmi: fix connector access for scdc
+98b04dd0b457 PCI: Fix pci_device_is_present() for VFs by checking PF
+98c4d0abf5c4 mt76: mt7921: don't assume adequate headroom for SDIO headers
+98dba02d9a93 dm flakey: fix a crash with invalid table line
+98e2dd5f7a8b regulator: da9063: fix null pointer deref with partial DT config
+98e5eb110095 ALSA: hda/ca0132: fixup buffer overrun at tuning_ctl_set()
+9901c21bcaf2 cpufreq: qcom-hw: Fix memory leak in qcom_cpufreq_hw_read_lut()
+991ed014de08 ext4: fix bug_on in __es_tree_search caused by bad boot loader inode
+996d120b4de2 iommu/amd: Improve page fault error reporting
+996d3efeb091 io-wq: Fix memory leak in worker creation
+9972e6b40488 mmc: core: Fix kernel panic when remove non-standard SDIO card
+997849c4b969 bpf: Zeroing allocated object from slab in bpf memory allocator
+99892147f028 md: fix warning for holder mismatch from export_rdev()
+99c2dcc8ffc2 nvme-core: fix memory leak in dhchap_ctrl_secret
+99d4850062a8 perf tool x86: Fix perf_env memory leak
+99f280700b4c cifs: fix session state check in reconnect to avoid use-after-free issue
+99f98a7c0d69 iommufd: IOMMUFD_DESTROY should not increase the refcount
+9a2ea132df86 HSI: omap_ssi: Fix refcount leak in ssi_probe
+9a5571cff4ff f2fs: fix information leak in f2fs_move_inline_dirents()
+9a6c0e28e215 HID: wacom: Use ktime_t rather than int when dealing with timestamps
+9a8aadcf0b45 platform/chrome: cros_ec_typec: zero out stale pointers
+9a97df404a40 cifs: Fix xid leak in cifs_copy_file_range()
+9ad685dbfe7e ethtool: Fix uninitialized number of lanes
+9ae4577bc077 crypto: api - Use work queue in crypto_destroy_instance
+9af31d6ec1a4 ubi: Fix use-after-free when volume resizing failed
+9afea57384d4 iommu/sprd: Release dma buffer to avoid memory leak
+9b25e3985477 wifi: ath9k: htc_hst: free skb in ath9k_htc_rx_msg() if there is no callback function
+9b4f5028e493 scsi: ses: Fix slab-out-of-bounds in ses_enclosure_data_process()
+9b5a04ac3ad9 nilfs2: fix use-after-free bug of nilfs_root in nilfs_evict_inode()
+9b5ba5c9c510 netfilter: nf_tables: Unbreak audit log reset
+9b9c8195f3f0 tty: n_gsm: fix UAF in gsm_cleanup_mux
+9bb10b7aaec3 drm/amd/display: populate subvp cmd info only for the top pipe
+9c59a01caba2 clk: ti: dra7-atl: Fix reference leak in of_dra7_atl_clk_probe
+9c632a639650 clk: clocking-wizard: Fix Oops in clk_wzrd_register_divider()
+9c8921555907 EDAC/i10nm: fix refcount leak in pci_get_dev_wrapper()
+9c8fd72a5c2a wifi: mwifiex: fix memory leak in mwifiex_histogram_read()
+9c9ff300e0de scsi: hpsa: Fix possible memory leak in hpsa_init_one()
+9ca5e7ecab06 l2tp: Avoid possible recursive deadlock in l2tp_tunnel_register()
+9cc205e3c17d RISC-V: Make port I/O string accessors actually work
+9cd1e566676b blk-mq: release crypto keyslot before reporting I/O complete
+9cd9842c4699 RDMA/irdma: Cap MSIX used to online CPUs + 1
+9d2ce78ddcee ftrace: Fix recursive locking direct_mutex in ftrace_modify_direct_caller
+9d2f13fb47dc media: mediatek: vcodec: fix decoder disable pm crash
+9d3de7ee192a ext4: fix rbtree traversal bug in ext4_mb_use_preallocated
+9d47e01b9d80 power: supply: adp5061: fix out-of-bounds read in adp5061_get_chg_type()
+9d8ba74a181b PCI: Fix dropping valid root bus resources with .end = zero
+9d9d00ac29d0 bpf: Fix reference state management for synchronous callbacks
+9d9e522010eb posix-timers: Prevent RT livelock in itimer_delete()
+9d9effca9d7d ethtool: eeprom: fix null-deref on genl_info in dump
+9da050b0d9e0 drm/amdkfd: fix potential kgd_mem UAFs
+9de255c461d1 uio: uio_dmem_genirq: Fix missing unlock in irq configuration
+9e47a758b701 crypto: lib/mpi - avoid null pointer deref in mpi_cmp_ui()
+9e6e8c437266 mmc: atmel-mci: fix return value check of mmc_add_host()
+9ed1d9aeef58 bpf: Fix panic due to wrong pageattr of im->image
+9eedb910a3be ARM: zynq: Fix refcount leak in zynq_early_slcr_init
+9f0bcf49e989 amdgpu: validate offset_in_bo of drm_amdgpu_gem_va
+9f225444467b ppp: associate skb with a device at tx
+9f28157778ed nfc: pn533: Clear nfc_target before being used
