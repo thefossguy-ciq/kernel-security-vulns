@@ -1,0 +1,71 @@
+9f2ac64d6ca6 riscv: mm: add missing memcpy in kasan_init
+9f42cf54403a cpufreq: qcom: fix memory leak in error path
+9f6ad5d533d1 loop: loop_set_status_from_info() check before assignment
+9f6ec8dc574e hwrng: geode - Fix PCI device refcount leak
+9fd41f1ba638 ip6_vti: fix slab-use-after-free in decode_session6
+9fe21dc62611 wifi: ipw2200: fix memory leak in ipw_wdev_init()
+a06bfb3c9f69 wifi: ath11k: Ignore frags from uninitialized peer in dp.
+a1140cb215fa seccomp: Move copy_seccomp() to no failure path.
+a115aa00b18f RDMA/hns: fix memory leak in hns_roce_alloc_mr()
+a137f3f27f92 net: stmmac: fix possible memory leak in stmmac_dvr_probe()
+a13bd91be223 block/rq_qos: protect rq_qos apis with a new lock
+a15fe8d9f1bf media: dvb-frontends: fix leak of memory fw
+a1865f2e7d10 netlink: annotate lockless accesses to nlk->max_recvmsg_len
+a20ed60bb357 wifi: ath11k: fix failed to find the peer with peer_id 0 when disconnected
+a22730b1b4bf kcm: Fix error handling for SOCK_DGRAM in kcm_sendmsg().
+a240bc5c4313 ubi: Fix UAF wear-leveling entry in eraseblk_count_seq_show()
+a2a9339e1c9d Bluetooth: L2CAP: Fix use-after-free in l2cap_disconnect_{req,rsp}
+a2bcd2b63271 Bluetooth: hci_sync: Avoid use-after-free in dbg for hci_add_adv_monitor()
+a3ab55746612 f2fs: flush inode if atomic file is aborted
+a3c278807a45 RDMA/siw: Fix QP destroy to wait for all references dropped.
+a3c4c0530145 platform/x86: think-lmi: Fix memory leak when showing current settings
+a3e0fdf71bbe net: read sk->sk_family once in sk_mc_loop()
+a405c6f02295 md/raid10: fix null-ptr-deref in raid10_sync_request
+a40c7f61d12f drm/vmwgfx: Fix memory leak in vmw_mksstat_add_ioctl()
+a41d985902c1 drm/i915: Fix NULL ptr deref by checking new_crtc_state
+a41e19cc0d6b iio: adc: ina2xx: avoid NULL pointer dereference on OF device match
+a44be64bbecb ext4: don't clear SB_RDONLY when remounting r/w until quota is re-enabled
+a44e84a9b776 ext4: fix deadlock due to mbcache entry corruption
+a454d84ee20b bpf, sockmap: Fix skb refcnt race after locking changes
+a465353b9250 drm/msm: fix NULL-deref on snapshot tear down
+a46bebd502fe f2fs: synchronize atomic write aborts
+a47e598fbd86 dccp: fix data-race around dp->dccps_mss_cache
+a4a97ab3db5c usb: early: xhci-dbc: Fix a potential out-of-bound memory access
+a4cb1004aeed misc: ocxl: fix possible name leak in ocxl_file_register_afu()
+a52305a81d6b devlink: report devlink_port_type_warn source device
+a525cad241c3 mmc: omap_hsmmc: fix return value check of mmc_add_host()
+a53ce18cacb4 sched/fair: Sanitize vruntime of entity being migrated
+a5475829adcc ASoC: codecs: wcd-mbhc-v2: fix resource leaks on component remove
+a552bfa16bab net: openvswitch: reject negative ifindex
+a590f03d8de7 drm/ttm: Don't leak a resource on swapout move error
+a625ca30eff8 RDMA/rxe: Fix "kernel NULL pointer dereference" error
+a6792a0cdef0 mailbox: zynq-ipi: fix error handling while device_register() fails
+a6a491c04888 nilfs2: fix infinite loop in nilfs_mdt_get_block()
+a6ec83786ab9 f2fs: fix to do sanity check on direct node in truncate_dnode()
+a6ff6e7a9dd6 usb-storage: alauda: Fix uninit-value in alauda_check_media()
+a705b11b358d md/raid5-cache: fix a deadlock in r5l_exit_log()
+a71248b1accb ext4: fix use-after-free in ext4_orphan_cleanup
+a75b49db6529 drm/msm: fix workqueue leak on bind errors
+a77ed5c5b768 iavf: use internal state to free traffic IRQs
+a7bfb2ad2184 drm/msm/dp: Drop aux devices together with DP controller
+a836ca33c5b0 nvme-core: fix memory leak in dhchap_secret_store
+a8616d2dc193 riscv: vdso: fix NULL deference in vdso_join_timens() when vfork
+a8e5e5146ad0 arm64: mte: Avoid setting PG_mte_tagged if no tags cleared or restored
+a91b750fd662 net: rds: don't hold sock lock when cancelling work from rds_tcp_reset_callbacks()
+a92ce570c81d ipmi: fix use after free in _ipmi_destroy_user()
+a939d14919b7 netlink: annotate accesses to nlk->cb_running
+a93d2afd3f77 ASoC: mediatek: mt8186: Fix use-after-free in driver remove path
+a94c16a2fda0 net: dsa: ocelot: call dsa_tag_8021q_unregister() under rtnl_lock() on driver remove
+a9515ff4fb14 of: overlay: Call of_changeset_init() early
+a96a44aba556 bpf: bpf_sk_storage: Fix invalid wait context lockdep report
+a9c09546e903 tty: serial: samsung_tty: Fix a memory leak in s3c24xx_serial_getclk() in case of error
+a9cbc1b471d2 s390/idle: mark arch_cpu_idle() noinstr
+a9ce385344f9 dm: don't attempt to queue IO under RCU protection
+a9ce5993a0f5 ext4: correct grp validation in ext4_mb_good_group
+a9dc087fd3c4 hfs: fix missing hfs_bnode_get() in __hfs_bnode_create
+aa5406950726 netlink: do not hard code device address lenth in fdb dumps
+aa656d48e871 drm/mxsfb: Disable overlay plane in mxsfb_plane_overlay_atomic_disable()
+aa666b68e73f wifi: brcmfmac: fix invalid address access when enabling SCAN log level
+aa84ce8a78a1 btrfs: fix warning when putting transaction with qgroups enabled after abort
+aa9ff6a4955f ASoC: soc-compress: Reposition and add pcm_mutex
+aae425efdfd1 i40e: Fix DMA mappings leak
