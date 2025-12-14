@@ -1,0 +1,39 @@
+95af8f4fdce8 drm/xe/guc: Synchronize Dead CT worker with unbind
+5d55ed19d419 drm/amdgpu: remove two invalid BUG_ON()s
+33cc891b56b9 drm/amdgpu: hide VRAM sysfs attributes on GPUs without VRAM [auto: cve already created]
+883f309add55 drm/amdgpu: Fix NULL pointer dereference in VRAM logic for APU devices [auto: cve already created]
+82ebecdc74ff exfat: fix improper check of dentry.stream.valid_size [auto: cve already created]
+6fced056d2cc smb/server: fix possible memory leak in smb2_read() [auto: cve already created]
+379510a815cb smb/server: fix possible refcount leak in smb2_sess_setup() [auto: cve already created]
+f2a12cc3b97f erofs: avoid infinite loop due to incomplete zstd-compressed data
+55fb52ffdd62 Bluetooth: MGMT: cancel mesh send timer when hdev removed [auto: cve already created]
+23d22f2f7176 Bluetooth: btusb: reorder cleanup in btusb_disconnect to avoid UAF [auto: cve already created]
+3b78f5091827 Bluetooth: 6lowpan: reset link-local header on ipv6 recv path [auto: cve already created]
+1534ff77757e sctp: prevent possible shift-out-of-bounds in sctp_transport_update_rto [auto: cve already created]
+0725e6afb551 tipc: Fix use-after-free in tipc_mon_reinit_self(). [auto: cve already created]
+60e6489f8e3b af_unix: Initialise scc_index in unix_add_edge(). [auto: cve already created]
+62b656e43eae net: sched: act_connmark: initialize struct tc_ife to fix kernel leak [auto: cve already created]
+ce50039be49e net: sched: act_ife: initialize struct tc_ife to fix KMSAN kernel-infoleak [auto: cve already created]
+e5eba42f0134 mlx5: Fix default values in create CQ
+90918e3b6404 netfilter: nft_ct: add seqadj extension for natted connections
+32b415a9dc2c drm/vmwgfx: Validate command header size against SVGA_CMD_MAX_DATASIZE [auto: cve already created]
+576c930e5e7d drm/panthor: Flush shmem writes before mapping buffers CPU-uncached [auto: cve already created]
+632108ec072a ALSA: usb-audio: Fix NULL pointer dereference in snd_usb_mixer_controls_badd [auto: cve already created]
+4ef927436258 bpf: Add bpf_prog_run_data_pointers()
+b0c8e6d3d866 bpf: account for current allocated stack depth in widen_imprecise_scalars()
+5f02151c411d sched_ext: Fix unsafe locking in the scx_dump_state()
+ae431059e75d KVM: guest_memfd: Remove bindings on memslot deletion when gmem is dying [auto: cve already created]
+8a7348a9ed70 nfsd: fix refcount leak in nfsd_set_fh_dentry() [auto: cve already created]
+4aa17144d5ab NFSD: free copynotify stateid in nfs4_free_ol_stateid() [auto: cve already created]
+f5548c318d65 ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
+6f86d0534fdd mm/secretmem: fix use-after-free race in fault handler [auto: cve already created]
+895b4c0c79b0 fs/proc: fix uaf in proc_readdir_de() [auto: cve already created]
+1c2a936edd71 mm, swap: fix potential UAF issue for VMA readahead [auto: cve already created]
+82420bd4e17b ALSA: hda/hdmi: Fix breakage at probing nvhdmi-mcp driver
+05a1fc5efdd8 ALSA: usb-audio: Fix potential overflow of PCM transfer buffer [auto: cve already created]
+e8c73eb7db0a cifs: client: fix memory leak in smb3_fs_context_parse_param [auto: cve already created]
+1abbdf3d57aa codetag: debug: handle existing CODETAG_EMPTY in mark_objexts_empty for slabobj_ext
+00fbff75c5ac crash: fix crashkernel resource shrink
+d3c9c213c0b8 io_uring/rw: ensure allocated iovec gets cleared for early failure [auto: cve already created]
+6623c5f9fd87 drm/amdgpu: fix lock warning in amdgpu_userq_fence_driver_process
+7458f72cc28f pmdomain: arm: scmi: Fix genpd leak on provider registration failure
