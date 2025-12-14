@@ -1,0 +1,41 @@
+103e17aac09c KVM: arm64: Check the untrusted offset in FF-A memory share [auto: cve already created]
+20739af07383 timers: Fix NULL function pointer race in timer_shutdown_sync()
+63b5aa01da0f vfat: fix missing sb_min_blocksize() return value checks [auto: cve already created]
+0778ac7df513 fs: Fix uninitialized 'offp' in statmount_string()
+c77b3b79a92e mptcp: Fix proto fallback detection with BPF
+a26ec8f3d4e5 lib/test_kho: check if KHO is enabled
+7d277a7a5857 be2net: pass wrb_params in case of OS2BMC [auto: cve already created]
+e08969c4d65a Input: cros_ec_keyb - fix an invalid memory access [auto: cve already created]
+d83f1512758f Input: imx_sc_key - fix memory corruption on unload [auto: cve already created]
+69aeb5073123 Input: pegasus-notetaker - fix potential out-of-bounds access
+ec33b59542d9 mm/mempool: fix poisoning order>0 pages with HIGHMEM
+0a2c5495b6d1 nvme: nvme-fc: Ensure ->ioerr_work is cancelled in nvme_fc_delete_ctrl() [auto: cve already created]
+7b6216baae75 sched_ext: Fix scx_enable() crash on helper kthread creation failure [auto: cve already created]
+90449f2d1e1f scsi: sg: Do not sleep in atomic context [auto: cve already created]
+e6965188f84a scsi: target: tcm_loop: Fix segfault in tcm_loop_tpg_address_show()
+677e6123e3d2 LoongArch: BPF: Disable trampoline for kernel module function trace
+035bca3f017e mptcp: fix race condition in mptcp_schedule_work() [auto: cve already created]
+426358d9be7c mptcp: fix a race in mptcp_pm_del_add_timer() [auto: cve already created]
+9eb00b5f5697 drm/radeon: delete radeon_fence_process in is_signaled, no deadlock
+cead55e24cf9 drm/plane: Fix create_in_format_blob() return value
+10deb6986484 xfrm: also call xfrm_state_delete_tunnel at destroy time for states that were never added [auto: cve already created]
+f796a8dec9be net: core: prevent NULL deref in generic_hwtstamp_ioctl_lower() [auto: cve already created]
+dfe28c4167a9 net: openvswitch: remove never-working support for setting nsh fields [auto: cve already created]
+6d87cd533578 nvme-multipath: fix lockdep WARN due to partition scan work
+da02a1824884 s390/ctcm: Fix double-kfree [auto: cve already created]
+896f1a2493b5 net: qlogic/qede: fix potential out-of-bounds read in qede_tpa_cont() and qede_tpa_end() [auto: cve already created]
+118082368c2b idpf: fix possible vport_config NULL pointer deref in remove
+23a5b9b12de9 ice: fix PTP cleanup on driver removal in error path
+97ea34defbb5 pinctrl: s32cc: fix uninitialized memory in s32_pinctrl_desc
+f94c1a114ac2 devlink: rate: Unset parent pointer in devl_rate_nodes_destroy [auto: cve already created]
+d47515af6ccc net/mlx5: Clean up only new IRQ glue on request_irq() failure [auto: cve already created]
+d4cd0902c156 gpio: cdev: make sure the cdev fd is still active before emitting events [auto: cve already created]
+7e4d9120cfa4 cifs: fix memory leak in smb3_fs_context_parse_param error path
+002541ef650b vsock: Ignore signal/timeout on connect() if already established [auto: cve already created]
+830d68f2cb8a drm/msm: Fix pgtable prealloc error path [auto: cve already created]
+a0b7780602b1 scsi: core: Fix a regression triggered by scsi_host_busy()
+90a88306eb87 net: ethernet: ti: netcp: Standardize knav_dma_open_channel to return NULL on error
+eb6e7f520d6e drm/amdgpu: fix gpu page fault after hibernation on PF passthrough
+abd29b6e17a9 smb: client: fix incomplete backport in cfids_invalidation_worker()
+678e1cc2f482 xfs: fix out of bounds memory read error in symlink repair [auto: cve already created]
+f7d953c38245 mptcp: fix address removal logic in mptcp_pm_nl_rm_addr
