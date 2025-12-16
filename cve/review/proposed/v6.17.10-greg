@@ -39,3 +39,6 @@ d83f1512758f Input: imx_sc_key - fix memory corruption on unload
 f94c1a114ac2 devlink: rate: Unset parent pointer in devl_rate_nodes_destroy
 7b5ab04f035f timekeeping: Fix resource leak in tk_aux_sysfs_init() error paths
 a0b7780602b1 scsi: core: Fix a regression triggered by scsi_host_busy()
+46447367a529 ("io_uring/cmd_net: fix wrong argument types for skb_queue_splice()")
+5442a9da6978 ("veth: more robust handing of race to avoid txq getting stuck")
+6cbab9f0da72 ("drm/tegra: Add call to put_pid()")
