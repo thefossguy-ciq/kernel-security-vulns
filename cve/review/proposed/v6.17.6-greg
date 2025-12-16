@@ -36,3 +36,8 @@ c3fa5b1bfd83 mm/damon/core: fix list_add_tail() call on damon_call()
 841a8bfcbad9 mm: prevent poison consumption when splitting THP
 2290ab43b9d8 firmware: arm_scmi: Account for failed debug initialization
 289ce7e9a5e1 include: trace: Fix inflight count helper on failed initialization
+4ba5a8a7faa6 ("vmw_balloon: indicate success when effectively deflating during migration")
+a8cc9e5fcb0e ("most: usb: hdm_probe: Fix calling put_device() before device initialization")
+c97513cddcfc ("hung_task: fix warnings caused by unaligned lock pointers")
+e13d315ae077 ("erofs: avoid infinite loops due to corrupted subpage compact indexes")
+fff111bf45cb ("misc: fastrpc: Fix dma_buf object leak in fastrpc_map_lookup")
