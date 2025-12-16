@@ -1,0 +1,37 @@
+076381c26137 libceph: fix potential use-after-free in have_mon_and_osd_map()
+0c73772cd2b8 can: kvaser_usb: leaf: Fix potential infinite loop in command parsers
+0e234632e39b drm/xe/guc: Fix stack_depot usage
+0ebc27a4c67d xsk: avoid data corruption on cq descriptor number
+19eef1d98eed afs: Fix uninit var in afs_alloc_anon_key()
+295fe8406a35 spi: cadence-quadspi: Fix cqspi_probe() error handling for runtime pm
+3184b6a5a24e smb: client: fix memory leak in cifs_construct_tcon()
+3aa385a9c75c iio: accel: bmc150: Fix irq assumption regression
+3ce62c189693 drm/amd/display: Check NULL before accessing
+4015b9797671 Bluetooth: btusb: mediatek: Fix kernel crash when releasing mtk iso interface
+41e99fe20051 usb: storage: Fix memory leak in USB bulk transport
+43962db4a6f5 ceph: fix crash in process_v2_sparse_read() for encrypted directories
+516a0cd1c03f can: gs_usb: gs_usb_xmit_callback(): fix handling of failed transmitted URBs
+5ffcb7b890f6 net: atlantic: fix fragment overflow handling in RX path
+79a2d4678ba9 Bluetooth: hci_core: lookup hci_conn on RX path on protocol side
+7b6dcd9bfd86 fs/namespace: fix reference leak in grab_requested_mnt_ns
+7fce830ecd0a libceph: prevent potential out-of-bounds writes in handle_auth_session_key()
+89bb613511cc Bluetooth: hci_sock: Prevent race in socket write iter and sock bind
+96cf8500934e slimbus: ngd: Fix reference count leak in qcom_slim_ngd_notify_slaves
+9b9c0adbc3f8 platform/x86: intel: punit_ipc: fix memory corruption
+b042fdf18e89 tracing: Fix WARN_ON in tracing_buffers_mmap_close for split VMAs
+b59d4fda7e7d usb: storage: sddr55: Reject out-of-bound new_pba
+baadf2a5c26e most: usb: fix double free on late probe failure
+baeb66fbd420 usb: gadget: udc: fix use-after-free in usb_gadget_state_work
+c884a0b27b45 Bluetooth: btusb: mediatek: Avoid btusb_mtk_claim_iso_intf() NULL deref
+cff47b9e39a6 mm/huge_memory: fix NULL pointer deference when splitting folio
+d0fcf70c680e firmware: stratix10-svc: fix bug in saving controller data
+d27c71257825 afs: Fix delayed allocation of a cell's anonymous key
+de8798965fd0 mm/memfd: fix information leak in hugetlb folios
+e4037689a366 usb: dwc3: Fix race condition between concurrent dwc3_remove_requests() call paths
+e4f5ce990818 usb: gadget: f_eem: Fix memory leak in eem_unwrap
+eb76d0f55535 drm, fbcon, vga_switcheroo: Avoid race condition in fbcon setup
+eb9ac779830b usb: renesas_usbhs: Fix synchronous external abort on unbind
+ec3797f04375 libceph: replace BUG_ON with bounds check for map->max_osd
+f07f4ea53e22 mptcp: Initialise rcv_mss before calling tcp_send_active_reset() in mptcp_do_fastclose().
+f5bce28f6b91 net: sxgbe: fix potential NULL dereference in sxgbe_rx()
+f6041803a831 io_uring/net: ensure vectored buffer node import is tied to notification
