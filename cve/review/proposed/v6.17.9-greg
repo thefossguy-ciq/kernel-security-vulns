@@ -47,3 +47,8 @@ c367af440e03 btrfs: release root after error in data_reloc_print_warning_inode()
 bbde14682eba pmdomain: imx: Fix reference count leak in imx_gpc_remove
 90c82941adf1 pmdomain: samsung: plug potential memleak during probe
 5f02151c411d sched_ext: Fix unsafe locking in the scx_dump_state()
+90f601b497d7 ("binfmt_misc: restore write access before closing files opened by open_exec()")
+9a6b60cb147d ("nilfs2: avoid having an active sc_timer before freeing sci")
+ac1499fcd40f ("ipv4: route: Prevent rt_bind_exception() from rebinding stale fnhe")
+b623390045a8 ("NFS: Fix LTP test failures when timestamps are delegated")
+fb2cba0854a7 ("NFS: Check the TLS certificate fields in nfs_match_client()")
