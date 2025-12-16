@@ -1,0 +1,20 @@
+986835bf4d11 jbd2: avoid bug_on in jbd2_journal_get_create_access() when file system corrupted
+a51f025b5038 comedi: pcl818: fix null-ptr-deref in pcl818_ai_cancel()
+4da3768e1820 KVM: SVM: Don't skip unrelated instruction if INT3/INTO is replaced
+892e1cf17555 ext4: refresh inline data size before write operations
+1fab1fa091f5 ksmbd: ipc: fix use-after-free in ipc_msg_send_request
+c14ecb555c3e locking/spinlock/debug: Fix data-race in do_raw_write_lock
+48bc9da3c97c crypto: zstd - fix double-free in per-CPU stream cleanup
+0cd8feea8777 ext4: add i_data_sem protection in ext4_destroy_inline_data_nolock()
+03b3bcd319b3 nvme: fix admin request_queue lifetime
+a257e9742103 sched_ext: Fix possible deadlock in the deferred_irq_workfn()
+0de7d9cd07a2 comedi: check device's attached status in compat ioctls
+f24c6e3a39fa comedi: multiq3: sanitize config options in multiq3_attach()
+72262330f7b3 comedi: c6xdigio: Fix invalid PNP driver unregistration
+eb2d6774cc0d ASoC: SDCA: bug fix while parsing mipi-sdca-control-cn-list
+db4a3f0fbedb platform/x86/amd/pmc: Add support for Van Gogh SoC
+154828bf9559 staging: rtl8723bs: fix out-of-bounds read in rtw_get_ie() parser
+6ef0e1c10455 staging: rtl8723bs: fix stack buffer overflow in OnAssocReq IE parsing
+502ddcc405b6 staging: rtl8723bs: fix out-of-bounds read in OnBeacon ESR IE parsing
+34ab4c75588c bfs: Reconstruct file type when loading from disk
+86d57d9c07d5 spi: imx: keep dma request disabled before dma transfer setup

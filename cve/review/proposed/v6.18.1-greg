@@ -1,0 +1,15 @@
+c14ecb555c3e locking/spinlock/debug: Fix data-race in do_raw_write_lock
+986835bf4d11 jbd2: avoid bug_on in jbd2_journal_get_create_access() when file system corrupted
+892e1cf17555 ext4: refresh inline data size before write operations
+1fab1fa091f5 ksmbd: ipc: fix use-after-free in ipc_msg_send_request
+48bc9da3c97c crypto: zstd - fix double-free in per-CPU stream cleanup
+0cd8feea8777 ext4: add i_data_sem protection in ext4_destroy_inline_data_nolock()
+3e0ae02ba831 rust_binder: fix race condition on death_list
+a51f025b5038 comedi: pcl818: fix null-ptr-deref in pcl818_ai_cancel()
+72262330f7b3 comedi: c6xdigio: Fix invalid PNP driver unregistration
+f24c6e3a39fa comedi: multiq3: sanitize config options in multiq3_attach()
+0de7d9cd07a2 comedi: check device's attached status in compat ioctls
+154828bf9559 staging: rtl8723bs: fix out-of-bounds read in rtw_get_ie() parser
+6ef0e1c10455 staging: rtl8723bs: fix stack buffer overflow in OnAssocReq IE parsing
+502ddcc405b6 staging: rtl8723bs: fix out-of-bounds read in OnBeacon ESR IE parsing
+4da3768e1820 KVM: SVM: Don't skip unrelated instruction if INT3/INTO is replaced
