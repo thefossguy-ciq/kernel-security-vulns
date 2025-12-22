@@ -310,6 +310,9 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
 
     // Track which fix commits have been used via revert_pairs so we skip them in the general logic
     let mut used_fix_ids: HashSet<String> = HashSet::new();
+    // Track which vulnerable commits were already paired via revert - they shouldn't participate
+    // in general pairing since the revert already fixed them
+    let mut revert_fixed_vuln_ids: HashSet<String> = HashSet::new();
 
     // First, add the revert-based pairs directly. We already know exactly which vulnerable
     // commit each revert fixes, so we don't need to go through the general pairing logic.
@@ -324,6 +327,7 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
             fixed: fix_kernel.clone(),
         });
         used_fix_ids.insert(fix_kernel.git_id());
+        revert_fixed_vuln_ids.insert(vuln_kernel.git_id());
     }
 
     // Now we have two lists, one where the kernel became vulnerable (could not be known, so we
@@ -351,7 +355,12 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
         }
 
         // Sort vulnerable kernels by version for more predictable pairing
-        let mut sorted_vulnerabilities = state.vulnerable_set.clone();
+        // Exclude vulnerabilities that were already fixed by a revert
+        let mut sorted_vulnerabilities: Vec<Kernel> = state.vulnerable_set
+            .iter()
+            .filter(|k| !revert_fixed_vuln_ids.contains(&k.git_id()))
+            .cloned()
+            .collect();
         sorted_vulnerabilities.sort();
 
         // Get mainline vulnerabilities
@@ -404,8 +413,11 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
             }
     }
 
-    // Process unfixed vulnerabilities
+    // Process unfixed vulnerabilities (skip those already fixed by revert)
     for vuln in &state.vulnerable_set {
+        if revert_fixed_vuln_ids.contains(&vuln.git_id()) {
+            continue;
+        }
         if let Some(pair) = process_unfixed_vulnerabilities(vuln, &fixed_pairs, &state.fixed_set) {
             fixed_pairs.push(pair);
         }
