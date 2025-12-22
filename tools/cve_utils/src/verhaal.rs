@@ -17,6 +17,15 @@ use rusqlite::{Connection, ToSql};
 use std::fs;
 use std::sync::OnceLock;
 
+/// Result of found_in() containing both non-reverted backports and revert-based fixes
+#[derive(Debug, Default)]
+pub struct FoundInResult {
+    /// Non-reverted backports (these are vulnerable or fixed depending on context)
+    pub kernels: Vec<Kernel>,
+    /// Pairs of (reverted_backport, revert_commit) - the revert is a fix for that branch
+    pub reverted_pairs: Vec<(Kernel, Kernel)>,
+}
+
 // Location of the verhaal database we are working on.
 static VERHAAL_DB: OnceLock<String> = OnceLock::new();
 
@@ -180,7 +189,11 @@ impl Verhaal {
 
     /// Determines the list of kernels where a specific git sha has been backported to, both
     /// mainline and stable kernel releases, if any.
-    /// If an error happened, or there are no fixes, an "empty" vector is returned.
+    ///
+    /// Returns a `FoundInResult` containing:
+    /// - `kernels`: Non-reverted backports
+    /// - `reverted_pairs`: Pairs of (reverted_backport, revert_commit) for backports that were
+    ///   later reverted. The revert commit can be treated as a "fix" for that branch.
     ///
     /// # Errors
     ///
@@ -188,16 +201,16 @@ impl Verhaal {
     /// - The git SHA was not backported anywhere (no kernel matches found)
     /// - The database query fails
     /// - Creating a Kernel object from any of the backport IDs fails
-    pub fn found_in(&self, git_sha: &str, fixed_set: &[Kernel]) -> Result<Vec<Kernel>> {
-        let mut kernels = Vec::new();
+    pub fn found_in(&self, git_sha: &str, fixed_set: &[Kernel]) -> Result<FoundInResult> {
+        let mut result = FoundInResult::default();
 
-        // Find backported commits that aren't reverted in a single query
+        // Find all backported commits, including those that were reverted
+        // The LEFT JOIN with rev gives us the revert info if present
         let sql = "
-            SELECT c.id, c.release, c.reverts
+            SELECT c.id, c.release, c.reverts, rev.id, rev.release
             FROM commits c
             LEFT JOIN commits rev ON rev.reverts = c.id
             WHERE c.mainline_id = ?1
-            AND rev.id IS NULL
         ";
 
         let mut stmt = match self.conn.prepare(sql) {
@@ -209,15 +222,15 @@ impl Verhaal {
 
         if let Ok(commit_rows) = stmt.query_map([git_sha], |row| {
             Ok((
-                row.get::<_, String>(0)?,         // id
-                row.get::<_, String>(1)?,         // release
-                row.get::<_, Option<String>>(2)?, // reverts
+                row.get::<_, String>(0)?,         // c.id (backport id)
+                row.get::<_, String>(1)?,         // c.release (backport release)
+                row.get::<_, Option<String>>(2)?, // c.reverts (what this commit reverts, if any)
+                row.get::<_, Option<String>>(3)?, // rev.id (revert commit id, if backport was reverted)
+                row.get::<_, Option<String>>(4)?, // rev.release (revert commit release)
             ))
         }) {
-            for result in commit_rows.flatten() {
-                // Unpack the tuple
-                let (id, release, reverts) = result;
-                let _ = release; // Unused but needed for tuple deconstruction
+            for row_result in commit_rows.flatten() {
+                let (id, release, reverts, revert_id, revert_release) = row_result;
 
                 // Skip if already in fixed set
                 if fixed_set.iter().any(|k| k.git_id() == id) {
@@ -225,11 +238,11 @@ impl Verhaal {
                 }
 
                 // For commits that are themselves reverts, check if they revert a stable commit
-                if let Some(revert_id) = reverts {
+                if let Some(ref revert_target) = reverts {
                     // Fetch mainline status of the reverted commit
                     let sql_mainline = "SELECT mainline FROM commits WHERE id = ?";
                     let mainline_values =
-                        query_u32(&self.conn, sql_mainline, &[&revert_id as &dyn ToSql]);
+                        query_u32(&self.conn, sql_mainline, &[revert_target as &dyn ToSql]);
 
                     // Skip if this commit reverts a stable commit (mainline = 0)
                     if mainline_values.contains(&0) {
@@ -238,9 +251,21 @@ impl Verhaal {
                     }
                 }
 
-                // Add valid commit to the list
-                if let Ok(k) = Kernel::from_id(&id) {
-                    kernels.push(k);
+                // Check if this backport was reverted
+                if let (Some(rev_id), Some(rev_release)) = (revert_id, revert_release) {
+                    // This backport was reverted - record both the vulnerable backport and the fix (revert)
+                    let vuln_kernel = Kernel::from_id_no_validate(&id, &release);
+                    let fix_kernel = Kernel::from_id_no_validate(&rev_id, &rev_release);
+                    debug!(
+                        "\t\tfound_in: backport {} ({}) was reverted by {} ({})",
+                        id, release, rev_id, rev_release
+                    );
+                    result.reverted_pairs.push((vuln_kernel, fix_kernel));
+                } else {
+                    // Non-reverted backport - add to kernels list
+                    if let Ok(k) = Kernel::from_id(&id) {
+                        result.kernels.push(k);
+                    }
                 }
             }
         }
@@ -251,22 +276,22 @@ impl Verhaal {
             && let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
                 Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
             }) {
-                for result in mainline_rows.flatten() {
-                    if let Ok(k) = Kernel::from_id(&result.0) {
-                        kernels.push(k);
+                for row_result in mainline_rows.flatten() {
+                    if let Ok(k) = Kernel::from_id(&row_result.0) {
+                        result.kernels.push(k);
                     }
                 }
             }
 
-        if kernels.is_empty() {
+        if result.kernels.is_empty() && result.reverted_pairs.is_empty() {
             return Err(anyhow!("git id {} was not backported anywhere", git_sha));
         }
 
         // Sort for deterministic results
-        kernels.sort();
-        debug!("\t\tfound_in: {kernels:?}");
+        result.kernels.sort();
+        debug!("\t\tfound_in: kernels={:?}, reverted_pairs={:?}", result.kernels, result.reverted_pairs);
 
-        Ok(kernels)
+        Ok(result)
     }
 
     // Helper function to get the path to the database
@@ -349,5 +374,67 @@ mod tests {
     #[should_panic(expected = "Version 00000000 not found")]
     fn get_invalid_version_test() {
         assert_eq!(get_version("00000000".to_string()), "0.0");
+    }
+
+    /// Test found_in returns revert information for CVE-2024-27005
+    ///
+    /// The introducing commit af42269c3523 was backported to:
+    /// - 6.1.55 as ee42bfc791aa (later reverted by 19ec82b3cad1 in 6.1.81)
+    /// - 5.15.133 as 9be2957f014d (later reverted by fe549d8e9763 in 5.15.151)
+    /// - 6.5.5 as 2f3a124696d4 (NOT reverted - still vulnerable)
+    /// - 6.6 as af42269c3523 (NOT reverted - mainline)
+    #[test]
+    fn found_in_returns_reverted_pairs_test() {
+        let verhaal = match Verhaal::new() {
+            Ok(verhaal) => verhaal,
+            Err(error) => panic!("Can not open the database file {:?}", error),
+        };
+
+        // af42269c3523 is the mainline introducing commit for CVE-2024-27005
+        let introducing_sha = "af42269c3523492d71ebbe11fefae2653e9cdc78";
+        let result = verhaal.found_in(introducing_sha, &[]);
+
+        assert!(result.is_ok(), "Should find backports");
+        let found = result.unwrap();
+
+        // Should have some non-reverted backports (6.5.5, 6.6, etc.)
+        assert!(!found.kernels.is_empty(), "Should find non-reverted backports");
+
+        // Should find at least 2 revert-based fixes (6.1 and 5.15)
+        assert!(
+            found.reverted_pairs.len() >= 2,
+            "Should find at least 2 revert-based fix pairs, found {}",
+            found.reverted_pairs.len()
+        );
+
+        // Check for the 6.1 revert-based fix
+        let has_6_1_fix = found.reverted_pairs.iter().any(|(vuln, fix)| {
+            vuln.git_id() == "ee42bfc791aa3cd78e29046f26a09d189beb3efb"
+                && fix.git_id() == "19ec82b3cad1abef2a929262b8c1528f4e0c192d"
+                && vuln.version() == "6.1.55"
+                && fix.version() == "6.1.81"
+        });
+        assert!(
+            has_6_1_fix,
+            "Should find 6.1 revert-based fix: 6.1.55 (ee42bfc791aa) -> 6.1.81 (19ec82b3cad1)"
+        );
+
+        // Check for the 5.15 revert-based fix
+        let has_5_15_fix = found.reverted_pairs.iter().any(|(vuln, fix)| {
+            vuln.git_id() == "9be2957f014d91088db1eb5dd09d9a03d7184dce"
+                && fix.git_id() == "fe549d8e976300d0dd75bd904eb216bed8b145e0"
+                && vuln.version() == "5.15.133"
+                && fix.version() == "5.15.151"
+        });
+        assert!(
+            has_5_15_fix,
+            "Should find 5.15 revert-based fix: 5.15.133 (9be2957f014d) -> 5.15.151 (fe549d8e9763)"
+        );
+
+        // Check that 6.5.5 is in kernels (non-reverted)
+        let has_6_5_5 = found.kernels.iter().any(|k| {
+            k.git_id() == "2f3a124696d43de3c837f87a9f767c56ee86cf2a" && k.version() == "6.5.5"
+        });
+        assert!(has_6_5_5, "Should find 6.5.5 as non-reverted backport");
     }
 }

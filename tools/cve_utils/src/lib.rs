@@ -44,7 +44,7 @@ pub use self::version_utils::{
 // Kernel structures
 pub use self::kernel::{Kernel, KernelPair};
 // Verhaal structure
-pub use self::verhaal::Verhaal;
+pub use self::verhaal::{FoundInResult, Verhaal};
 
 /// Common functionality shared across all CVE utilities
 pub mod common {

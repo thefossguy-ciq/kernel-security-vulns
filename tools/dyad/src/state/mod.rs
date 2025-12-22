@@ -4,6 +4,7 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
+use cve_utils::FoundInResult;
 use cve_utils::Kernel;
 use cve_utils::Verhaal;
 use log::debug;
@@ -16,6 +17,10 @@ pub struct DyadState {
     pub git_sha_full: Vec<Kernel>,
     pub fixed_set: Vec<Kernel>,
     pub vulnerable_set: Vec<Kernel>,
+    /// Direct pairs of (vulnerable_backport, revert_commit) for revert-based fixes.
+    /// These are pre-computed pairs that should be used directly without going through
+    /// the general pairing logic, since we already know exactly which commit each revert fixes.
+    pub revert_pairs: Vec<(Kernel, Kernel)>,
 }
 
 impl DyadState {
@@ -34,6 +39,7 @@ impl DyadState {
             git_sha_full: vec![],
             fixed_set: vec![],
             vulnerable_set: vec![],
+            revert_pairs: vec![],
         }
     }
 }
@@ -50,13 +56,17 @@ pub fn validate_env_vars(state: &mut DyadState) {
 
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
 /// and stable kernel releases, if any.
-pub fn found_in(state: &DyadState, git_sha: &str) -> Vec<Kernel> {
-    let kernels = state.verhaal.found_in(git_sha, &state.fixed_set);
-    match kernels {
-        Ok(k) => k,
+///
+/// Returns a `FoundInResult` containing:
+/// - `kernels`: Non-reverted backports
+/// - `reverted_pairs`: Pairs of (reverted_backport, revert_commit) where the backport was later reverted
+pub fn found_in(state: &DyadState, git_sha: &str) -> FoundInResult {
+    let result = state.verhaal.found_in(git_sha, &state.fixed_set);
+    match result {
+        Ok(r) => r,
         Err(e) => {
             debug!("{e:?}");
-            vec![]
+            FoundInResult::default()
         }
     }
 }

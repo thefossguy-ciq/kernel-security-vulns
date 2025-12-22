@@ -9,7 +9,7 @@ use cve_utils::{Kernel, KernelPair};
 use log::debug;
 use owo_colors::{OwoColorize, Stream::Stdout};
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Process pairs with exact version match (Priority 1)
 fn find_exact_version_match(
@@ -308,12 +308,35 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
     // Our "pairs of vuln/fixed kernels
     let mut fixed_pairs: Vec<KernelPair> = vec![];
 
+    // Track which fix commits have been used via revert_pairs so we skip them in the general logic
+    let mut used_fix_ids: HashSet<String> = HashSet::new();
+
+    // First, add the revert-based pairs directly. We already know exactly which vulnerable
+    // commit each revert fixes, so we don't need to go through the general pairing logic.
+    for (vuln_kernel, fix_kernel) in &state.revert_pairs {
+        debug!(
+            "Adding revert-based pair directly: {} ({}) -> {} ({})",
+            vuln_kernel.version(), vuln_kernel.git_id(),
+            fix_kernel.version(), fix_kernel.git_id()
+        );
+        fixed_pairs.push(KernelPair {
+            vulnerable: vuln_kernel.clone(),
+            fixed: fix_kernel.clone(),
+        });
+        used_fix_ids.insert(fix_kernel.git_id());
+    }
+
     // Now we have two lists, one where the kernel became vulnerable (could not be known, so we
     // assume 0), and where it was fixed (the id originally passed to us and where it has been
     // backported to.) Take those two lists and start matching them up based on kernel versions
 
-    // First iterate over all of the "fixed" kernel versions/ids
+    // Iterate over all of the "fixed" kernel versions/ids
     for fixed_kernel in &state.fixed_set {
+        // Skip fixes that were already used in revert-based pairs
+        if used_fix_ids.contains(&fixed_kernel.git_id()) {
+            debug!("\t skipping {fixed_kernel:?} (already used in revert pair)");
+            continue;
+        }
         let mut create: bool = false;
 
         debug!("\t k={fixed_kernel:?}");

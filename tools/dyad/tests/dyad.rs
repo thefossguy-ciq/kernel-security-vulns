@@ -896,3 +896,74 @@ fn single_fixed_multiple_vulnerable_sort_order() -> Result<(), Box<dyn std::erro
 
     Ok(())
 }
+
+/// Test for CVE-2024-27005: revert-based fixes on stable branches
+///
+/// This tests the scenario where a stable branch is fixed by reverting the
+/// backported introducing commit, rather than by backporting the mainline fix.
+///
+/// Mainline:
+///   - af42269c3523 introduces the vulnerability
+///   - de1bf25b6d77 fixes it (backported to 6.6.29 and 6.8.8)
+///
+/// On 6.1 branch (fixed via revert instead of backporting mainline fix):
+///   - ee42bfc791aa (backport of af42269c3523) introduces the vulnerability at 6.1.55
+///   - 19ec82b3cad1 (revert of ee42bfc791aa) fixes it at 6.1.81
+///
+/// On 5.15 branch (also fixed via revert):
+///   - 9be2957f014d (backport of af42269c3523) introduces the vulnerability at 5.15.133
+///   - fe549d8e9763 (revert of 9be2957f014d) fixes it at 5.15.151
+#[test]
+fn revert_based_fix_on_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = cargo_bin_cmd!("dyad");
+
+    // The output should include:
+    // 1. The 5.15 revert-based fix: 5.15.133 -> 5.15.151
+    // 2. The 6.1 revert-based fix: 6.1.55 -> 6.1.81
+    // 3. The normal backport fixes on 6.6 and 6.8
+    // 4. The mainline fix at 6.9
+    // 5. The unfixed 6.5.5 branch
+    cmd.arg("--sha1=de1bf25b6d771abdb52d43546cf57ad775fb68a1");
+    let output = cmd.output()?;
+
+    assert!(output.status.success(), "dyad command should succeed");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Check that the 6.1 revert-based fix is detected
+    assert!(
+        stdout.contains("6.1.55:ee42bfc791aa3cd78e29046f26a09d189beb3efb:6.1.81:19ec82b3cad1abef2a929262b8c1528f4e0c192d"),
+        "Should detect 6.1 revert-based fix: 6.1.55 (ee42bfc791aa) -> 6.1.81 (19ec82b3cad1)"
+    );
+
+    // Check that the 5.15 revert-based fix is detected
+    assert!(
+        stdout.contains("5.15.133:9be2957f014d91088db1eb5dd09d9a03d7184dce:5.15.151:fe549d8e976300d0dd75bd904eb216bed8b145e0"),
+        "Should detect 5.15 revert-based fix: 5.15.133 (9be2957f014d) -> 5.15.151 (fe549d8e9763)"
+    );
+
+    // Check that normal backport fixes are still detected
+    assert!(
+        stdout.contains("6.6.29:d0d04efa2e367921654b5106cc5c05e3757c2b42"),
+        "Should detect 6.6.29 backport fix"
+    );
+
+    assert!(
+        stdout.contains("6.8.8:4c65507121ea8e0b47fae6d2049c8688390d46b6"),
+        "Should detect 6.8.8 backport fix"
+    );
+
+    // Check that mainline fix is detected
+    assert!(
+        stdout.contains("6.9:de1bf25b6d771abdb52d43546cf57ad775fb68a1"),
+        "Should detect mainline fix at 6.9"
+    );
+
+    // Check that unfixed 6.5.5 is detected
+    assert!(
+        stdout.contains("6.5.5:2f3a124696d43de3c837f87a9f767c56ee86cf2a:0:0"),
+        "Should detect unfixed 6.5.5 branch"
+    );
+
+    Ok(())
+}
