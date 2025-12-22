@@ -17,6 +17,21 @@ use rusqlite::{Connection, ToSql};
 use std::fs;
 use std::sync::OnceLock;
 
+/// Raw backport entry from the database, before policy filtering
+#[derive(Debug, Clone)]
+pub struct BackportEntry {
+    /// The backport commit ID
+    pub id: String,
+    /// The kernel release version
+    pub release: String,
+    /// If this commit is a revert, the ID of what it reverts
+    pub reverts: Option<String>,
+    /// If this commit was reverted, the revert commit ID
+    pub revert_id: Option<String>,
+    /// If this commit was reverted, the revert commit release
+    pub revert_release: Option<String>,
+}
+
 /// Result of found_in() containing both non-reverted backports and revert-based fixes
 #[derive(Debug, Default)]
 pub struct FoundInResult {
@@ -187,22 +202,14 @@ impl Verhaal {
         Ok(k)
     }
 
-    /// Determines the list of kernels where a specific git sha has been backported to, both
-    /// mainline and stable kernel releases, if any.
-    ///
-    /// Returns a `FoundInResult` containing:
-    /// - `kernels`: Non-reverted backports
-    /// - `reverted_pairs`: Pairs of (reverted_backport, revert_commit) for backports that were
-    ///   later reverted. The revert commit can be treated as a "fix" for that branch.
+    /// Returns raw backport entries from the database without any policy filtering.
+    /// This is pure SQL logic - policy decisions are made in `found_in()`.
     ///
     /// # Errors
     ///
-    /// Returns an error if:
-    /// - The git SHA was not backported anywhere (no kernel matches found)
-    /// - The database query fails
-    /// - Creating a Kernel object from any of the backport IDs fails
-    pub fn found_in(&self, git_sha: &str, fixed_set: &[Kernel]) -> Result<FoundInResult> {
-        let mut result = FoundInResult::default();
+    /// Returns an error if the database query fails
+    fn found_in_raw(&self, git_sha: &str) -> Result<Vec<BackportEntry>> {
+        let mut entries = Vec::new();
 
         // Find all backported commits, including those that were reverted
         // The LEFT JOIN with rev gives us the revert info if present
@@ -221,52 +228,16 @@ impl Verhaal {
         };
 
         if let Ok(commit_rows) = stmt.query_map([git_sha], |row| {
-            Ok((
-                row.get::<_, String>(0)?,         // c.id (backport id)
-                row.get::<_, String>(1)?,         // c.release (backport release)
-                row.get::<_, Option<String>>(2)?, // c.reverts (what this commit reverts, if any)
-                row.get::<_, Option<String>>(3)?, // rev.id (revert commit id, if backport was reverted)
-                row.get::<_, Option<String>>(4)?, // rev.release (revert commit release)
-            ))
+            Ok(BackportEntry {
+                id: row.get::<_, String>(0)?,
+                release: row.get::<_, String>(1)?,
+                reverts: row.get::<_, Option<String>>(2)?,
+                revert_id: row.get::<_, Option<String>>(3)?,
+                revert_release: row.get::<_, Option<String>>(4)?,
+            })
         }) {
-            for row_result in commit_rows.flatten() {
-                let (id, release, reverts, revert_id, revert_release) = row_result;
-
-                // Skip if already in fixed set
-                if fixed_set.iter().any(|k| k.git_id() == id) {
-                    continue;
-                }
-
-                // For commits that are themselves reverts, check if they revert a stable commit
-                if let Some(ref revert_target) = reverts {
-                    // Fetch mainline status of the reverted commit
-                    let sql_mainline = "SELECT mainline FROM commits WHERE id = ?";
-                    let mainline_values =
-                        query_u32(&self.conn, sql_mainline, &[revert_target as &dyn ToSql]);
-
-                    // Skip if this commit reverts a stable commit (mainline = 0)
-                    if mainline_values.contains(&0) {
-                        debug!("\t\tfound_in: skipping {id:?} as it reverts a stable commit");
-                        continue;
-                    }
-                }
-
-                // Check if this backport was reverted
-                if let (Some(rev_id), Some(rev_release)) = (revert_id, revert_release) {
-                    // This backport was reverted - record both the vulnerable backport and the fix (revert)
-                    let vuln_kernel = Kernel::from_id_no_validate(&id, &release);
-                    let fix_kernel = Kernel::from_id_no_validate(&rev_id, &rev_release);
-                    debug!(
-                        "\t\tfound_in: backport {} ({}) was reverted by {} ({})",
-                        id, release, rev_id, rev_release
-                    );
-                    result.reverted_pairs.push((vuln_kernel, fix_kernel));
-                } else {
-                    // Non-reverted backport - add to kernels list
-                    if let Ok(k) = Kernel::from_id(&id) {
-                        result.kernels.push(k);
-                    }
-                }
+            for entry in commit_rows.flatten() {
+                entries.push(entry);
             }
         }
 
@@ -274,14 +245,81 @@ impl Verhaal {
         let sql_mainline = "SELECT id, release FROM commits WHERE id = ?1";
         if let Ok(mut stmt) = self.conn.prepare(sql_mainline)
             && let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
-                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                Ok(BackportEntry {
+                    id: row.get::<_, String>(0)?,
+                    release: row.get::<_, String>(1)?,
+                    reverts: None,
+                    revert_id: None,
+                    revert_release: None,
+                })
             }) {
-                for row_result in mainline_rows.flatten() {
-                    if let Ok(k) = Kernel::from_id(&row_result.0) {
-                        result.kernels.push(k);
-                    }
+                for entry in mainline_rows.flatten() {
+                    entries.push(entry);
                 }
             }
+
+        Ok(entries)
+    }
+
+    /// Check if a commit reverts a stable-only commit (mainline = 0)
+    fn reverts_stable_commit(&self, revert_target: &str) -> bool {
+        let sql = "SELECT mainline FROM commits WHERE id = ?";
+        let mainline_values = query_u32(&self.conn, sql, &[&revert_target as &dyn ToSql]);
+        mainline_values.contains(&0)
+    }
+
+    /// Determines the list of kernels where a specific git sha has been backported to, both
+    /// mainline and stable kernel releases, if any.
+    ///
+    /// Returns a `FoundInResult` containing:
+    /// - `kernels`: Non-reverted backports
+    /// - `reverted_pairs`: Pairs of (reverted_backport, revert_commit) for backports that were
+    ///   later reverted. The revert commit can be treated as a "fix" for that branch.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The git SHA was not backported anywhere (no kernel matches found)
+    /// - The database query fails
+    /// - Creating a Kernel object from any of the backport IDs fails
+    pub fn found_in(&self, git_sha: &str, fixed_set: &[Kernel]) -> Result<FoundInResult> {
+        let mut result = FoundInResult::default();
+
+        // Get raw entries from database
+        let entries = self.found_in_raw(git_sha)?;
+
+        // Apply policy decisions to each entry
+        for entry in entries {
+            // Policy: Skip if already in fixed set
+            if fixed_set.iter().any(|k| k.git_id() == entry.id) {
+                debug!("\t\tfound_in: skipping {} (already in fixed set)", entry.id);
+                continue;
+            }
+
+            // Policy: Skip commits that revert stable-only commits
+            if let Some(ref revert_target) = entry.reverts {
+                if self.reverts_stable_commit(revert_target) {
+                    debug!("\t\tfound_in: skipping {} as it reverts a stable commit", entry.id);
+                    continue;
+                }
+            }
+
+            // Policy: Track reverted backports as vulnerable/fix pairs
+            if let (Some(rev_id), Some(rev_release)) = (entry.revert_id, entry.revert_release) {
+                let vuln_kernel = Kernel::from_id_no_validate(&entry.id, &entry.release);
+                let fix_kernel = Kernel::from_id_no_validate(&rev_id, &rev_release);
+                debug!(
+                    "\t\tfound_in: backport {} ({}) was reverted by {} ({})",
+                    entry.id, entry.release, rev_id, rev_release
+                );
+                result.reverted_pairs.push((vuln_kernel, fix_kernel));
+            } else {
+                // Non-reverted backport - add to kernels list
+                if let Ok(k) = Kernel::from_id(&entry.id) {
+                    result.kernels.push(k);
+                }
+            }
+        }
 
         if result.kernels.is_empty() && result.reverted_pairs.is_empty() {
             return Err(anyhow!("git id {} was not backported anywhere", git_sha));
