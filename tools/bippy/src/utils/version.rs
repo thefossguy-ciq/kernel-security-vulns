@@ -3,29 +3,17 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
 use crate::models::{CpeMatch, CpeNodes, VersionRange};
+use crate::policy;
 use cve_utils::dyad::DyadEntry;
 use cve_utils::version_utils::compare_kernel_versions;
 use cve_utils::version_utils::version_is_mainline;
 use log::debug;
 use std::collections::HashSet;
 
-/// Determine the default status for CVE entries based on the dyad entries
+/// Determine the default status for CVE entries based on the dyad entries.
+/// Delegates to the centralized policy module.
 pub fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
-    // If any entry has vulnerable_version = 0, status should be "affected"
-    if entries.iter().any(|entry| entry.vulnerable.is_empty()) {
-        return "affected";
-    }
-
-    // If any entry has a mainline vulnerable version AND it's not fixed in the same version,
-    // status should be "affected"
-    if entries.iter().any(|entry| {
-        entry.vulnerable.is_mainline() && entry.vulnerable.version() != entry.fixed.version()
-    }) {
-        return "affected";
-    }
-
-    // Otherwise status should be "unaffected"
-    "unaffected"
+    policy::determine_default_status(entries)
 }
 
 /// Generate CPE ranges for the CVE JSON format
@@ -38,10 +26,9 @@ pub fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
     };
 
     for entry in entries {
-        // Skip entries where the vulnerability is in the same version it was fixed
-        // These versions are not actually affected in any released version so CVE.org
-        // doesn't like to see them.
-        if entry.is_same_version() {
+        // Skip entries that don't represent actual vulnerability windows
+        // (see policy.rs for detailed explanation)
+        if !policy::entry_should_be_included(entry) {
             continue;
         }
 
@@ -71,10 +58,10 @@ pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
     let mut git_versions = Vec::new();
 
     for entry in entries {
-        // If the vulnerable version is 0, use the first Linux commit id as the "start of history"
+        // If the vulnerable version is unknown, use "beginning of time"
+        // (see policy.rs for the commit ID used)
         let vulnerable_git = if entry.vulnerable.is_empty() {
-            // First Linux commit ID
-            "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2".to_string()
+            policy::get_unknown_vulnerable_commit().to_string()
         } else {
             entry.vulnerable.git_id().to_string()
         };
@@ -173,10 +160,10 @@ fn collect_version_data(entries: &[DyadEntry]) -> (HashSet<String>, HashSet<Stri
     let mut fixed_mainline_versions = HashSet::new();
 
     for entry in entries {
-        // Skip entries where the vulnerability is in the same version it was fixed
-        if entry.is_same_version() {
+        // Skip entries that don't represent actual vulnerability windows
+        if !policy::entry_should_be_included(entry) {
             debug!(
-                "Skipping version {} as it was fixed in the same version",
+                "Skipping version {} (same-version pair, no released version affected)",
                 entry.vulnerable.version()
             );
             continue;
@@ -429,8 +416,8 @@ fn process_version_ranges(
     kernel_versions: &mut Vec<VersionRange>,
 ) {
     for entry in entries {
-        // Skip entries where the vulnerability is in the same version it was fixed
-        if entry.vulnerable.version() == entry.fixed.version() {
+        // Skip entries that don't represent actual vulnerability windows
+        if !policy::entry_should_be_included(entry) {
             continue;
         }
 

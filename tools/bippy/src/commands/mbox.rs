@@ -2,6 +2,7 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
+use crate::policy;
 use cve_utils::dyad::DyadEntry;
 use cve_utils::version_utils::compare_kernel_versions;
 use std::collections::HashSet;
@@ -49,8 +50,9 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry]) -> Vec<String> {
             continue;
         }
 
-        // Skip entries where the vulnerability is in the same version it was fixed
-        if entry.vulnerable.version() == entry.fixed.version() {
+        // Skip entries that don't represent actual vulnerability windows
+        // (see policy.rs for detailed explanation)
+        if !policy::entry_should_be_included(entry) {
             continue;
         }
 
@@ -75,7 +77,13 @@ fn parse_dyad_entries(dyad_entries: &[DyadEntry]) -> Vec<String> {
     }
 
     // If no vulnerabilities were found, do NOT create a CVE at all!
-    assert!(!vuln_array_mbox.is_empty(), "No vulnerable:fixed kernel versions, aborting!");
+    // This should have been caught earlier by policy::should_issue_cve(),
+    // but we check here as a safety net.
+    assert!(
+        !vuln_array_mbox.is_empty(),
+        "{}",
+        policy::no_includable_entries_error()
+    );
 
     vuln_array_mbox
 }

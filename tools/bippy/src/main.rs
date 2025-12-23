@@ -13,6 +13,7 @@ use std::path::{Path, PathBuf};
 
 mod commands;
 mod models;
+mod policy;
 mod utils;
 
 use commands::{generate_json, generate_mbox, json::CveRecordParams, mbox::MboxParams};
@@ -415,16 +416,9 @@ fn main() -> Result<()> {
     // Run dyad and parse its output
     let dyad_entries = run_dyad_and_parse(&script_dir, &git_shas, &vulnerable_shas);
 
-    // ***POLICY***
-    // Determine if we actually have any "pairs" of commits that are in a released kernel such that
-    // we should be issuing a CVE or not.  This is a policy decision from cve.org which requires
-    // that an actual release is vulnerable in order for a CVE to be issued, it's not just the fact
-    // that we created and fixed a bug in a git range.
-    let is_vulnerable = dyad_entries
-        .iter()
-        .any(|entry| entry.vulnerable.version() != entry.fixed.version());
-    if !is_vulnerable {
-        error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {git_sha_full}");
+    // Check CVE issuance policy - logs error if no released version was affected
+    // (see policy.rs for detailed documentation)
+    if !policy::check_cve_issuance_policy(&dyad_entries, &git_sha_full) {
         std::process::exit(1);
     }
 

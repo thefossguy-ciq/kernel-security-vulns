@@ -11,6 +11,7 @@ use crate::models::{
     AffectedProduct, CnaData, Containers, CpeApplicability, CpeNodes, CveMetadata, CveRecord,
     Description, DyadEntry, Generator, ProviderMetadata, Reference,
 };
+use crate::policy;
 use crate::utils::{
     determine_default_status, generate_cpe_ranges, generate_git_ranges, generate_version_ranges,
     read_uuid,
@@ -156,27 +157,10 @@ fn generate_references(
     references
 }
 
-/// Process commit description text and handle truncation
+/// Process commit description text and handle truncation.
+/// Delegates to the centralized policy module.
 fn process_description(commit_text: &str) -> String {
-    // Truncate description to 3982 characters (CVE backend limit) if needed
-    let max_length = 3982; // CVE backend limit
-
-    if commit_text.len() <= max_length {
-        // If already under the limit, just ensure no trailing newline
-        return commit_text.trim_end().to_string();
-    }
-
-    // Get the truncated text limited to max_length
-    let truncated = &commit_text[..max_length];
-
-    // Special case: if only over by a trailing newline, just trim it
-    if commit_text.len() == max_length + 1 && commit_text.ends_with('\n') {
-        truncated.to_string()
-    } else {
-        // Add truncation marker, with proper newline handling
-        let separator = if truncated.ends_with('\n') { "" } else { "\n" };
-        format!("{truncated}{separator}---truncated---")
-    }
+    policy::truncate_description(commit_text)
 }
 
 /// Parameters for creating a CVE record

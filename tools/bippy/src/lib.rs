@@ -2,6 +2,7 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-pub mod models;
-pub mod utils;
 pub mod commands;
+pub mod models;
+pub mod policy;
+pub mod utils;
