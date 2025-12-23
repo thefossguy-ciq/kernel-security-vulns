@@ -35,3 +35,10 @@ ec3797f04375 libceph: replace BUG_ON with bounds check for map->max_osd
 f07f4ea53e22 mptcp: Initialise rcv_mss before calling tcp_send_active_reset() in mptcp_do_fastclose().
 f5bce28f6b91 net: sxgbe: fix potential NULL dereference in sxgbe_rx()
 f6041803a831 io_uring/net: ensure vectored buffer node import is tied to notification
+0ae9cfc454ea ("team: Move team device type change at the end of team_port_add")
+25b62cc5b22c ("net: dsa: microchip: Don't free uninitialized ksz_irq")
+295fe8406a35 ("spi: cadence-quadspi: Fix cqspi_probe() error handling for runtime pm")
+395d988f9386 ("can: gs_usb: gs_usb_receive_bulk_callback(): check actual_length before accessing data")
+6fe9f3279f7d ("can: gs_usb: gs_usb_receive_bulk_callback(): check actual_length before accessing header")
+82fca3d8a4a3 ("atm/fore200e: Fix possible data race in fore200e_open()")
+a14602fcae17 ("veth: reduce XDP no_direct return section to fix race")
