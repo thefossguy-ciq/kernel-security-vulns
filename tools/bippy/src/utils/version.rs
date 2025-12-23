@@ -937,4 +937,86 @@ mod tests {
 
         assert!(!affected_entries.is_empty());
     }
+
+    /// Test for 9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa - complex case with multiple
+    /// vulnerable/fixed pairs on same stable branch, cross-version fixes, and unfixed branches.
+    #[test]
+    fn test_generate_git_ranges_complex_multiple_fixes() {
+        // This is the dyad output for 9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa
+        let entries = vec![
+            dyad_entry("4.19.257:2035c770bfdbcc82bd52e05871a7c82db9529e0f:4.19.312:6bdf4e6dfb60cbb6121ccf027d97ed2ec97c0bcb"),
+            dyad_entry("4.19.312:a217715338fd48f72114725aa7a40e484a781ca7:4.19.312:832580af82ace363205039a8e7c4ef04552ccc1a"),
+            dyad_entry("5.4.212:13b2856037a651ba3ab4a8b25ecab3e791926da3:5.4.274:2ea7077748e5d7cc64f1c31342c802fe66ea7426"),
+            dyad_entry("5.4.274:b40877b8562c5720d0a7fce20729f56b75a3dede:5.4.274:861021710bba9dfa0749a3c209a6c1773208b1f1"),
+            dyad_entry("5.10.140:6858933131d0dadac071c4d33335a9ea4b8e76cf:5.10.173:c79a924ed6afac1708dfd370ba66bcf6a852ced6"),
+            dyad_entry("5.15.64:0455bef69028c65065f16bb04635591b2374249b:5.15.100:3e7d0968203d668af6036b9f9199c7b62c8a3581"),
+            dyad_entry("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.1.18:4be26d553a3f1d4f54f25353d1496c562002126d"),
+            dyad_entry("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.2.5:258809bf22bf71d53247856f374f2b1d055f2fd4"),
+            dyad_entry("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.3:9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa"),
+            dyad_entry("4.9.327:18e28817cb516b39de6281f6db9b0618b2cc7b42:0:0"),
+            dyad_entry("4.14.292:adf0112d9b8acb03485624220b4934f69bf13369:0:0"),
+            dyad_entry("5.19.6:9be7fa7ead18a48940df7b59d993bbc8b9055c15:0:0"),
+        ];
+
+        let git_versions = generate_git_ranges(&entries);
+
+        // Should have entries for all the fixed and unfixed pairs
+        assert!(!git_versions.is_empty());
+
+        // Check that we have affected entries (vulnerable commits)
+        let affected_count = git_versions
+            .iter()
+            .filter(|v| v.status == "affected")
+            .count();
+        assert!(affected_count > 0, "Should have affected git ranges");
+
+        // Check that fixed entries have less_than set (pointing to the fix commit)
+        let fixed_entries: Vec<_> = git_versions
+            .iter()
+            .filter(|v| v.status == "affected" && v.less_than.is_some())
+            .collect();
+        assert!(
+            !fixed_entries.is_empty(),
+            "Should have fixed entries with less_than"
+        );
+
+        // Check that unfixed entries have no less_than (they remain affected with no fix)
+        let unfixed_entries: Vec<_> = git_versions
+            .iter()
+            .filter(|v| v.status == "affected" && v.less_than.is_none())
+            .collect();
+        assert!(
+            !unfixed_entries.is_empty(),
+            "Should have unfixed entries without less_than"
+        );
+    }
+
+    /// Test CPE ranges for the same complex case
+    #[test]
+    fn test_generate_cpe_ranges_complex_multiple_fixes() {
+        let entries = vec![
+            dyad_entry("4.19.257:2035c770bfdbcc82bd52e05871a7c82db9529e0f:4.19.312:6bdf4e6dfb60cbb6121ccf027d97ed2ec97c0bcb"),
+            dyad_entry("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.3:9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa"),
+            dyad_entry("4.9.327:18e28817cb516b39de6281f6db9b0618b2cc7b42:0:0"),
+        ];
+
+        let cpe_nodes = generate_cpe_ranges(&entries);
+
+        // Should have one OR node
+        assert_eq!(cpe_nodes.len(), 1);
+
+        // Check that we have CPE matches
+        let cpe_matches = &cpe_nodes[0].cpe_match;
+        assert!(!cpe_matches.is_empty(), "Should have CPE matches");
+
+        // Check that fixed ranges have version_end_excluding set
+        let fixed_ranges: Vec<_> = cpe_matches
+            .iter()
+            .filter(|m| !m.version_end_excluding.is_empty())
+            .collect();
+        assert!(
+            !fixed_ranges.is_empty(),
+            "Should have fixed CPE ranges with version_end_excluding"
+        );
+    }
 }
