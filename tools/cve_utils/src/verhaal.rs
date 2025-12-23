@@ -297,11 +297,11 @@ impl Verhaal {
             }
 
             // Policy: Skip commits that revert stable-only commits
-            if let Some(ref revert_target) = entry.reverts {
-                if self.reverts_stable_commit(revert_target) {
-                    debug!("\t\tfound_in: skipping {} as it reverts a stable commit", entry.id);
-                    continue;
-                }
+            if let Some(ref revert_target) = entry.reverts
+                && self.reverts_stable_commit(revert_target)
+            {
+                debug!("\t\tfound_in: skipping {} as it reverts a stable commit", entry.id);
+                continue;
             }
 
             // Policy: Track reverted backports as vulnerable/fix pairs
