@@ -967,3 +967,58 @@ fn revert_based_fix_on_stable_branch() -> Result<(), Box<dyn std::error::Error>>
 
     Ok(())
 }
+
+/// Test for complex case with multiple vulnerable/fixed pairs on same stable branch,
+/// cross-version fixes, and unfixed stable branches.
+/// This SHA fixes c490a0b5a4f3 which requires fixes table translation.
+#[test]
+fn multiple_fixes_same_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = cargo_bin_cmd!("dyad");
+
+    cmd.arg("--sha1=9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa");
+    let output = cmd.output()?;
+
+    assert!(output.status.success(), "dyad command should succeed");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Check cross-version fixes (6.0 vulnerability fixed in 6.1, 6.2, 6.3)
+    assert!(
+        stdout.contains("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.1.18:4be26d553a3f1d4f54f25353d1496c562002126d"),
+        "Should detect 6.0 -> 6.1.18 fix"
+    );
+    assert!(
+        stdout.contains("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.2.5:258809bf22bf71d53247856f374f2b1d055f2fd4"),
+        "Should detect 6.0 -> 6.2.5 fix"
+    );
+    assert!(
+        stdout.contains("6.0:c490a0b5a4f36da3918181a8acdc6991d967c5f3:6.3:9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa"),
+        "Should detect 6.0 -> 6.3 mainline fix"
+    );
+
+    // Check multiple fixes on same stable branch (4.19 has two pairs)
+    assert!(
+        stdout.contains("4.19.257:2035c770bfdbcc82bd52e05871a7c82db9529e0f:4.19.312:6bdf4e6dfb60cbb6121ccf027d97ed2ec97c0bcb"),
+        "Should detect first 4.19 fix pair"
+    );
+    assert!(
+        stdout.contains("4.19.312:a217715338fd48f72114725aa7a40e484a781ca7:4.19.312:832580af82ace363205039a8e7c4ef04552ccc1a"),
+        "Should detect second 4.19 fix pair"
+    );
+
+    // Check unfixed stable branches
+    assert!(
+        stdout.contains("4.9.327:18e28817cb516b39de6281f6db9b0618b2cc7b42:0:0"),
+        "Should detect unfixed 4.9.327 branch"
+    );
+    assert!(
+        stdout.contains("4.14.292:adf0112d9b8acb03485624220b4934f69bf13369:0:0"),
+        "Should detect unfixed 4.14.292 branch"
+    );
+    assert!(
+        stdout.contains("5.19.6:9be7fa7ead18a48940df7b59d993bbc8b9055c15:0:0"),
+        "Should detect unfixed 5.19.6 branch"
+    );
+
+    Ok(())
+}
