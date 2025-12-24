@@ -440,8 +440,9 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
     fixed_pairs
 }
 
-/// Filter and sort kernel pairs to ensure consistency and accuracy
-pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
+/// Filter and sort kernel pairs to ensure consistency and accuracy.
+/// Takes ownership of the input to avoid cloning.
+pub fn filter_and_sort_pairs(pairs: Vec<KernelPair>) -> Vec<KernelPair> {
     // We need to filter out invalid pairs
     // For example, if we have a vulnerability in 6.6 and fixes in 6.7 and 6.13,
     // we shouldn't create a pair 6.6:6.13 if the version was fixed in 6.7
@@ -453,15 +454,12 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
     for pair in pairs {
         // Skip empty kernel pairs (unfixed)
         if pair.fixed.version() == "0" {
-            filtered_pairs.push(pair.clone());
+            filtered_pairs.push(pair);
             continue;
         }
 
         let vuln_id = pair.vulnerable.git_id();
-        pairs_by_vuln_id
-            .entry(vuln_id)
-            .or_default()
-            .push(pair.clone());
+        pairs_by_vuln_id.entry(vuln_id).or_default().push(pair);
     }
 
     // Process each set of pairs for a specific vulnerability
@@ -497,34 +495,29 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
             );
         }
 
-        // Find the best mainline fix for this vulnerability
-        let mut mainline_fix = None;
-        for pair in &vuln_pairs {
+        // Process pairs: take first mainline (if any), then all valid stable pairs
+        let mut found_mainline = false;
+        for pair in vuln_pairs {
             if pair.fixed.is_mainline() {
-                mainline_fix = Some(pair.clone());
-                break;
-            }
-        }
-
-        // Record and add the mainline fix pair if found
-        if let Some(mainline_pair) = mainline_fix {
-            debug!(
-                "Selected mainline fix for {}:{} -> {}",
-                mainline_pair.vulnerable.version(),
-                vuln_id,
-                mainline_pair.fixed.version()
-            );
-            filtered_pairs.push(mainline_pair);
-        }
-
-        // Add all stable fix pairs for this vulnerability
-        for pair in &vuln_pairs {
-            if !pair.fixed.is_mainline() {
-                // Ensure that the mainline kernel isn't "newer" than the fixed kernel, this catches things
-                // where a fix was backported to older kernels, but the vulnerable commit never was, so
-                // there's no "vulnerable" range here.
+                if !found_mainline {
+                    debug!(
+                        "Selected mainline fix for {}:{} -> {}",
+                        pair.vulnerable.version(),
+                        vuln_id,
+                        pair.fixed.version()
+                    );
+                    filtered_pairs.push(pair);
+                    found_mainline = true;
+                }
+                // Skip additional mainline pairs
+            } else {
+                // Stable pair: ensure the vulnerable kernel isn't "newer" than the fixed kernel
                 if pair.vulnerable > pair.fixed {
-                    debug!("Skipping {}:{} as this range is backwards", pair.vulnerable.version(), pair.fixed.version());
+                    debug!(
+                        "Skipping {}:{} as this range is backwards",
+                        pair.vulnerable.version(),
+                        pair.fixed.version()
+                    );
                     continue;
                 }
 
@@ -534,7 +527,7 @@ pub fn filter_and_sort_pairs(pairs: &[KernelPair]) -> Vec<KernelPair> {
                     vuln_id,
                     pair.fixed.version()
                 );
-                filtered_pairs.push(pair.clone());
+                filtered_pairs.push(pair);
             }
         }
     }

@@ -97,7 +97,7 @@ fn process_kernel_pairs(state: &mut state::DyadState) {
     let fixed_pairs = kernel::generate_kernel_pairs(state);
 
     // Filter and sort pairs for consistency
-    let filtered_pairs = kernel::filter_and_sort_pairs(&fixed_pairs);
+    let filtered_pairs = kernel::filter_and_sort_pairs(fixed_pairs);
 
     // Print the final kernel pairs
     kernel::print_kernel_pairs(&filtered_pairs);
