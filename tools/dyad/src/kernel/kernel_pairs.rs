@@ -334,6 +334,23 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
     // assume 0), and where it was fixed (the id originally passed to us and where it has been
     // backported to.) Take those two lists and start matching them up based on kernel versions
 
+    // Pre-compute sorted vulnerabilities and mainline vulns ONCE before the loop.
+    // This avoids redundant sorting and filtering on every iteration.
+    let sorted_vulnerabilities: Vec<Kernel> = {
+        let mut vulns: Vec<Kernel> = state.vulnerable_set
+            .iter()
+            .filter(|k| !revert_fixed_vuln_ids.contains(&k.git_id()))
+            .cloned()
+            .collect();
+        vulns.sort();
+        vulns
+    };
+
+    let mainline_vulns: Vec<&Kernel> = sorted_vulnerabilities
+        .iter()
+        .filter(|k| k.is_mainline())
+        .collect();
+
     // Iterate over all of the "fixed" kernel versions/ids
     for fixed_kernel in &state.fixed_set {
         // Skip fixes that were already used in revert-based pairs
@@ -353,21 +370,6 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
             });
             continue;
         }
-
-        // Sort vulnerable kernels by version for more predictable pairing
-        // Exclude vulnerabilities that were already fixed by a revert
-        let mut sorted_vulnerabilities: Vec<Kernel> = state.vulnerable_set
-            .iter()
-            .filter(|k| !revert_fixed_vuln_ids.contains(&k.git_id()))
-            .cloned()
-            .collect();
-        sorted_vulnerabilities.sort();
-
-        // Get mainline vulnerabilities
-        let mainline_vulns = sorted_vulnerabilities
-            .iter()
-            .filter(|k| k.is_mainline())
-            .collect::<Vec<_>>();
 
         // Priority 1: Exact version match
         if let Some(pair) = find_exact_version_match(fixed_kernel, &sorted_vulnerabilities) {
