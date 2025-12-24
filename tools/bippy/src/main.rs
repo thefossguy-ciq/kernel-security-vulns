@@ -420,14 +420,9 @@ fn main() -> Result<()> {
     // we should be issuing a CVE or not.  This is a policy decision from cve.org which requires
     // that an actual release is vulnerable in order for a CVE to be issued, it's not just the fact
     // that we created and fixed a bug in a git range.
-    let mut is_vulnerable = false;
-    for entry in &dyad_entries {
-        // Skip entries where the vulnerability is in the same version it was fixed
-        if entry.vulnerable.version() == entry.fixed.version() {
-            continue;
-        }
-        is_vulnerable = true;
-    }
+    let is_vulnerable = dyad_entries
+        .iter()
+        .any(|entry| entry.vulnerable.version() != entry.fixed.version());
     if !is_vulnerable {
         error!("Despite having some vulnerable:fixed kernels, none were in an actual release, so aborting and not assigning a CVE to {git_sha_full}");
         std::process::exit(1);
