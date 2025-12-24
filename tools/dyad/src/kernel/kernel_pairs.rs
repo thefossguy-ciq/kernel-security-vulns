@@ -244,21 +244,21 @@ fn find_default_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Opti
 }
 
 /// Process unfixed vulnerabilities to find matching pairs
+///
+/// Uses pre-built HashSets for O(1) membership checks instead of O(n) scans.
 fn process_unfixed_vulnerabilities(
     vulnerable_kernel: &Kernel,
-    fixed_pairs: &[KernelPair],
+    paired_vuln_keys: &HashSet<(String, String)>,  // (version, git_id) of already-paired vulns
+    paired_fixed_versions: &HashSet<String>,        // versions of already-paired fixes
     fixed_set: &[Kernel],
 ) -> Option<KernelPair> {
-    // Check if this vulnerability is already part of a pair
-    for pair in fixed_pairs {
-        if vulnerable_kernel.version() == pair.vulnerable.version()
-            && vulnerable_kernel.git_id() == pair.vulnerable.git_id()
-        {
-            return None;
-        }
-        if vulnerable_kernel.version() == pair.fixed.version() {
-            return None;
-        }
+    // O(1) check if this vulnerability is already part of a pair
+    let vuln_key = (vulnerable_kernel.version(), vulnerable_kernel.git_id());
+    if paired_vuln_keys.contains(&vuln_key) {
+        return None;
+    }
+    if paired_fixed_versions.contains(&vulnerable_kernel.version()) {
+        return None;
     }
 
     debug!("not found {vulnerable_kernel:?}");
@@ -409,12 +409,30 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
         }
     }
 
+    // Build HashSets for O(1) lookups when processing unfixed vulnerabilities
+    let mut paired_vuln_keys: HashSet<(String, String)> = fixed_pairs
+        .iter()
+        .map(|p| (p.vulnerable.version(), p.vulnerable.git_id()))
+        .collect();
+    let mut paired_fixed_versions: HashSet<String> = fixed_pairs
+        .iter()
+        .map(|p| p.fixed.version())
+        .collect();
+
     // Process unfixed vulnerabilities (skip those already fixed by revert)
     for vuln in &state.vulnerable_set {
         if revert_fixed_vuln_ids.contains(&vuln.git_id()) {
             continue;
         }
-        if let Some(pair) = process_unfixed_vulnerabilities(vuln, &fixed_pairs, &state.fixed_set) {
+        if let Some(pair) = process_unfixed_vulnerabilities(
+            vuln,
+            &paired_vuln_keys,
+            &paired_fixed_versions,
+            &state.fixed_set,
+        ) {
+            // Update HashSets with the new pair
+            paired_vuln_keys.insert((pair.vulnerable.version(), pair.vulnerable.git_id()));
+            paired_fixed_versions.insert(pair.fixed.version());
             fixed_pairs.push(pair);
         }
     }
