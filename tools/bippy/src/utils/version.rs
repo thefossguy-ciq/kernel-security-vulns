@@ -489,13 +489,9 @@ fn add_pre_affected_unaffected_range(
     }
 
     // Check if any version before this one is already marked as affected
-    let is_safe_to_mark_unaffected = !affected_mainline_versions.iter().any(|v| {
-        // Use the shared comparison function
-        match compare_kernel_versions(v, &entry.vulnerable.version()) {
-            std::cmp::Ordering::Less => true, // This affected version is less than current version
-            _ => false,
-        }
-    });
+    let is_safe_to_mark_unaffected = !affected_mainline_versions
+        .iter()
+        .any(|v| compare_kernel_versions(v, &entry.vulnerable.version()) == std::cmp::Ordering::Less);
 
     if is_safe_to_mark_unaffected {
         seen_versions.insert(unaffected_key);
@@ -553,13 +549,9 @@ fn add_mainline_fixed_unaffected_range(
 ) {
     // For mainline versions, we need to be careful about wildcard ranges
     // Check if there are any affected versions after this fixed version
-    let has_later_affected = affected_mainline_versions.iter().any(|v| {
-        // Use the shared comparison function
-        match compare_kernel_versions(&entry.fixed.version(), v) {
-            std::cmp::Ordering::Less => true, // Current fixed version is less than this affected version
-            _ => false,
-        }
-    });
+    let has_later_affected = affected_mainline_versions
+        .iter()
+        .any(|v| compare_kernel_versions(&entry.fixed.version(), v) == std::cmp::Ordering::Less);
 
     // Handle RC versions as mainline versions
     let is_rc_version = entry.fixed.is_rc_version();
