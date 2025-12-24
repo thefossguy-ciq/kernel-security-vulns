@@ -213,15 +213,12 @@ fn find_best_version_match(
     None
 }
 
-/// Find default pairing if no other matches found
-fn find_default_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Option<KernelPair> {
-    // Get the oldest mainline kernel from the vulnerable set
-    let oldest_mainline_kernel = vulnerabilities
-        .iter()
-        .filter(|k| k.is_mainline())
-        .min_by(|a, b| a.compare(b))
-        .cloned();
-
+/// Find default pairing if no other matches found.
+/// Takes a pre-computed oldest mainline kernel to avoid recalculating on every call.
+fn find_default_match(
+    fixed_kernel: &Kernel,
+    oldest_mainline_kernel: Option<&Kernel>,
+) -> Option<KernelPair> {
     if let Some(kernel) = oldest_mainline_kernel {
         debug!(
             "\tnothing found for {}, using default of {:?}",
@@ -230,7 +227,7 @@ fn find_default_match(fixed_kernel: &Kernel, vulnerabilities: &[Kernel]) -> Opti
         );
 
         return Some(KernelPair {
-            vulnerable: kernel,
+            vulnerable: kernel.clone(),
             fixed: fixed_kernel.clone(),
         });
     }
@@ -351,6 +348,9 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
         .filter(|k| k.is_mainline())
         .collect();
 
+    // Pre-compute oldest mainline kernel (first in sorted list) for default matching
+    let oldest_mainline_vuln: Option<&Kernel> = mainline_vulns.first().copied();
+
     // Iterate over all of the "fixed" kernel versions/ids
     for fixed_kernel in &state.fixed_set {
         // Skip fixes that were already used in revert-based pairs
@@ -404,7 +404,7 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
         }
 
         // Default: Use oldest mainline vulnerability as default
-        if let Some(pair) = find_default_match(fixed_kernel, &state.vulnerable_set) {
+        if let Some(pair) = find_default_match(fixed_kernel, oldest_mainline_vuln) {
             fixed_pairs.push(pair);
         }
     }
