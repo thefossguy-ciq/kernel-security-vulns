@@ -4,6 +4,7 @@
 
 use cve_utils::dyad::DyadEntry;
 use cve_utils::version_utils::compare_kernel_versions;
+use std::collections::HashSet;
 use std::fmt::Write;
 
 /// Parameters for generating an mbox-formatted CVE announcement
@@ -85,12 +86,15 @@ fn collect_reference_urls(
     additional_references: &[String],
     git_sha_full: &str,
 ) -> Vec<String> {
+    // Use HashSet for O(1) duplicate checks
+    let mut seen_urls: HashSet<String> = HashSet::new();
+
     // First add all fix commit URLs from dyad entries (except the main fix)
     let mut version_url_pairs = Vec::new();
     for entry in dyad_entries {
         if !entry.fixed.is_empty() && entry.fixed.git_id() != git_sha_full {
             let fix_url = format!("https://git.kernel.org/stable/c/{}", entry.fixed.git_id());
-            if !version_url_pairs.iter().any(|(_, url)| url == &fix_url) {
+            if seen_urls.insert(fix_url.clone()) {
                 version_url_pairs.push((entry.fixed.version().clone(), fix_url));
             }
         }
@@ -109,11 +113,13 @@ fn collect_reference_urls(
         .collect::<Vec<_>>();
 
     // Add the main fix commit URL at the end
-    url_array.push(format!("https://git.kernel.org/stable/c/{git_sha_full}"));
+    let main_url = format!("https://git.kernel.org/stable/c/{git_sha_full}");
+    seen_urls.insert(main_url.clone());
+    url_array.push(main_url);
 
     // Add any additional references from the reference file
     for url in additional_references {
-        if !url_array.contains(url) {
+        if seen_urls.insert(url.clone()) {
             url_array.push(url.clone());
         }
     }
