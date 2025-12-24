@@ -8,6 +8,12 @@ pub fn strip_commit_text(text: &str, tags: &[String]) -> String {
     let mut result =
         String::from("In the Linux kernel, the following vulnerability has been resolved:\n\n");
 
+    // Pre-compute lowercase tag patterns once to avoid repeated allocations
+    let tag_patterns: Vec<String> = tags
+        .iter()
+        .map(|tag| format!("{}:", tag.to_lowercase()))
+        .collect();
+
     // Split the commit message by lines
     let lines: Vec<&str> = text.lines().collect();
 
@@ -32,15 +38,12 @@ pub fn strip_commit_text(text: &str, tags: &[String]) -> String {
     // Add the rest of the message, skipping only lines that exactly start with a tag
     while i < lines.len() {
         let line = lines[i];
-        let trimmed = line.trim();
+        let trimmed_lower = line.trim().to_lowercase();
 
-        // Skip only if the line actually starts with a recognized tag
-        let is_tag_line = tags.iter().any(|tag| {
-            let tag_with_colon = format!("{tag}:");
-            trimmed
-                .to_lowercase()
-                .starts_with(&tag_with_colon.to_lowercase())
-        });
+        // Check against pre-computed lowercase tag patterns
+        let is_tag_line = tag_patterns
+            .iter()
+            .any(|pattern| trimmed_lower.starts_with(pattern));
 
         if !is_tag_line {
             result.push_str(line);
