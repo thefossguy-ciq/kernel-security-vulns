@@ -358,7 +358,6 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
             debug!("\t skipping {fixed_kernel:?} (already used in revert pair)");
             continue;
         }
-        let mut create: bool = false;
 
         debug!("\t k={fixed_kernel:?}");
 
@@ -374,45 +373,40 @@ pub fn generate_kernel_pairs(state: &DyadState) -> Vec<KernelPair> {
         // Priority 1: Exact version match
         if let Some(pair) = find_exact_version_match(fixed_kernel, &sorted_vulnerabilities) {
             fixed_pairs.push(pair);
-            create = true;
+            continue;
         }
 
-        // If we haven't found a match yet, try other matching strategies
-        if !create {
-            // Priority 2: Mainline to mainline special case
-            let mainline_pairs = find_mainline_to_mainline_matches(fixed_kernel, &mainline_vulns);
-            if !mainline_pairs.is_empty() {
-                fixed_pairs.extend(mainline_pairs);
-                create = true;
-            }
-            // Priority 3: Same major version line
-            else if let Some(pair) =
-                find_same_major_version_match(fixed_kernel, &sorted_vulnerabilities)
-            {
-                fixed_pairs.push(pair);
-                create = true;
-            }
+        // Priority 2: Mainline to mainline special case
+        let mainline_pairs = find_mainline_to_mainline_matches(fixed_kernel, &mainline_vulns);
+        if !mainline_pairs.is_empty() {
+            fixed_pairs.extend(mainline_pairs);
+            continue;
+        }
+
+        // Priority 3: Same major version line
+        if let Some(pair) = find_same_major_version_match(fixed_kernel, &sorted_vulnerabilities) {
+            fixed_pairs.push(pair);
+            continue;
         }
 
         // Priority 4: Best mainline match based on version proximity
-        if !create && !mainline_vulns.is_empty()
-            && let Some(pair) = find_best_mainline_match(fixed_kernel, &mainline_vulns) {
-                fixed_pairs.push(pair);
-                create = true;
-            }
+        if !mainline_vulns.is_empty()
+            && let Some(pair) = find_best_mainline_match(fixed_kernel, &mainline_vulns)
+        {
+            fixed_pairs.push(pair);
+            continue;
+        }
 
         // Priority 5: Distance-based scoring for all vulnerabilities
-        if !create
-            && let Some(pair) = find_best_version_match(fixed_kernel, &sorted_vulnerabilities) {
-                fixed_pairs.push(pair);
-                create = true;
-            }
+        if let Some(pair) = find_best_version_match(fixed_kernel, &sorted_vulnerabilities) {
+            fixed_pairs.push(pair);
+            continue;
+        }
 
         // Default: Use oldest mainline vulnerability as default
-        if !create
-            && let Some(pair) = find_default_match(fixed_kernel, &state.vulnerable_set) {
-                fixed_pairs.push(pair);
-            }
+        if let Some(pair) = find_default_match(fixed_kernel, &state.vulnerable_set) {
+            fixed_pairs.push(pair);
+        }
     }
 
     // Process unfixed vulnerabilities (skip those already fixed by revert)
