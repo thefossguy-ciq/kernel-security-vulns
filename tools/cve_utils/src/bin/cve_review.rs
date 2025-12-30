@@ -594,29 +594,34 @@ fn review_commits(
             continue;
         }
 
-        // Check if commit has been previously reviewed in a different session
-        if let Some((filename, previous_sha)) = check_previously_reviewed(&commit.subject, processed_file.parent().unwrap())? {
-            println!("\n{} Potentially already reviewed in", "WARNING:".red());
-            println!("  {}: {} {}", filename, previous_sha, commit.subject);
+        // Verify that we really have a subject before attempting to look it up
+        let mut proposed_votes_len = 0;
+        if commit.subject != "" {
+            // Check if commit has been previously reviewed in a different session
+            if let Some((filename, previous_sha)) = check_previously_reviewed(&commit.subject, processed_file.parent().unwrap())? {
+                println!("\n{} Potentially already reviewed in", "WARNING:".red());
+                println!("  {}: {} {}", filename, previous_sha, commit.subject);
 
-            if skip_reviewed {
-                let patch_id_match = check_patch_id_match(&commit.sha, &previous_sha)?;
-                if patch_id_match {
-                    println!("\n{} Confirmed as already reviewed - SKIPPING", "INFO:".blue());
-                    processed_file_handle.write_all(format!("{oneline}\n").as_bytes())?;
-                    continue;
+                if skip_reviewed {
+                    let patch_id_match = check_patch_id_match(&commit.sha, &previous_sha)?;
+                    if patch_id_match {
+                        println!("\n{} Confirmed as already reviewed - SKIPPING", "INFO:".blue());
+                        processed_file_handle.write_all(format!("{oneline}\n").as_bytes())?;
+                        continue;
+                    }
+                    println!("\n{} Patch ID doesn't match - please review for similarity manually", "INFO:".blue());
                 }
-                println!("\n{} Patch ID doesn't match - please review for similarity manually", "INFO:".blue());
             }
-        }
 
-        // Check if commit has been positively voted for already
-        let proposed_votes = check_proposed_votes(&commit.subject, &common::get_cve_root()?.join("review").join("proposed"))?;
-        if !proposed_votes.is_empty() {
-            println!("\n{} Positively voted for in:", "WARNING:".red());
-            for vote in &proposed_votes {
-                println!("  {vote}");
+            // Check if commit has been positively voted for already
+            let proposed_votes = check_proposed_votes(&commit.subject, &common::get_cve_root()?.join("review").join("proposed"))?;
+            if !proposed_votes.is_empty() {
+                println!("\n{} Positively voted for in:", "WARNING:".red());
+                for vote in &proposed_votes {
+                    println!("  {vote}");
+                }
             }
+            proposed_votes_len = proposed_votes.len();
         }
 
         // Apply highlighting to the commit message
@@ -627,7 +632,7 @@ fn review_commits(
         let (_, clip_point, was_clipped) = display_commit(
             &highlighted_message,
             terminal_height,
-            proposed_votes.len()
+            proposed_votes_len
         );
 
         // Process user input
