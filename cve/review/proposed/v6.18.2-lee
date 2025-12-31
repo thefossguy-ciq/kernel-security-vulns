@@ -1,0 +1,80 @@
+c147e13ea7fe smack: fix bug: unprivileged task can create labels [auto: cve already created]
+c7d393267c49 gpu: host1x: Fix race in syncpt alloc/free [auto: cve already created]
+9e16c8bf9aeb accel/amdxdna: Fix an integer overflow in aie2_query_ctx_status_array() [auto: cve already created]
+8b694b405a84 accel/ivpu: Fix page fault in ivpu_bo_unbind_all_bos_from_context() [auto: cve already created]
+78b4d6463e9e drm/vgem-fence: Fix potential deadlock on release
+36f9edbb9d0f wifi: ath12k: Fix MSDU buffer types handling in RX error path [auto: cve already created]
+73e6b9dacf72 ntfs3: fix uninit memory after failed mi_read in mi_format_new [auto: cve already created]
+9948dcb2f7b5 ntfs3: Fix uninit buffer allocated by __getname() [auto: cve already created]
+9b04d8f00569 crypto: aead - Fix reqsize handling [auto: cve already created]
+04a899573fb8 bpf: Do not let BPF test infra emit invalid GSO types to stack [auto: cve already created]
+df0845cf447a crypto: asymmetric_keys - prevent overflow in asymmetric_key_generate_id [auto: cve already created]
+4a013ca2d490 wifi: ath11k: fix peer HE MCS assignment [auto: cve already created]
+503a5e4690ae RDMA/rxe: Fix null deref on srq->rq.queue after resize failure [auto: cve already created]
+23f852daa4ba bpf: Fix stackmap overflow check in __bpf_get_stackid() [auto: cve already created]
+00812636df37 accel/ivpu: Fix race condition when unbinding BOs [auto: cve already created]
+7051f6ba968f drm/panthor: Fix UAF race between device unplug and FW event processing [auto: cve already created]
+98dd5143447a drm/panthor: Fix UAF on kernel BO VA nodes [auto: cve already created]
+3dd50c58664e ns: initialize ns_list_node for initial namespaces [auto: cve already created]
+a0c7005333f9 iommu/amd: Fix potential out-of-bounds read in iommu_mmio_show
+b4e002d8a7ce spi: tegra210-quad: Fix timeout handling [auto: cve already created]
+35501ac3c7d4 coresight: ETR: Fix ETR buffer use-after-free issue [auto: cve already created]
+c105e76bb17c hfs: fix potential use after free in hfs_correct_next_unused_CNID()
+7e772a93eb61 perf/x86: Fix NULL event access and potential PEBS record loss [auto: cve already created]
+0dc76205549b md: fix rcu protection in md_wakeup_thread [auto: cve already created]
+90e3bb44c0a8 md: avoid repeated calls to del_gendisk [auto: cve already created]
+9517b82d8d42 nbd: defer config put in recv_work [auto: cve already created]
+b518e86d1a70 scsi: smartpqi: Fix device resources accessed after device removal [auto: cve already created]
+495df2da6944 staging: most: remove broken i2c driver
+aaa5abcc9d44 coresight: tmc: add the handle of the event to the path [auto: cve already created]
+be99c62ac7e7 ntfs3: init run lock for extend inode [auto: cve already created]
+381a3ce1c0ff md: init bioset in mddev_init [auto: cve already created]
+1e4b207ffe54 macintosh/mac_hid: fix race condition in mac_hid_toggle_emumouse [auto: cve already created]
+1649714b930f nbd: defer config unlock in nbd_genl_connect [auto: cve already created]
+a8a3ca23bbd9 fs/ntfs3: Initialize allocated memory before use [auto: cve already created]
+8a7d58845fae ocfs2: relax BUG() to ocfs2_error() in __ocfs2_move_extent() [auto: cve already created]
+d46c69a087aa scsi: qla2xxx: Clear cmds after chip reset [auto: cve already created]
+6af6e49a76c9 bpf: Free special fields when update [lru_,]percpu_hash maps [auto: cve already created]
+14e4e4175b64 s390/fpu: Fix false-positive kmsan report in fpu_vstl()
+d946f3c98328 bpf: Check skb->transport_header is set in bpf_skb_check_mtu [auto: cve already created]
+ba9eb9b86d23 mshv: Fix create memory region overlap check [auto: cve already created]
+9b5b9c042b30 wifi: rtl818x: Fix potential memory leaks in rtl8180_init_rx_ring()
+7dc211c1159d bpf: Fix invalid prog->stats access when update_effective_progs fails [auto: cve already created]
+78b1a242fe61 scsi: qla2xxx: Fix improper freeing of purex item [auto: cve already created]
+b647d2574e45 wifi: rtl818x: rtl8187: Fix potential buffer underflow in rtl8187_rx_cb() [auto: cve already created]
+738c9738e690 ima: Handle error code returned by ima_filter_rule_match() [auto: cve already created]
+e9eb52037a52 crypto: starfive - Correctly handle return of sg_nents_for_len
+26dd44a40096 PM / devfreq: hisi: Fix potential UAF in OPP handling [auto: cve already created]
+d53cd891f0e4 erofs: limit the level of fs stacking for file-backed mounts [auto: cve already created]
+79277f8ad15e wifi: mt76: mt7996: fix null pointer deref in mt7996_conf_tx() [auto: cve already created]
+385aab8fccd7 wifi: mt76: wed: use proper wed reference in mt76 wed driver callabacks [auto: cve already created]
+725e46298876 btrfs: fix double free of qgroup record after failure to add delayed ref head [auto: cve already created]
+38e818718c5e btrfs: fix racy bitfield write in btrfs_clear_space_info_full() [auto: cve already created]
+7fd8720dff2d iomap: allocate s_dio_done_wq for async reads as well [auto: cve already created]
+9341d6698f4c backlight: led-bl: Add devlink to supplier LEDs
+2c5f4a53476e gfs2: Prevent recursive memory reclaim [auto: cve already created]
+688b745401ab bpf: Fix exclusive map memory leak [auto: cve already created]
+0cc15a10c3b4 regulator: core: Protect regulator_supply_alias_list with regulator_list_mutex [auto: cve already created]
+1e43ebcd5152 iavf: Implement settime64 with -EOPNOTSUPP
+1f73a56f9860 net: vxlan: prevent NULL deref in vxlan_xmit_one [auto: cve already created]
+545d1287e40a spi: ch341: fix out-of-bounds memory access in ch341_transfer_one [auto: cve already created]
+e5efd56fa157 arm64/pageattr: Propagate return value from __change_memory_common [auto: cve already created]
+49c9e09d9610 landlock: Fix handling of disconnected directories [auto: cve already created]
+e5235eb6cfe0 net: netpoll: initialize work queue before error checks
+9fefc78f7f02 net/sched: sch_cake: Fix incorrect qlen reduction in cake_drop [auto: cve already created]
+9aee8de970f1 exfat: fix refcount leak in exfat_find [auto: cve already created]
+d70a5804c563 exfat: fix divide-by-zero in exfat_allocate_bitmap [auto: cve already created]
+384150d7a5b6 rtc: amlogic-a4: fix double free caused by devm
+e0f8058f2cb5 NFSv4/pNFS: Clear NFS_INO_LAYOUTCOMMIT in pnfs_mark_layout_stateid_invalid [auto: cve already created]
+eec7e23d848d drm/panthor: Prevent potential UAF in group creation [auto: cve already created]
+f7e3f852a42d block: fix memory leak in __blkdev_issue_zero_pages [auto: cve already created]
+210d77cca3d0 ALSA: firewire-motu: fix buffer overflow in hwdep read for DSP events [auto: cve already created]
+298e753880b6 ALSA: firewire-motu: add bounds check in put_user loop for DSP events
+59e25ef2b413 block: Use RCU in blk_mq_[un]quiesce_tagset() instead of set->tag_list_lock
+ab58153ec64f scsi: imm: Fix use-after-free bug caused by unfinished delayed work [auto: cve already created]
+7dbc0d40d834 irqchip/mchp-eic: Fix error code in mchp_eic_domain_alloc()
+9415f749d34b perf/x86/intel: Fix NULL event dereference crash in handle_pmi_common()
+2b7a0f47aaf2 usb: typec: ucsi: fix use-after-free caused by uec->work [auto: cve already created]
+324f3e03e8a8 ALSA: dice: fix buffer overflow in detect_stream_formats() [auto: cve already created]
+c34b04cc6178 ALSA: hda: cs35l41: Fix NULL pointer dereference in cs35l41_hda_read_acpi() [auto: cve already created]
+0c4a13ba8859 ALSA: wavefront: Fix integer overflow in sample size validation [auto: cve already created]
