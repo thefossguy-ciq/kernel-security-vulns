@@ -191,3 +191,6 @@ bfc184cb1ba7 ("arm64/mm: Allow __create_pgd_mapping() to propagate pgtable_alloc
 14be351e5cd0 ("scsi: ufs: core: Fix an error handler crash")
 725e46298876 ("btrfs: fix double free of qgroup record after failure to add delayed ref head")
 38e818718c5e ("btrfs: fix racy bitfield write in btrfs_clear_space_info_full()")
+53d154861267 ("mt76: mt7615: Fix memory leak in mt7615_mcu_wtbl_sta_add()")
+7dbc0d40d834 ("irqchip/mchp-eic: Fix error code in mchp_eic_domain_alloc()")
+8675c69816e4 ("NFS: Automounted filesystems should inherit ro,noexec,nodev,sync flags")
