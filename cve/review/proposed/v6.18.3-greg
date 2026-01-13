@@ -1,0 +1,108 @@
+635bc4def026 fsnotify: do not generate ACCESS/MODIFY events on child for special files
+01fba45deadd f2fs: fix return value of f2fs_recover_fsync_data()
+7c37c7951032 f2fs: fix to avoid updating zero-sized extent in extent cache
+10b591e7fb7c f2fs: fix to avoid updating compression context during writeback
+297baa4aa263 f2fs: ensure node page reads complete before f2fs_put_super() finishes
+b57fbc88715b scsi: Revert "scsi: qla2xxx: Perform lockless command completion in abort path"
+188e0fa5a679 net/hsr: fix NULL pointer dereference in prp_get_untagged_frame()
+6a107cfe9c99 net/mlx5: Fix double unregister of HCA_PORTS component
+866cf36bfee4 perf/x86/amd: Check event before enable to avoid GPF
+53ca00a19d34 mm/slub: reset KASAN tag in defer_free() before accessing freed memory
+9935df5333aa KVM: Disallow toggling KVM_MEM_GUEST_MEMFD on an existing memslot
+44bf66122c12 pinctrl: renesas: rzg2l: Fix ISEL restore on resume
+f59b701b4674 tools/testing/nvdimm: Use per-DIMM device handle
+09bf21bf5249 usbip: Fix locking bug in RT-enabled kernels
+77f73253015c drm/amdgpu: fix a job->pasid access race in gpu recovery
+5ace7ef87f05 net: openvswitch: fix middle attribute validation in push_nsh() action
+8ac1dacec458 mlxsw: spectrum_mr: Fix use-after-free when updating multicast route stats
+8b0e69763ef9 mlxsw: spectrum_router: Fix neighbour use-after-free
+ce052b9402e4 net/sched: ets: Always remove class from active list before deleting in ets_qdisc_change
+613d12dd794e netrom: Fix memory leak in nr_sendmsg()
+95c39eef7c2b fuse: fix io-uring list corruption for terminated non-committed requests
+bd5603eaae0a fuse: fix readahead reclaim deadlock
+6e0d7f7f4a43 fuse: missing copy_finish in fuse-over-io-uring argument copies
+35e93736f699 net/mlx5e: Avoid unregistering PSP twice
+b1e125ae425a net/sched: ets: Remove drr class from the active list if it changes to strict
+8e4613040091 drm/xe: Limit num_syncs to prevent oversized allocations
+ee5a977b4e77 ext4: fix string copying in parse_apply_sb_mount_options()
+1f27ef42bb0b f2fs: use global inline_xattr_slab instead of per-sb slab cache
+ef7f38df890f tracing: Do not register unsupported perf events
+c2296a1e4241 powerpc/kexec: Enable SMT before waking offline CPUs
+266273eaf4d9 btrfs: don't log conflicting inode if it's a dir moved in the current transaction
+e6a973af1113 iommufd/selftest: Check for overflow in IOMMU_TEST_OP_ADD_RESERVED
+b57f2ddd2873 btrfs: fix memory leak of fs_devices in degraded seed device path
+37343524f000 btrfs: fix changeset leak on mmap write after failure to reserve metadata
+7aa6bc3e8766 iomap: adjust read range correctly for non-block-aligned positions
+d1693a7d5a38 ntfs: set dummy blocksize to read boot_block when mounting
+152af1142878 hfsplus: fix missing hfs_bnode_get() in __hfs_bnode_create
+005d4b0d33f6 hfsplus: Verify inode mode when loading from disk
+df8d829bba3a nfsd: fix memory leak in nfsd_create_serv error paths
+b14fad555302 io_uring: fix filename leak in __io_openat_prep()
+ca8b201f2854 f2fs: fix to avoid potential deadlock
+d33f89b34aa3 f2fs: invalidate dentry cache on failed whiteout creation
+98aabfe2d79f media: vidtv: initialize local pointers upon transfer of memory ownership
+039bef30e320 ocfs2: fix kernel BUG in ocfs2_find_victim_chain
+bf40644ef8c8 Input: alps - fix use-after-free bugs caused by dev3_register_work
+9d6c58dae8f6 ACPICA: Avoid walking the Namespace if start_node is NULL
+006a5035b495 inet: frags: flush pending skbs in fqdir_pre_exit()
+ad891bb3d079 ipvs: fix ipv4 null-ptr-deref in route error path
+b35966042d20 net/mlx5: fw_tracer, Validate format string parameters
+7b5d4416964c um: init cpu_tasks[] earlier
+129049d4fe22 drm/msm: adreno: fix deferencing ifpc_reglist when not declared
+ef3b04091fd8 drm/msm/a6xx: move preempt_prepare_postamble after error check
+31b931bebd11 dma-mapping: Fix DMA_BIT_MASK() macro being broken
+944edca81e7a platform/chrome: cros_ec_ishtp: Fix UAF after unbinding driver
+ad699fa78b59 media: iris: Add sanity check for stop streaming
+08bd4c46d5e6 scs: fix a wrong parameter in __scs_magic
+dca7da244349 parisc: Do not reprogram affinitiy on ASP chip
+15564bd67e29 net/handshake: duplicate handshake cancellations leak socket
+611cf41ef6ac platform/x86: intel_pmc_ipc: fix ACPI buffer memory leak
+517a44d18537 sched_ext: Fix the memleak for sch->helper objects
+36cc7e09df9e usb: renesas_usbhs: Fix a resource leak in usbhs_pipe_malloc()
+94124bf253d2 soc: qcom: pbs: fix device leak on lookup
+b5c16ea57b03 soc: qcom: ocmem: fix device leak on lookup
+f401671e90cc soc: apple: mailbox: fix device leak on lookup
+32200f4828de soc: amlogic: canvas: fix device leak on lookup
+a53e356df548 rpmsg: glink: fix rpmsg device leak
+a6ee6aac66fb i2c: amd-mp2: fix reference leak in MP2 PCI device
+02f0ad8e8de8 hwmon: (max6697) fix regmap leak on probe failure
+7b07be1ff1cb ethtool: Avoid overflowing userspace buffer on stats query
+b39a1833cc4a ksmbd: fix use-after-free in ksmbd_tree_connect_put under concurrency
+991f8a79db99 ksmbd: vfs: fix race on m_flags in vfs_cache
+5d510ac31626 ksmbd: skip lock-range check on equal size to avoid size==0 underflow
+95d7a890e4b0 ksmbd: fix buffer validation by including null terminator size in EA length
+6946c726c3f4 hwmon: (ibmpex) fix use-after-free in high/low store
+e58c88f0cb2d Input: lkkbd - disable pending work before freeing device
+41ca62e3e21e usb: phy: fsl-usb: Fix use-after-free in delayed work during device removal
+b4b64fda4d30 usb: phy: isp1301: fix non-OF device reference imbalance
+f6ab594672d4 scsi: aic94xx: fix use-after-free in device removal path
+de83d4617f9f iommu/mediatek: fix use-after-free on probe deferral
+114ea9bbaf76 io_uring: fix nr_segs calculation in io_import_kbuf
+c258f5c4502c ublk: fix deadlock when reading partition table
+f8dd66bfb4e1 drm/xe/oa: Limit num_syncs to prevent oversized allocations
+8a11ff0948b5 caif: fix integer underflow in cffrml_receive()
+9869d3a6fed3 block: fix race between wbt_enable_default and IO submission
+e5bf5ee26663 functionfs: fix the open/removal races
+935a20d1bebf block: Remove queue freezing from several sysfs store callbacks
+392711ef18bf f2fs: fix uninitialized one_time_gc in victim_sel_policy
+5526c1c6ba1d ALSA: usb-mixer: us16x08: validate meter packet indices
+e1b4c6a58304 ("shmem: fix recovery on rename failures")
+382748c05e58 ("sched/deadline: only set free_cpus for online runqueues")
+0373d5c387f2 ("bnxt_en: Fix XDP_TX path")
+c2a16269742e ("net: hns3: using the num_tqps in the vf driver to apply for resources")
+248d3a73a016 ("Input: ti_am335x_tsc - fix off-by-one error in wire_order validation")
+1417927df804 ("spi: fsl-cpm: Check length parity before switching to 16 bit mode")
+7aa31ee9ec92 ("via_wdt: fix critical boot hang due to unnamed resource allocation")
+30cd2cb1abf4 ("usb: typec: ucsi: Handle incorrect num_connectors capability")
+daa24603d9f0 ("ublk: clean up user copy references on ublk server exit")
+faf07e611dfa ("tpm: Cap the number of PCR banks")
+222047f68e85 ("fs: PM: Fix reverse check in filesystems_freeze_callback()")
+b97cb7d6a051 ("ext4: xattr: fix null pointer deref in ext4_raw_inode()")
+6e9722e9a7bf ("tpm2-sessions: Fix out of range indexing in name_size")
+b91e6aafe8d3 ("media: dvb-usb: dtv5100: fix out-of-bounds in dtv5100_i2c_msg()")
+82d12088c297 ("char: applicom: fix NULL pointer dereference in ac_ioctl")
+5053eab38a4c ("scsi: target: Reset t_task_cdb pointer in error case")
+5990fd756943 ("xfs: fix a UAF problem in xattr repair")
+913f7cf77bf1 ("NFSD: NFSv4 file creation neglects setting ACL")
+d1bea0ce35b6 ("svcrdma: bound check rq_pages index in inline path")
+a8ee9099f306 ("svcrdma: use rc_pageoff for memcpy byte offset")
