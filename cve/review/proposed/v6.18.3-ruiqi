@@ -1,0 +1,93 @@
+7aa6bc3e8766 iomap: adjust read range correctly for non-block-aligned positions
+866cf36bfee4 perf/x86/amd: Check event before enable to avoid GPF
+9d6c58dae8f6 ACPICA: Avoid walking the Namespace if start_node is NULL
+d1693a7d5a38 ntfs: set dummy blocksize to read boot_block when mounting
+152af1142878 hfsplus: fix missing hfs_bnode_get() in __hfs_bnode_create
+005d4b0d33f6 hfsplus: Verify inode mode when loading from disk
+b39a1833cc4a ksmbd: fix use-after-free in ksmbd_tree_connect_put under concurrency
+ce052b9402e4 net/sched: ets: Always remove class from active list before deleting in ets_qdisc_change
+35e93736f699 net/mlx5e: Avoid unregistering PSP twice
+6a107cfe9c99 net/mlx5: Fix double unregister of HCA_PORTS component
+8b0e69763ef9 mlxsw: spectrum_router: Fix neighbour use-after-free
+8ac1dacec458 mlxsw: spectrum_mr: Fix use-after-free when updating multicast route stats
+0373d5c387f2 bnxt_en: Fix XDP_TX path
+5ace7ef87f05 net: openvswitch: fix middle attribute validation in push_nsh() action
+006a5035b495 inet: frags: flush pending skbs in fqdir_pre_exit()
+ad891bb3d079 ipvs: fix ipv4 null-ptr-deref in route error path
+8a11ff0948b5 caif: fix integer underflow in cffrml_receive()
+b1e125ae425a net/sched: ets: Remove drr class from the active list if it changes to strict
+46cea215dc94 can: j1939: make j1939_sk_bind() fail if device is no longer registered
+89a898d63f6f net/mlx5: fw reset, clear reset requested on drain_fw_reset
+b35966042d20 net/mlx5: fw_tracer, Validate format string parameters
+15564bd67e29 net/handshake: duplicate handshake cancellations leak socket
+c2a16269742e net: hns3: using the num_tqps in the vf driver to apply for resources
+6ef935e65902 net: hns3: add VLAN id validation before using
+9869d3a6fed3 block: fix race between wbt_enable_default and IO submission
+6946c726c3f4 hwmon: (ibmpex) fix use-after-free in high/low store
+77f73253015c drm/amdgpu: fix a job->pasid access race in gpu recovery
+114ea9bbaf76 io_uring: fix nr_segs calculation in io_import_kbuf
+c258f5c4502c ublk: fix deadlock when reading partition table
+8e4613040091 drm/xe: Limit num_syncs to prevent oversized allocations
+f8dd66bfb4e1 drm/xe/oa: Limit num_syncs to prevent oversized allocations
+cafb57f7bdd5 ksmbd: Fix refcount leak when invalid session is found on session lookup
+248d3a73a016 Input: ti_am335x_tsc - fix off-by-one error in wire_order validation
+e58c88f0cb2d Input: lkkbd - disable pending work before freeing device
+bf40644ef8c8 Input: alps - fix use-after-free bugs caused by dev3_register_work
+611cf41ef6ac platform/x86: intel_pmc_ipc: fix ACPI buffer memory leak
+188e0fa5a679 net/hsr: fix NULL pointer dereference in prp_get_untagged_frame()
+2a03b40deacb ALSA: vxpocket: Fix resource leak in vxpocket_probe error path
+5032347c04ba ALSA: pcmcia: Fix resource leak in snd_pdacf_probe error path
+df8d829bba3a nfsd: fix memory leak in nfsd_create_serv error paths
+e5bf5ee26663 functionfs: fix the open/removal races
+36dac9a3dda1 MIPS: ftrace: Fix memory corruption when kernel is located beyond 32 bits
+129049d4fe22 drm/msm: adreno: fix deferencing ifpc_reglist when not declared
+daa24603d9f0 ublk: clean up user copy references on ublk server exit
+1ddb815fdfd4 block: rnbd-clt: Fix signedness bug in init_dev()
+cb6d5aa9c0f1 cifs: Fix memory and information leak in smb3_reconfigure()
+62cd5d480b97 KEYS: trusted: Fix a memory leak in tpm2_load_cmd
+b14fad555302 io_uring: fix filename leak in __io_openat_prep()
+faf07e611dfa tpm: Cap the number of PCR banks
+222047f68e85 fs: PM: Fix reverse check in filesystems_freeze_callback()
+ee5a977b4e77 ext4: fix string copying in parse_apply_sb_mount_options()
+b97cb7d6a051 ext4: xattr: fix null pointer deref in ext4_raw_inode()
+935a20d1bebf block: Remove queue freezing from several sysfs store callbacks
+6e9722e9a7bf tpm2-sessions: Fix out of range indexing in name_size
+ffb8c27b0539 mptcp: avoid deadlock on fallback while reinjecting
+b91e6aafe8d3 media: dvb-usb: dtv5100: fix out-of-bounds in dtv5100_i2c_msg()
+41ca62e3e21e usb: phy: fsl-usb: Fix use-after-free in delayed work during device removal
+b4b64fda4d30 usb: phy: isp1301: fix non-OF device reference imbalance
+82d12088c297 char: applicom: fix NULL pointer dereference in ac_ioctl
+b57fbc88715b scsi: Revert "scsi: qla2xxx: Perform lockless command completion in abort path"
+f6ab594672d4 scsi: aic94xx: fix use-after-free in device removal path
+5053eab38a4c scsi: target: Reset t_task_cdb pointer in error case
+297baa4aa263 f2fs: ensure node page reads complete before f2fs_put_super() finishes
+10b591e7fb7c f2fs: fix to avoid updating compression context during writeback
+ca8b201f2854 f2fs: fix to avoid potential deadlock
+7c37c7951032 f2fs: fix to avoid updating zero-sized extent in extent cache
+d33f89b34aa3 f2fs: invalidate dentry cache on failed whiteout creation
+1f27ef42bb0b f2fs: use global inline_xattr_slab instead of per-sb slab cache
+01fba45deadd f2fs: fix return value of f2fs_recover_fsync_data()
+9935df5333aa KVM: Disallow toggling KVM_MEM_GUEST_MEMFD on an existing memslot
+53ca00a19d34 mm/slub: reset KASAN tag in defer_free() before accessing freed memory
+98aabfe2d79f media: vidtv: initialize local pointers upon transfer of memory ownership
+039bef30e320 ocfs2: fix kernel BUG in ocfs2_find_victim_chain
+944edca81e7a platform/chrome: cros_ec_ishtp: Fix UAF after unbinding driver
+ad699fa78b59 media: iris: Add sanity check for stop streaming
+dca7da244349 parisc: Do not reprogram affinitiy on ASP chip
+8c738512714e libceph: make decode_pool() more resilient against corrupted osdmaps
+0ea9494be9c9 KVM: x86: WARN if hrtimer callback for periodic APIC timer fires with period=0
+18ab3fc8e880 KVM: x86: Fix VM hard lockup after prolonged inactivity with periodic HV timer
+fc40459de825 xfs: fix a memory leak in xfs_buf_item_init()
+5990fd756943 xfs: fix a UAF problem in xattr repair
+ef7f38df890f tracing: Do not register unsupported perf events
+d4b69a6186b2 SUNRPC: svcauth_gss: avoid NULL deref on zero length gss_token in gss_read_proxy_verf
+3c41114dcdab drm/amd/display: Use GFP_ATOMIC in dc_create_plane_state()
+6f6e309328d5 crypto: af_alg - zero initialize memory allocated via sock_kmalloc
+7cf6e0b69b0d crypto: caam - Add check for kcalloc() in test_len()
+b41ca62c0019 virtio: vdpa: Fix reference count leak in octep_sriov_enable()
+a53e356df548 rpmsg: glink: fix rpmsg device leak
+07272e883fc6 hwmon: (w83l786ng) Convert macros to functions to avoid TOCTOU
+de83d4617f9f iommu/mediatek: fix use-after-free on probe deferral
+95c39eef7c2b fuse: fix io-uring list corruption for terminated non-committed requests
+bd5603eaae0a fuse: fix readahead reclaim deadlock
+6e0d7f7f4a43 fuse: missing copy_finish in fuse-over-io-uring argument copies
