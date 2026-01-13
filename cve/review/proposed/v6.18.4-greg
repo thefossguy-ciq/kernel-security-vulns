@@ -1,0 +1,45 @@
+932ac51d9953 team: fix check for port enabled in team_queue_override_port_prio_changed()
+a48e23221000 net: stmmac: fix the crash issue for zero copy XDP_TX action
+6daa2893f323 iavf: fix off-by-one issues in iavf_config_rss_reg()
+6402078bd9d1 smc91x: fix broken irq-context in PREEMPT_RT
+6f05611728e9 RDMA/irdma: avoid invalid read in irdma_net_event
+a7b8e876e0ef RDMA/core: Check for the presence of LS_NLA_TYPE_DGID correctly
+9c72a5182ed9 e1000: fix OOB in e1000_tbi_should_accept()
+aa7d3a56a20f cpuset: fix warning when disabling remote partition
+a1e077a3f76e net: usb: asix: validate PHY address before use
+00312419f086 powerpc/64s/slb: Fix SLB multihit issue during SLB preload
+71154bbe4942 mptcp: fallback earlier on simult connection
+a3785ae5d334 kernel/kexec: fix IMA when allocation happens in CMA area
+7838a4eb8a1d mm/page_alloc: change all pageblocks migrate type on coalescing
+57f3cb6c8415 RDMA/cm: Fix leaking the multicast GID table reference
+a585c7ef9cab drm/tilcdc: Fix removal actions in case of failed probe
+db5b4e39c4e6 ip6_gre: make ip6gre_header() robust
+23261f0de094 ASoC: stm32: sai: fix OF node leak on probe
+72f98ef9a4be iommu: disable SVA when CONFIG_X86 is set
+1ab526d97a57 net: nfc: fix deadlock between nfc_unregister_device and rfkill_fop_write
+dcb171931954 drm/xe/oa: Fix potential UAF in xe_oa_add_config_ioctl()
+491adc6a0f99 drm/ttm: Avoid NULL pointer deref for evicted BOs
+ac782f4e3bfc ipv4: Fix reference count leak when using error routes with nexthop objects
+6595beb40fb0 net: rose: fix invalid array index in rose_kill_by_device()
+bcba17279327 ASoC: qcom: sdw: fix memory leak for sdw_stream_runtime
+a76a5ae2c6c6 mm/page_owner: fix memory leak in page_owner_stack_fops->release()
+8072e34e1387 nfsd: fix nfsd_file reference leak in nfsd4_add_rdaccess_to_wrdeleg()
+58fc7342b529 ipv6: BUG() in pskb_expand_head() as part of calipso_skbuff_setattr()
+1adaea51c61b ipv6: fix a BUG in rt6_get_pcpu_route() under PREEMPT_RT
+e44c42c830b7 platform/x86: hp-bioscfg: Fix out-of-bounds array access in ACPI package parsing
+a6eaa872c52a iommu/apple-dart: fix device leak on of_xlate()
+80aa518452c4 iommu/ipmmu-vmsa: fix device leak on of_xlate()
+c77ad28bfee0 iommu/mediatek-v1: fix device leak on probe_device()
+46207625c9f3 iommu/mediatek-v1: fix device leaks on probe()
+b3f1ee182803 iommu/mediatek: fix device leak on of_xlate()
+b5870691065e iommu/omap: fix device leaks on probe_device()
+f916109bf538 iommu/sun50i: fix device leak on of_xlate()
+ccb7cd3218e4 mfd: altera-sysmgr: Fix device leak on sysmgr regmap lookup
+c43bcd2b2aa3 media: cec: Fix debugfs leak on bus_register() failure
+9b68a1cc966b RDMA/bnxt_re: Fix OOB write in bnxt_re_copy_err_stats()
+dd39edb445f0 wifi: rtlwifi: 8192cu: fix tid out of range in rtl92cu_tx_fill_desc()
+85f4b0c650d9 octeontx2-pf: fix "UBSAN: shift-out-of-bounds error"
+cf33f0b7df13 clk: samsung: exynos-clkout: Assign .num before accessing .hws
+252714f1e8bd Bluetooth: btusb: revert use of devm_kzalloc in btusb
+a9f96dc59b4a net: dsa: fix missing put_device() in dsa_tree_find_first_conduit()
+7ad6ef91d874 md/raid5: fix possible null-pointer dereferences in raid5_store_group_thread_cnt()
