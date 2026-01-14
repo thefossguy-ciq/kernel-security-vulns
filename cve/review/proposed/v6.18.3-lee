@@ -1,0 +1,100 @@
+e1b4c6a58304 shmem: fix recovery on rename failures [auto: cve already created]
+7aa6bc3e8766 iomap: adjust read range correctly for non-block-aligned positions [auto: cve already created]
+866cf36bfee4 perf/x86/amd: Check event before enable to avoid GPF [auto: cve already created]
+382748c05e58 sched/deadline: only set free_cpus for online runqueues [auto: cve already created]
+9d6c58dae8f6 ACPICA: Avoid walking the Namespace if start_node is NULL
+d1693a7d5a38 ntfs: set dummy blocksize to read boot_block when mounting [auto: cve already created]
+152af1142878 hfsplus: fix missing hfs_bnode_get() in __hfs_bnode_create [auto: cve already created]
+005d4b0d33f6 hfsplus: Verify inode mode when loading from disk [auto: cve already created]
+b39a1833cc4a ksmbd: fix use-after-free in ksmbd_tree_connect_put under concurrency [auto: cve already created]
+991f8a79db99 ksmbd: vfs: fix race on m_flags in vfs_cache [auto: cve already created]
+613d12dd794e netrom: Fix memory leak in nr_sendmsg() [auto: cve already created]
+ce052b9402e4 net/sched: ets: Always remove class from active list before deleting in ets_qdisc_change [auto: cve already created]
+35e93736f699 net/mlx5e: Avoid unregistering PSP twice [auto: cve already created]
+6a107cfe9c99 net/mlx5: Fix double unregister of HCA_PORTS component [auto: cve already created]
+8b0e69763ef9 mlxsw: spectrum_router: Fix neighbour use-after-free [auto: cve already created]
+8ac1dacec458 mlxsw: spectrum_mr: Fix use-after-free when updating multicast route stats [auto: cve already created]
+0373d5c387f2 bnxt_en: Fix XDP_TX path [auto: cve already created]
+5ace7ef87f05 net: openvswitch: fix middle attribute validation in push_nsh() action [auto: cve already created]
+006a5035b495 inet: frags: flush pending skbs in fqdir_pre_exit() [auto: cve already created]
+ad891bb3d079 ipvs: fix ipv4 null-ptr-deref in route error path [auto: cve already created]
+8a11ff0948b5 caif: fix integer underflow in cffrml_receive() [auto: cve already created]
+b1e125ae425a net/sched: ets: Remove drr class from the active list if it changes to strict [auto: cve already created]
+e6a973af1113 iommufd/selftest: Check for overflow in IOMMU_TEST_OP_ADD_RESERVED
+7b07be1ff1cb ethtool: Avoid overflowing userspace buffer on stats query [auto: cve already created]
+b35966042d20 net/mlx5: fw_tracer, Validate format string parameters [auto: cve already created]
+15564bd67e29 net/handshake: duplicate handshake cancellations leak socket [auto: cve already created]
+c2a16269742e net: hns3: using the num_tqps in the vf driver to apply for resources [auto: cve already created]
+6ef935e65902 net: hns3: add VLAN id validation before using
+9869d3a6fed3 block: fix race between wbt_enable_default and IO submission [auto: cve already created]
+6946c726c3f4 hwmon: (ibmpex) fix use-after-free in high/low store [auto: cve already created]
+77f73253015c drm/amdgpu: fix a job->pasid access race in gpu recovery [auto: cve already created]
+c258f5c4502c ublk: fix deadlock when reading partition table [auto: cve already created]
+8e4613040091 drm/xe: Limit num_syncs to prevent oversized allocations [auto: cve already created]
+f8dd66bfb4e1 drm/xe/oa: Limit num_syncs to prevent oversized allocations [auto: cve already created]
+5d510ac31626 ksmbd: skip lock-range check on equal size to avoid size==0 underflow [auto: cve already created]
+95d7a890e4b0 ksmbd: fix buffer validation by including null terminator size in EA length [auto: cve already created]
+248d3a73a016 Input: ti_am335x_tsc - fix off-by-one error in wire_order validation [auto: cve already created]
+e58c88f0cb2d Input: lkkbd - disable pending work before freeing device [auto: cve already created]
+bf40644ef8c8 Input: alps - fix use-after-free bugs caused by dev3_register_work [auto: cve already created]
+1417927df804 spi: fsl-cpm: Check length parity before switching to 16 bit mode [auto: cve already created]
+188e0fa5a679 net/hsr: fix NULL pointer dereference in prp_get_untagged_frame() [auto: cve already created]
+5526c1c6ba1d ALSA: usb-mixer: us16x08: validate meter packet indices [auto: cve already created]
+7b5d4416964c um: init cpu_tasks[] earlier
+7aa31ee9ec92 via_wdt: fix critical boot hang due to unnamed resource allocation
+e5bf5ee26663 functionfs: fix the open/removal races [auto: cve already created]
+30cd2cb1abf4 usb: typec: ucsi: Handle incorrect num_connectors capability
+36dac9a3dda1 MIPS: ftrace: Fix memory corruption when kernel is located beyond 32 bits
+129049d4fe22 drm/msm: adreno: fix deferencing ifpc_reglist when not declared
+ef3b04091fd8 drm/msm/a6xx: move preempt_prepare_postamble after error check
+daa24603d9f0 ublk: clean up user copy references on ublk server exit [auto: cve already created]
+cb6d5aa9c0f1 cifs: Fix memory and information leak in smb3_reconfigure()
+b14fad555302 io_uring: fix filename leak in __io_openat_prep() [auto: cve already created]
+faf07e611dfa tpm: Cap the number of PCR banks [auto: cve already created]
+222047f68e85 fs: PM: Fix reverse check in filesystems_freeze_callback()
+ee5a977b4e77 ext4: fix string copying in parse_apply_sb_mount_options()
+b97cb7d6a051 ext4: xattr: fix null pointer deref in ext4_raw_inode() [auto: cve already created]
+935a20d1bebf block: Remove queue freezing from several sysfs store callbacks
+6e9722e9a7bf tpm2-sessions: Fix out of range indexing in name_size [auto: cve already created]
+ffb8c27b0539 mptcp: avoid deadlock on fallback while reinjecting
+b91e6aafe8d3 media: dvb-usb: dtv5100: fix out-of-bounds in dtv5100_i2c_msg() [auto: cve already created]
+41ca62e3e21e usb: phy: fsl-usb: Fix use-after-free in delayed work during device removal [auto: cve already created]
+b4b64fda4d30 usb: phy: isp1301: fix non-OF device reference imbalance
+82d12088c297 char: applicom: fix NULL pointer dereference in ac_ioctl [auto: cve already created]
+b57fbc88715b scsi: Revert "scsi: qla2xxx: Perform lockless command completion in abort path"
+f6ab594672d4 scsi: aic94xx: fix use-after-free in device removal path [auto: cve already created]
+5053eab38a4c scsi: target: Reset t_task_cdb pointer in error case [auto: cve already created]
+297baa4aa263 f2fs: ensure node page reads complete before f2fs_put_super() finishes
+10b591e7fb7c f2fs: fix to avoid updating compression context during writeback [auto: cve already created]
+ca8b201f2854 f2fs: fix to avoid potential deadlock [auto: cve already created]
+7c37c7951032 f2fs: fix to avoid updating zero-sized extent in extent cache [auto: cve already created]
+d33f89b34aa3 f2fs: invalidate dentry cache on failed whiteout creation [auto: cve already created]
+1f27ef42bb0b f2fs: use global inline_xattr_slab instead of per-sb slab cache
+01fba45deadd f2fs: fix return value of f2fs_recover_fsync_data() [auto: cve already created]
+9935df5333aa KVM: Disallow toggling KVM_MEM_GUEST_MEMFD on an existing memslot [auto: cve already created]
+53ca00a19d34 mm/slub: reset KASAN tag in defer_free() before accessing freed memory
+98aabfe2d79f media: vidtv: initialize local pointers upon transfer of memory ownership [auto: cve already created]
+039bef30e320 ocfs2: fix kernel BUG in ocfs2_find_victim_chain [auto: cve already created]
+944edca81e7a platform/chrome: cros_ec_ishtp: Fix UAF after unbinding driver [auto: cve already created]
+ad699fa78b59 media: iris: Add sanity check for stop streaming [auto: cve already created]
+08bd4c46d5e6 scs: fix a wrong parameter in __scs_magic
+dca7da244349 parisc: Do not reprogram affinitiy on ASP chip
+8c738512714e libceph: make decode_pool() more resilient against corrupted osdmaps
+18ab3fc8e880 KVM: x86: Fix VM hard lockup after prolonged inactivity with periodic HV timer
+5990fd756943 xfs: fix a UAF problem in xattr repair [auto: cve already created]
+ef7f38df890f tracing: Do not register unsupported perf events
+635bc4def026 fsnotify: do not generate ACCESS/MODIFY events on child for special files [auto: cve already created]
+913f7cf77bf1 NFSD: NFSv4 file creation neglects setting ACL [auto: cve already created]
+d1bea0ce35b6 svcrdma: bound check rq_pages index in inline path [auto: cve already created]
+a8ee9099f306 svcrdma: use rc_pageoff for memcpy byte offset [auto: cve already created]
+d4b69a6186b2 SUNRPC: svcauth_gss: avoid NULL deref on zero length gss_token in gss_read_proxy_verf
+c2296a1e4241 powerpc/kexec: Enable SMT before waking offline CPUs
+266273eaf4d9 btrfs: don't log conflicting inode if it's a dir moved in the current transaction [auto: cve already created]
+6f6e309328d5 crypto: af_alg - zero initialize memory allocated via sock_kmalloc
+7cf6e0b69b0d crypto: caam - Add check for kcalloc() in test_len()
+670d7ef945d3 hwmon: (w83791d) Convert macros to functions to avoid TOCTOU
+de83d4617f9f iommu/mediatek: fix use-after-free on probe deferral [auto: cve already created]
+95c39eef7c2b fuse: fix io-uring list corruption for terminated non-committed requests [auto: cve already created]
+bd5603eaae0a fuse: fix readahead reclaim deadlock [auto: cve already created]
+6e0d7f7f4a43 fuse: missing copy_finish in fuse-over-io-uring argument copies [auto: cve already created]
+af0e89b22c6b ANDROID: gki_defconfig: Disable CONFIG_AF_UNIX_OOB [auto: cve already created]
