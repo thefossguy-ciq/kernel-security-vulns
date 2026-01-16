@@ -596,7 +596,7 @@ fn review_commits(
 
         // Verify that we really have a subject before attempting to look it up
         let mut proposed_votes_len = 0;
-        if commit.subject != "" {
+        if !commit.subject.is_empty() {
             // Check if commit has been previously reviewed in a different session
             if let Some((filename, previous_sha)) = check_previously_reviewed(&commit.subject, processed_file.parent().unwrap())? {
                 println!("\n{} Potentially already reviewed in", "WARNING:".red());
