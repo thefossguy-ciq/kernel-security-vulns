@@ -134,14 +134,25 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
         }
     };
 
-    // Build command with git SHA
+    // Build command with git SHA(s) - handle multi-line SHA files
     let mut cmd = Command::new(&dyad_path);
-    cmd.arg("--sha1").arg(test_case.git_sha.trim());
+    for sha in test_case.git_sha.lines() {
+        let sha = sha.trim();
+        if !sha.is_empty() {
+            cmd.arg("--sha1").arg(sha);
+        }
+    }
 
     // If we have a .vulnerable file, read its content and pass it with --vulnerable
+    // Handle multi-line files by passing each SHA as a separate argument
     if let Some(v_path) = &test_case.vulnerable_path
         && let Ok(content) = std::fs::read_to_string(v_path) {
-            cmd.arg("--vulnerable").arg(content.trim());
+            for sha in content.lines() {
+                let sha = sha.trim();
+                if !sha.is_empty() {
+                    cmd.arg("--vulnerable").arg(sha);
+                }
+            }
         }
 
     // Run dyad
