@@ -1,0 +1,63 @@
+872ac785e768 ipv4: ip_tunnel: spread netdev_lockdep_set_classes()
+b1979778e985 can: etas_es58x: allow partial RX URB allocation to succeed
+1e1f2055ad5a btrfs: release path before iget_failed() in btrfs_read_locked_inode()
+81c734dae203 ip6_tunnel: use skb_vlan_inet_prepare() in __ip6_tnl_rcv()
+7470a7a63dc1 macvlan: fix possible UAF in macvlan_forward_source()
+e67c577d8989 ipv4: ip_gre: make ipgre_header() robust
+9a6f0c4d5796 dst: fix races in rt6_uncached_list_del() and rt_del_uncached_list()
+ddf96c393a33 ipv6: Fix use-after-free in inet6_addr_del().
+3879cffd9d07 net/sched: sch_qfq: do not free existing class in qfq_change_class()
+1809c82aa073 net: can: j1939: j1939_xtp_rx_rts_session_active(): deactivate session upon receiving the second rts
+777a8560fd29 lib/buildid: use __kernel_read() for sleepable context
+4dadc4077e3f net/mlx5e: Fix crash on profile change rollback failure
+123eda2e5b16 net/mlx5e: Don't store mlx5e_priv in mlx5e_dev devlink priv
+4ef8512e1427 net/mlx5e: Pass netdev to mlx5e_destroy_netdev instead of priv
+2efd07a7c369 dmaengine: tegra-adma: Fix use-after-free
+038a102535eb mm/page_alloc: prevent pcp corruption with SMP=n
+b45f72177594 x86/fpu: Clear XSTATE_BV[i] in guest XSAVE state whenever XFD[i]=1
+be55257fab18 ftrace: Do not over-allocate ftrace memory
+e383f0961422 i2c: riic: Move suspend handling to NOIRQ phase
+6ab3d4353bf7 drm/panel-simple: fix connector type for DataImage SCF0700C48GGU18 panel
+f93fc5d12d69 net: octeon_ep_vf: fix free_irq dev_id mismatch in IRQ rollback
+f9132fbc2e83 mm/damon/core: remove call_control in inactive contexts
+d9186faeae6e drm/vmwgfx: Fix KMS with 3D on HW version 10
+1ca52c0983c3 phy: qcom-qusb2: Fix NULL pointer dereference on early suspend
+dd83dc124973 xhci: sideband: don't dereference freed ring when removing sideband endpoint
+857bf9056291 pNFS: Fix a deadlock when returning a delegation during open()
+cce0be6eb497 NFS: Fix a deadlock involving nfs_release_folio()
+7d8553fc75ae LoongArch: KVM: Fix kvm_device leak in kvm_eiointc_destroy()
+0bf58cb7288a LoongArch: KVM: Fix kvm_device leak in kvm_ipi_destroy()
+1cf342a7c3ad LoongArch: KVM: Fix kvm_device leak in kvm_pch_pic_destroy()
+0c728083654f pnfs/flexfiles: Fix memory leak in nfs4_ff_alloc_deviceid_node()
+5a74af51c3a6 pnfs/blocklayout: Fix memory leak in bl_parse_scsi()
+a11224a016d6 btrfs: fix memory leaks in create_space_info() error paths
+b2426a211dba drm/amdgpu/userq: Fix fence reference leak on queue teardown v2
+2e1136acf8a8 dmaengine: omap-dma: fix dma_pool resource leak in error paths
+40b94ec7edbb null_blk: fix kmemleak by releasing references to fault configfs items
+7352e1d5932a can: gs_usb: gs_usb_receive_bulk_callback(): fix URB memory leak
+4914d67da947 phy: ti: gmii-sel: fix regmap leak on probe failure
+0ff7c44106b4 EDAC/x38: Fix a resource leak in x38_probe1()
+d42d5715dcb5 EDAC/i3200: Fix a resource leak in i3200_probe1()
+80614c509810 drm/amdkfd: fix a memory leak in device_queue_manager_init()
+b9074b2d7a23 dmaengine: at_hdmac: fix device leak on of_dma_xlate()
+7c3a46ebf15a dmaengine: bcm-sba-raid: fix device leak on probe
+7bb7d696e036 dmaengine: cv1800b-dmamux: fix device leak on route allocation
+ec25e60f9f95 dmaengine: dw: dmamux: fix OF node leak on route allocation failure
+b18cd8b21041 dmaengine: fsl-edma: Fix clk leak on alloc_chan_resources failure
+799900f01792 dmaengine: idxd: fix device leaks on compat bind and unbind
+d4d63059dee7 dmaengine: lpc18xx-dmamux: fix device leak on route allocation
+d9847e6d1d91 dmaengine: lpc32xx-dmamux: fix device leak on route allocation
+3f747004bbd6 dmaengine: qcom: gpi: Fix memory leak in gpi_peripheral_config()
+9fb490323997 dmaengine: sh: rz-dmac: fix device leak on probe failure
+dd6e4943889f dmaengine: stm32: dmamux: fix device leak on route allocation
+b1b590a590af dmaengine: stm32: dmamux: fix OF node leak on route allocation failure
+dc7e44db01fc dmaengine: ti: dma-crossbar: fix device leak on dra7x route allocation
+4fc17b1c6d2e dmaengine: ti: dma-crossbar: fix device leak on am335x route allocation
+430f7803b69c dmaengine: ti: k3-udma: fix device leak on udma lookup
+dc2d5ddb193e ("drm/gud: fix NULL fb and crtc dereferences on USB disconnect")
+32b63acd78f5 ("nvme-tcp: fix NULL pointer dereferences in nvmet_tcp_build_pdu_iovec")
+ca22c566b891 ("block: zero non-PI portion of auto integrity buffer")
+be7664c81d31 ("ASoC: tlv320adcx140: fix null pointer")
+9cb6278b44c3 ("drm/amdgpu: fix drm panic null pointer when driver not support atomic")
+c7d436a6c1a2 ("dmaengine: xilinx: xdma: Fix regmap max_register")
+e07dea3de508 ("phy: rockchip: inno-usb2: Fix a double free bug in rockchip_usb2phy_probe()")
