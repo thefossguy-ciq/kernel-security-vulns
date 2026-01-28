@@ -563,13 +563,33 @@ Perform a THOROUGH and DETAILED analysis:
    - Race conditions and TOCTOU issues
    - Privilege escalation vectors
    - Information disclosure vulnerabilities
-   - Denial of service conditions
+   - Denial of service conditions (including resource exhaustion)
    - Memory corruption issues
    - Access control bypasses
    - Input validation failures
    - Integer overflows/underflows
+   - Memory leaks and resource leaks
 
-5. **Evaluate scope and impact**:
+5. **Memory leaks and resource exhaustion**:
+   Memory leaks ARE security vulnerabilities when they can be exploited for denial of service.
+   A memory leak warrants a CVE if:
+   - An attacker can trigger the leak repeatedly (even if slowly)
+   - The leaked memory accumulates over time without bounds
+   - The leak can eventually exhaust system memory causing DoS
+
+   Key considerations:
+   - The size of each leak matters less than whether it can be triggered repeatedly
+   - Privileged access (CAP_NET_ADMIN, root) does NOT disqualify a leak from being a security issue -
+     many real-world attacks involve compromised privileged processes or containers
+   - Kernel memory exhaustion affects system stability and availability
+   - Consider whether the leak path is reachable via syscalls, network, filesystems, or device interfaces
+
+   Memory leaks should generally receive CVEs unless:
+   - The leak is bounded (cannot grow indefinitely)
+   - The trigger requires already having kernel code execution
+   - The affected code path is not reachable in practice
+
+6. **Evaluate scope and impact**:
    - What subsystems are affected (memory management, networking, filesystem, etc.)?
    - Is this a widespread issue or limited to specific configurations?
    - Does this affect user data, system integrity, or availability?
