@@ -594,6 +594,27 @@ Perform a THOROUGH and DETAILED analysis:
    - Is this a widespread issue or limited to specific configurations?
    - Does this affect user data, system integrity, or availability?
 
+7. **Physical access and hardware-based attacks**:
+   Physical access attacks ARE valid security concerns. A vulnerability should NOT be
+   dismissed just because it requires physical access or hardware insertion.
+
+   Physical access vulnerabilities warrant CVEs when:
+   - The bug is in driver probe/init code that handles device-provided data
+   - Malicious USB, PCI, Thunderbolt, or other peripheral devices can trigger it
+   - The vulnerability could be exploited via evil maid attacks or malicious peripherals
+
+   Key considerations:
+   - Many environments have physical access risks: shared computers, data centers,
+     kiosks, laptops left unattended, cloud environments with hardware access
+   - Supply chain attacks can pre-install malicious devices or firmware
+   - Driver probe functions parsing device descriptors should be treated like
+     parsing any other untrusted input
+   - Hot-pluggable interfaces (USB, Thunderbolt) are especially relevant
+
+   Physical access bugs should generally receive CVEs unless:
+   - The attacker would need to already have kernel code execution
+   - The impact is less severe than what physical access already provides
+
 Historical similar commits and their CVE status for reference:
 {context}
 
