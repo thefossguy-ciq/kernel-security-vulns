@@ -636,6 +636,19 @@ Perform a THOROUGH and DETAILED analysis:
    - The error condition cannot be triggered without existing kernel compromise
    - The error requires hardware failure that cannot be induced
 
+9. **Supported kernel configurations**:
+   Bugs should NOT be dismissed because they only affect specific kernel configurations.
+   If a configuration is upstream and supported, vulnerabilities affecting it warrant CVEs.
+
+   Examples of legitimate configurations that should not be dismissed:
+   - PREEMPT_RT (real-time preemption) - merged upstream, used in production
+   - Various debugging options (KASAN, LOCKDEP, etc.) when bugs are not debug-only
+   - Different architecture configurations (32-bit, 64-bit, ARM, x86, etc.)
+   - Memory models, SMP vs UP, different allocators
+
+   A bug that causes a crash or lockup on PREEMPT_RT is just as valid as one on
+   a standard kernel - both are supported configurations with real users.
+
 Historical similar commits and their CVE status for reference:
 {context}
 
