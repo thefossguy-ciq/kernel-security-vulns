@@ -615,6 +615,27 @@ Perform a THOROUGH and DETAILED analysis:
    - The attacker would need to already have kernel code execution
    - The impact is less severe than what physical access already provides
 
+8. **Error path and cleanup vulnerabilities**:
+   Bugs in error paths and cleanup code ARE security vulnerabilities when the error
+   condition can be triggered by an attacker.
+
+   Error path vulnerabilities warrant CVEs when:
+   - The error condition can be triggered through resource exhaustion
+   - Malformed or malicious input can force the error path
+   - Hardware/device failures can be induced (e.g., malicious device descriptors)
+   - Timing or race conditions can force error handling
+
+   Key considerations:
+   - Error paths are often less tested and more likely to contain bugs
+   - Probe/init failure paths can be triggered by malicious device descriptors
+   - Resource exhaustion (memory, file descriptors, etc.) can force error paths
+   - The question is: "can an attacker trigger this error condition?" not
+     "is this code in an error path?"
+
+   Error path bugs should generally receive CVEs unless:
+   - The error condition cannot be triggered without existing kernel compromise
+   - The error requires hardware failure that cannot be induced
+
 Historical similar commits and their CVE status for reference:
 {context}
 
