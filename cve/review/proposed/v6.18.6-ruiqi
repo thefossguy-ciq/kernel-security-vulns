@@ -1,0 +1,48 @@
+2857bd59feb6 nfsd: provide locking for v4_end_grace
+d0424066fcd2 nfsd: check that server is running in unlock_filesystem
+a4e305ed60f7 net: 3com: 3c59x: fix possible null dereference in vortex_probe1()
+7d11e047eda5 net: do not write to msg_get_inq in callee
+3358995b1a7f bnxt_en: Fix NULL pointer crash in bnxt_ptp_enable during error cleanup
+7ba0b6461bc4 btrfs: always detect conflicting inodes when logging inode refs
+361e0ff456a8 rust_binder: remove spin_lock() in rust_shrink_free_page()
+830988b6cf19 ALSA: ac97: fix a double free in snd_ac97_controller_register()
+7966cf0ebe32 PM: hibernate: Fix crash when freeing invalid crypto compressor
+21cbf883d073 wifi: avoid kernel-infoleak from struct iw_point
+818156caffbf libceph: prevent potential out-of-bounds reads in handle_auth_done()
+e00c3f71b5cf libceph: replace overzealous BUG_ON in osdmap_apply_incremental()
+e3fe30e57649 libceph: make free_choose_arg_map() resilient to partial allocation
+e84b48d31b50 libceph: return the handler error from mon_handle_auth_done()
+d9f3e47d3fae dm-verity: disable recursive forward error correction
+f157dd661339 btrfs: fix NULL dereference on root when tracing inode eviction
+83f59076a1ae btrfs: fix use-after-free warning in btrfs_get_or_create_delayed_node()
+a7ac22d53d09 gpiolib: fix race condition for gdev->srcu
+d077e8119ddb netfilter: nf_tables: fix memory leak in nf_tables_newrule()
+a428e0da1248 net: marvell: prestera: fix NULL dereference on devlink_alloc() failure
+34f3ff52cb9f net: mscc: ocelot: Fix crash when adding interface under a lag
+2a71a1a8d0ed net: sock: fix hardened usercopy panic in sock_recv_errqueue
+8da901ffe497 net/ena: fix missing lock when update devlink params
+92e6e0a87f68 net: wwan: iosm: Fix memory leak in ipc_mux_deinit()
+acb4bc6e1ba3 virtio_net: fix device mismatch in devm_kzalloc/devm_kfree
+2ef02ac38d3c inet: frags: drop fraglist conntrack references
+ff5860f5088e perf: Ensure swevent hrtimer is properly destroyed
+8731f2c50b0b btrfs: release path before initializing extent tree in btrfs_read_locked_inode()
+530e3d4af566 btrfs: fix NULL pointer dereference in do_abort_log_replay()
+5e5be092ffad riscv: pgtable: Cleanup useless VA_USER_XXX definitions
+238e03d04662 net: fix memory leak in skb_segment_list for GRO packets
+2e281e1155fc idpf: detach and close netdevs while handling a reset
+f6242b354605 idpf: fix memory leak in idpf_vport_rel()
+e111cbc4adf9 idpf: fix memory leak in idpf_vc_core_deinit()
+4d792219fe6f idpf: fix error handling in the init_task on load
+f9841bd28b60 idpf: fix memory leak of flow steer list on rmmod
+83f38f210b85 idpf: Fix RSS LUT NULL pointer crash on early ethtool operations
+ebecca5b0938 idpf: Fix RSS LUT NULL ptr issue after soft reset
+4648fb2f2e72 idpf: fix aux device unplugging when rdma is not supported by vport
+adb25a46dc0a net/sched: act_api: avoid dereferencing ERR_PTR in tcf_idrinfo_destroy
+c1d73b148023 net/sched: sch_qfq: Fix NULL deref when deactivating inactive aggregate in qfq_reset
+afa27621a28a net: usb: pegasus: fix memory leak in update_eth_regs_async()
+f0d385f6689f ublk: fix use-after-free in ublk_partition_scan_work
+179ef1127d7a gpio: mpsse: ensure worker is torn down
+1e876e5a0875 gpio: mpsse: fix reference leak in gpio_mpsse_probe() error paths
+ec69daabe452 bpf: Fix reference count leak in bpf_prog_test_run_xdp()
+8e1a1bc4f5a4 netfilter: nf_tables: avoid chain re-validation if possible
+5d5602236f5d can: j1939: make j1939_session_activate() fail if device is no longer registered
