@@ -43,6 +43,15 @@ struct Args {
 }
 
 fn main() -> Result<()> {
+    // Get the raw command line arguments for debugging
+    // Yes, if utf-8 is not used in them, this will panic, but really, did you want anything else to
+    // happen here?
+    let mut raw_args = String::new();
+    for a in env::args().skip(1) {
+        raw_args += " ";
+        raw_args += &a.to_string();
+    }
+
     let args = Args::parse();
 
     // Get CVE_USER from arguments or environment
@@ -64,6 +73,10 @@ fn main() -> Result<()> {
 
     // Set up debug output based on verbose flag
     let debug = args.verbose;
+
+    if debug {
+        println!("# called with:{raw_args}");
+    }
 
     // Get path to vulns and dyad repos
     let vulns_dir = match common::find_vulns_dir() {
