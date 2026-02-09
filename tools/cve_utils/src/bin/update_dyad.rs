@@ -19,6 +19,7 @@ use std::sync::Arc;
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 use cve_utils::cve_utils::extract_cve_id_from_path;
+use log::{debug, error};
 
 /// Update all .dyad files in the tree.
 ///
@@ -42,6 +43,24 @@ struct Args {
     verbose: bool,
 }
 
+/// Initialize and configure the logging system
+fn initialize_logging(verbose: bool) -> log::LevelFilter {
+    // Default to error level, but can turn it on based on the command line option
+    let logging_level = if verbose {
+        log::LevelFilter::max()
+    } else {
+        log::LevelFilter::Error
+    };
+
+    env_logger::builder()
+        .format_timestamp(None)
+        .filter_level(logging_level)
+        .init();
+
+    logging_level
+}
+
+
 fn main() -> Result<()> {
     // Get the raw command line arguments for debugging
     // Yes, if utf-8 is not used in them, this will panic, but really, did you want anything else to
@@ -54,13 +73,19 @@ fn main() -> Result<()> {
 
     let args = Args::parse();
 
+    // Initialize logging system
+    initialize_logging(args.verbose);
+
+    // Debug message will only be seen after logger is initialized
+    debug!("command line arguments: {raw_args:#?}");
+
     // Get CVE_USER from arguments or environment
     let cve_user = match args.cve_user {
         Some(user) => user,
         None => match env::var("CVE_USER") {
             Ok(user) => user,
             Err(e) => {
-                eprintln!("Error: CVE_USER must be set via environment variable or --cve-user option: {e}");
+                error!("Error: CVE_USER must be set via environment variable or --cve-user option: {e}");
                 return Err(anyhow!("CVE_USER must be set via environment variable or --cve-user option"));
             }
         },
@@ -71,18 +96,11 @@ fn main() -> Result<()> {
         env::set_var("CVE_USER", &cve_user);
     }
 
-    // Set up debug output based on verbose flag
-    let debug = args.verbose;
-
-    if debug {
-        println!("# called with:{raw_args}");
-    }
-
     // Get path to vulns and dyad repos
     let vulns_dir = match common::find_vulns_dir() {
         Ok(path) => path,
         Err(e) => {
-            eprintln!("Error finding vulns directory: {e}");
+            error!("Error finding vulns directory: {e}");
             print_git_error_details(&e);
             return Err(e);
         }
@@ -104,7 +122,7 @@ fn main() -> Result<()> {
                 if entry.file_type()?.is_dir() {
                     let year = entry.file_name().to_string_lossy().to_string();
                     if year.chars().all(|c| c.is_ascii_digit()) {
-                        process_year(&year, &vulns_dir, &dyad_path, debug)?;
+                        process_year(&year, &vulns_dir, &dyad_path)?;
                     }
                 }
             }
@@ -114,10 +132,10 @@ fn main() -> Result<()> {
             let published_dir = vulns_dir.join("cve").join("published").join(cve_id_or_year);
             if published_dir.exists() && published_dir.is_dir() {
                 // It's a year
-                process_year(cve_id_or_year, &vulns_dir, &dyad_path, debug)?;
+                process_year(cve_id_or_year, &vulns_dir, &dyad_path)?;
             } else {
                 // Try to process it as a CVE ID
-                if !process_single_cve(cve_id_or_year, &vulns_dir, &dyad_path, debug)? {
+                if !process_single_cve(cve_id_or_year, &vulns_dir, &dyad_path)? {
                     return Err(anyhow!("ERROR: {} is not found or is not a year", cve_id_or_year.cyan()));
                 }
             }
@@ -128,7 +146,7 @@ fn main() -> Result<()> {
 }
 
 /// Process a single CVE
-fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> Result<bool> {
+fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<bool> {
     let cve_root = vulns_dir.join("cve");
     if !cve_root.exists() {
         return Err(anyhow!("CVE directory not found: {cve_root:?}"));
@@ -163,15 +181,14 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path, debug: b
     process_single_file(
         &cve_path.to_string_lossy(),
         vulns_dir,
-        dyad_path,
-        debug
+        dyad_path
     )?;
 
     Ok(true)
 }
 
 /// Process all CVEs for a specific year
-fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> Result<()> {
+fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
     let published_dir = vulns_dir.join("cve").join("published").join(year);
 
     // Count how many SHA1 files we have
@@ -211,9 +228,9 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> 
             .map_or_else(|_| path.to_string_lossy().to_string(),
                          |p| p.to_string_lossy().to_string());
 
-        if let Err(err) = process_single_file(&relative_path, vulns_dir, dyad_path, debug) {
+        if let Err(err) = process_single_file(&relative_path, vulns_dir, dyad_path) {
             progress_bar.suspend(|| {
-                eprintln!("\nError processing {relative_path}: {err}");
+                error!("\nError processing {relative_path}: {err}");
             });
             error_count.fetch_add(1, Ordering::Relaxed);
         }
@@ -237,8 +254,7 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path, debug: bool) -> 
 fn process_single_file(
     relative_path: &str,
     vulns_dir: &Path,
-    dyad_path: &Path,
-    debug: bool
+    dyad_path: &Path
 ) -> Result<()> {
     let full_path = vulns_dir.join(relative_path);
     let sha = fs::read_to_string(&full_path).context("Failed to read SHA file")?;
@@ -249,9 +265,7 @@ fn process_single_file(
     let cve_id = root.split('/').nth(3)
         .ok_or_else(|| anyhow!("Invalid path format for {relative_path}"))?;
 
-    if debug {
-        println!("# processing {relative_path}");
-    }
+    debug!("# processing {relative_path}");
 
     // Check for vulnerable file
     let vuln_file = vulns_dir.join(format!("{root}.vulnerable"));
@@ -289,7 +303,7 @@ fn process_single_file(
         .context("Failed to execute dyad command")?;
 
     if !output.status.success() {
-        eprintln!("{} dyad failed for {}", "Error:".red(), cve_id.cyan());
+        error!("{} dyad failed for {}", "Error:".red(), cve_id.cyan());
         return Err(anyhow!("dyad command failed"));
     }
 
