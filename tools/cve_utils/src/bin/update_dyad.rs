@@ -30,10 +30,6 @@ use walkdir::WalkDir;
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 struct Args {
-    /// CVE ID or year to process (if not specified, all years will be processed)
-    #[clap(index = 1)]
-    cve_id_or_year: Option<String>,
-
     /// Set the CVE user email address
     #[clap(long)]
     cve_user: Option<String>,
@@ -41,6 +37,10 @@ struct Args {
     /// Enable verbose output
     #[clap(short, long)]
     verbose: bool,
+
+    /// List of CVE ids or years to process (if not specified, all years will be processed)
+    #[clap(index = 1)]
+    cve_ids_or_years: Vec<String>,
 }
 
 /// Initialize and configure the logging system
@@ -113,36 +113,35 @@ fn main() -> Result<()> {
     }
 
     // Process CVEs based on input
-    match &args.cve_id_or_year {
-        None => {
-            // Process all years, in sorted order
-            let published_dir = vulns_dir.join("cve").join("published");
-            let mut years: Vec<_> = fs::read_dir(&published_dir)
-                .unwrap()
-                .map(|r| r.unwrap())
-                .collect();
-            years.sort_by_key(std::fs::DirEntry::path);
-            for entry in years {
-                if entry.file_type()?.is_dir() {
-                    let year = entry.file_name().to_string_lossy().to_string();
-                    if year.chars().all(|c| c.is_ascii_digit()) {
-                        process_year(&year, &vulns_dir, &dyad_path)?;
-                    }
+    if args.cve_ids_or_years.len() == 0 {
+        // Process all years, in sorted order
+        let published_dir = vulns_dir.join("cve").join("published");
+        let mut years: Vec<_> = fs::read_dir(&published_dir)
+            .unwrap()
+            .map(|r| r.unwrap())
+            .collect();
+        years.sort_by_key(std::fs::DirEntry::path);
+        for entry in years {
+            if entry.file_type()?.is_dir() {
+                let year = entry.file_name().to_string_lossy().to_string();
+                if year.chars().all(|c| c.is_ascii_digit()) {
+                    process_year(&year, &vulns_dir, &dyad_path)?;
                 }
             }
         }
-        Some(cve_id_or_year) => {
+    } else {
+        for id in args.cve_ids_or_years {
             // Check if it's a year or a CVE ID
-            let published_dir = vulns_dir.join("cve").join("published").join(cve_id_or_year);
+            let published_dir = vulns_dir.join("cve").join("published").join(&id);
             if published_dir.exists() && published_dir.is_dir() {
                 // It's a year
-                process_year(cve_id_or_year, &vulns_dir, &dyad_path)?;
+                process_year(&id, &vulns_dir, &dyad_path)?;
             } else {
                 // Try to process it as a CVE ID
-                if !process_single_cve(cve_id_or_year, &vulns_dir, &dyad_path)? {
+                if !process_single_cve(&id, &vulns_dir, &dyad_path)? {
                     return Err(anyhow!(
                         "ERROR: {} is not found or is not a year",
-                        cve_id_or_year.cyan()
+                        id.cyan()
                     ));
                 }
             }
