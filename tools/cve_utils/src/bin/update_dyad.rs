@@ -6,20 +6,20 @@ use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use owo_colors::OwoColorize;
 use cve_utils::common;
+use cve_utils::cve_utils::extract_cve_id_from_path;
 use cve_utils::print_git_error_details;
 use indicatif::{ProgressBar, ProgressStyle};
+use log::{debug, error};
 use rayon::prelude::*;
 use std::env;
 use std::fs;
 use std::io::Write;
-use std::path::{Path};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
-use cve_utils::cve_utils::extract_cve_id_from_path;
-use log::{debug, error};
 
 /// Update all .dyad files in the tree.
 ///
@@ -60,7 +60,6 @@ fn initialize_logging(verbose: bool) -> log::LevelFilter {
     logging_level
 }
 
-
 fn main() -> Result<()> {
     // Get the raw command line arguments for debugging
     // Yes, if utf-8 is not used in them, this will panic, but really, did you want anything else to
@@ -86,7 +85,9 @@ fn main() -> Result<()> {
             Ok(user) => user,
             Err(e) => {
                 error!("Error: CVE_USER must be set via environment variable or --cve-user option: {e}");
-                return Err(anyhow!("CVE_USER must be set via environment variable or --cve-user option"));
+                return Err(anyhow!(
+                    "CVE_USER must be set via environment variable or --cve-user option"
+                ));
             }
         },
     };
@@ -116,7 +117,10 @@ fn main() -> Result<()> {
         None => {
             // Process all years, in sorted order
             let published_dir = vulns_dir.join("cve").join("published");
-            let mut years: Vec<_> = fs::read_dir(&published_dir).unwrap().map(|r| r.unwrap()).collect();
+            let mut years: Vec<_> = fs::read_dir(&published_dir)
+                .unwrap()
+                .map(|r| r.unwrap())
+                .collect();
             years.sort_by_key(std::fs::DirEntry::path);
             for entry in years {
                 if entry.file_type()?.is_dir() {
@@ -136,7 +140,10 @@ fn main() -> Result<()> {
             } else {
                 // Try to process it as a CVE ID
                 if !process_single_cve(cve_id_or_year, &vulns_dir, &dyad_path)? {
-                    return Err(anyhow!("ERROR: {} is not found or is not a year", cve_id_or_year.cyan()));
+                    return Err(anyhow!(
+                        "ERROR: {} is not found or is not a year",
+                        cve_id_or_year.cyan()
+                    ));
                 }
             }
         }
@@ -154,7 +161,10 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path) -> Resul
 
     // Look for the CVE ID in the published directory
     let mut cve_file = None;
-    for entry in WalkDir::new(cve_root.join("published")).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(cve_root.join("published"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         let path = entry.path();
         // Skip directories and non-sha1 files
         if !path.is_file() || !path.to_string_lossy().ends_with(".sha1") {
@@ -166,8 +176,8 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path) -> Resul
             Ok(id) if id == cve_id => {
                 cve_file = Some(path.to_path_buf());
                 break;
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 
@@ -178,11 +188,7 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path) -> Resul
     };
 
     // Generate dyad file
-    process_single_file(
-        &cve_path.to_string_lossy(),
-        vulns_dir,
-        dyad_path
-    )?;
+    process_single_file(&cve_path.to_string_lossy(), vulns_dir, dyad_path)?;
 
     Ok(true)
 }
@@ -207,7 +213,11 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
         return Ok(());
     }
 
-    println!("Processing {} CVEs from {}", total_count.to_string().cyan(), year.green());
+    println!(
+        "Processing {} CVEs from {}",
+        total_count.to_string().cyan(),
+        year.green()
+    );
 
     // Set up progress bar
     let progress_bar = ProgressBar::new(total_count as u64);
@@ -224,9 +234,10 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
 
     // Process files in parallel
     sha_files.par_iter().for_each(|path| {
-        let relative_path = path.strip_prefix(vulns_dir)
-            .map_or_else(|_| path.to_string_lossy().to_string(),
-                         |p| p.to_string_lossy().to_string());
+        let relative_path = path.strip_prefix(vulns_dir).map_or_else(
+            |_| path.to_string_lossy().to_string(),
+            |p| p.to_string_lossy().to_string(),
+        );
 
         if let Err(err) = process_single_file(&relative_path, vulns_dir, dyad_path) {
             progress_bar.suspend(|| {
@@ -242,27 +253,31 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
     // Finish the progress bar
     let errors = error_count.load(Ordering::Relaxed);
     if errors > 0 {
-        progress_bar.finish_with_message(format!("Completed with {} error(s)", errors.to_string().red()));
+        progress_bar.finish_with_message(format!(
+            "Completed with {} error(s)",
+            errors.to_string().red()
+        ));
     } else {
-        progress_bar.finish_with_message(format!("Successfully processed all CVEs for {}", year.green()));
+        progress_bar.finish_with_message(format!(
+            "Successfully processed all CVEs for {}",
+            year.green()
+        ));
     }
 
     Ok(())
 }
 
 /// Process a single file
-fn process_single_file(
-    relative_path: &str,
-    vulns_dir: &Path,
-    dyad_path: &Path
-) -> Result<()> {
+fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
     let full_path = vulns_dir.join(relative_path);
     let sha = fs::read_to_string(&full_path).context("Failed to read SHA file")?;
 
     // Extract CVE ID from path
     let parts: Vec<&str> = relative_path.split('.').collect();
     let root = parts[0];
-    let cve_id = root.split('/').nth(3)
+    let cve_id = root
+        .split('/')
+        .nth(3)
         .ok_or_else(|| anyhow!("Invalid path format for {relative_path}"))?;
 
     debug!("# processing {relative_path}");
@@ -272,7 +287,8 @@ fn process_single_file(
     let vulnerable_options = if vuln_file.exists() {
         let vulnerable_sha = fs::read_to_string(&vuln_file)?;
         // Split the vulnerable SHA string in case it contains multiple space-separated values
-        vulnerable_sha.split_whitespace()
+        vulnerable_sha
+            .split_whitespace()
             .map(|sha| {
                 let trimmed = sha.trim();
                 format!("-v {trimmed}")
@@ -299,7 +315,9 @@ fn process_single_file(
         command.arg("--sha1").arg(sha_value.trim());
     }
 
-    let output = command.stdout(Stdio::piped()).output()
+    let output = command
+        .stdout(Stdio::piped())
+        .output()
         .context("Failed to execute dyad command")?;
 
     if !output.status.success() {
@@ -317,7 +335,11 @@ fn process_single_file(
     if dyad_file.exists() {
         // Compare the files
         let diff_output = Command::new("diff")
-            .args(["-u", &dyad_file.to_string_lossy(), &tmp_dyad.path().to_string_lossy()])
+            .args([
+                "-u",
+                &dyad_file.to_string_lossy(),
+                &tmp_dyad.path().to_string_lossy(),
+            ])
             .output()
             .context("Failed to execute diff command")?;
 
@@ -329,19 +351,21 @@ fn process_single_file(
             let meaningful_change = diff_text.lines().any(|line| {
                 // Only consider added/removed lines
                 line.strip_prefix('+').map_or_else(
-                    || line.strip_prefix('-').map_or_else(
-                        || false,
-                        |rest| {
-                            let rest = rest.trim_start();
-                            // Ignore removed comment lines and diff metadata
-                            !rest.starts_with('#') && !line.starts_with("--- ")
-                        }
-                    ),
+                    || {
+                        line.strip_prefix('-').map_or_else(
+                            || false,
+                            |rest| {
+                                let rest = rest.trim_start();
+                                // Ignore removed comment lines and diff metadata
+                                !rest.starts_with('#') && !line.starts_with("--- ")
+                            },
+                        )
+                    },
                     |rest| {
                         let rest = rest.trim_start();
                         // Ignore added comment lines and diff metadata
                         !rest.starts_with('#') && !line.starts_with("+++ ")
-                    }
+                    },
                 )
             });
 
@@ -364,8 +388,8 @@ fn process_single_file(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
     use cve_utils::cve_utils::extract_cve_id_from_path;
+    use tempfile::tempdir;
 
     #[test]
     fn test_extract_cve_id_from_path() {
@@ -373,7 +397,10 @@ mod tests {
             ("cve/published/2023/CVE-2023-12345.sha1", "CVE-2023-12345"),
             ("cve/published/2023/CVE-2023-12345.json", "CVE-2023-12345"),
             ("cve/published/2023/CVE-2023-12345", "CVE-2023-12345"),
-            ("/absolute/path/to/cve/published/2023/CVE-2023-12345.sha1", "CVE-2023-12345"),
+            (
+                "/absolute/path/to/cve/published/2023/CVE-2023-12345.sha1",
+                "CVE-2023-12345",
+            ),
             ("relative/path/to/CVE-2023-12345.sha1", "CVE-2023-12345"),
         ];
 
@@ -406,12 +433,17 @@ mod tests {
 
         // Instead of calling process_single_file which has the dyad command,
         // we'll manually create the expected .dyad file
-        let dyad_file = temp_dir.path().join("cve/published/2023/CVE-2023-12345.dyad");
+        let dyad_file = temp_dir
+            .path()
+            .join("cve/published/2023/CVE-2023-12345.dyad");
         fs::write(&dyad_file, "5.15:abcdef:5.16:012345\n").unwrap();
 
         // Now verify the file exists and has the right content
         assert!(dyad_file.exists(), "dyad file was not created");
         let dyad_content = fs::read_to_string(&dyad_file).unwrap();
-        assert_eq!(dyad_content, "5.15:abcdef:5.16:012345\n", "dyad file has wrong content");
+        assert_eq!(
+            dyad_content, "5.15:abcdef:5.16:012345\n",
+            "dyad file has wrong content"
+        );
     }
 }
