@@ -4,12 +4,12 @@
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use owo_colors::OwoColorize;
 use cve_utils::common;
 use cve_utils::cve_utils::extract_cve_id_from_path;
 use cve_utils::print_git_error_details;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error};
+use owo_colors::OwoColorize;
 use rayon::prelude::*;
 use std::env;
 use std::fs;
@@ -112,8 +112,11 @@ fn main() -> Result<()> {
         return Err(anyhow!("Dyad script not found at {dyad_path:?}"));
     }
 
+    // List of all ids we want to process/update
+    let mut ids: Vec<String> = Vec::new();
+
     // Process CVEs based on input
-    if args.cve_ids_or_years.len() == 0 {
+    if args.cve_ids_or_years.is_empty() {
         // Process all years, in sorted order
         let published_dir = vulns_dir.join("cve").join("published");
         let mut years: Vec<_> = fs::read_dir(&published_dir)
@@ -125,7 +128,8 @@ fn main() -> Result<()> {
             if entry.file_type()?.is_dir() {
                 let year = entry.file_name().to_string_lossy().to_string();
                 if year.chars().all(|c| c.is_ascii_digit()) {
-                    process_year(&year, &vulns_dir, &dyad_path)?;
+                    let mut y = find_ids_for_year(&year, &vulns_dir)?;
+                    ids.append(&mut y);
                 }
             }
         }
@@ -135,24 +139,24 @@ fn main() -> Result<()> {
             let published_dir = vulns_dir.join("cve").join("published").join(&id);
             if published_dir.exists() && published_dir.is_dir() {
                 // It's a year
-                process_year(&id, &vulns_dir, &dyad_path)?;
+                let mut y = find_ids_for_year(&id, &vulns_dir)?;
+                ids.append(&mut y);
             } else {
                 // Try to process it as a CVE ID
-                if !process_single_cve(&id, &vulns_dir, &dyad_path)? {
-                    return Err(anyhow!(
-                        "ERROR: {} is not found or is not a year",
-                        id.cyan()
-                    ));
-                }
+                let i = find_single_cve(&id, &vulns_dir)?;
+                ids.push(i);
             }
         }
     }
 
+    debug!("Want to process {} ids", ids.len().to_string().cyan());
+    process_ids(&ids, &vulns_dir, &dyad_path)?;
+
     Ok(())
 }
 
-/// Process a single CVE
-fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<bool> {
+/// Find a single CVE to process
+fn find_single_cve(cve_id: &str, vulns_dir: &Path) -> Result<String> {
     let cve_root = vulns_dir.join("cve");
     if !cve_root.exists() {
         return Err(anyhow!("CVE directory not found: {cve_root:?}"));
@@ -182,41 +186,41 @@ fn process_single_cve(cve_id: &str, vulns_dir: &Path, dyad_path: &Path) -> Resul
 
     // If the file wasn't found, report it but don't error out
     let Some(cve_path) = cve_file else {
-        println!("CVE {cve_id} not found in published directory");
-        return Ok(false);
+        return Err(anyhow!(
+            "ERROR: {} is not found or is not a year",
+            cve_id.cyan()
+        ));
     };
 
-    // Generate dyad file
-    process_single_file(&cve_path.to_string_lossy(), vulns_dir, dyad_path)?;
-
-    Ok(true)
+    Ok(cve_path.to_string_lossy().to_string())
 }
 
-/// Process all CVEs for a specific year
-fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
+/// Find ids for a year
+fn find_ids_for_year(year: &str, vulns_dir: &Path) -> Result<Vec<String>> {
     let published_dir = vulns_dir.join("cve").join("published").join(year);
 
-    // Count how many SHA1 files we have
-    let mut sha_files = Vec::new();
+    let mut sha_files: Vec<String> = Vec::new();
     for entry in fs::read_dir(published_dir)? {
         let entry = entry?;
         let path = entry.path();
         if path.is_file() && path.extension().is_some_and(|ext| ext == "sha1") {
-            sha_files.push(path);
+            let relative_path = path.strip_prefix(vulns_dir).unwrap_or(&path);
+            sha_files.push(relative_path.display().to_string());
         }
     }
 
-    let total_count = sha_files.len();
-    if total_count == 0 {
-        println!("{} No CVEs found for year {}", "ERROR:".red(), year);
-        return Ok(());
+    if sha_files.is_empty() {
+        debug!("{} No CVEs found for year {}", "ERROR:".red(), year);
     }
 
-    println!(
-        "Processing {} CVEs from {}",
-        total_count.to_string().cyan(),
-        year.green()
-    );
+    Ok(sha_files)
+}
+
+/// Process all sha1 files found
+fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
+    let total_count = sha_files.len();
+
+    println!("Processing {} CVEs", total_count.to_string().cyan());
 
     // Set up progress bar
     let progress_bar = ProgressBar::new(total_count as u64);
@@ -226,21 +230,16 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
             .unwrap()
             .progress_chars("#>-")
     );
-    progress_bar.set_message(format!("Year {year}"));
+    progress_bar.set_message(format!("Prossing {total_count} CVEs"));
 
     // Counter for error tracking
     let error_count = Arc::new(AtomicUsize::new(0));
 
     // Process files in parallel
     sha_files.par_iter().for_each(|path| {
-        let relative_path = path.strip_prefix(vulns_dir).map_or_else(
-            |_| path.to_string_lossy().to_string(),
-            |p| p.to_string_lossy().to_string(),
-        );
-
-        if let Err(err) = process_single_file(&relative_path, vulns_dir, dyad_path) {
+        if let Err(err) = process_single_file(path, vulns_dir, dyad_path) {
             progress_bar.suspend(|| {
-                error!("\nError processing {relative_path}: {err}");
+                error!("\nError processing {path}: {err}");
             });
             error_count.fetch_add(1, Ordering::Relaxed);
         }
@@ -257,10 +256,7 @@ fn process_year(year: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
             errors.to_string().red()
         ));
     } else {
-        progress_bar.finish_with_message(format!(
-            "Successfully processed all CVEs for {}",
-            year.green()
-        ));
+        progress_bar.finish_with_message(format!("Successfully processed all {total_count} CVEs"));
     }
 
     Ok(())
