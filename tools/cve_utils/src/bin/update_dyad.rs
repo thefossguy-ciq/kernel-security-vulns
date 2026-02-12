@@ -17,7 +17,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 
@@ -235,13 +235,22 @@ fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> R
     // Counter for error tracking
     let error_count = Arc::new(AtomicUsize::new(0));
 
+    let update_results = Arc::new(Mutex::new(Vec::new()));
     // Process files in parallel
     sha_files.par_iter().for_each(|path| {
-        if let Err(err) = process_single_file(path, vulns_dir, dyad_path) {
-            progress_bar.suspend(|| {
-                error!("\nError processing {path}: {err}");
-            });
-            error_count.fetch_add(1, Ordering::Relaxed);
+        let update_results = Arc::clone(&update_results);
+        let result = match process_single_file(path, vulns_dir, dyad_path) {
+            Ok(r) => r,
+            Err(err) => {
+                progress_bar.suspend(|| {
+                    error!("\nError processing {path}: {err}");
+                });
+                error_count.fetch_add(1, Ordering::Relaxed);
+                "".to_string()
+            }
+        };
+        if !result.is_empty() {
+            update_results.lock().unwrap().push(result);
         }
 
         // Update progress
@@ -259,11 +268,24 @@ fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> R
         progress_bar.finish_with_message(format!("Successfully processed all {total_count} CVEs"));
     }
 
+    // Report any errors or updates
+    let results = update_results.lock().unwrap();
+    if results.is_empty() {
+        println!("\nNo dyad entries needed to be updated");
+    } else {
+        println!("\n{} CVE dyad files updated:", results.len());
+        for cve_id in results.iter() {
+            println!("  {}", cve_id.cyan());
+        }
+    }
+
     Ok(())
 }
 
 /// Process a single file
-fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
+/// Return a CVE entry id if it was updated/added.
+/// Return an empty string if nothing happened.
+fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<String> {
     let full_path = vulns_dir.join(relative_path);
     let sha = fs::read_to_string(&full_path).context("Failed to read SHA file")?;
 
@@ -327,6 +349,7 @@ fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) 
     let dyad_file = vulns_dir.join(format!("{root}.dyad"));
 
     // Compare and update if needed
+    let mut updated = false;
     if dyad_file.exists() {
         // Compare the files
         let diff_output = Command::new("diff")
@@ -367,17 +390,22 @@ fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) 
             if meaningful_change {
                 // Update the file
                 fs::copy(tmp_dyad.path(), &dyad_file)?;
+                updated = true;
             }
         }
     } else {
         // No existing file, just use the new one
         fs::copy(tmp_dyad.path(), &dyad_file)?;
+        updated = true;
     }
 
     // Let temp file clean itself up
     drop(tmp_dyad);
 
-    Ok(())
+    if updated {
+        return Ok(cve_id.to_string());
+    }
+    Ok(String::new())
 }
 
 #[cfg(test)]
