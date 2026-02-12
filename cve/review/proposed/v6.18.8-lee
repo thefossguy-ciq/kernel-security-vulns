@@ -1,0 +1,78 @@
+f88e9fc30a26 wifi: ath12k: fix dead lock while flushing management frames
+8ad1b6c1e63d igc: Reduce TSN TX packet buffer from 7KB to 5KB per queue
+0386bd321d0f vsock/virtio: Coalesce only linear skb [auto: cve already created]
+c84fcb79e5db bonding: limit BOND_MODE_8023AD to Ethernet devices [auto: cve already created]
+4d10edfd1475 l2tp: Fix memleak in l2tp_udp_encap_recv(). [auto: cve already created]
+79a6d1bfe114 can: gs_usb: gs_usb_receive_bulk_callback(): unanchor URL on usb_submit_urb() error [auto: cve already created]
+a80c9d945aef sctp: move SCTP_CMD_ASSOC_SHKEY right after SCTP_CMD_PEER_INIT
+9a56796ad258 gue: Fix skb memleak with inner IP protocol 0. [auto: cve already created]
+7a9bc9e3f423 fou: Don't allow 0 for FOU_ATTR_IPPROTO. [auto: cve already created]
+7a29f6bf60f2 l2tp: avoid one data-race in l2tp_tunnel_del_work()
+d3ba32162488 ipvlan: Make the addrs_lock be per port [auto: cve already created]
+50da4b9d07a7 net/sched: Enforce that teql can only be used as root qdisc [auto: cve already created]
+d837fbee9245 net/sched: qfq: Use cl_is_active to determine whether class is active in qfq_rm_from_ag [auto: cve already created]
+2397e9264676 crypto: authencesn - reject too-short AAD (assoclen<8) to match ESP/ESN spec [auto: cve already created]
+32f37e57583f serial: Fix not set tty->port race condition
+761fcf46a1bd w1: therm: Fix off-by-one buffer overflow in alarms_store [auto: cve already created]
+901a5f309dab scsi: xen: scsiback: Fix potential memory leak in scsiback_remove() [auto: cve already created]
+2c28769a51de rxrpc: Fix recvmsg() unconditional requeue [auto: cve already created]
+f9a49aa302a0 fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes() [auto: cve already created]
+fdee1b097216 platform/x86: hp-bioscfg: Fix kobject warnings for empty attribute names
+25150715e0b0 platform/x86: hp-bioscfg: Fix kernel panic in GET_INSTANCE_ID macro [auto: cve already created]
+ca1a47cd3f5f mm/hugetlb: fix hugetlb_pmd_shared() [auto: cve already created]
+e806f7dde8ba timekeeping: Adjust the leap state for the correct auxiliary timekeeper [auto: cve already created]
+10dc95939817 io_uring/io-wq: check IO_WQ_BIT_EXIT inside work run loop
+c34e2e2d67b3 iio: imu: st_lsm6dsx: fix iio_chan_spec for sensors without event detection [auto: cve already created]
+8cc27f5c6dd1 interconnect: debugfs: initialize src_node and dst_node to empty strings
+383d4f5cffcc spi: spi-sprd-adi: Fix double free in probe error path [auto: cve already created]
+4b58aac989c1 regmap: Fix race condition in hwspinlock irqsave routine [auto: cve already created]
+2bf1877b7094 platform/x86/amd: Fix memory leak in wbrf_record() [auto: cve already created]
+fe2f8ad6f099 scsi: core: Wake up the error handler when final completions race against each other [auto: cve already created]
+19bc5f2a6962 scsi: qla2xxx: Sanitize payload size to prevent member overflow [auto: cve already created]
+b97d5eedf497 netdevsim: fix a race issue related to the operation on bpf_bound_progs list
+42fb5f3deb58 ice: add missing ice_deinit_hw() in devlink reinit path
+d3f867e7a046 ice: fix devlink reload call trace [auto: cve already created]
+79912b256e14 net: phy: intel-xway: fix OF node refcount leakage [auto: cve already created]
+8175dbf174d4 mISDN: annotate data-race around dev->work
+9a063f96d87e ipv6: annotate data-race in ndisc_router_discovery()
+d06bf78e55d5 perf: Fix refcount warning on event->mmap_count increment
+8215794403d2 be2net: Fix NULL pointer dereference in be_cmd_get_mac_from_list [auto: cve already created]
+5f9b32909659 bonding: provide a net pointer to __skb_flow_dissect()
+3ef3d52a1a98 vsock/virtio: fix potential underflow in virtio_transport_get_credit() [auto: cve already created]
+8ee784fdf006 vsock/virtio: cap TX credit to local buffer size [auto: cve already created]
+27880b0b0d35 net/sched: act_ife: avoid possible NULL deref [auto: cve already created]
+f3ddbaaaaf4d dpll: Prevent duplicate registrations
+4a3dba481882 Octeontx2-af: Add proper checks for fwdata [auto: cve already created]
+d1883cefd317 leds: led-class: Only Add LED to leds_list when it is fully ready [auto: cve already created]
+b7880cb166ab migrate: correct lock ordering for hugetlb file folios [auto: cve already created]
+dbdb442218cd iio: adc: at91-sama5d2_adc: Fix potential use-after-free in sama5d2_adc driver [auto: cve already created]
+978d28136c53 iio: dac: ad3552r-hs: fix out-of-bound write in ad3552r_hs_write_data_source [auto: cve already created]
+61006c540cbd ALSA: ctxfi: Fix potential OOB access in audio mixer handling [auto: cve already created]
+6f5c69f72e50 ALSA: scarlett2: Fix buffer overflow in config retrieval [auto: cve already created]
+930e69757b74 ALSA: usb-audio: Fix use-after-free in snd_usb_mixer_free() [auto: cve already created]
+3009738a855c mmc: sdhci-of-dwcmshc: Prevent illegal clock reduction in HS200/HS400 mode
+374e7af67d9d iommu/io-pgtable-arm: fix size_t signedness bug in unmap path [auto: cve already created]
+4f431d88ea80 wifi: rsi: Fix memory corruption due to not set vif driver data size [auto: cve already created]
+128a7494a9f1 arm64/fpsimd: ptrace: Fix SVE writes on !SME systems
+ea8ccfddbce0 arm64/fpsimd: signal: Allocate SSVE storage when restoring ZA [auto: cve already created]
+d2907cbe9ea0 arm64/fpsimd: signal: Fix restoration of SVE context [auto: cve already created]
+e2f8216ca2d8 arm64: Set __nocfi on swsusp_arch_resume()
+98e3e2b561bc ksmbd: smbd: fix dma_unmap_sg() nents [auto: cve already created]
+9391380eb91e slimbus: core: fix device reference leak on report present [auto: cve already created]
+90f9f5d64cae tracing: Fix crash on synthetic stacktrace field usage [auto: cve already created]
+95fc36a234da intel_th: fix device leak on output open() [auto: cve already created]
+a3bece3678f6 uacce: fix cdev handling in the cleanup path [auto: cve already created]
+98eec349259b uacce: fix isolate sysfs check condition [auto: cve already created]
+02695347be53 uacce: implement mremap in uacce_vm_ops to return -EPERM [auto: cve already created]
+26c08dabe547 uacce: ensure safe queue release with state management [auto: cve already created]
+ba1096c31528 netrom: fix double-free in nr_route_frame() [auto: cve already created]
+3de499664996 pmdomain: imx8m-blk-ctrl: Remove separate rst and clk mask for 8mq vpu
+5d5fe8bcd331 rxrpc: Fix data-race warning and potential load/store tearing
+8d76a7d89c12 irqchip/gic-v3-its: Avoid truncating memory addresses [auto: cve already created]
+0ce73a0eb5a2 can: ems_usb: ems_usb_read_bulk_callback(): fix URB memory leak [auto: cve already created]
+5a4391bdc6c8 can: esd_usb: esd_usb_read_bulk_callback(): fix URB memory leak [auto: cve already created]
+248e8e1a125f can: kvaser_usb: kvaser_usb_read_bulk_callback(): fix URB memory leak [auto: cve already created]
+710a7529fb13 can: mcba_usb: mcba_usb_read_bulk_callback(): fix URB memory leak [auto: cve already created]
+f7a980b3b8f8 can: usb_8dev: usb_8dev_read_bulk_callback(): fix URB memory leak [auto: cve already created]
+70b3c2805331 gpio: cdev: Fix resource leaks on errors in lineinfo_changed_notify() [auto: cve already created]
+61f67c230a5e mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge [auto: cve already created]
