@@ -231,7 +231,7 @@ fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> R
             .unwrap()
             .progress_chars("#>-")
     );
-    progress_bar.set_message(format!("Prossing {total_count} CVEs"));
+    progress_bar.set_message(format!("Processing {total_count} CVEs"));
 
     // Counter for error tracking
     let error_count = Arc::new(AtomicUsize::new(0));
