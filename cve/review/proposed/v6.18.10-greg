@@ -1,0 +1,160 @@
+Fetching from stable
+Primary reviewers: greg lee sasha
+All reviewers found: allen greg sasha
+Guest reviewers: allen
+6c65db809796 Revert "drm/nouveau/disp: Set drm_mode_config_funcs.atomic_(check|commit)"
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+a0f3c0845a4f mm, swap: restore swap_space attr aviod kernel panic
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+870ff19251bf mm/kfence: randomize the freelist on initialization
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+9b47d4eea3f7 mm/kasan: fix KASAN poisoning in vrealloc()
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+4747bafaa501 scsi: be2iscsi: Fix a memory leak in beiscsi_boot_get_sinfo()
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+28f240683871 pinctrl: meson: mark the GPIO controller as sleeping
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+c1ed856c09d0 drm/xe/configfs: Fix is_bound() pci_dev lifetime
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+b2d6b1d44300 scsi: firewire: sbp-target: Fix overflow in sbp_make_tpg()
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+a8f930b7be7b net/mlx5: Fix vhca_id access call trace use before alloc
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+2aa1545ba8d4 net: phy: micrel: fix clk warning when removing the driver
+	CVE:	1	Allen:	0	Greg:	1	Sasha:	0	
+638344712aef ixgbe: fix memory leaks in the ixgbe_recovery_probe() path
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+09f979d1f312 net: mvpp2: cls: Fix memory leak in mvpp2_ethtool_cls_rule_ins()
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+f6c3665b6dc5 bonding: annotate data-races around slave->last_rx
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+108948f723b1 net/mlx5: Fix memory leak in esw_acl_ingress_lgcy_setup()
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+0baa4d3170d7 can: at91_can: Fix memory leak in at91_can_probe()
+	CVE:	1	Allen:	1	Greg:	1	Sasha:	0	
+
+Already assigned a CVE
+  8b1ecc9377bc drm/amdgpu: fix NULL pointer dereference in amdgpu_gmc_filter_faults_remove
+  e535c23513c6 drm/imx/tve: fix probe device leak
+  12f15d52d38a drm: Do not allow userspace to trigger kernel warnings in drm_gem_change_handle_ioctl()
+  426ca15c7f6c net: fix segmentation of forwarding fraglist GRO
+  8a1968bd997f mm/shmem, swap: fix race of truncate and swap entry split
+  4e159150a9a5 btrfs: do not strictly require dirty metadata threshold for metadata writepages
+  dd9e2f5b38f1 flex_proportions: make fprop_new_period() hardirq safe
+  0fcee2cfc4b2 nvmet: fix race in nvmet_bio_done() leading to NULL pointer dereference
+  4b22ec1685ce efivarfs: fix error propagation in efivar_entry_get()
+  20e01bba2ae4 firewire: core: fix race condition against transaction list
+  76ed27608f7d perf: sched: Fix perf crash with new is_user_task() helper
+  8a44241b0b83 drm/xe/nvm: Fix double-free on aux add failure
+  53ad4a948a45 gpio: virtuser: fix UAF in configfs release path
+  1eab33aa63c9 wifi: mac80211: correctly decode TTLM with default link map
+  d2492688bb9f nfc: nci: Fix race between rfkill and nci_unregister_device().
+  f67666938ae6 net/mlx5e: TC, delete flows only for existing peers
+  9bb30be4d89f ice: Fix NULL pointer dereference in ice_vsi_set_napi_queues
+  e9acda52fd2e bonding: fix use-after-free due to enslave fail after slave array update
+  165c34fb6068 nfc: llcp: Fix memleak in nfc_llcp_send_ui_frame().
+  e2a9eeb69f7d mptcp: fix race in mptcp_pm_nl_flush_addrs_doit()
+  8d7ba71e4621 rocker: fix memory leak in rocker_world_port_post_fini()
+  f0813bcd2d9d net: wwan: t7xx: fix potential skb->frags overflow in RX path
+  944c614b0a7a sfc: fix deadlock in RSS config read
+  8016dc5ee19a octeon_ep: Fix memory leak in octep_device_setup()
+  494fc029f662 can: gs_usb: gs_usb_receive_bulk_callback(): fix error message
+  1b9c17fd0a7f Bluetooth: MGMT: Fix memory leak in set_ssp_complete
+  0c3cd7a0b862 Bluetooth: hci_uart: fix null-ptr-deref in hci_uart_write_work
+  0d0f1314e8f8 btrfs: zlib: fix the folio leak on S390 hardware acceleration
+
+Everyone agrees
+
+Greg and Lee agree
+
+Greg and Sasha agree
+
+Lee and Sasha agree
+
+Greg only
+  6c65db809796 Revert "drm/nouveau/disp: Set drm_mode_config_funcs.atomic_(check|commit)"
+  870ff19251bf mm/kfence: randomize the freelist on initialization
+  9b47d4eea3f7 mm/kasan: fix KASAN poisoning in vrealloc()
+  c1ed856c09d0 drm/xe/configfs: Fix is_bound() pci_dev lifetime
+  b2d6b1d44300 scsi: firewire: sbp-target: Fix overflow in sbp_make_tpg()
+  a8f930b7be7b net/mlx5: Fix vhca_id access call trace use before alloc
+  2aa1545ba8d4 net: phy: micrel: fix clk warning when removing the driver
+
+Sasha only
+
+------------ GUEST RESULTS BELOW, use for re-review only at this time ----------------
+
+Greg and guest (Allen) agree
+  a0f3c0845a4f mm, swap: restore swap_space attr aviod kernel panic
+  4747bafaa501 scsi: be2iscsi: Fix a memory leak in beiscsi_boot_get_sinfo()
+  28f240683871 pinctrl: meson: mark the GPIO controller as sleeping
+  638344712aef ixgbe: fix memory leaks in the ixgbe_recovery_probe() path
+  09f979d1f312 net: mvpp2: cls: Fix memory leak in mvpp2_ethtool_cls_rule_ins()
+  f6c3665b6dc5 bonding: annotate data-races around slave->last_rx
+  108948f723b1 net/mlx5: Fix memory leak in esw_acl_ingress_lgcy_setup()
+  0baa4d3170d7 can: at91_can: Fix memory leak in at91_can_probe()
+
+Lee and guest (Allen) agree
+
+Sasha and guest (Allen) agree
+
+Guest-only results
+  Allen:
+43151f812886 cgroup/dmem: fix NULL pointer dereference when setting max
+b4d37cdb77a0 KVM: Don't clobber irqfd routing type when deassigning irqfd
+e75665dd0968 wifi: wlcore: ensure skb headroom before skb_push
+d5be446948b3 LoongArch: Set correct protection_map[] for VM_NONE/VM_SHARED
+fc6f36eaaedc ice: Fix PTP NULL pointer dereference during VSI rebuild
+bbf4a17ad9ff ipv6: Fix ECMP sibling count mismatch when clearing RTF_ADDRCONF
+2687c848e578 x86/vmware: Fix hypercall clobbers
+99a2ef500906 cgroup/dmem: avoid pool UAF
+5e8a3d015442 binder: fix UAF in binder_netlink_report()
+ef5749ef8b30 ALSA: usb-audio: Prevent excessive number of frames
+cabd1a976375 net/sched: cls_u32: use skb_header_pointer_careful()
+83b67cc9be92 linkwatch: use __dev_put() in callers to prevent UAF
+e6c53ead2d8f mm/slab: Add alloc_tagging_slab_free_hook for memcg_alloc_abort_single
+592a68212c56 cgroup/dmem: avoid rcu warning when unregister region
+0b8c878d1173 net: cpsw: Execute ndo_set_rx_mode callback in a work queue
+c0b5dc73a38f net: cpsw_new: Execute ndo_set_rx_mode callback in a work queue
+81d90d93d22c wifi: iwlwifi: Implement settime64 as stub for MVM/MLD PTP
+e3a43633023e smb/client: fix memory leak in smb2_open_file()
+0de604d0357d drm/amd/pm: Disable MMIO access during SMU Mode 1 reset
+ed48a84a72fe dpaa2-switch: prevent ZERO_SIZE_PTR dereference when num_ifs is zero
+6d06bc83a5ae net: usb: r8152: fix resume reset deadlock
+243b467dea17 Revert "drm/amd: Check if ASPM is enabled from PCIe subsystem"
+f8db6475a836 macvlan: fix error recovery in macvlan_common_newlink()
+b126097b0327 i2c: imx: preserve error state in block data length handler
+a143545855bc dmaengine: mmp_pdma: Fix race condition in mmp_pdma_residue()
+84dc6037390b scsi: target: iscsi: Fix use-after-free in iscsit_dec_session_usage_count()
+9411a89e9e71 scsi: target: iscsi: Fix use-after-free in iscsit_dec_conn_usage_count()
+5ff641011ab7 wifi: iwlwifi: mld: cancel mlo_scan_start_wk
+f41c5d151078 netfilter: nf_tables: fix inverted genmask check in nft_map_catchall_activate()
+bf4528ab28e2 spi: tegra210-quad: Protect curr_xfer in tegra_qspi_combined_seq_xfer
+3f29d661e568 btrfs: sync read disk super and set block size
+071be3b0b657 nvme-pci: handle changing device dma map requirements
+edf9088b6e1d spi: tegra210-quad: Protect curr_xfer check in IRQ handler
+52a0a9854934 nvmet-tcp: add bounds checks in nvmet_tcp_build_pdu_iovec
+826af7fa62e3 ALSA: aloop: Fix racy access at PCM trigger
+8f589c9c3be5 rust_binder: correctly handle FDA objects of length zero
+b5cbacd7f86f procfs: avoid fetching build ID while holding VMA lock
+ff4071c60018 wifi: mac80211: ocb: skip rx_no_sta when interface is not joined
+99067b58a408 wifi: mac80211: don't WARN for connections on invalid channels
+2497ff38c530 HID: i2c-hid: fix potential buffer overflow in i2c_hid_get_report()
+a9a917998d17 HID: Intel-thc-hid: Intel-thc: Add safety check for reading DMA buffer
+128497456756 platform/x86: toshiba_haps: Fix memory leaks in add/remove routines
+7f67ba5413f9 ASoC: amd: fix memory leak in acp3x pdm dma ops
+7987cce375ac ceph: fix NULL pointer dereference in ceph_mds_auth_match()
+bc8dedae022c ceph: fix oops due to invalid pointer for kfree() in parse_longname()
+0ae91d8ab709 io_uring/zcrx: fix page array leak
+615901b57b7e hwmon: (acpi_power_meter) Fix deadlocks related to acpi_power_meter_notify()
+41d9a6795b95 spi: tegra: Fix a memory leak in tegra_slink_probe()
+5b577d214fcc ASoC: davinci-evm: Fix reference leak in davinci_evm_probe
+6bd8b4a92a90 pmdomain: imx8m-blk-ctrl: fix out-of-range access of bc->domains
+2030dddf9545 mm, shmem: prevent infinite loop on truncate race
+7c28f8eef5ac smb/server: call ksmbd_session_rpc_close() on error path in create_smb2_pipe()
+f416c556997a smb/server: fix refcount leak in smb2_open()
+3296c3012a9d smb/server: fix refcount leak in parse_durable_handle_context()
+25fd7ee7bf58 riscv: Sanitize syscall table indexing under speculation
+2fa8961d3a6a nvmet-tcp: fixup hang in nvmet_tcp_listen_data_ready()
+1972f44c189c btrfs: reject new transactions if the fs is fully read-only
+31a7a0bbeb00 dpaa2-switch: add bounds check for if_id in IRQ handler
