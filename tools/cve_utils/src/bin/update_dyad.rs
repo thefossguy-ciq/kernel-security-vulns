@@ -192,7 +192,8 @@ fn find_single_cve(cve_id: &str, vulns_dir: &Path) -> Result<String> {
         ));
     };
 
-    Ok(cve_path.to_string_lossy().to_string())
+    let relative_path = cve_path.strip_prefix(vulns_dir).unwrap_or(&cve_path);
+    Ok(relative_path.to_string_lossy().to_string())
 }
 
 /// Find ids for a year
