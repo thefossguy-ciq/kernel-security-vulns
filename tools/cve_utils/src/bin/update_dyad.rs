@@ -184,7 +184,7 @@ fn find_single_cve(cve_id: &str, vulns_dir: &Path) -> Result<String> {
         }
     }
 
-    // If the file wasn't found, report it but don't error out
+    // If the file wasn't found, error out
     let Some(cve_path) = cve_file else {
         return Err(anyhow!(
             "ERROR: {} is not found or is not a year",
