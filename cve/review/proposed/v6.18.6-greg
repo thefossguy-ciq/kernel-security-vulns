@@ -50,3 +50,10 @@ d9f3e47d3fae dm-verity: disable recursive forward error correction
 8581b19eb2c5 dm-snapshot: fix 'scheduling while atomic' on real-time kernels
 530e3d4af566 btrfs: fix NULL pointer dereference in do_abort_log_replay()
 333418872bfe wifi: mac80211_hwsim: fix typo in frequency notification
+11194b416ef9 ("libceph: reset sparse-read state in osd_fault()")
+235a1eb8d2dc ("of: unittest: Fix memory leak in unittest_data_add()")
+570ad253a345 ("netfs: Fix early read unlock of page with EOF in middle")
+5f1ef0dfcb5b ("tracing: Add recursion protection in kernel stack trace recording")
+7811ba452402 ("netfilter: nf_conncount: update last_gc only when GC has been performed")
+7893cc12251f ("erofs: fix file-backed mounts no longer working on EROFS partitions")
+e558cca21779 ("bpf, test_run: Subtract size of xdp_frame from allowed metadata size")
