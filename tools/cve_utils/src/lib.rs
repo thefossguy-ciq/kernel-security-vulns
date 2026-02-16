@@ -1122,4 +1122,153 @@ mod tests {
                 "Error shouldn't contain zero padding");
         // Don't assert on specific error message text as it may vary
     }
+
+    // --- Tests for extract_cve_id_from_path ---
+
+    #[test]
+    fn test_extract_cve_id_from_filename_with_extension() {
+        let result = cve_utils::extract_cve_id_from_path("published/2024/CVE-2024-12345.sha1");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2024-12345");
+    }
+
+    #[test]
+    fn test_extract_cve_id_from_filename_mbox() {
+        let result = cve_utils::extract_cve_id_from_path("published/2024/CVE-2024-12345.mbox");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2024-12345");
+    }
+
+    #[test]
+    fn test_extract_cve_id_from_filename_json() {
+        let result = cve_utils::extract_cve_id_from_path("published/2024/CVE-2024-12345.json");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2024-12345");
+    }
+
+    #[test]
+    fn test_extract_cve_id_from_parent_dir() {
+        let result = cve_utils::extract_cve_id_from_path("published/2024/CVE-2024-12345/file.json");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2024-12345");
+    }
+
+    #[test]
+    fn test_extract_cve_id_from_deeper_path_component() {
+        let result = cve_utils::extract_cve_id_from_path("data/CVE-2023-99999/subdir/notes.txt");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2023-99999");
+    }
+
+    #[test]
+    fn test_extract_cve_id_from_bare_filename() {
+        let result = cve_utils::extract_cve_id_from_path("CVE-2024-00001");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2024-00001");
+    }
+
+    #[test]
+    fn test_extract_cve_id_no_cve_in_path() {
+        let result = cve_utils::extract_cve_id_from_path("published/2024/somefile.txt");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_extract_cve_id_from_filename_no_extension() {
+        let result = cve_utils::extract_cve_id_from_path("published/2024/CVE-2024-12345");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "CVE-2024-12345");
+    }
+
+    // --- Tests for extract_year_from_cve ---
+
+    #[test]
+    fn test_extract_year_valid_cve() {
+        let result = cve_validation::extract_year_from_cve("CVE-2024-12345");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "2024");
+    }
+
+    #[test]
+    fn test_extract_year_old_cve() {
+        let result = cve_validation::extract_year_from_cve("CVE-2000-0001");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "2000");
+    }
+
+    #[test]
+    fn test_extract_year_not_a_cve() {
+        let result = cve_validation::extract_year_from_cve("not-a-cve");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_extract_year_invalid_year_letters() {
+        let result = cve_validation::extract_year_from_cve("CVE-XXXX-12345");
+        assert!(result.is_err());
+    }
+
+    // --- Tests for match_pattern ---
+
+    #[test]
+    fn test_match_pattern_exact() {
+        assert!(git_utils::match_pattern("drivers/net/foo.c", "drivers/net/foo.c"));
+    }
+
+    #[test]
+    fn test_match_pattern_glob_suffix_match() {
+        assert!(git_utils::match_pattern("foo.c", "*.c"));
+    }
+
+    #[test]
+    fn test_match_pattern_glob_suffix_no_match() {
+        assert!(!git_utils::match_pattern("foo.c", "*.h"));
+    }
+
+    #[test]
+    fn test_match_pattern_no_match() {
+        assert!(!git_utils::match_pattern("other/file.c", "drivers/net/foo.c"));
+    }
+
+    #[test]
+    fn test_match_pattern_glob_deep_path() {
+        assert!(git_utils::match_pattern("drivers/net/ethernet/intel/e1000e/netdev.c", "*.c"));
+    }
+
+    // --- Tests for is_valid_year ---
+
+    #[test]
+    fn test_is_valid_year_current() {
+        assert!(year_utils::is_valid_year("2024"));
+    }
+
+    #[test]
+    fn test_is_valid_year_2000() {
+        assert!(year_utils::is_valid_year("2000"));
+    }
+
+    #[test]
+    fn test_is_valid_year_below_2000() {
+        assert!(!year_utils::is_valid_year("1999"));
+    }
+
+    #[test]
+    fn test_is_valid_year_not_digits() {
+        assert!(!year_utils::is_valid_year("abcd"));
+    }
+
+    #[test]
+    fn test_is_valid_year_too_short() {
+        assert!(!year_utils::is_valid_year("202"));
+    }
+
+    #[test]
+    fn test_is_valid_year_too_long() {
+        assert!(!year_utils::is_valid_year("20245"));
+    }
+
+    #[test]
+    fn test_is_valid_year_empty() {
+        assert!(!year_utils::is_valid_year(""));
+    }
 }

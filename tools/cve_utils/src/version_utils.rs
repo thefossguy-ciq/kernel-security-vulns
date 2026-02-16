@@ -310,4 +310,131 @@ mod tests {
         assert!(compare_kernel_versions("5.4.234", "5.3.600") == Ordering::Greater);
         assert!(compare_kernel_versions("6.10.100", "3.2") == Ordering::Greater);
     }
+
+    // --- 2.6.x / 2.4.x special handling ---
+
+    #[test]
+    fn test_2_6_x_mainline() {
+        // 2.6.32 is mainline (3 components with major=2, minor=6)
+        assert!(version_utils::version_is_mainline("2.6.32"));
+        // 2.6.32.1 is stable, not mainline
+        assert!(!version_utils::version_is_mainline("2.6.32.1"));
+    }
+
+    #[test]
+    fn test_2_4_x_mainline() {
+        // 2.4.37 is mainline (3 components with major=2, minor=4)
+        assert!(version_utils::version_is_mainline("2.4.37"));
+        // 2.4.37.1 is stable
+        assert!(!version_utils::version_is_mainline("2.4.37.1"));
+    }
+
+    // --- RC comparisons ---
+
+    #[test]
+    fn test_rc_ordering() {
+        assert_eq!(compare_kernel_versions("6.8-rc1", "6.8-rc2"), Ordering::Less);
+        assert_eq!(compare_kernel_versions("6.8-rc2", "6.8-rc1"), Ordering::Greater);
+        // RC is less than final release
+        assert_eq!(compare_kernel_versions("6.8-rc1", "6.8"), Ordering::Less);
+        assert_eq!(compare_kernel_versions("6.8", "6.8-rc7"), Ordering::Greater);
+    }
+
+    // --- Queue versions ---
+
+    #[test]
+    fn test_queue_version() {
+        assert!(version_utils::version_is_queue("6.8.1-queue"));
+        assert!(!version_utils::version_is_mainline("6.8.1-queue"));
+    }
+
+    // --- Cross-major comparison ---
+
+    #[test]
+    fn test_cross_major_comparison() {
+        assert_eq!(compare_kernel_versions("5.15.100", "6.1.1"), Ordering::Less);
+        assert_eq!(compare_kernel_versions("6.1.1", "5.15.100"), Ordering::Greater);
+    }
+
+    // --- FromStr round-trip and field checks ---
+
+    #[test]
+    fn test_from_str_stable() {
+        use std::str::FromStr;
+        use version_utils::KernelVersion;
+
+        let v = KernelVersion::from_str("6.8.1").unwrap();
+        assert!(!v.is_mainline());
+        assert!(!v.is_rc());
+        assert!(!v.is_queue());
+        assert_eq!(v.major_version(), "6.8");
+    }
+
+    #[test]
+    fn test_from_str_mainline() {
+        use std::str::FromStr;
+        use version_utils::KernelVersion;
+
+        let v = KernelVersion::from_str("6.8").unwrap();
+        assert!(v.is_mainline());
+        assert!(!v.is_rc());
+        assert_eq!(v.major_version(), "6.8");
+    }
+
+    #[test]
+    fn test_from_str_rc() {
+        use std::str::FromStr;
+        use version_utils::KernelVersion;
+
+        let v = KernelVersion::from_str("6.8-rc3").unwrap();
+        assert!(v.is_mainline()); // RC is considered mainline
+        assert!(v.is_rc());
+        assert_eq!(v.major_version(), "6.8");
+    }
+
+    #[test]
+    fn test_from_str_2_6_major_version() {
+        use std::str::FromStr;
+        use version_utils::KernelVersion;
+
+        let v = KernelVersion::from_str("2.6.32").unwrap();
+        assert_eq!(v.major_version(), "2.6.32");
+
+        let v2 = KernelVersion::from_str("2.6.32.1").unwrap();
+        assert_eq!(v2.major_version(), "2.6.32");
+    }
+
+    // --- major_matches ---
+
+    #[test]
+    fn test_major_matches() {
+        use std::str::FromStr;
+        use version_utils::KernelVersion;
+
+        let v1 = KernelVersion::from_str("6.8").unwrap();
+        let v2 = KernelVersion::from_str("6.8.5").unwrap();
+        assert!(v1.major_matches(&v2));
+
+        let v3 = KernelVersion::from_str("6.9").unwrap();
+        assert!(!v1.major_matches(&v3));
+    }
+
+    // --- kernel_version_major wrapper ---
+
+    #[test]
+    fn test_kernel_version_major() {
+        assert_eq!(version_utils::kernel_version_major("5.15.100"), "5.15");
+        assert_eq!(version_utils::kernel_version_major("6.8"), "6.8");
+        assert_eq!(version_utils::kernel_version_major("2.6.32.5"), "2.6.32");
+    }
+
+    // --- get_rc_number ---
+
+    #[test]
+    fn test_get_rc_number() {
+        assert_eq!(version_utils::get_rc_number("6.8-rc3"), Some(3));
+        assert_eq!(version_utils::get_rc_number("6.8-rc"), Some(0));
+        assert_eq!(version_utils::get_rc_number("6.8"), None);
+        assert_eq!(version_utils::get_rc_number("6.8.1"), None);
+    }
 }

@@ -174,5 +174,94 @@ mod tests {
         assert!(result.is_err());
     }
 
+    // --- Tests for new_no_validate ---
 
+    #[test]
+    fn test_new_no_validate_basic() {
+        let entry = DyadEntry::new_no_validate(
+            "6.8:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:6.9:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        )
+        .unwrap();
+        assert_eq!(entry.vulnerable.version(), "6.8");
+        assert_eq!(
+            entry.vulnerable.git_id(),
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        );
+        assert_eq!(entry.fixed.version(), "6.9");
+        assert_eq!(
+            entry.fixed.git_id(),
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        );
+    }
+
+    #[test]
+    fn test_new_no_validate_with_zero_entries() {
+        let entry = DyadEntry::new_no_validate(
+            "0:0:6.8:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        )
+        .unwrap();
+        assert!(entry.vulnerable.is_empty());
+        assert_eq!(entry.fixed.version(), "6.8");
+    }
+
+    #[test]
+    fn test_new_no_validate_unfixed() {
+        let entry = DyadEntry::new_no_validate(
+            "6.8:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0:0",
+        )
+        .unwrap();
+        assert_eq!(entry.vulnerable.version(), "6.8");
+        assert!(entry.fixed.is_empty());
+    }
+
+    // --- Tests for is_same_version ---
+
+    #[test]
+    fn test_is_same_version_true() {
+        let entry = DyadEntry::new_no_validate(
+            "6.6.16:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:6.6.16:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        )
+        .unwrap();
+        assert!(entry.is_same_version());
+    }
+
+    #[test]
+    fn test_is_same_version_false() {
+        let entry = DyadEntry::new_no_validate(
+            "6.6.16:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:6.6.17:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        )
+        .unwrap();
+        assert!(!entry.is_same_version());
+    }
+
+    // --- Malformed input ---
+
+    #[test]
+    fn test_new_no_validate_too_few_fields() {
+        let result = DyadEntry::new_no_validate("6.8:abc:6.9");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_new_no_validate_too_many_fields() {
+        let result = DyadEntry::new_no_validate("6.8:abc:6.9:def:extra");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_new_no_validate_empty_string() {
+        let result = DyadEntry::new_no_validate("");
+        assert!(result.is_err());
+    }
+
+    // --- Empty git IDs ---
+
+    #[test]
+    fn test_new_no_validate_empty_git_ids() {
+        let entry = DyadEntry::new_no_validate("6.8::6.9:").unwrap();
+        assert_eq!(entry.vulnerable.version(), "6.8");
+        assert_eq!(entry.vulnerable.git_id(), "");
+        assert_eq!(entry.fixed.version(), "6.9");
+        assert_eq!(entry.fixed.git_id(), "");
+    }
 }
