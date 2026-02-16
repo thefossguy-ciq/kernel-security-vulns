@@ -129,6 +129,14 @@ path = "bippy/tests/bippy.rs"
 name = "voting_results"
 path = "voting_results/tests/voting_results.rs"
 
+[[test]]
+name = "cve_search"
+path = "cve_utils/tests/cve_search.rs"
+
+[[test]]
+name = "score"
+path = "cve_utils/tests/score.rs"
+
 [lib]
 name = "cve_utils"
 path = "cve_utils/src/lib.rs"
