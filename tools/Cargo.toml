@@ -121,6 +121,10 @@ required-features = []
 name = "strak"
 path = "strak/tests/strak.rs"
 
+[[test]]
+name = "bippy"
+path = "bippy/tests/bippy.rs"
+
 [lib]
 name = "cve_utils"
 path = "cve_utils/src/lib.rs"

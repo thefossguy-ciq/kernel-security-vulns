@@ -998,4 +998,61 @@ mod tests {
             "Should have fixed CPE ranges with version_end_excluding"
         );
     }
+
+    #[test]
+    fn test_sort_version_ranges_ordering() {
+        let mut ranges = vec![
+            VersionRange {
+                version: "6.1".to_string(),
+                less_than: Some("6.1.5".to_string()),
+                less_than_or_equal: None,
+                status: "affected".to_string(),
+                version_type: Some("semver".to_string()),
+            },
+            VersionRange {
+                version: "5.15".to_string(),
+                less_than: Some("5.15.10".to_string()),
+                less_than_or_equal: None,
+                status: "affected".to_string(),
+                version_type: Some("semver".to_string()),
+            },
+        ];
+        sort_version_ranges(&mut ranges);
+        // 5.15 should sort before 6.1
+        assert_eq!(ranges[0].version, "5.15");
+        assert_eq!(ranges[1].version, "6.1");
+    }
+
+    #[test]
+    fn test_generate_version_ranges_single_entry() {
+        let entries = vec![dyad_entry(
+            "5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541",
+        )];
+        let kernel_versions = generate_version_ranges(&entries, "unaffected");
+        assert!(!kernel_versions.is_empty());
+        // Should have at least one affected entry
+        let affected: Vec<_> = kernel_versions
+            .iter()
+            .filter(|v| v.status == "affected")
+            .collect();
+        assert!(!affected.is_empty(), "Should have at least one affected range");
+    }
+
+    #[test]
+    fn test_generate_git_ranges_single_entry() {
+        let entries = vec![dyad_entry(
+            "5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541",
+        )];
+        let git_versions = generate_git_ranges(&entries);
+        assert_eq!(git_versions.len(), 1);
+        assert_eq!(git_versions[0].status, "affected");
+        assert_eq!(
+            git_versions[0].version,
+            "11c52d250b34a0862edc29db03fbec23b30db6da"
+        );
+        assert_eq!(
+            git_versions[0].less_than,
+            Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string())
+        );
+    }
 }
