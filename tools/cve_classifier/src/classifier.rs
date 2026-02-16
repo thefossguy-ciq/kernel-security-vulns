@@ -944,11 +944,10 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         }
 
         // First check for bold indicators in the original response (case-insensitive)
-        // Match **YES**, **NO**, or even partial bold like **YES or YES**
+        // Only match standalone **YES** or **NO** - partial bold patterns like **YES or YES**
+        // are too permissive and match things like "**No special permissions**"
         let bold_patterns = [
             Regex::new(r"(?i)\*\*(YES|NO)\*\*").unwrap(),  // Standard **YES** or **NO**
-            Regex::new(r"(?i)\*\*(YES|NO)\b").unwrap(),    // **YES or **NO followed by word boundary
-            Regex::new(r"(?i)\b(YES|NO)\*\*").unwrap(),    // YES** or NO**
         ];
 
         for bold_pattern in &bold_patterns {
@@ -1219,5 +1218,31 @@ mod tests {
         let (decision, explanation) = CVEClassifier::parse_llm_response(response);
         assert_eq!(decision, false); // Should default to false
         assert!(explanation.contains("feature addition"));
+    }
+
+    #[test]
+    fn test_parse_cve_decision_yes_with_bold_no_in_body() {
+        // Regression test: **No special permissions** in the body should not
+        // cause the response to be classified as NO when the actual decision
+        // is "CVE Decision: YES".
+        let response = r#"## Analysis
+
+**Security Impact:**
+
+- **Trigger condition**: Memory pressure
+- **No special permissions required** - any local user
+
+**CVE Decision: YES**
+
+This fixes a kernel panic."#;
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true, "Should parse as YES despite **No** in body text");
+    }
+
+    #[test]
+    fn test_parse_decision_format() {
+        let response = "DECISION: YES\n\nThis is a security fix.";
+        let (decision, _) = CVEClassifier::parse_llm_response(response);
+        assert_eq!(decision, true);
     }
 }
