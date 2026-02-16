@@ -117,6 +117,10 @@ path = "dyad/tests/integration.rs"
 harness = true
 required-features = []
 
+[[test]]
+name = "strak"
+path = "strak/tests/strak.rs"
+
 [lib]
 name = "cve_utils"
 path = "cve_utils/src/lib.rs"
