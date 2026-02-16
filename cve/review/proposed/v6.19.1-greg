@@ -18,6 +18,5 @@ ec306600d5ba smb: client: split cached_fid bitfields to avoid shared-byte RMW ra
 1e83ccd5921a sched/mmcid: Don't assume CID is CPU owned on mode switch
 148891e95014 bus: fsl-mc: fix use-after-free in driver_override_show()
 b505047ffc80 crypto: virtio - Add spinlock protection with virtqueue notification
-dc23806a7c47 driver core: enforce device_lock for driver_match_device()
 93ac432274e1 smb: client: fix last send credit problem causing disconnects
 21538121efe6 smb: client: make use of smbdirect_socket.send_io.bcredits
