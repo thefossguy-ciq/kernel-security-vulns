@@ -125,6 +125,10 @@ path = "strak/tests/strak.rs"
 name = "bippy"
 path = "bippy/tests/bippy.rs"
 
+[[test]]
+name = "voting_results"
+path = "voting_results/tests/voting_results.rs"
+
 [lib]
 name = "cve_utils"
 path = "cve_utils/src/lib.rs"

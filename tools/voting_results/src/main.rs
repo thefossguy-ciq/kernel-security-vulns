@@ -1070,6 +1070,47 @@ mod tests {
             .contains(&"sasha".to_string()));
     }
 
+    #[test]
+    fn test_upstream_regex_mixed_hex() {
+        // Real-world SHA with mixed hex digits
+        let message = "commit abc123\n\nUpstream commit abcdef1234567890abcdef1234567890abcdef12";
+        let captures = UPSTREAM_REGEX.captures(message).unwrap();
+        assert_eq!(
+            captures.get(0).unwrap().as_str(),
+            "abcdef1234567890abcdef1234567890abcdef12"
+        );
+    }
+
+    #[test]
+    fn test_upstream_regex_no_match_short_sha() {
+        // Exactly 40 hex chars should match
+        let message = "commit 1234567890abcdef1234567890abcdef12345678";
+        let captures = UPSTREAM_REGEX.captures(message);
+        assert!(captures.is_some());
+
+        // 39 hex chars should not match
+        let message_short = "commit 1234567890abcdef1234567890abcdef1234567";
+        let captures_short = UPSTREAM_REGEX.captures(message_short);
+        assert!(captures_short.is_none());
+    }
+
+    #[test]
+    fn test_upstream_regex_ignores_uppercase_hex() {
+        // Uppercase hex should not match (SHA1s are lowercase)
+        let message = "commit ABCDEF1234567890ABCDEF1234567890ABCDEF12";
+        let captures = UPSTREAM_REGEX.captures(message);
+        assert!(captures.is_none());
+    }
+
+    #[test]
+    fn test_no_all_zero_reviewers() {
+        let mut voting_results = create_test_voting_results();
+        voting_results.reviewers = vec!["greg".to_string(), "lee".to_string(), "sasha".to_string()];
+        voting_results.identify_guest_reviewers();
+        // No guest reviewers when only primary reviewers are present
+        assert!(voting_results.guest_reviewers.is_empty());
+    }
+
     // Helper to create a test VotingResults instance
     fn create_test_voting_results() -> VotingResults {
         let temp_dir = tempdir().unwrap();
