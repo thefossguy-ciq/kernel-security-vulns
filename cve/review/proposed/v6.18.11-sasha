@@ -9,7 +9,6 @@ ec306600d5ba ("smb: client: split cached_fid bitfields to avoid shared-byte RMW 
 9911b1ed187a ("smb: client: make use of smbdirect_socket.recv_io.credits.available")
 48329301969f ("crypto: iaa - Fix out-of-bounds index in find_empty_iaa_compression_mode")
 cf74fcdc43b3 ("smb: client: let send_done handle a completion without IB_SEND_SIGNALED")
-dc23806a7c47 ("driver core: enforce device_lock for driver_match_device()")
 b6df15aec8c3 ("scsi: qla2xxx: Validate sp before freeing associated memory")
 b505047ffc80 ("crypto: virtio - Add spinlock protection with virtqueue notification")
 ed527ef0c264 ("nilfs2: Fix potential block overflow that cause system hang")
