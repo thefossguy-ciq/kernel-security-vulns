@@ -303,7 +303,7 @@ unmet direct dependencies detected|\
     fi
     echo
 
-    hits=$(grep -F "${subject}" ${FINALDIR}/* | grep -v annotated | wc -l)
+    hits=$(grep -F "${subject}" ${FINALDIR}/* | grep ${TAG} | grep -v annotated | wc -l)
     if [ ${hits} -gt 0 ]; then
         print_red "Positively voted for in:\n"
         positives=$(grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !')
