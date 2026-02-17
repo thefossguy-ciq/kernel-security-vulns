@@ -1,0 +1,57 @@
+52a0a9854934 nvmet-tcp: add bounds checks in nvmet_tcp_build_pdu_iovec [auto: cve already created]
+2687c848e578 x86/vmware: Fix hypercall clobbers
+826af7fa62e3 ALSA: aloop: Fix racy access at PCM trigger [auto: cve already created]
+6bd8b4a92a90 pmdomain: imx8m-blk-ctrl: fix out-of-range access of bc->domains [auto: cve already created]
+b5cbacd7f86f procfs: avoid fetching build ID while holding VMA lock [auto: cve already created]
+e6c53ead2d8f mm/slab: Add alloc_tagging_slab_free_hook for memcg_alloc_abort_single
+7987cce375ac ceph: fix NULL pointer dereference in ceph_mds_auth_match() [auto: cve already created]
+bc8dedae022c ceph: fix oops due to invalid pointer for kfree() in parse_longname() [auto: cve already created]
+43151f812886 cgroup/dmem: fix NULL pointer dereference when setting max [auto: cve already created]
+99a2ef500906 cgroup/dmem: avoid pool UAF [auto: cve already created]
+2030dddf9545 mm, shmem: prevent infinite loop on truncate race [auto: cve already created]
+0b8c878d1173 net: cpsw: Execute ndo_set_rx_mode callback in a work queue [auto: cve already created]
+c0b5dc73a38f net: cpsw_new: Execute ndo_set_rx_mode callback in a work queue [auto: cve already created]
+b4d37cdb77a0 KVM: Don't clobber irqfd routing type when deassigning irqfd [auto: cve already created]
+8f589c9c3be5 rust_binder: correctly handle FDA objects of length zero [auto: cve already created]
+5e8a3d015442 binder: fix UAF in binder_netlink_report() [auto: cve already created]
+ff4071c60018 wifi: mac80211: ocb: skip rx_no_sta when interface is not joined [auto: cve already created]
+e75665dd0968 wifi: wlcore: ensure skb headroom before skb_push [auto: cve already created]
+99067b58a408 wifi: mac80211: don't WARN for connections on invalid channels
+81d90d93d22c wifi: iwlwifi: Implement settime64 as stub for MVM/MLD PTP
+7c28f8eef5ac smb/server: call ksmbd_session_rpc_close() on error path in create_smb2_pipe() [auto: cve already created]
+d5be446948b3 LoongArch: Set correct protection_map[] for VM_NONE/VM_SHARED
+2cc583653bbe md: suspend array while updating raid_disks via sysfs
+f416c556997a smb/server: fix refcount leak in smb2_open() [auto: cve already created]
+3296c3012a9d smb/server: fix refcount leak in parse_durable_handle_context() [auto: cve already created]
+25fd7ee7bf58 riscv: Sanitize syscall table indexing under speculation [auto: cve already created]
+2497ff38c530 HID: i2c-hid: fix potential buffer overflow in i2c_hid_get_report() [auto: cve already created]
+a9a917998d17 HID: Intel-thc-hid: Intel-thc: Add safety check for reading DMA buffer [auto: cve already created]
+0de604d0357d drm/amd/pm: Disable MMIO access during SMU Mode 1 reset
+b0d7f5f0c9f0 riscv: trace: fix snapshot deadlock with sbi ecall
+a143545855bc dmaengine: mmp_pdma: Fix race condition in mmp_pdma_residue() [auto: cve already created]
+ef5749ef8b30 ALSA: usb-audio: Prevent excessive number of frames [auto: cve already created]
+2fa8961d3a6a nvmet-tcp: fixup hang in nvmet_tcp_listen_data_ready() [auto: cve already created]
+84dc6037390b scsi: target: iscsi: Fix use-after-free in iscsit_dec_session_usage_count() [auto: cve already created]
+9411a89e9e71 scsi: target: iscsi: Fix use-after-free in iscsit_dec_conn_usage_count()
+3f29d661e568 btrfs: sync read disk super and set block size [auto: cve already created]
+1972f44c189c btrfs: reject new transactions if the fs is fully read-only
+128497456756 platform/x86: toshiba_haps: Fix memory leaks in add/remove routines [auto: cve already created]
+e3a43633023e smb/client: fix memory leak in smb2_open_file() [auto: cve already created]
+cabd1a976375 net/sched: cls_u32: use skb_header_pointer_careful() [auto: cve already created]
+ed48a84a72fe dpaa2-switch: prevent ZERO_SIZE_PTR dereference when num_ifs is zero [auto: cve already created]
+31a7a0bbeb00 dpaa2-switch: add bounds check for if_id in IRQ handler [auto: cve already created]
+fc6f36eaaedc ice: Fix PTP NULL pointer dereference during VSI rebuild [auto: cve already created]
+f8db6475a836 macvlan: fix error recovery in macvlan_common_newlink() [auto: cve already created]
+6d06bc83a5ae net: usb: r8152: fix resume reset deadlock [auto: cve already created]
+615901b57b7e hwmon: (acpi_power_meter) Fix deadlocks related to acpi_power_meter_notify() [auto: cve already created]
+83b67cc9be92 linkwatch: use __dev_put() in callers to prevent UAF [auto: cve already created]
+5ff641011ab7 wifi: iwlwifi: mld: cancel mlo_scan_start_wk [auto: cve already created]
+f41c5d151078 netfilter: nf_tables: fix inverted genmask check in nft_map_catchall_activate() [auto: cve already created]
+071be3b0b657 nvme-pci: handle changing device dma map requirements [auto: cve already created]
+bbf4a17ad9ff ipv6: Fix ECMP sibling count mismatch when clearing RTF_ADDRCONF [auto: cve already created]
+7f67ba5413f9 ASoC: amd: fix memory leak in acp3x pdm dma ops [auto: cve already created]
+e34f77b09080 gpio: loongson-64bit: Fix incorrect NULL check after devm_kcalloc()
+b126097b0327 i2c: imx: preserve error state in block data length handler [auto: cve already created]
+bf4528ab28e2 spi: tegra210-quad: Protect curr_xfer in tegra_qspi_combined_seq_xfer [auto: cve already created]
+edf9088b6e1d spi: tegra210-quad: Protect curr_xfer check in IRQ handler [auto: cve already created]
+41d9a6795b95 spi: tegra: Fix a memory leak in tegra_slink_probe() [auto: cve already created]
