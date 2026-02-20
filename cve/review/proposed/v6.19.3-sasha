@@ -1,0 +1,7 @@
+120adae7b42f ("fbdev: smscufx: properly copy ioctl memory to kernelspace")
+5c145c03188b ("f2fs: fix to avoid mapping wrong physical block for swapfile")
+7633a7387eb4 ("f2fs: fix IS_CHECKPOINTED flag inconsistency issue caused by concurrent atomic commit and checkpoint writes")
+c2c68225b145 ("scsi: qla2xxx: Fix bsg_done() causing double free")
+98ea0039dbfd ("f2fs: fix out-of-bounds access in sysfs attribute read/write")
+ce2739e482bc ("f2fs: fix to avoid UAF in f2fs_write_end_io()")
+3996b70209f1 ("Revert "f2fs: block cache/dio write during f2fs_enable_checkpoint()"")
