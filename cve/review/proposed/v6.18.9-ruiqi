@@ -1,0 +1,29 @@
+0d0f1314e8f8 btrfs: zlib: fix the folio leak on S390 hardware acceleration
+0c3cd7a0b862 Bluetooth: hci_uart: fix null-ptr-deref in hci_uart_write_work
+1b9c17fd0a7f Bluetooth: MGMT: Fix memory leak in set_ssp_complete
+108948f723b1 net/mlx5: Fix memory leak in esw_acl_ingress_lgcy_setup()
+944c614b0a7a sfc: fix deadlock in RSS config read
+09f979d1f312 net: mvpp2: cls: Fix memory leak in mvpp2_ethtool_cls_rule_ins()
+f0813bcd2d9d net: wwan: t7xx: fix potential skb->frags overflow in RX path
+e2a9eeb69f7d mptcp: fix race in mptcp_pm_nl_flush_addrs_doit()
+165c34fb6068 nfc: llcp: Fix memleak in nfc_llcp_send_ui_frame().
+e9acda52fd2e bonding: fix use-after-free due to enslave fail after slave array update
+9bb30be4d89f ice: Fix NULL pointer dereference in ice_vsi_set_napi_queues
+f67666938ae6 net/mlx5e: TC
+d2492688bb9f nfc: nci: Fix race between rfkill and nci_unregister_device().
+a8f930b7be7b net/mlx5: Fix vhca_id access call trace use before alloc
+011be342dd24 net/mlx5e: Skip ESN replay window setup for IPsec crypto offload
+8a44241b0b83 drm/xe/nvm: Fix double-free on aux add failure
+543467d6fe97 writeback: fix 100% CPU usage when dirtytime_expire_interval is 0
+76ed27608f7d perf: sched: Fix perf crash with new is_user_task() helper
+20e01bba2ae4 firewire: core: fix race condition against transaction list
+4b22ec1685ce efivarfs: fix error propagation in efivar_entry_get()
+0fcee2cfc4b2 nvmet: fix race in nvmet_bio_done() leading to NULL pointer dereference
+dd9e2f5b38f1 flex_proportions: make fprop_new_period() hardirq safe
+4e159150a9a5 btrfs: do not strictly require dirty metadata threshold for metadata writepages
+a0f3c0845a4f mm
+8a1968bd997f mm/shmem
+12f15d52d38a drm: Do not allow userspace to trigger kernel warnings in drm_gem_change_handle_ioctl()
+8b1ecc9377bc drm/amdgpu: fix NULL pointer dereference in amdgpu_gmc_filter_faults_remove
+e64d1cb21a1c gpiolib: acpi: Fix potential out-of-boundary left shift
+6c65db809796 Revert "drm/nouveau/disp: Set drm_mode_config_funcs.atomic_(check|commit)"

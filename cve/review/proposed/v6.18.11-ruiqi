@@ -1,0 +1,22 @@
+ec306600d5ba smb: client: split cached_fid bitfields to avoid shared-byte RMW races
+010eb01ce23b ksmbd: fix infinite loop caused by next_smb2_rcv_hdr_off reset in error paths
+4f3a06cc5797 ksmbd: add chann_lock to protect ksmbd_chann_list xarray
+8e94268b21c8 smb: smbdirect: introduce smbdirect_socket.send_io.bcredits.*
+34abd408c8ba smb: server: make use of smbdirect_socket.send_io.bcredits
+9da82dc73cb0 smb: server: let send_done handle a completion without IB_SEND_SIGNALED
+21538121efe6 smb: client: make use of smbdirect_socket.send_io.bcredits
+cf74fcdc43b3 smb: client: let send_done handle a completion without IB_SEND_SIGNALED
+dc23806a7c47 driver core: enforce device_lock for driver_match_device()
+48329301969f crypto: iaa - Fix out-of-bounds index in find_empty_iaa_compression_mode
+1562b1fb7e17 crypto: omap - Allocate OMAP_CRYPTO_FORCE_COPY scatterlists correctly
+ed527ef0c264 nilfs2: Fix potential block overflow that cause system hang
+05ce49a902be hfs: ensure sb->s_fs_info is always cleaned up
+0177aa828d96 wifi: rtw88: Fix alignment fault in rtw_core_enable_beacon()
+b6df15aec8c3 scsi: qla2xxx: Validate sp before freeing associated memory
+8890bf450e0b scsi: qla2xxx: Delay module unload while fabric scan in progress
+148891e95014 bus: fsl-mc: fix use-after-free in driver_override_show()
+1caf50ce4af0 erofs: fix UAF issue for file-backed mounts w/ directio option
+1c253e11225b xfs: fix UAF in xchk_btree_check_block_owner
+52b330799e2d drm/exynos: vidi: use ctx->lock to protect struct vidi_context member variables related to memory alloc/free
+7c5c7d06bd1f PCI: endpoint: Avoid creating sub-groups asynchronously
+86c946bcc00f wifi: rtl8xxxu: fix slab-out-of-bounds in rtl8xxxu_sta_add

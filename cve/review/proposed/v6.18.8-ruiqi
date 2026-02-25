@@ -1,0 +1,42 @@
+8b8d6ee53dfd wifi: ath12k: Fix scan state stuck in ABORTING after cancel_remain_on_channel
+7d7dbafefbe7 net: usb: dm9601: remove broken SR9700 support
+4d10edfd1475 l2tp: Fix memleak in l2tp_udp_encap_recv().
+4f5f148dd7c0 selftests: net: fib-onlink-tests: Convert to use namespaces by default
+a80c9d945aef sctp: move SCTP_CMD_ASSOC_SHKEY right after SCTP_CMD_PEER_INIT
+c158f985cf6c amd-xgbe: avoid misleading per-packet error log
+68578370f9b3 tools: ynl: Specify --no-line-number in ynl-regen.sh.
+ab9b218a1521 octeontx2: cn10k: fix RX flowid TCAM mask handling
+d837fbee9245 net/sched: qfq: Use cl_is_active to determine whether class is active in qfq_rm_from_ag
+5dc6975566f5 wifi: mac80211: don't perform DA check on S1G beacon
+e03b29b55f2b comedi: dmm32at: serialize use of paged registers
+901a5f309dab scsi: xen: scsiback: Fix potential memory leak in scsiback_remove()
+b505f1944535 x86/kfence: avoid writing L1TF-vulnerable PTEs
+bdcdf968be31 drm, drm/xe: Fix xe userptr in the absence of CONFIG_DEVICE_PRIVATE
+ca1a47cd3f5f mm/hugetlb: fix hugetlb_pmd_shared()
+6b39824ac4c1 iio: adc: ad7280a: handle spi_setup() errors in probe()
+baaecfcac559 kconfig: fix static linking of nconf
+19bc5f2a6962 scsi: qla2xxx: Sanitize payload size to prevent member overflow
+bdfc7b55adcd idpf: read lower clock bits inside the time sandwich
+3ef3d52a1a98 vsock/virtio: fix potential underflow in virtio_transport_get_credit()
+8ee784fdf006 vsock/virtio: cap TX credit to local buffer size
+27880b0b0d35 net/sched: act_ife: avoid possible NULL deref
+4a3dba481882 Octeontx2-af: Add proper checks for fwdata
+614da1d3d4cd x86: make page fault handling disable interrupts properly
+b7880cb166ab migrate: correct lock ordering for hugetlb file folios
+441ac29923c9 iio: dac: ad5686: add AD5695R to ad5686_chip_info_tbl
+61006c540cbd ALSA: ctxfi: Fix potential OOB access in audio mixer handling
+122610220134 mmc: rtsx_pci_sdmmc: implement sdmmc_card_busy function
+374e7af67d9d iommu/io-pgtable-arm: fix size_t signedness bug in unmap path
+9282a1e171ad wifi: ath10k: fix dma_free_coherent() pointer
+bb97131fbf9b wifi: ath12k: fix dma_free_coherent() pointer
+128a7494a9f1 arm64/fpsimd: ptrace: Fix SVE writes on !SME systems
+d998b0e5afff octeontx2: Fix otx2_dma_map_page() error return code
+9391380eb91e slimbus: core: fix device reference leak on report present
+90f9f5d64cae tracing: Fix crash on synthetic stacktrace field usage
+06d5a7afe1d0 mei: trace: treat reg parameter as string
+3317785a8803 s390/ap: Fix wrong APQN fill calculation
+98eec349259b uacce: fix isolate sysfs check condition
+26c08dabe547 uacce: ensure safe queue release with state management
+861d21c43c98 pmdomain:rockchip: Fix init genpd as GENPD_STATE_ON before regulator ready
+5d5fe8bcd331 rxrpc: Fix data-race warning and potential load/store tearing
+6f287b1c8d0e drm/xe: fix WQ_MEM_RECLAIM passed as max_active to alloc_workqueue()

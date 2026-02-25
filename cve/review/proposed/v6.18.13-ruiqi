@@ -1,0 +1,10 @@
+c2c68225b145 scsi: qla2xxx: Fix bsg_done() causing double free
+ab7ad7abb366 romfs: check sb_set_blocksize() return value
+fe747d711228 platform/x86: classmate-laptop: Add missing NULL pointer checks
+0209e21e3c37 fbdev: rivafb: fix divide error in nv3_arb()
+120adae7b42f fbdev: smscufx: properly copy ioctl memory to kernelspace
+98ea0039dbfd f2fs: fix out-of-bounds access in sysfs attribute read/write
+ce2739e482bc f2fs: fix to avoid UAF in f2fs_write_end_io()
+5c145c03188b f2fs: fix to avoid mapping wrong physical block for swapfile
+ed1ac3c977dd iommu/arm-smmu-qcom: do not register driver in probe()
+50ac3ecd8e05 f2fs: fix to do sanity check on node footer in {read,write}_end_io

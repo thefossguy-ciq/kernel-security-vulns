@@ -1,0 +1,48 @@
+52a0a9854934 nvmet-tcp: add bounds checks in nvmet_tcp_build_pdu_iovec
+2687c848e578 x86/vmware: Fix hypercall clobbers
+826af7fa62e3 ALSA: aloop: Fix racy access at PCM trigger
+b5cbacd7f86f procfs: avoid fetching build ID while holding VMA lock
+7987cce375ac ceph: fix NULL pointer dereference in ceph_mds_auth_match()
+bd3884a204c3 rbd: check for EOD after exclusive lock is ensured to be held
+bc8dedae022c ceph: fix oops due to invalid pointer for kfree() in parse_longname()
+43151f812886 cgroup/dmem: fix NULL pointer dereference when setting max
+99a2ef500906 cgroup/dmem: avoid pool UAF
+7b9ebcce0296 gve: Fix stats report corruption on queue count change
+2030dddf9545 mm
+243b467dea17 Revert "drm/amd: Check if ASPM is enabled from PCIe subsystem"
+0b8c878d1173 net: cpsw: Execute ndo_set_rx_mode callback in a work queue
+b4d37cdb77a0 KVM: Don't clobber irqfd routing type when deassigning irqfd
+5e8a3d015442 binder: fix UAF in binder_netlink_report()
+e75665dd0968 wifi: wlcore: ensure skb headroom before skb_push
+d5be446948b3 LoongArch: Set correct protection_map[] for VM_NONE/VM_SHARED
+2cc583653bbe md: suspend array while updating raid_disks via sysfs
+fc5ff2500976 io_uring: use GFP_NOWAIT for overflow CQEs on legacy rings
+25fd7ee7bf58 riscv: Sanitize syscall table indexing under speculation
+56e230723e3a HID: intel-ish-hid: Reset enum_devices_done before enumeration
+c06bc3557542 HID: quirks: Add another Chicony HP 5MP Cameras to hid_ignore_list
+0de604d0357d drm/amd/pm: Disable MMIO access during SMU Mode 1 reset
+a143545855bc dmaengine: mmp_pdma: Fix race condition in mmp_pdma_residue()
+d1877cc72703 nvme-fc: release admin tagset if init fails
+ef5749ef8b30 ALSA: usb-audio: Prevent excessive number of frames
+84dc6037390b scsi: target: iscsi: Fix use-after-free in iscsit_dec_session_usage_count()
+4b9748055457 io_uring/rw: free potentially allocated iovec on cache put failure
+9411a89e9e71 scsi: target: iscsi: Fix use-after-free in iscsit_dec_conn_usage_count()
+3f29d661e568 btrfs: sync read disk super and set block size
+e3a43633023e smb/client: fix memory leak in smb2_open_file()
+cabd1a976375 net/sched: cls_u32: use skb_header_pointer_careful()
+ed48a84a72fe dpaa2-switch: prevent ZERO_SIZE_PTR dereference when num_ifs is zero
+31a7a0bbeb00 dpaa2-switch: add bounds check for if_id in IRQ handler
+fc6f36eaaedc ice: Fix PTP NULL pointer dereference during VSI rebuild
+f8db6475a836 macvlan: fix error recovery in macvlan_common_newlink()
+6d06bc83a5ae net: usb: r8152: fix resume reset deadlock
+615901b57b7e hwmon: (acpi_power_meter) Fix deadlocks related to acpi_power_meter_notify()
+0ae91d8ab709 io_uring/zcrx: fix page array leak
+83b67cc9be92 linkwatch: use __dev_put() in callers to prevent UAF
+5ff641011ab7 wifi: iwlwifi: mld: cancel mlo_scan_start_wk
+f613e8b4afea net: add proper RCU protection to /proc/net/ptype
+f41c5d151078 netfilter: nf_tables: fix inverted genmask check in nft_map_catchall_activate()
+071be3b0b657 nvme-pci: handle changing device dma map requirements
+bbf4a17ad9ff ipv6: Fix ECMP sibling count mismatch when clearing RTF_ADDRCONF
+7f67ba5413f9 ASoC: amd: fix memory leak in acp3x pdm dma ops
+b126097b0327 i2c: imx: preserve error state in block data length handler
+edf9088b6e1d spi: tegra210-quad: Protect curr_xfer check in IRQ handler
