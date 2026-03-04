@@ -1,0 +1,104 @@
+14ab3da122bd RDMA/siw: Fix potential NULL pointer dereference in header processing
+5551b02fdbfd RDMA/umad: Reject negative data_len in ib_umad_write
+22150a7d401d gfs2: Fix slab-use-after-free in qd_put
+faddeb848305 gfs2: Fix use-after-free in iomap inline data write path
+3a1f4264daed btrfs: fix block_group_tree dirty_list corruption
+b14c5e04bd0f btrfs: fix EEXIST abort due to non-consecutive gaps in chunk allocation
+c134a40f86ef erofs: fix inline data read failure for ztailpacking pclusters
+ebbbc4bfad4c smb: client: fix potential UAF and double free in smb2_open_file()
+7a8737e1132f io_uring: use release-acquire ordering for IORING_SETUP_R_DISABLED
+f851e03bce96 ACPICA: Fix NULL pointer dereference in acpi_ev_address_space_dispatch()
+4ad357e39b2e iomap: fix submission side handling of completion side errors
+da7e4b75e50c ublk: Validate SQE128 flag before accessing the cmd
+ed9f54cc1e33 ublk: use READ_ONCE() to read struct ublksrv_ctrl_cmd
+53c998527ffa arm64/gcs: Fix error handling in arch_set_shadow_stack_status()
+f597664454bd bpf: bpf_scc_visit instance and backedges accumulation for bpf_loop()
+8cd9b608ee8d crypto: hisilicon/qm - centralize the sending locks of each module into qm
+4154f7d3b1c1 crypto: hisilicon/sgl - fix inconsistent map/unmap direction issue
+af9e89d8dd39 bpf: Preserve id of register in sync_linked_regs()
+ae23bc81ddf7 bpf: Fix tcx/netkit detach permissions when prog fd isn't given
+94894c9c477e sched/rt: Skip currently executing CPU in rto_next_cpu()
+a2c86aa621c2 bpf: Require frozen map for calculating map hash
+cc2f39d6ac48 hwrng: core - use RCU and work_struct to fix race condition
+5669645c052f pstore/ram: fix buffer overflow in persistent_ram_save_old()
+97f27573837e accel/amdxdna: Fix potential NULL pointer dereference in context cleanup
+920c6af98e98 drm/panthor: Fix NULL pointer dereference on panthor_fw_unplug
+377cae9851e8 ima: Fix stack-out-of-bounds in is_bprm_creds_for_exec()
+a519e21e3239 media: chips-media: wave5: Fix memory leak on codec_info allocation failure
+f1370241fe80 accel/amdxdna: Stop job scheduling across aie2_release_resource()
+84dd57fb0359 accel/amdxdna: Fix memory leak in amdxdna_ubuf_map
+56f7db581ee7 HID: intel-ish-hid: fix NULL-ptr-deref in ishtp_bus_remove_all_clients
+24c405fdbe21 dm: fix unlocked test for dm_suspended_md
+22d169bdd284 iommu/vt-d: Flush cache for PASID table before using it
+c1e4f1dccbe9 iommu/vt-d: Clear Present bit before tearing down context entry
+c3b1edea3791 iommu/vt-d: Fix race condition during PASID entry replacement
+27b0fcae8f53 xdrgen: Initialize data pointer for zero-length items
+f9c206cdc426 nfsd: never defer requests during idmap lookup
+8cafcb881364 fat: avoid parent link count underflow in rmdir
+df31a6b0a305 Revert "net/smc: Introduce TCP ULP support"
+c89477ad7944 inet: RAW sockets using IPPROTO_RAW MUST drop incoming ICMP
+c9efde1e537b nfc: hci: shdlc: Stop timers and work before freeing context
+7e43e0a1141d netfilter: nft_set_rbtree: translate rbtree to array for binary search
+35f83a75529a netfilter: nft_set_rbtree: don't gc elements on insert
+76149d53502c procfs: fix missing RCU protection when reading real_parent in do_task_stat()
+ae88a5d2f29b net: atm: fix crash due to unvalidated vcc pointer in sigd_send()
+81b84de32bb2 xfrm: fix ip_rt_bug race in icmp_route_lookup reverse path
+308e7e4d0a84 serial: caif: fix use-after-free in caif_serial ldisc_close()
+73e6ffa37ceb octeon_ep: disable per ring interrupts
+484e834d53cf octeon_ep_vf: ensure dbell BADDR updation
+6884028cd7f2 af_unix: Fix memleak of newsk in unix_stream_connect().
+10016118b6fa cxl/mem: Fix devm_cxl_memdev_edac_release() confusion
+c4af8a98bb52 power: supply: ab8500: Fix use-after-free in power_supply_changed()
+3291c51d4684 power: supply: act8945a: Fix use-after-free in power_supply_changed()
+800584336972 power: supply: bq256xx: Fix use-after-free in power_supply_changed()
+5f0b1cb41906 power: supply: bq25980: Fix use-after-free in power_supply_changed()
+642f33e34b96 power: supply: cpcap-battery: Fix use-after-free in power_supply_changed()
+b2ce982e2e0c power: supply: goldfish: Fix use-after-free in power_supply_changed()
+838767f50747 power: supply: pf1550: Fix use-after-free in power_supply_changed()
+62914959b35e power: supply: pm8916_bms_vm: Fix use-after-free in power_supply_changed()
+e2febe375e5e power: supply: rt9455: Fix use-after-free in power_supply_changed()
+8d59cf3887fb power: supply: sbs-battery: Fix use-after-free in power_supply_changed()
+0beefd0e15d9 RDMA/rxe: Fix double free in rxe_srq_from_init
+7874eeacfa42 RDMA/iwcm: Fix workqueue list corruption by removing work_list
+12985e5915a0 RDMA/rxe: Fix iova-to-va conversion for MR page sizes != PAGE_SIZE
+1956f0a74ccf RDMA/uverbs: Validate wqe_size before using it in ib_uverbs_post_send
+230672599196 power: supply: pm8916_lbc: Fix use-after-free for extcon in IRQ handler
+ce4e25198a6a fbdev: au1200fb: Fix a memory leak in au1200fb_drv_probe()
+2583cb925ca1 clk: qcom: gfx3d: add parent to parent request map
+6ffd02b82243 interconnect: mediatek: Aggregate bandwidth with saturating add
+efcffd9a6ad8 staging: greybus: lights: avoid NULL deref
+f1195ca3b4bb usb: bdc: fix sleep during atomic
+b3c78bc53630 nfsd: do not allow exporting of special kernel filesystems
+d8c128fb6c22 pinctrl: canaan: k230: Fix NULL pointer dereference when parsing devicetree
+f223ebffa185 fs/ntfs3: Initialize new folios before use
+e37a75bb866c fs/ntfs3: fix deadlock in ni_read_folio_cmpr
+27b75ca4e51e fs/ntfs3: prevent infinite loops caused by the next valid being the same
+b2bc7c44ed17 fs/ntfs3: Fix slab-out-of-bounds read in DeleteIndexEntryRoot
+e5c9ffc6ae1b cpuidle: Skip governor when only one idle state is available
+a5ec7baa44ea ovpn: fix possible use-after-free in ovpn_net_xmit
+a6a9bc544b67 net: mctp: ensure our nlmsg responses are initialised
+babab1b42ed6 net: stmmac: fix oops when split header is enabled
+ccd2d799ed44 bpf: Fix a potential use-after-free of BTF object
+94560267d6c4 ovpn: tcp - don't deref NULL sk_socket member after tcp_close()
+6d1dc8014334 xen-netback: reject zero-queue configuration from guest
+71e99ee20fc3 netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
+e3f000f0dee1 macvlan: observe an RCU grace period in macvlan_common_newlink() error path
+0201eedb69b2 ipv6: icmp: remove obsolete code in icmpv6_xrlim_allow()
+e6834a4c4746 bonding: alb: fix UAF in rlb_arp_recv during bond up/down
+e2938ad00b21 apparmor: fix NULL pointer dereference in __unix_needs_revalidation
+00b67657535d apparmor: fix NULL sock in aa_sock_file_perm
+64802f731214 AppArmor: Allow apparmor to handle unaligned dfa tables
+6fc367bfd4c8 apparmor: Fix & Optimize table creation from possibly unaligned memory
+df9ac55abd18 apparmor: fix invalid deref of rawdata when export_binary is unset
+ee41e5b63c82 drm/amdgpu: Fix memory leak in amdgpu_ras_init()
+226a40c06a18 drm/amd/display: Fix dc_link NULL handling in HPD init
+5a19302cab5c drm/amdkfd: Fix watch_id bounds checking in debug address watch v2
+abde491143e4 drm/amd/display: Fix out-of-bounds stream encoder index v3
+4e83a8d58e1c drm/xe/bo: Redirect faults to dummy page for wedged device
+87e4b043b98a usb: cdns3: fix role switching during resume
+a09dc10d1353 ksmbd: call ksmbd_vfs_kern_path_end_removing() on some error paths
+feaf2a80e78f ext4: don't set EXT4_GET_BLOCKS_CONVERT when splitting before submitting I/O
+1bf6974822d1 ext4: don't zero the entire extent if EXT4_EXT_DATA_PARTIAL_VALID1
+d3968a0d85b2 drm/exynos: vidi: use priv->vidi_dev for ctx lookup in vidi_connection_ioctl()
+d4c98c077c7f drm/exynos: vidi: fix to avoid directly dereferencing user pointer
+eddb98ad9364 ata: libata-eh: correctly handle deferred qc timeouts
