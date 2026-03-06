@@ -1,0 +1,110 @@
+bea4429eb301 hfsplus: fix volume corruption issue for generic/480
+4f493a6079b5 audit: add fchmodat2() to change attributes class
+bcb90a2834c7 audit: add missing syscalls to read class
+8c97a6ddc956 minix: Add required sanity checking to minix_check_superblock()
+080e5563f878 dlm: validate length in dlm_search_rsb_tree
+7c2830f00c3e btrfs: fallback to buffered IO if the data profile has duplication
+c3c06e42e152 smb: client: prevent races in ->query_interfaces()
+69d26698e4fd rnbd-srv: Zero the rsp buffer before using it
+ca2a04e84af7 ntfs: ->d_compare() must not block
+55cc6fe5716f EFI/CPER: don't dump the entire memory region
+87880af2d24e APEI/GHES: ARM processor Error: don't go past allocated memory
+f150e753cb8d md-cluster: fix NULL pointer dereference in process_metadata_update
+cefcb9297fbd md raid: fix hang when stopping arrays with metadata through dm-raid
+05363abc7625 pstore: ram_core: fix incorrect success return when vmap() fails
+bd68a1404b6f drm/amdgpu/ras: Move ras data alloc before bad page check
+c979d8db7b0f drm/amd/display: Add signal type check for dcn401 get_phyd32clk_src
+bd8150a1b337 drm/amdgpu: Refactor amdgpu_gem_va_ioctl for Handling Last Fence Update and Timeline Management v4
+0fdf6323c35a media: solo6x10: Check for out of bounds chip_id
+779bdaad2abf media: ipu6: Ensure stream_mutex is acquired when dealing with node list
+26b4309a3ab8 drm: Account property blob allocations to memcg
+bc8477872332 drm/atmel-hlcdc: fix use-after-free of drm_crtc_commit after release
+a1d14d8364ea ASoC: codecs: max98390: Check return value of devm_gpiod_get_optional() in max98390_i2c_probe()
+084d5d444181 ALSA: mixer: oss: Add card disconnect checkpoints
+eb57be32f438 wifi: rtw89: fix potential zero beacon interval in beacon tracking
+957eda596c76 wifi: rtw89: pci: validate sequence number of TX release report
+735ee8582da3 netfilter: xt_tcpmss: check remaining length before reading optlen
+1e3fb3c4a8e6 wifi: iwlwifi: mvm: check the validity of noa_len
+5f93d611b33a wifi: rtw89: pci: validate release report content before using for RTL8922DE
+f7c330a8c83c mailbox: mchp-ipc-sbi: fix out-of-bounds access in mchp_ipc_get_cluster_aggr_irq()
+590fe2f46c86 m68k: nommu: fix memmove() with differently aligned src and dest for 68000
+ce8ded2e61f4 9p/xen: protect xen_9pfs_front_free against concurrent calls
+ba75ecb97d3f misc: bcm_vk: Fix possible null-pointer dereferences in bcm_vk_read()
+0145e7acd298 usb: gadget: f_fs: fix DMA-BUF OUT queues
+cea2a1257a3b usb: chipidea: udc: fix DMA and SG cleanup in _ep_nuke()
+1732053c8a6b fs: ntfs3: check return value of indx_find to avoid infinite loop
+4b90f16e4bb5 fs: ntfs3: fix infinite loop in attr_load_runs_range on inconsistent metadata
+06909b2549d6 fs: ntfs3: fix infinite loop triggered by zero-sized ATTR_LIST
+ac431d597a9b libceph: define and enforce CEPH_MAX_KEY_LEN
+fba2105a157f ALSA: usb-audio: Add sanity check for OOB writes at silencing
+c8ba7ad2cc1c ntb: ntb_hw_switchtec: Fix array-index-out-of-bounds access
+1799d8abeabc xfrm6: fix uninitialized saddr in xfrm6_get_saddr()
+4efa91a28576 xfrm: always flush state and policy upon NETDEV_UNREGISTER event
+858d2a4f67ff tcp: fix potential race in tcp_v6_syn_recv_sock()
+e1512c1db9e8 espintcp: Fix race condition in espintcp_close()
+64868f5ecade net: usb: kaweth: remove TX queue manipulation in kaweth_set_rx_mode
+594163ea88a0 net: ethernet: xscale: Check for PTP support properly
+470c7ca2b4c3 udplite: Fix null-ptr-deref in __udp_enqueue_schedule_skb().
+6b4f875aac34 ksmbd: fix signededness bug in smb_direct_prepare_negotiation()
+a8d1d73c81d1 Bluetooth: L2CAP: Fix not checking output MTU is acceptable on L2CAP_ECRED_CONN_REQ
+138d7eca445e Bluetooth: L2CAP: Fix missing key size check for L2CAP_LE_CONN_REQ
+8a8a9fac9efa net: do not pass flow_id to set_rps_cpu()
+7bb09315f93d tls: Fix race condition in tls_sw_cancel_work_tx()
+ca220141fa8e kcm: fix zero-frag skb in frag_list on partial sendmsg error
+bae8a5d2e759 net: wan: farsync: Fix use-after-free bugs caused by unfinished tasklets
+82aec772fca2 netconsole: avoid OOB reads, msg is not nul-terminated
+fd80bd7105f8 RDMA/ionic: Fix potential NULL pointer dereference in ionic_query_port
+4a2d046e4b13 erofs: fix interlaced plain identification for encoded extents
+bb4c698633c0 team: avoid NETDEV_CHANGEMTU event when unregistering slave
+8a5752c6dcc0 dpaa2-switch: validate num_ifs to prevent out-of-bounds write
+baed0d9ba91d netfilter: nf_conntrack_h323: fix OOB read in decode_choice()
+42023d4b6d26 rpmsg: core: fix race in driver_override_show() and use core helper
+efe24898485c drm/panthor: fix for dma-fence safe access rules
+c1876fc33c59 ASoC: SOF: ipc4-control: Use the correct size for scontrol->ipc_control_data
+cbb9c0d50e47 media: chips-media: wave5: Fix SError of kernel panic when closed
+e66ff2b08e4e media: chips-media: wave5: Fix Null reference while testing fluster
+fc3ba56385d0 KVM: nSVM: Remove a user-triggerable WARN on nested_svm_load_cr3() succeeding
+3756a272d2cf HID: hid-pl: handle probe errors
+cee8337e1bad HID: prodikeys: Check presence of pm->input_ep82
+1547d41f9f19 HID: logitech-hidpp: Check maxfield in hidpp_get_report_length()
+81f8e0e6a2e1 media: rockchip: rga: Fix possible ERR_PTR dereference in rga_buf_init()
+d965919af524 media: qcom: camss: vfe: Fix out-of-bounds access in vfe_isr_reg_update()
+fb8a6c18fb9a dm: clear cloned request bio pointer when last clone bio completes
+127ccae2c185 KVM: nSVM: Always use vmcb01 in VMLOAD/VMSAVE emulation
+16de4c6a8fe9 reset: gpio: suppress bind attributes in sysfs
+1dabf00ee206 media: iris: gen1: Destroy internal buffers after FW releases
+9aa8d63d09cf media: iris: gen2: Add sanity check for session stop
+5488a29596cd drm/buddy: Prevent BUG_ON by validating rounded allocation
+a505ca2db89a media: verisilicon: AV1: Fix tile info buffer size
+10e60d878139 iommu/vt-d: Flush dev-IOTLB only when PCIe device is accessible in scalable mode
+04b1b069f151 iommu/vt-d: Flush piotlb for SVM and Nested domain
+2eb80a2eee18 KVM: arm64: nv: Return correct RES0 bits for FGT registers
+20117c92bcf9 mfd: core: Add locking around 'mfd_of_node_list'
+3eefc0c2b784 xfs: fix freemap adjustments when adding xattrs to leaf blocks
+95d848dc7e63 KVM: x86: Add SRCU protection for reading PDPTRs in __get_sregs2()
+55e03b8cbe27 xfs: check for deleted cursors when revalidating two btrees
+46ef85f854df md/bitmap: fix GPF in write_page caused by resize race
+c5489d04337b x86/kexec: add a sanity check on previous kernel's ima kexec buffer
+a5338e365c45 PCI/IOV: Fix race between SR-IOV enable/disable and hotplug
+5ec820fc28d0 clk: rs9: Reserve 8 struct clk_hw slots for for 9FGV0841
+f8ef441811ec scsi: ufs: core: Flush exception handling work when RPM level is zero
+6a65c0cb0ff2 tipc: fix RCU dereference race in tipc_aead_users_dec()
+8a70a26c9f34 drm/amdkfd: Fix out-of-bounds write in kfd_event_page_set()
+d191101dee25 mptcp: pm: in-kernel: always set ID as avail when rm endp
+41460a19654c staging: rtl8723bs: fix null dereference in find_network
+94b0c831eda7 LoongArch: Make cpumask_of_node() robust against NUMA_NO_NODE
+707104682e3c ceph: do not propagate page array emplacement errors as batch errors
+a6bded921ed3 io_uring/filetable: clamp alloc_hint to the configured alloc range
+1d3f9bb4c8af mm/hugetlb: restore failed global reservations to subpool
+61dc9f776705 procfs: fix possible double mmput() in do_procmap_query()
+1aceed565ff1 mm/vmscan: fix demotion targets checks in reclaim/demotion
+ac1ea219590c mm/page_alloc: clear page->private in free_pages_prepare()
+8930878101cd atm: fore200e: fix use-after-free in tasklets during device removal
+6db8b56eed62 ipv6: ioam: fix heap buffer overflow in __ioam6_fill_trace_data()
+011a0502801c fbcon: check return value of con2fb_acquire_newinfo()
+14f66f446463 cifs: some missing initializations on replay
+fbbe32618e97 drm/xe: Add bounds check on pat_index to prevent OOB kernel read in madvise
+6766f5901230 gpio: sysfs: fix chip removal with GPIOs exported over sysfs
+003049b1c4fb io_uring/zcrx: fix user_ref race between scrub and refill paths
+571dcbeb8e63 net: nfc: nci: Fix parameter validation for packet data
+efdc66fe12b0 drm/amdgpu: Refactor amdgpu_gem_va_ioctl for Handling Last Fence Update and Timeline Management v7
