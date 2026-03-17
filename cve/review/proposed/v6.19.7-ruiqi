@@ -1,0 +1,90 @@
+77de62ad3de3 perf/core: Fix refcount bug and potential UAF in perf_mmap
+5023ca80f958 drm/vmwgfx: Return the correct value in vmw_translate_ptr functions
+f66857bafd4f KVM: arm64: Hide S1POE from guests when not supported by the host
+38353c26db28 scsi: pm8001: Fix use-after-free in pm8001_queue_command()
+aa280a08e7d8 x86/fred: Correct speculative safety in fred_extint()
+1110a949675e accel/amdxdna: Fix out-of-bounds memset in command slot handling
+03808abb1d86 accel/amdxdna: Prevent ubuf size overflow
+901ec3470994 accel/amdxdna: Validate command buffer payload count
+78437ab3b769 clk: scu/imx8qxp: do not register driver in probe()
+96a1fd0d84b1 cxl: Fix race of nvdimm_bus object when creating nvdimm objects
+60b5d1f68338 cxl/mbox: validate payload size before accessing contents in cxl_payload_from_user_allowed()
+c601fd541431 drm/client: Do not destroy NULL modes
+c9bc1753b3cc perf: Fix __perf_event_overflow() vs perf_remove_from_context() race
+8f098037139b arm64: io: Extract user memory type in ioremap_prot()
+c22533c66cca PCI: dwc: ep: Flush MSI-X write before unmapping its ATU entry
+7b7d7693a55d drm/amdgpu/userq: Do not allow userspace to trivially triger kernel warnings
+ef06fd16d487 bpf, arm64: Force 8-byte alignment for JIT buffer to prevent atomic tearing
+b7bf516c3ecd bpf: Fix stack-out-of-bounds write in devmap
+869c63d5975d bpf: Fix race in cpumap on PREEMPT_RT
+1872e75375c4 bpf: Fix race in devmap on PREEMPT_RT
+56a512a9b410 usb: gadget: f_ncm: align net_device lifecycle with bind/unbind
+34f4495a7f72 accel/rocket: fix unwinding in error path in rocket_probe
+fdcfce93073d eventpoll: Fix integer overflow in ep_loop_check_proc()
+bfbc0b5b32a8 media: dvb-core: fix wrong reinitialization of ringbuffer on reopen
+4b063c002ca7 net: usb: kaweth: validate USB endpoints
+c58b6c29a4c9 net: usb: kalmia: validate USB endpoints
+11de1d3ae556 net: usb: pegasus: validate USB endpoints
+38a01c9700b0 can: ems_usb: ems_usb_read_bulk_callback(): check the proper length of a message
+ecfa6f34492c HID: Add HID_CLAIMED_INPUT guards in raw_event callbacks missing them
+97d5c8f5c09a HID: pidff: Fix condition effect bit clearing
+a4b0bf6a40f3 x86/efi: defer freeing of boot services memory
+d1a196e0a6dc platform/x86: dell-wmi-sysman: Don't hex dump plaintext password data
+54f9d645a545 ALSA: usb-audio: Use correct version for UAC3 header validation
+c854758abe0b wifi: radiotap: reject radiotap with unknown bits
+03cc8f90d053 wifi: libertas: fix use-after-free in lbs_free_adapter()
+767d23ade706 wifi: cfg80211: cancel rfkill_block work in wiphy_unregister()
+162d331d833d wifi: mac80211: bounds-check link_id in ieee80211_ml_reconfiguration
+017c17925250 wifi: mac80211: fix NULL pointer dereference in mesh_rx_csa_frame()
+21e4271e6509 Bluetooth: purge error queues in socket destructors
+74586c6da9ea RDMA/irdma: Fix kernel stack leak in irdma_create_user_ah()
+faa72102b178 RDMA/ionic: Fix kernel stack leak in ionic_create_cq()
+c5794709bc91 ksmbd: Compare MACs in constant time
+6b050482ec40 cpufreq: intel_pstate: Fix crash during turbo disable
+8a85b3131225 arm64: gcs: Do not set PTE_SHARED on GCS mappings if FEAT_LPA2 is enabled
+e35626f610f3 net/sched: ets: fix divide by zero in the offload path
+e39bb9e02b68 tracing: Fix WARN_ON in tracing_buffers_mmap_close
+dd085fe9a8eb mm: thp: deny THP for files on anonymous inodes
+fdb24a820a58 Squashfs: check metadata block offset is within range
+ab140365fb62 drbd: fix "LOGIC BUG" in drbd_al_begin_io_nonblock()
+0d195d3b205c drbd: fix null-pointer dereference on local read error
+eb8550fb75a8 xfs: fix xfs_group release bug in xfs_dax_notify_dev_failure
+2f37dc436d4e smb: client: Don't log plaintext credentials in cifs_set_cifscreds
+048efe129a29 smb: client: fix oops due to uninitialised var in smb2_unlink()
+594c11d0e1d4 ipmi: Fix use-after-free and list corruption on sender error
+a9c354e65659 ice: fix crash in ethtool offline loopback test
+89ff45359abb accel/amdxdna: Fill invalid payload for failed command
+60abb0ac11dc xsk: Fix fragment node deletion to prevent buffer leak
+101bacb303e8 atm: lec: fix null-ptr-deref in lec_arp_clear_vccs
+c35636e91e39 can: bcm: fix locking for bcm_op runtime updates
+e377182f0266 drm/xe/configfs: Free ctx_restore_mid_bb in release
+99f9b5343cae drm/xe/queue: Call fini on exec queue creation fail
+6270ee26e1ed accel/amdxdna: Fix NULL pointer dereference of mgmt_chann
+43b3160cb639 octeon_ep: avoid compiler and IQ/OQ reordering
+608628463086 wifi: mt76: mt7996: Fix possible oob access in mt7996_mac_write_txwi_80211()
+c41a9abd6ae3 wifi: mt76: mt7925: Fix possible oob access in mt7925_mac_write_txwi_80211()
+4e10a730d1b5 wifi: mt76: Fix possible oob access in mt76_connac2_mac_write_txwi_80211()
+56145d237385 bpf: Fix a UAF issue in bpf_trampoline_link_cgroup_shim
+12c43a062acb smb/client: fix buffer size for smb311_posix_qinfo in smb2_compound_op()
+2ffb4f5c2ccb ipv6: fix NULL pointer deref in ip6_rt_get_dev_rcu()
+4ee7fa6cf78f net: ipv4: fix ARM64 alignment fault in multipath hash seed
+aac9b27f7c1f ata: libata: cancel pending work after clearing deferred_qc
+cfc69c2e6c69 i2c: i801: Revert "i2c: i801: replace acpi_lock with I2C bus lock"
+c3320153769f nvme: fix memory allocation in nvme_pr_read_keys()
+d658686a1331 sched/deadline: Fix missing ENQUEUE_REPLENISH during PI de-boosting
+7f083faf59d1 net: sched: avoid qdisc_reset_all_tx_gt() vs dequeue race for lockless qdiscs
+165573e41f2f tcp: secure_seq: add back ports to TS offset
+d793458c45df nfc: rawsock: cancel tx_work before socket teardown
+def602e498a4 netfilter: nf_tables: unconditionally bump set->nelems before insertion
+fb7fb4016300 netfilter: nf_tables: clone set on flush only
+9df95785d3d8 netfilter: nft_set_pipapo: split gc into unlink and reclaim phase
+0abc73c8a40f net: ethernet: mtk_eth_soc: Reset prog ptr to old_prog in case of error in mtk_xdp_setup()
+e5e890630533 net: bridge: fix nd_tbl NULL dereference when IPv6 is disabled
+168ff39e4758 net: vxlan: fix nd_tbl NULL dereference when IPv6 is disabled
+21ec92774d15 net: ipv6: fix panic when IPv4 route references loopback IPv6 nexthop
+e2cedd400c3e net/sched: act_ife: Fix metalist update behavior
+16394d805399 xsk: introduce helper to determine rxq->frag_size
+e142dc4ef0f4 ice: change XDP RxQ frag_size from DMA write length to xdp.frame_sz
+c69d22c6c46a i40e: use xdp.frame_sz as XDP RxQ info frag_size
+8821e857759b xdp: produce a warning when calculated tailroom is negative
+2658a1720a19 bpf: collect only live registers in linked regs
