@@ -1,0 +1,90 @@
+017c17925250 wifi: mac80211: fix NULL pointer dereference in mesh_rx_csa_frame()
+6b050482ec40 cpufreq: intel_pstate: Fix crash during turbo disable
+8a85b3131225 arm64: gcs: Do not set PTE_SHARED on GCS mappings if FEAT_LPA2 is enabled
+e35626f610f3 net/sched: ets: fix divide by zero in the offload path
+a9c354e65659 ice: fix crash in ethtool offline loopback test
+636cc3bd12f4 libie: don't unroll if fwlog isn't supported
+cfc69c2e6c69 i2c: i801: Revert "i2c: i801: replace acpi_lock with I2C bus lock"
+e5e890630533 net: bridge: fix nd_tbl NULL dereference when IPv6 is disabled
+168ff39e4758 net: vxlan: fix nd_tbl NULL dereference when IPv6 is disabled
+8821e857759b xdp: produce a warning when calculated tailroom is negative
+486ff5ad49bc perf/core: Fix invalid wait context in ctx_sched_in()
+96a1fd0d84b1 cxl: Fix race of nvdimm_bus object when creating nvdimm objects
+60b5d1f68338 cxl/mbox: validate payload size before accessing contents in cxl_payload_from_user_allowed()
+767d23ade706 wifi: cfg80211: cancel rfkill_block work in wiphy_unregister()
+1cb968a2013f nfsd: Fix cred ref leak in nfsd_nl_threads_set_doit().
+dd085fe9a8eb mm: thp: deny THP for files on anonymous inodes
+28dfe4317541 drm/amd/display: Use GFP_ATOMIC in dc_create_stream_for_sink
+da46b5dfef48 blktrace: fix __this_cpu_read/write in preemptible context
+e2f27363aa6d amd-xgbe: fix sleep while atomic on suspend/resume
+7f083faf59d1 net: sched: avoid qdisc_reset_all_tx_gt() vs dequeue race for lockless qdiscs
+e2cedd400c3e net/sched: act_ife: Fix metalist update behavior
+579a752464a6 mptcp: pm: in-kernel: always mark signal+subflow endp as used
+3e00b1b332e5 pinctrl: equilibrium: fix warning trace on load
+c3320153769f nvme: fix memory allocation in nvme_pr_read_keys()
+d658686a1331 sched/deadline: Fix missing ENQUEUE_REPLENISH during PI de-boosting
+fb7fb4016300 netfilter: nf_tables: clone set on flush only
+b7bf516c3ecd bpf: Fix stack-out-of-bounds write in devmap
+869c63d5975d bpf: Fix race in cpumap on PREEMPT_RT
+bfbc0b5b32a8 media: dvb-core: fix wrong reinitialization of ringbuffer on reopen
+c854758abe0b wifi: radiotap: reject radiotap with unknown bits
+21e4271e6509 Bluetooth: purge error queues in socket destructors
+e39bb9e02b68 tracing: Fix WARN_ON in tracing_buffers_mmap_close
+14d4ac19d189 scsi: target: Fix recursive locking in __configfs_open_file()
+fdb24a820a58 Squashfs: check metadata block offset is within range
+2ef2b20cf4e0 net: annotate data-races around sk->sk_{data_ready,write_space}
+101bacb303e8 atm: lec: fix null-ptr-deref in lec_arp_clear_vccs
+c35636e91e39 can: bcm: fix locking for bcm_op runtime updates
+479d589b40b8 bpf/bonding: reject vlan+srcmac xmit_hash_policy change when XDP is loaded
+aac9b27f7c1f ata: libata: cancel pending work after clearing deferred_qc
+21ec92774d15 net: ipv6: fix panic when IPv4 route references loopback IPv6 nexthop
+38a01c9700b0 can: ems_usb: ems_usb_read_bulk_callback(): check the proper length of a message
+952caa5da10b can: usb: f81604: correctly anchor the urb in the read bulk callback
+1e446fd0582a can: ucan: Fix infinite loop from zero-length messages
+5eaad4f76826 can: usb: etas_es58x: correctly anchor the urb in the read bulk callback
+7299b1b39a25 can: usb: f81604: handle short interrupt urb messages properly
+51f94780720f can: usb: f81604: handle bulk write errors properly
+ecfa6f34492c HID: Add HID_CLAIMED_INPUT guards in raw_event callbacks missing them
+048efe129a29 smb: client: fix oops due to uninitialised var in smb2_unlink()
+4b063c002ca7 net: usb: kaweth: validate USB endpoints
+c58b6c29a4c9 net: usb: kalmia: validate USB endpoints
+11de1d3ae556 net: usb: pegasus: validate USB endpoints
+a4b0bf6a40f3 x86/efi: defer freeing of boot services memory
+ab140365fb62 drbd: fix "LOGIC BUG" in drbd_al_begin_io_nonblock()
+56145d237385 bpf: Fix a UAF issue in bpf_trampoline_link_cgroup_shim
+a0cb371b521d x86/bug: Handle __WARN_printf() trap in early_fixup_exception()
+8363c0286333 accel/amdxdna: Fix crash when destroying a suspended hardware context
+38353c26db28 scsi: pm8001: Fix use-after-free in pm8001_queue_command()
+03cc8f90d053 wifi: libertas: fix use-after-free in lbs_free_adapter()
+594c11d0e1d4 ipmi: Fix use-after-free and list corruption on sender error
+889b0e2721e7 crypto: ccp - Fix use-after-free on error path
+77de62ad3de3 perf/core: Fix refcount bug and potential UAF in perf_mmap
+1872e75375c4 bpf: Fix race in devmap on PREEMPT_RT
+56a512a9b410 usb: gadget: f_ncm: align net_device lifecycle with bind/unbind
+1ac22c8eae81 scsi: core: Fix refcount leak for tagset_refcnt
+d793458c45df nfc: rawsock: cancel tx_work before socket teardown
+9df95785d3d8 netfilter: nft_set_pipapo: split gc into unlink and reclaim phase
+8f098037139b arm64: io: Extract user memory type in ioremap_prot()
+2f37dc436d4e smb: client: Don't log plaintext credentials in cifs_set_cifscreds
+c5794709bc91 ksmbd: Compare MACs in constant time
+d9d1e319b39e smb: client: fix broken multichannel with krb5+signing
+165573e41f2f tcp: secure_seq: add back ports to TS offset
+efc11a667878 bpf: Improve bounds when tnum has a single possible value
+a2539b92e4b7 pinctrl: meson: amlogic-a4: Fix device node reference leak in aml_dt_node_to_map_pinmux()
+03808abb1d86 accel/amdxdna: Prevent ubuf size overflow
+c9bc1753b3cc perf: Fix __perf_event_overflow() vs perf_remove_from_context() race
+fdcfce93073d eventpoll: Fix integer overflow in ep_loop_check_proc()
+5dd69b864911 hwmon: (macsmc) Fix regressions in Apple Silicon SMC hwmon driver
+579b86f3c26f hwmon: (macsmc) Fix overflows, underflows, and sign extension
+7bd4b0c4779f nfc: nci: free skb on nci_transceive early error paths
+457965c13f08 tracing: Add NULL pointer check to trigger_data_free()
+c601fd541431 drm/client: Do not destroy NULL modes
+ef06fd16d487 bpf, arm64: Force 8-byte alignment for JIT buffer to prevent atomic tearing
+97d5c8f5c09a HID: pidff: Fix condition effect bit clearing
+0d195d3b205c drbd: fix null-pointer dereference on local read error
+6270ee26e1ed accel/amdxdna: Fix NULL pointer dereference of mgmt_chann
+2ffb4f5c2ccb ipv6: fix NULL pointer deref in ip6_rt_get_dev_rcu()
+b57c4ec98c17 drm/amdgpu: Fix error handling in slot reset
+66083581945b nfc: nci: complete pending data exchange on device close
+d1a196e0a6dc platform/x86: dell-wmi-sysman: Don't hex dump plaintext password data
+32e0a7ad9c84 gpio: shared: fix memory leaks
