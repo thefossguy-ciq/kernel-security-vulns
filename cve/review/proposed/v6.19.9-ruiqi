@@ -1,0 +1,86 @@
+c15e7c62feb3 smb/server: Fix another refcount leak in smb2_open()
+fa96392ebebc scsi: mpi3mr: Add NULL checks when resetting request and reply queues
+30df81f2228d scsi: ufs: core: Fix possible NULL pointer dereference in ufshcd_add_command_trace()
+410666a298c3 nfs: return EISDIR on nfs3_proc_create if d_alias is a dir
+db25c42c2e1f net/mlx5e: RX, Fix XDP multi-buf frag counting for striding RQ
+0cc0c2e661af net/sched: teql: fix NULL pointer dereference in iptunnel_xmit on TEQL slave xmit
+86292155bea5 net: spacemit: Fix error handling in emac_tx_mem_map()
+95bc5c225513 ASoC: soc-core: flush delayed work before removing DAIs and widgets
+288598d80a06 serial: caif: hold tty->link reference in ldisc_open and ser_release
+950803f72547 bonding: fix type confusion in bond_setup_by_slave()
+6f1a9140ecda net: add xmit recursion limit to tunnel xmit functions
+7cb9a23d7ae4 netfilter: nf_tables: always walk all pending catchall elements
+cfe770220ac2 netfilter: x_tables: guard option walkers against 1-byte tail reads
+f1ba83755d81 netfilter: nfnetlink_queue: fix entry leak in bridge verdict error path
+6dcee8496d53 netfilter: nfnetlink_cthelper: fix OOB read in nfnl_cthelper_dump_table()
+329f0b9b48ee netfilter: xt_IDLETIMER: reject rev0 reuse of ALARM timer labels
+b4e78f1427c7 nvme-pci: Fix slab-out-of-bounds in nvme_dbbuf_set
+efc54fb13d79 iavf: fix PTP use-after-free during reset
+6b13cb8f48a4 accel/amdxdna: Fix runtime suspend deadlock when there is pending job
+30e4b2290cc2 ASoC: codecs: rt1011: Use component to get the dapm context in spk_mode_put
+30c64fb98399 ASoC: amd: acp-mach-common: Add missing error check for clock acquisition
+6f02c6b19603 io_uring: fix physical SQE bounds check for SQE_MIXED 128-byte ops
+87c2302813ab net/mana: Null service_wq on setup error to prevent double destroy
+c38b8f5f791e net: prevent NULL deref in ip[6]tunnel_xmit()
+8479891d1f04 usb: gadget: f_mass_storage: Fix potential integer overflow in check_command_size_in_blocks()
+1336b579f607 sched_ext: Remove redundant css_put() in scx_cgroup_init()
+9b1dbd69ba6f ALSA: pcm: fix use-after-free on linked stream runtime in snd_pcm_drain()
+df1d8abf36ca ALSA: usb-audio: Check endpoint numbers at parsing Scarlett2 mixer interfaces
+8ef2c15aeae0 rust_binder: check ownership before using vma
+4cb9e13fec0d rust_binder: avoid reading the written value in offsets array
+87d0f901a9bd KVM: SVM: Set/clear CR8 write interception when AVIC is (de)activated
+d6d5febd1245 usb: xhci: Prevent interrupt storm on host controller error (HCE)
+8df672bfe3ec usb: class: cdc-wdm: fix reordering issue in read code path
+3cbc242b88c6 usb: renesas_usbhs: fix use-after-free in ISR during device removal
+b9fde5073553 usb: gadget: f_tcm: Fix NULL pointer dereferences in nexus handling
+0d6c8144ca4d usb: gadget: f_ncm: Fix atomic context locking issue
+ce0123cbb4a4 ceph: fix i_nlink underrun during async unlink
+b2e48c429ec5 sched/mmcid: Prevent CID stalls due to concurrent forks
+28b5a1395036 sched/mmcid: Handle vfork()/CLONE_VM correctly
+e9bbfb4bfa86 powerpc, perf: Check that current->mm is alive before getting user callchain
+b0bd84c39289 scsi: ufs: core: Fix SError in ufshcd_rtc_work() during UFS suspend
+c0b7da13a04b scsi: qla2xxx: Completely fix fcport double free
+8ddc0c269165 scsi: hisi_sas: Fix NULL pointer exception during user_scan()
+af12e64ae066 mmc: mmci: Fix device_node reference leak in of_get_dml_pipe_index()
+6c5a9baa15de tipc: fix divide-by-zero in tipc_sk_filter_connect()
+43323a5934b6 ceph: add a bunch of missing ceph_path_info initializers
+b282c43ed156 libceph: Fix potential out-of-bounds access in ceph_handle_auth_reply()
+69fb5d91bba4 libceph: prevent potential out-of-bounds reads in process_message_header()
+b570f37a2ce4 mm: Fix a hmm_range_fault() livelock / starvation problem
+e6b899f08066 nsfs: tighten permission checks for ns iteration ioctls
+28aaa9c39945 kthread: consolidate kthread exit paths to prevent use-after-free
+ab39cc4cb8ce cpufreq: intel_pstate: Fix NULL pointer dereference in update_cpu_qos_request()
+ea78f8c68f4f drm/amdgpu: add upper bound check on user inputs in signal ioctl
+64ac7c09fc44 drm/amdgpu: add upper bound check on user inputs in wait ioctl
+f15fb3d41543 btrfs: fix chunk map leak in btrfs_map_block() after btrfs_chunk_map_num_copies()
+83236b2e43db sched_ext: Disable preemption between scx_claim_exit() and kicking helper work
+d2324a9317f0 nsfs: tighten permission checks for handle opening
+8d76afe84fa2 nstree: tighten permission checks for listing
+f0109b9d3e1e staging: rtl8723bs: properly validate the data in rtw_get_ie_ex()
+a75281626fc8 staging: rtl8723bs: fix potential out-of-bounds read in rtw_restruct_wmm_ie
+24d87712727a media: dvb-net: fix OOB access in ULE extension header tables
+dabffd08545f net: mana: Ring doorbell at 4 CQ wraparounds
+67edfec516d3 net/tcp-ao: Fix MAC comparison to be constant-time
+46d0d6f50dab net/tcp-md5: Fix MAC comparison to be constant-time
+8f3c6f08abab nouveau/dpcd: return EBUSY for aux xfer if the device is asleep
+531bb98a030c io_uring/zcrx: use READ_ONCE with user shared RQEs
+97c5550b7631 arm64: contpte: fix set_access_flags() no-op check for SMMU/ATS faults
+eac3361e3d5d ksmbd: fix use-after-free in smb_lazy_parent_lease_break_close()
+1e689a561738 smb: server: fix use-after-free in smb2_open()
+441336115df2 ksmbd: Don't log keys in SMB3 signing and encryption key generation
+1dfd062caa16 ksmbd: fix use-after-free by using call_rcu() for oplock_info
+b2662e7593e9 net: nexthop: fix percpu use-after-free in remove_nh_grp_entry
+2c1030f2e848 drm/amdgpu: Fix use-after-free race in VM acquire
+062ea905fff7 drm/amd: Fix NULL pointer dereference in device cleanup
+57885276cc16 net-shapers: don't free reply skb after genlmsg_reply()
+c2c185be5c85 io_uring/kbuf: check if target buffer list is still legacy on recycle
+25966fc09769 ublk: fix NULL pointer dereference in ublk_ctrl_set_size()
+e1b18b959025 btrfs: fix transaction abort when snapshotting received subvolumes
+2d1ababdedd4 btrfs: fix transaction abort on file creation due to name hash collision
+87f2c46003fc btrfs: fix transaction abort on set received ioctl due to item overflow
+0f475ee0ebce btrfs: abort transaction on failure to update root in the received subvol ioctl
+216345f98cae iio: chemical: sps30_i2c: fix buffer size in sps30_i2c_read_meas()
+a318cfc08537 iio: proximity: hx9023s: Protect against division by zero in set_samp_freq
+ac6769c8f948 KVM: arm64: Eagerly init vgic dist/redist on vgic creation
+96189080265e io_uring: ensure ctx->rings is stable for task work flags manipulation
+177c69432161 io_uring/eventfd: use ctx->rings_rcu for flags checking
