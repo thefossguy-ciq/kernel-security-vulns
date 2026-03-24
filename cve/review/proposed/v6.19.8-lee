@@ -1,0 +1,4 @@
+62413a9c3cb1 net/sched: act_gate: snapshot parameters with RCU on replace [auto: cve already created]
+11cb63b0d1a0 net/sched: Only allow act_ct to bind to clsact/ingress qdiscs and shared blocks [auto: cve already created]
+9063d7e2615f apparmor: validate DFA start states are in bounds in unpack_pdb [auto: cve already created]
+6601e13e8284 apparmor: fix unprivileged local user can do privileged policy management [auto: cve already created]
