@@ -1,0 +1,46 @@
+77de62ad3de3 perf/core: Fix refcount bug and potential UAF in perf_mmap [auto: cve already created]
+5023ca80f958 drm/vmwgfx: Return the correct value in vmw_translate_ptr functions
+8363c0286333 accel/amdxdna: Fix crash when destroying a suspended hardware context
+1aa82181a3c2 accel/amdxdna: Fix dead lock for suspend and resume
+1110a949675e accel/amdxdna: Fix out-of-bounds memset in command slot handling
+60b5d1f68338 cxl/mbox: validate payload size before accessing contents in cxl_payload_from_user_allowed()
+c9bc1753b3cc perf: Fix __perf_event_overflow() vs perf_remove_from_context() race [auto: cve already created]
+7b7d7693a55d drm/amdgpu/userq: Do not allow userspace to trivially triger kernel warnings
+ef06fd16d487 bpf, arm64: Force 8-byte alignment for JIT buffer to prevent atomic tearing
+869c63d5975d bpf: Fix race in cpumap on PREEMPT_RT
+56a512a9b410 usb: gadget: f_ncm: align net_device lifecycle with bind/unbind
+34f4495a7f72 accel/rocket: fix unwinding in error path in rocket_probe
+bfbc0b5b32a8 media: dvb-core: fix wrong reinitialization of ringbuffer on reopen [auto: cve already created]
+38a01c9700b0 can: ems_usb: ems_usb_read_bulk_callback(): check the proper length of a message
+952caa5da10b can: usb: f81604: correctly anchor the urb in the read bulk callback
+1e446fd0582a can: ucan: Fix infinite loop from zero-length messages
+a4b0bf6a40f3 x86/efi: defer freeing of boot services memory
+54f9d645a545 ALSA: usb-audio: Use correct version for UAC3 header validation
+162d331d833d wifi: mac80211: bounds-check link_id in ieee80211_ml_reconfiguration [auto: cve already created]
+fb868db5f4bc gve: fix incorrect buffer cleanup in gve_tx_clean_pending_packets for QPL
+c8dbdc6e380e net: phy: register phy led_triggers during probe to avoid AB-BA deadlock
+117942ca43e2 IB/mthca: Add missed mthca_unmap_user_db() for mthca_create_srq()
+c5794709bc91 ksmbd: Compare MACs in constant time
+1cb968a2013f nfsd: Fix cred ref leak in nfsd_nl_threads_set_doit().
+14d4ac19d189 scsi: target: Fix recursive locking in __configfs_open_file()
+ab140365fb62 drbd: fix "LOGIC BUG" in drbd_al_begin_io_nonblock()
+1ac22c8eae81 scsi: core: Fix refcount leak for tagset_refcnt
+579a752464a6 mptcp: pm: in-kernel: always mark signal+subflow endp as used
+5dd69b864911 hwmon: (macsmc) Fix regressions in Apple Silicon SMC hwmon driver
+3e00b1b332e5 pinctrl: equilibrium: fix warning trace on load
+fd5bed798f45 pinctrl: cirrus: cs42l43: Fix double-put in cs42l43_pin_probe()
+889b0e2721e7 crypto: ccp - Fix use-after-free on error path
+ab3f894de216 can: mcp251x: fix deadlock in error path of mcp251x_open
+d973b1039ccd wifi: rsi: Don't default to -EOPNOTSUPP in rsi_mac80211_config
+99f9b5343cae drm/xe/queue: Call fini on exec queue creation fail
+da46b5dfef48 blktrace: fix __this_cpu_read/write in preemptible context
+479d589b40b8 bpf/bonding: reject vlan+srcmac xmit_hash_policy change when XDP is loaded
+27990181031f ASoC: SDCA: Add allocation failure check for Entity name
+636cc3bd12f4 libie: don't unroll if fwlog isn't supported
+aac9b27f7c1f ata: libata: cancel pending work after clearing deferred_qc
+cfc69c2e6c69 i2c: i801: Revert "i2c: i801: replace acpi_lock with I2C bus lock"
+c3320153769f nvme: fix memory allocation in nvme_pr_read_keys() [auto: cve already created]
+165573e41f2f tcp: secure_seq: add back ports to TS offset [auto: cve already created]
+def602e498a4 netfilter: nf_tables: unconditionally bump set->nelems before insertion [auto: cve already created]
+8821e857759b xdp: produce a warning when calculated tailroom is negative
+457965c13f08 tracing: Add NULL pointer check to trigger_data_free()
