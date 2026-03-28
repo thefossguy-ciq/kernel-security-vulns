@@ -1,0 +1,87 @@
+48db892356d6 NFSD: Defer sub-object cleanup in export put callbacks
+e7fcf179b82d NFSD: Hold net reference for the lifetime of /proc/fs/nfs/exports fd
+5133b61aaf43 nfsd: fix heap overflow in NFSv4.0 LOCK replay cache
+2b658c1c442e HID: bpf: prevent buffer overflow in hid_hw_request
+a8aec1423032 nvdimm/bus: Fix potential use after free in asynchronous initialization
+29f40594a281 mm/rmap: fix incorrect pte restoration for lazyfree folios
+fae654083bfa mm/huge_memory: fix use of NULL folio in move_pages_huge_pmd()
+8da13e6d63c1 net: macb: fix use-after-free access to PTP clock
+64dcbde7f8f8 bnxt_en: fix OOB access in DBG_BUF_PRODUCER async event handler
+0d4aef630be9 batman-adv: avoid OGM aggregation when skb tailroom is insufficient
+672e5229e1ec mac80211: fix crash in ieee80211_chan_bw_change for AP_VLAN stations
+15145675690c Bluetooth: L2CAP: Fix type confusion in l2cap_ecred_reconf_rsp()
+dd815e6e3918 Bluetooth: L2CAP: Validate L2CAP_INFO_RSP payload length before access
+12b4c5d98cd7 smb: client: fix krb5 mount with username option
+282343cf8a4a ksmbd: unset conn->binding on failed binding request
+3a64125730ca ksmbd: use volume UUID in FS_OBJECT_ID_INFORMATION
+340cea84f691 cifs: open files should not hold ref on superblock
+0cfe9c4838f1 drm/xe: Fix memory leak in xe_vm_madvise_ioctl
+b826d2c0b0ec pmdomain: bcm: bcm2835-power: Increase ASB control timeout
+8634e05b08ea spi: fix use-after-free on controller registration failure
+dee0774bbb2a spi: fix statistics allocation
+0410e1a4c545 mtd: rawnand: cadence: Fix error check for dma_alloc_coherent() in cadence_nand_init()
+8e2f8020270a mtd: Avoid boot crash in RedBoot partition table parser
+fe89277c9ceb iommu/vt-d: Fix intel iommu iotlb sync hardlockup and retry
+a424a34b8fad serial: 8250: Fix TX deadlock when using DMA
+455ce986fa35 serial: core: fix infinite loop in handle_tx() for PORT_UNKNOWN
+6bee098b9141 drm: Fix use-after-free on framebuffers and property blobs when calling drm_dev_unplug
+cdb82ecbeccb drm/amdgpu/mmhub3.0: add bounds checking for cid
+3cdd405831d8 drm/amdgpu/mmhub4.1.0: add bounds checking for cid
+2d7f05cddf4c drm/imagination: Synchronize interrupts before suspending the GPU
+6270b1a5dab9 drm/amdgpu: Limit BO list entry count to prevent resource exhaustion
+01f2557aa684 drm/xe: Open-code GGTT MMIO access protection
+5b3e2052334f Bluetooth: L2CAP: Fix accepting multiple L2CAP_ECRED_CONN_REQ
+6dccbc9f3e1d wifi: cfg80211: cancel pmsr_free_wk in cfg80211_pmsr_wdev_down
+555317d61001 firmware: arm_scmi: Fix NULL dereference on notify error path
+e1d9a6688986 Bluetooth: LE L2CAP: Disconnect if received packet's SDU exceeds IMTU
+b6a2bf43aa37 Bluetooth: LE L2CAP: Disconnect if sum of payload sizes exceed SDU
+17f89341cb42 Bluetooth: MGMT: Fix list corruption and UAF in command complete handlers
+dbf666e4fc9b Bluetooth: HIDP: Fix possible UAF
+752a6c9596dd Bluetooth: L2CAP: Fix use-after-free in l2cap_unregister_user
+3715a0085531 bridge: cfm: Fix race condition in peer_mep deletion
+e1f0a18c9564 net/rose: fix NULL pointer dereference in rose_transmit_link on reconnect
+8431c602f551 ip_tunnel: adapt iptunnel_xmit_stats() to NETDEV_PCPU_STAT_DSTATS
+5cb81eeda909 netfilter: ctnetlink: fix use-after-free in ctnetlink_dump_exp_ct()
+f900e1d77ee0 netfilter: conntrack: add missing netlink policy validations
+fbce58e719a1 netfilter: nf_conntrack_sip: fix Content-Length u32 truncation in sip_help_tcp()
+1e3a3593162c netfilter: nf_conntrack_h323: fix OOB read in decode_int() CONS case
+0548a13b5a14 nf_tables: nft_dynset: fix possible stateful expression memleak in error path
+36eae0956f65 netfilter: nft_ct: drop pending enqueued packets on removal
+f62a218a946b netfilter: xt_CT: drop pending enqueued packets on template removal
+f173d0f4c0f6 netfilter: nf_conntrack_h323: check for zero length in DecodeQ931()
+fa103fc8f569 net: mana: fix use-after-free in mana_hwc_destroy_channel() by reordering teardown
+719d3e71691d net: ti: icssg-prueth: Fix memory leak in XDP_DROP for non-zero-copy mode
+29ab76827761 PM: runtime: Fix a race condition related to device removal
+b7405dcf7385 bonding: prevent potential infinite loop in bond_header_parse()
+6d5e4538364b net/smc: fix NULL dereference and UAF in smc_tcp_syn_recv_sock()
+66360460cab6 net/sched: teql: Fix double-free in teql_master_xmit
+2aa8a4fa8d5b net: usb: cdc_ncm: add ndpoffset to NDP16 nframes bounds check
+77914255155e net: usb: cdc_ncm: add ndpoffset to NDP32 nframes bounds check
+a0671125d4f5 clsact: Fix use-after-free in init/destroy rollback asymmetry
+069c8f5aebe4 net: usb: aqc111: Do not perform PM inside suspend callback
+45b33e805bd3 igc: fix page fault in XDP TX timestamps handling
+c73bb9a2d33b wifi: mac80211: fix NULL deref in mesh_matches_local()
+deb353d9bb00 wifi: wlcore: Return -ENOMEM instead of -EAGAIN if there is not enough headroom
+d5ad6ab61cbd wifi: mac80211: always free skb on ieee80211_tx_prepare_skb() failure
+bf504b229cb8 ACPI: processor: Fix previous acpi_processor_errata_piix4() fix
+34b11cc56e43 net: macb: fix uninitialized rx_fs_lock
+064137935262 ipv6: add NULL checks for idev in SRv6 paths
+99b36850d881 net/mlx5e: Prevent concurrent access to IPSec ASO context
+beb6e2e5976a net/mlx5e: Fix race condition during IPSec ESN update
+24f90fa3994b netfilter: bpf: defer hook memory release until rcu readers are done
+d73f4b53aaae netfilter: nf_tables: release flowtable after rcu grace period on error
+dbdfaae96096 nfnetlink_osf: validate individual option lengths in fingerprints
+8a63baadf084 net: mvpp2: guard flow control update with global_tx_fc in buffer switching
+0f9ea7141f36 net: shaper: protect late read accesses to the hierarchy
+614aefe56af8 icmp: fix NULL pointer dereference in icmp_tag_validation()
+aa79f996eb41 i2c: cp2615: fix serial string NULL-deref at probe
+8d5fae601126 perf/x86: Move event pointer setup earlier in x86_pmu_enable()
+07183aac4a68 tracing: Fix trace_marker copy link list updates
+4ced4cf5c9d1 binfmt_elf_fdpic: fix AUXV size calculation for ELF_HWCAP3 and ELF_HWCAP4
+6922db250422 mshv: Fix use-after-free in mshv_map_user_memory error path
+06e14c36e20b iommu/sva: Fix crash in iommu_sva_unbind_device()
+c33615f995ae ksmbd: fix use-after-free of share_conf in compound request
+b425e4d0eb32 ksmbd: fix use-after-free in durable v2 replay of active file handles
+0162ab3220ba drm/i915/gt: Check set_default_submission() before deferencing
+8c6e9b60f5c7 arm64: realm: Fix PTE_NS_SHARED for 52bit PA support
+453b8fb68f36 xen/privcmd: restrict usage in unprivileged domU
