@@ -308,39 +308,41 @@ unmet direct dependencies detected|\
         print_red "Positively voted for in:\n"
         positives=$(grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !')
         for f in ${positives}; do
-            annotated=${FINALDIR}/$(echo ${f} | sed 's/-/-annotated-/')
             print_blue "  ${f}"
-            if [ -f ${annotated} ]; then
-                annotation0=$(mktemp /tmp/cve-review-XXXXX)
-                annotation1=$(mktemp /tmp/cve-review-XXXXX)
-                echo
-
-                subject_escaped=$(echo "${subject}" | sed 's/[].*+?^$(){}|[]/\\&/g')
-                grep -A30 -E "^[a-z0-9]{12,14} ${subject_escaped}" ${annotated} | tail -n +2 > ${annotation0} || true
-                grep -m1 -E -B30 "^[a-z0-9]{12,14}" ${annotation0} > ${annotation1} || true
-
-                if [ -s ${annotation1} ]; then
-                    # There were more annotations after this one
-                    cat ${annotation1} | head -n -1 > ${annotation0}
-                fi
-
-                cat  ${annotation0} \
-                    | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Piz "${GOODMATCHES}" \
-                    | grep -C99999 --color=always -Piz "${BADMATCHES}" | fmt -w ${COLUMNS} > ${annotatefile}
-                annotate_len=$(cat ${annotatefile} | wc -l)
-                cat ${annotatefile}
-                clipcommitto=$((clipcommitto - ${annotate_len} - 1))
-
-                rm -rf ${annotation0} ${annotation1}
-            fi
         done
+        echo
 
         clipcommitto=$((clipcommitto - ${hits} - 3))
-        echo
     fi
+
+    if grep -Fq "${subject}" ${FINALDIR}/*; then
+        print_red "Annotations\n"
+    fi
+
+    for annotated in $(grep -Fl "${subject}" ${FINALDIR}/*); do
+        annotation0=$(mktemp /tmp/cve-review-XXXXX)
+        annotation1=$(mktemp /tmp/cve-review-XXXXX)
+
+        subject_escaped=$(echo "${subject}" | sed 's/[].*+?^$(){}|[]/\\&/g')
+        grep -A30 -E "^[a-z0-9]{12,14} ${subject_escaped}" ${annotated} | tail -n +2 > ${annotation0} || true
+        grep -m1 -E -B30 "^[a-z0-9]{12,14}" ${annotation0} > ${annotation1} || true
+
+        if [ -s ${annotation1} ]; then
+            # There were more annotations after this one
+            cat ${annotation1} | head -n -1 > ${annotation0}
+        fi
+
+        cat  ${annotation0} | fmt -w ${COLUMNS} > ${annotatefile}
+        annotate_len=$(cat ${annotatefile} | wc -l)
+        cat ${annotatefile}
+
+        clipcommitto=$((clipcommitto - ${annotate_len} - 1))
+
+        rm -rf ${annotation0} ${annotation1}
+    done
     rm -f ${annotatefile}
 
-    print_blue "Summary:\n"
+    print_blue "\nSummary:\n"
 
     echo >> ${commitfile}
     git --no-pager log -p --format="" --color=always -n1 ${h} >> ${commitfile}
