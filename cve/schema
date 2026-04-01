@@ -86,6 +86,14 @@ file is present, the cve_update script will use that to add a URL reference to
 the json and mbox entry.  The file can contain multiple URL references, one per
 line.
 
+Proposed, not implemented yet, here for discussion, might disappear at any moment:
+If a:
+	published/YEAR/CVE-YEAR-ID.cvss
+file is present, the cve_update script will use that to provide a CVSS score to
+the json and mbox entry.  The file contents must be comma-separate-value form
+with three fields, CVSS_string,value,level.  For example:
+	CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H, 7.0, HIGH
+
 
 Rejected
 --------
