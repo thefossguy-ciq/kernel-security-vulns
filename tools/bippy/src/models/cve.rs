@@ -73,6 +73,23 @@ pub struct Generator {
     pub engine: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CvssV31 {
+    pub version: String,
+    #[serde(rename = "vectorString")]
+    pub vector_string: String,
+    #[serde(rename = "baseScore")]
+    pub base_score: f64,
+    #[serde(rename = "baseSeverity")]
+    pub base_severity: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CvssMetric {
+    #[serde(rename = "cvssV3_1")]
+    pub cvss_v3_1: CvssV31,
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct CpeMatch {
     // boolean value, must be "true" or "false"
@@ -124,6 +141,8 @@ pub struct CnaData {
     #[serde(rename = "providerMetadata")]
     pub provider_metadata: ProviderMetadata,
     pub descriptions: Vec<Description>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub metrics: Vec<CvssMetric>,
     pub affected: Vec<AffectedProduct>,
     #[serde(rename = "cpeApplicability")]
     #[serde(skip_serializing_if = "Vec::is_empty")]

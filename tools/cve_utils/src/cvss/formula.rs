@@ -89,8 +89,8 @@ pub fn compute_base_score(metrics: &CvssMetrics) -> ScoreResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scoring::metrics::*;
-    use crate::scoring::vector::parse_vector;
+    use crate::cvss::metrics::*;
+    use crate::cvss::vector::parse_vector;
 
     #[test]
     fn roundup_values() {

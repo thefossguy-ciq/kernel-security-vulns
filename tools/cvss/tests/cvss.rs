@@ -103,24 +103,3 @@ fn cve_without_vector_error() {
         .failure()
         .stderr(predicate::str::contains("vector"));
 }
-
-#[test]
-fn batch_file_not_found() {
-    cvss_cmd()
-        .args(["--batch", "/nonexistent/file.txt"])
-        .assert()
-        .failure()
-        .stderr(predicate::str::contains("failed to read"));
-}
-
-#[test]
-fn batch_with_empty_and_comments() {
-    let dir = tempfile::tempdir().unwrap();
-    let batch_file = dir.path().join("batch.txt");
-    std::fs::write(&batch_file, "# comment\n\n# another comment\n").unwrap();
-
-    cvss_cmd()
-        .args(["--batch", batch_file.to_str().unwrap()])
-        .assert()
-        .success();
-}

@@ -17,7 +17,7 @@ mod policy;
 mod utils;
 
 use commands::{generate_json, generate_mbox, json::CveRecordParams, mbox::MboxParams};
-use models::{Args, DyadEntry};
+use models::{Args, CvssMetric, CvssV31, DyadEntry};
 use utils::{
     get_commit_subject, get_commit_text, read_message_file, read_tags_file,
     run_dyad, strip_commit_text,
@@ -310,6 +310,58 @@ fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
     )
 }
 
+/// Parse a .cvss file into CvssMetric entries.
+///
+/// Each line has the format: `CNA_ID CVSS_VECTOR`
+/// Lines starting with '#' and empty lines are ignored.
+fn parse_cvss_file(path: &Path) -> Vec<CvssMetric> {
+    let content = match std::fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(e) => {
+            warn!("Failed to read CVSS file {}: {e}", path.display());
+            return Vec::new();
+        }
+    };
+
+    let mut metrics = Vec::new();
+    for line in content.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+
+        let (_cna_id, vector_str) = match line.split_once(char::is_whitespace) {
+            Some((id, v)) => (id.trim(), v.trim()),
+            None => {
+                warn!("Invalid CVSS line (expected 'CNA_ID VECTOR'): {line}");
+                continue;
+            }
+        };
+
+        let parsed = match cve_utils::cvss::vector::parse_vector(vector_str) {
+            Ok(m) => m,
+            Err(e) => {
+                warn!("Invalid CVSS vector '{vector_str}': {e}");
+                continue;
+            }
+        };
+
+        let result = cve_utils::cvss::formula::compute_base_score(&parsed);
+        let canonical = cve_utils::cvss::vector::format_vector(&parsed);
+
+        metrics.push(CvssMetric {
+            cvss_v3_1: CvssV31 {
+                version: "3.1".to_string(),
+                vector_string: canonical,
+                base_score: result.score,
+                base_severity: result.severity.clone(),
+            },
+        });
+    }
+
+    metrics
+}
+
 /// Output parameters for generating files
 struct OutputParams<'a> {
     cve_number: &'a str,
@@ -321,6 +373,7 @@ struct OutputParams<'a> {
     script_version: &'a str,
     commit_text: &'a str,
     affected_files: &'a Vec<String>,
+    cvss_metrics: Vec<CvssMetric>,
 }
 
 /// Generate and write output files (mbox and/or JSON)
@@ -346,6 +399,7 @@ fn generate_output_files(
             additional_references,
             commit_text: params.commit_text,
             affected_files: params.affected_files,
+            cvss_metrics: &params.cvss_metrics,
         };
 
         let mbox_content = generate_mbox(&mbox_params);
@@ -372,6 +426,7 @@ fn generate_output_files(
             additional_references,
             commit_text: params.commit_text,
             affected_files: params.affected_files,
+            cvss_metrics: params.cvss_metrics.clone(),
         };
 
         match generate_json(&json_params) {
@@ -425,6 +480,12 @@ fn main() -> Result<()> {
     // Read additional references from file if specified
     let additional_references = read_additional_references(args.reference);
 
+    // Parse CVSS file if specified
+    let cvss_metrics = match args.cvss {
+        Some(ref path) => parse_cvss_file(path),
+        None => Vec::new(),
+    };
+
     // Create output parameters
     let output_params = OutputParams {
         cve_number: &cve_number,
@@ -436,6 +497,7 @@ fn main() -> Result<()> {
         script_version: &script_version,
         commit_text: &commit_text,
         affected_files: &affected_files,
+        cvss_metrics,
     };
 
     // Generate and write output files

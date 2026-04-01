@@ -37,6 +37,10 @@ pub struct Args {
     #[clap(short = 'M', long)]
     pub message: Option<PathBuf>,
 
+    /// CVSS file path (contains CNA_ID CVSS_VECTOR per line)
+    #[clap(long)]
+    pub cvss: Option<PathBuf>,
+
     /// User email
     #[clap(short, long)]
     pub user: Option<String>,

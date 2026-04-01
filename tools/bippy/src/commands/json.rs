@@ -9,7 +9,7 @@ use std::collections::HashSet;
 
 use crate::models::{
     AffectedProduct, CnaData, Containers, CpeApplicability, CpeNodes, CveMetadata, CveRecord,
-    Description, DyadEntry, Generator, ProviderMetadata, Reference,
+    CvssMetric, Description, DyadEntry, Generator, ProviderMetadata, Reference,
 };
 use crate::policy;
 use crate::utils::{
@@ -41,6 +41,8 @@ pub struct CveRecordParams<'a> {
     pub commit_text: &'a str,
     /// List of affected files
     pub affected_files: &'a Vec<String>,
+    /// Optional CVSS metrics
+    pub cvss_metrics: Vec<CvssMetric>,
 }
 
 /// Get UUID information
@@ -176,6 +178,7 @@ struct CveRecordCreationParams<'a> {
     git_product: AffectedProduct,
     cpe_nodes: Vec<CpeNodes>,
     references: Vec<Reference>,
+    cvss_metrics: Vec<CvssMetric>,
 }
 
 /// Create the CVE record structure
@@ -190,6 +193,7 @@ fn create_cve_record(params: CveRecordCreationParams) -> CveRecord {
                     lang: "en".to_string(),
                     value: params.truncated_description,
                 }],
+                metrics: params.cvss_metrics,
                 affected: vec![params.git_product, params.kernel_product],
                 cpe_applicability: vec![CpeApplicability {
                     nodes: params.cpe_nodes,
@@ -249,6 +253,7 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
         additional_references,
         commit_text,
         affected_files,
+        cvss_metrics: _,
     } = params;
 
     // Initialize environment and get repository information
@@ -280,6 +285,7 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
         git_product,
         cpe_nodes,
         references,
+        cvss_metrics: params.cvss_metrics.clone(),
     });
 
     // Serialize CVE record to JSON
@@ -392,6 +398,7 @@ mod tests {
                         lang: "en".to_string(),
                         value: "Test description".to_string(),
                     }],
+                    metrics: vec![],
                     affected: vec![],
                     cpe_applicability: vec![],
                     references: vec![],

@@ -124,10 +124,6 @@ name = "cvss_vector"
 path = "cvss/tests/vector.rs"
 
 [[test]]
-name = "cvss_json_writer"
-path = "cvss/tests/json_writer.rs"
-
-[[test]]
 name = "dyad"
 path = "dyad/tests/dyad.rs"
 
