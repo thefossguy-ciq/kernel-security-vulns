@@ -90,9 +90,11 @@ Proposed, not implemented yet, here for discussion, might disappear at any momen
 If a:
 	published/YEAR/CVE-YEAR-ID.cvss
 file is present, the cve_update script will use that to provide a CVSS score to
-the json and mbox entry.  The file contents must be comma-separate-value form
-with three fields, CVSS_string,value,level.  For example:
-	CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H, 7.0, HIGH
+the json and mbox entry.  The file contents must be a CVSS format, where the
+value and level will be automatically generated.  For example, the content of
+"CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H" will result in a value of 7.0
+and a level of HIGH.  See the tool, scripts/FIXME for how to validate a CVSS
+string and compute these values.
 
 
 Rejected
