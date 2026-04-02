@@ -103,9 +103,25 @@ name = "cve_stats"
 path = "cve_utils/src/bin/cve_stats.rs"
 
 [[bin]]
+name = "cvss"
+path = "cvss/src/main.rs"
+
+[[bin]]
 name = "cve_classifier"
 path = "cve_classifier/src/main.rs"
 required-features = ["cve_classifier"]
+
+[[test]]
+name = "cvss"
+path = "cvss/tests/cvss.rs"
+
+[[test]]
+name = "cvss_formula"
+path = "cvss/tests/formula.rs"
+
+[[test]]
+name = "cvss_vector"
+path = "cvss/tests/vector.rs"
 
 [[test]]
 name = "dyad"

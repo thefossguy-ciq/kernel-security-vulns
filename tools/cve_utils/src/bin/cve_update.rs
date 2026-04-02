@@ -274,7 +274,8 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
         &cve_data.vulnerable_shas,
         &cve_data.root_path,
         cve_data.has_reference_file,
-        cve_data.has_message_file
+        cve_data.has_message_file,
+        cve_data.has_cvss_file,
     )?;
 
     Ok(updated_files)
@@ -294,6 +295,8 @@ struct CveFileData {
     has_reference_file: bool,
     /// Whether a .message file exists
     has_message_file: bool,
+    /// Whether a .cvss file exists
+    has_cvss_file: bool,
 }
 
 /// Prepare CVE files and extract metadata
@@ -343,6 +346,10 @@ fn prepare_cve_files(sha1_file: &Path) -> Result<CveFileData> {
     let message_file = sha1_file.with_extension("message");
     let has_message_file = message_file.exists();
 
+    // Check for .cvss file
+    let cvss_file = sha1_file.with_extension("cvss");
+    let has_cvss_file = cvss_file.exists();
+
     Ok(CveFileData {
         cve_id,
         shas,
@@ -350,6 +357,7 @@ fn prepare_cve_files(sha1_file: &Path) -> Result<CveFileData> {
         root_path,
         has_reference_file,
         has_message_file,
+        has_cvss_file,
     })
 }
 
@@ -361,7 +369,8 @@ fn run_bippy_and_update_files(
     vulnerable_shas: &[String],
     root_path: &Path,
     has_reference_file: bool,
-    has_message_file: bool
+    has_message_file: bool,
+    has_cvss_file: bool,
 ) -> Result<Vec<String>> {
     // Create temporary files for the new json and mbox content
     let tmp_json = NamedTempFile::new()
@@ -387,6 +396,7 @@ fn run_bippy_and_update_files(
         sha1_file,
         has_reference_file,
         has_message_file,
+        has_cvss_file,
     };
     let output = build_and_run_bippy_command(&bippy_params)?;
 
@@ -414,6 +424,7 @@ struct BippyCommandParams<'a> {
     sha1_file: &'a Path,
     has_reference_file: bool,
     has_message_file: bool,
+    has_cvss_file: bool,
 }
 
 /// Build and run the bippy command
@@ -443,6 +454,12 @@ fn build_and_run_bippy_command(params: &BippyCommandParams) -> Result<std::proce
     if params.has_message_file {
         let message_file = params.sha1_file.with_extension("message");
         bippy_cmd.arg(format!("--message={}", message_file.display()));
+    }
+
+    // Add cvss option if present
+    if params.has_cvss_file {
+        let cvss_file = params.sha1_file.with_extension("cvss");
+        bippy_cmd.arg(format!("--cvss={}", cvss_file.display()));
     }
 
     // Run bippy

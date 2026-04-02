@@ -32,6 +32,8 @@ pub struct MboxParams<'a> {
     pub commit_text: &'a str,
     /// List of affected files
     pub affected_files: &'a Vec<String>,
+    /// Optional CVSS metrics
+    pub cvss_metrics: &'a [crate::models::CvssMetric],
 }
 
 /// Parse dyad entries into vulnerability information strings
@@ -170,6 +172,7 @@ struct MboxContentParams<'a> {
     cve_number: &'a str,
     commit_subject: &'a str,
     commit_text: &'a str,
+    severity_section: &'a str,
     vuln_section: &'a str,
     files_section: &'a str,
     url_section: &'a str,
@@ -192,6 +195,7 @@ fn create_mbox_content(params: &MboxContentParams) -> String {
          \n\
          The Linux kernel CVE team has assigned {} to this issue.\n\
          \n\
+         {}\
          \n\
          Affected and fixed versions\n\
          ===========================\n\
@@ -231,6 +235,7 @@ fn create_mbox_content(params: &MboxContentParams) -> String {
         params.commit_subject,
         params.commit_text.trim_end(), // Trim any trailing newlines
         params.cve_number,
+        params.severity_section,
         params.vuln_section,
         params.cve_number,
         params.files_section,
@@ -259,6 +264,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
         additional_references,
         commit_text,
         affected_files,
+        cvss_metrics,
     } = params;
 
     // For the From line we need the script name and version
@@ -274,6 +280,22 @@ pub fn generate_mbox(params: &MboxParams) -> String {
     let (vuln_section, files_section, url_section) =
         format_mbox_sections(vuln_array_mbox, (*affected_files).clone(), url_array);
 
+    // Build severity section if CVSS metrics are available
+    let severity_section = if cvss_metrics.is_empty() {
+        String::new()
+    } else {
+        let mut section = String::from("\nSeverity\n========\n\n");
+        for metric in cvss_metrics.iter() {
+            section.push_str(&format!(
+                "  CVSS v3.1: {} {}\n  Vector:    {}\n\n",
+                metric.cvss_v3_1.base_score,
+                metric.cvss_v3_1.base_severity,
+                metric.cvss_v3_1.vector_string,
+            ));
+        }
+        section
+    };
+
     // Create the final mbox content
     create_mbox_content(&MboxContentParams {
         from_line: &from_line,
@@ -282,6 +304,7 @@ pub fn generate_mbox(params: &MboxParams) -> String {
         cve_number,
         commit_subject,
         commit_text,
+        severity_section: &severity_section,
         vuln_section: &vuln_section,
         files_section: &files_section,
         url_section: &url_section,
@@ -434,6 +457,7 @@ mod tests {
             cve_number: "CVE-2023-1234",
             commit_subject: "Test CVE",
             commit_text: "This is a test commit message.\n\nIt contains details about the vulnerability.",
+            severity_section: "",
             vuln_section: "\tIssue introduced in 5.15 with commit 11c52d250b34a0862edc29db03fbec23b30db6da\n\tFixed in 5.10 with commit 22c52d250b34a0862edc29db03fbec23b30db6db\n",
             files_section: "\tdrivers/net/ethernet/test.c\n\tinclude/linux/test.h\n",
             url_section: "\thttps://git.kernel.org/stable/c/11c52d250b34a0862edc29db03fbec23b30db6da\n\thttps://git.kernel.org/stable/c/22c52d250b34a0862edc29db03fbec23b30db6db\n",
