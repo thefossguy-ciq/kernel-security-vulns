@@ -47,7 +47,6 @@ d5ad6ab61cbd wifi: mac80211: always free skb on ieee80211_tx_prepare_skb() failu
 6922db250422 mshv: Fix use-after-free in mshv_map_user_memory error path
 340cea84f691 cifs: open files should not hold ref on superblock
 453b8fb68f36 xen/privcmd: restrict usage in unprivileged domU
-1613462be621 xen/privcmd: add boot control for restricted usage in domU
 dd815e6e3918 Bluetooth: L2CAP: Validate L2CAP_INFO_RSP payload length before access
 5133b61aaf43 nfsd: fix heap overflow in NFSv4.0 LOCK replay cache
 6270b1a5dab9 drm/amdgpu: Limit BO list entry count to prevent resource exhaustion
