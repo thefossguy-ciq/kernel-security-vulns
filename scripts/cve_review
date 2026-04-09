@@ -336,7 +336,7 @@ unmet direct dependencies detected|\
         annotate_len=$(cat ${annotatefile} | wc -l)
         cat ${annotatefile}
 
-        clipcommitto=$((clipcommitto - ${annotate_len} - 1))
+        clipcommitto=$((clipcommitto - ${annotate_len} - 3))
 
         rm -rf ${annotation0} ${annotation1}
     done
