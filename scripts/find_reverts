@@ -36,7 +36,6 @@ fi
 DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 SCRIPT=${0##*/}
 
-# FIXME: move to local directory, don't have it just be in Greg's
 ID_IS_REVERTED="${DIR}/../tools/verhaal/scripts/id_is_reverted"
 if [[ ! -x "${ID_IS_REVERTED}" ]] ; then
 	echo "${txtred}Error:${txtrst} the program ${txtblu}${ID_IS_REVERTED}${txtrst} must be present and executable."
@@ -58,7 +57,7 @@ set -o nounset
 
 cd "${DIR}"/../ || exit 1
 
-update_cve()
+find_revert()
 {
 	local id=$1
 	local sha
@@ -78,7 +77,7 @@ update_cve()
 	fi
 }
 
-update_year() {
+scan_year() {
 	local year=$1
 	local threads
 
@@ -87,13 +86,13 @@ update_year() {
 	# get a count of ids for this year
 	total_count=$(ls cve/published/"${year}"/*.sha1 | wc -l)
 
-	echo "Searching ${txtcyn}${total_count}${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes..."
+	printf "Searching ${txtcyn}%4s${txtrst} CVE ids for ${txtgrn}${year}${txtrst} with ${txtcyn}${threads}${txtrst} processes...\n" "${total_count}"
 	for id in cve/published/"${year}"/*.sha1 ; do
 		while :
 		do
 			if [[ $(jobs -p | wc -l) -lt ${threads} ]]; then
 				#echo "id=${id}"
-				update_cve "${id}" &
+				find_revert "${id}" &
 				break
 			else
 				sleep 1
@@ -108,7 +107,7 @@ if [[ "${CVE}" == "" ]]; then
 	# looping through all years
 	for y in cve/published/* ; do
 		year=$(echo "${y}" | cut -f 3 -d '/')
-		update_year "${year}"
+		scan_year "${year}"
 	done
 else
 	# Either the year, or a specific CVE id is specified here.
@@ -130,7 +129,7 @@ else
 	# Not a specific id, let's try to do this for a year
 	#
 	if [[ -d cve/published/${CVE} ]]; then
-		update_year "${CVE}"
+		scan_year "${CVE}"
 		exit 0
 	fi
 
