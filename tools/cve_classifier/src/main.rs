@@ -246,10 +246,10 @@ fn configure_classifier_providers(config: &RunConfig, classifier: &mut CVEClassi
     // Set debug logging for verbose mode
     if config.verbose {
         for provider in config.llm_providers {
-            if let Some(llm_config) = classifier.llm_configs.get_mut(provider) {
-                if let Some(obj) = llm_config.as_object_mut() {
-                    obj.insert("debug_logging".to_string(), serde_json::json!(true));
-                }
+            if let Some(llm_config) = classifier.llm_configs.get_mut(provider)
+                && let Some(obj) = llm_config.as_object_mut()
+            {
+                obj.insert("debug_logging".to_string(), serde_json::json!(true));
             }
         }
     }
@@ -267,24 +267,24 @@ fn configure_classifier_providers(config: &RunConfig, classifier: &mut CVEClassi
 
 /// Configures the Ollama provider
 fn configure_ollama_provider(config: &RunConfig, classifier: &mut CVEClassifier) {
-    if let Some(llm_config) = classifier.llm_configs.get_mut("ollama") {
-        if let Some(obj) = llm_config.as_object_mut() {
-            // Set Ollama server URL if provided
-            if let Some(ollama_server) = config.matches.get_one::<String>("ollama-server").map(String::as_str) {
-                obj.insert("api_host".to_string(), serde_json::json!(ollama_server));
-            }
+    if let Some(llm_config) = classifier.llm_configs.get_mut("ollama")
+        && let Some(obj) = llm_config.as_object_mut()
+    {
+        // Set Ollama server URL if provided
+        if let Some(ollama_server) = config.matches.get_one::<String>("ollama-server").map(String::as_str) {
+            obj.insert("api_host".to_string(), serde_json::json!(ollama_server));
+        }
 
-            // Set Ollama model if provided
-            if let Some(ollama_model) = config.matches.get_one::<String>("ollama-model").map(String::as_str) {
-                // Check if it's a built-in model or custom
-                let is_builtin = ["llama3", "mistral", "gemma"].contains(&ollama_model);
+        // Set Ollama model if provided
+        if let Some(ollama_model) = config.matches.get_one::<String>("ollama-model").map(String::as_str) {
+            // Check if it's a built-in model or custom
+            let is_builtin = ["llama3", "mistral", "gemma"].contains(&ollama_model);
 
-                if is_builtin {
-                    obj.insert("model_type".to_string(), serde_json::json!(ollama_model));
-                } else {
-                    // For custom models, we'll set it as a custom model name
-                    obj.insert("custom_model".to_string(), serde_json::json!(ollama_model));
-                }
+            if is_builtin {
+                obj.insert("model_type".to_string(), serde_json::json!(ollama_model));
+            } else {
+                // For custom models, we'll set it as a custom model name
+                obj.insert("custom_model".to_string(), serde_json::json!(ollama_model));
             }
         }
     }

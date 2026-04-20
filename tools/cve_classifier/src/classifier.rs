@@ -89,10 +89,10 @@ impl CVEClassifier {
         let mut fixes = Vec::new();
 
         for line in message.lines() {
-            if let Some(caps) = FIXES_RE.captures(line) {
-                if let Some(sha) = caps.get(1) {
-                    fixes.push(sha.as_str().to_string());
-                }
+            if let Some(caps) = FIXES_RE.captures(line)
+                && let Some(sha) = caps.get(1)
+            {
+                fixes.push(sha.as_str().to_string());
             }
         }
 
@@ -344,10 +344,10 @@ impl CVEClassifier {
             let batch_texts = texts[batch_start..batch_end].to_vec();
             let batch_metadatas = metadatas[batch_start..batch_end].to_vec();
 
-            if let Some(vs) = &mut self.vectorstore {
-                if let Err(e) = vs.add_texts(batch_texts, Some(batch_metadatas)) {
-                    warn!("Failed to add batch to vectorstore: {e}");
-                }
+            if let Some(vs) = &mut self.vectorstore
+                && let Err(e) = vs.add_texts(batch_texts, Some(batch_metadatas))
+            {
+                warn!("Failed to add batch to vectorstore: {e}");
             }
 
             pb.inc(current_batch_size as u64);
@@ -400,12 +400,12 @@ impl CVEClassifier {
 
     pub fn save_model(&self, model_path: &Path) -> Result<(), String> {
         // Save the vectorstore first if it exists
-        if let Some(vectorstore) = &self.vectorstore {
-            if let Some(persist_dir) = &self.persist_directory {
-                debug!("Saving vectorstore to {}", persist_dir.display());
-                if let Err(e) = vectorstore.persist(persist_dir) {
-                    return Err(format!("Failed to save vectorstore: {e}"));
-                }
+        if let Some(vectorstore) = &self.vectorstore
+            && let Some(persist_dir) = &self.persist_directory
+        {
+            debug!("Saving vectorstore to {}", persist_dir.display());
+            if let Err(e) = vectorstore.persist(persist_dir) {
+                return Err(format!("Failed to save vectorstore: {e}"));
             }
         }
 

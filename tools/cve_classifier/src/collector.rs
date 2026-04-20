@@ -110,11 +110,10 @@ impl CVEDataCollector {
 
         if is_backport {
             // This might be a backport of a CVE fix
-            if let Some(upstream_sha) = Self::extract_upstream_commit(&features.message) {
-                if self.cve_commits.contains(&upstream_sha) {
-                    // This is a backport of a CVE fix
-                    features.upstream_sha = Some(upstream_sha);
-                }
+            if let Some(upstream_sha) = Self::extract_upstream_commit(&features.message)
+                && self.cve_commits.contains(&upstream_sha)
+            {
+                features.upstream_sha = Some(upstream_sha);
             }
         } else {
             // Direct CVE fix
@@ -128,15 +127,14 @@ impl CVEDataCollector {
         let mut features = self.get_commit_features(commit_sha)?;
 
         // Double-check if this might be a backported CVE commit that was missed
-        if let Some(upstream_sha) = Self::extract_upstream_commit(&features.message) {
-            if self.cve_commits.contains(&upstream_sha) {
-                // This is actually a backported CVE commit
-                features.was_selected = Some(true);
-                let upstream_sha_clone = upstream_sha.clone();
-                features.upstream_sha = Some(upstream_sha);
-                debug!("Reclassified commit {commit_sha} as a backported CVE from {upstream_sha_clone}");
-                return Some(features);
-            }
+        if let Some(upstream_sha) = Self::extract_upstream_commit(&features.message)
+            && self.cve_commits.contains(&upstream_sha)
+        {
+            features.was_selected = Some(true);
+            let upstream_sha_clone = upstream_sha.clone();
+            features.upstream_sha = Some(upstream_sha);
+            debug!("Reclassified commit {commit_sha} as a backported CVE from {upstream_sha_clone}");
+            return Some(features);
         }
 
         // This is a non-CVE commit
@@ -156,10 +154,10 @@ impl CVEDataCollector {
 
         // Try each pattern
         for pattern in patterns {
-            if let Ok(regex) = Regex::new(pattern) {
-                if let Some(captures) = regex.captures(commit_message) {
-                    return captures.get(1).map(|m| m.as_str().to_string());
-                }
+            if let Ok(regex) = Regex::new(pattern)
+                && let Some(captures) = regex.captures(commit_message)
+            {
+                return captures.get(1).map(|m| m.as_str().to_string());
             }
         }
 
@@ -352,11 +350,11 @@ impl CVEDataCollector {
         cve_list.par_iter()
             .map(|sha| {
                 // Try to get the commit message to check if this is a backport
-                if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha]) {
-                    if let Some(upstream_sha) = Self::extract_upstream_commit(&message) {
-                        // This is a backport, return the SHA and upstream SHA
-                        return (sha.clone(), Some(upstream_sha));
-                    }
+                if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha])
+                    && let Some(upstream_sha) = Self::extract_upstream_commit(&message)
+                {
+                    // This is a backport, return the SHA and upstream SHA
+                    return (sha.clone(), Some(upstream_sha));
                 }
                 // This is not a backport or we couldn't extract upstream SHA
                 (sha.clone(), None)
@@ -487,15 +485,15 @@ impl CVEDataCollector {
                 let mut upstream_sha = None;
 
                 // Fetch commit message to check for upstream reference
-                if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha]) {
-                    if let Some(extracted_sha) = Self::extract_upstream_commit(&message) {
-                        // Check if this is a backport of a CVE commit
-                        if self.cve_commits.contains(&extracted_sha) {
-                            is_backport = true;
-                        }
-                        // Store the upstream SHA whether it's a CVE or not
-                        upstream_sha = Some(extracted_sha);
+                if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha])
+                    && let Some(extracted_sha) = Self::extract_upstream_commit(&message)
+                {
+                    // Check if this is a backport of a CVE commit
+                    if self.cve_commits.contains(&extracted_sha) {
+                        is_backport = true;
                     }
+                    // Store the upstream SHA whether it's a CVE or not
+                    upstream_sha = Some(extracted_sha);
                 }
 
                 dedup_pb.inc(1);
