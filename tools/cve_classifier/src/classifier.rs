@@ -99,65 +99,36 @@ impl CVEClassifier {
         fixes
     }
 
+    /// Run `git` in `repo_path` with the given args and return its stdout as
+    /// a UTF-8 String, or None on any failure (spawn error, non-zero exit, or
+    /// non-UTF-8 output).
+    fn run_git(repo_path: &Path, args: &[&str]) -> Option<String> {
+        let output = std::process::Command::new("git")
+            .current_dir(repo_path)
+            .args(args)
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        String::from_utf8(output.stdout).ok()
+    }
+
     /// Retrieve the content of a commit referenced by a Fixes tag
     /// Returns a tuple with (subject, full message, diff) for the fixed commit
     /// Skips commits with diffs longer than 1000 lines to avoid overwhelming context
     pub fn get_fix_commit_content(&self, commit_sha: &str) -> Option<(String, String, String)> {
         let repo_path = self.repo_path.as_ref()?;
 
-        // Create the git command to get commit message
-        let mut cmd = std::process::Command::new("git");
-        cmd.current_dir(repo_path)
-            .args(["log", "-1", "--pretty=format:%s", commit_sha]);
+        let subject = Self::run_git(repo_path, &["log", "-1", "--pretty=format:%s", commit_sha])?;
+        let message = Self::run_git(repo_path, &["log", "-1", "--pretty=format:%B", commit_sha])?;
+        let diff = Self::run_git(repo_path, &["show", "-U20", "--format=", commit_sha])?;
 
-        // Get the commit subject
-        let subject = match cmd.output() {
-            Ok(output) if output.status.success() => {
-                match String::from_utf8(output.stdout) {
-                    Ok(s) => s,
-                    Err(_) => return None,
-                }
-            },
-            _ => return None,
-        };
-
-        // Get the full commit message
-        let mut cmd = std::process::Command::new("git");
-        cmd.current_dir(repo_path)
-            .args(["log", "-1", "--pretty=format:%B", commit_sha]);
-
-        let message = match cmd.output() {
-            Ok(output) if output.status.success() => {
-                match String::from_utf8(output.stdout) {
-                    Ok(s) => s,
-                    Err(_) => return None,
-                }
-            },
-            _ => return None,
-        };
-
-        // Get the diff with 20 lines of context
-        let mut cmd = std::process::Command::new("git");
-        cmd.current_dir(repo_path)
-            .args(["show", "-U20", "--format=", commit_sha]);
-
-        let diff = match cmd.output() {
-            Ok(output) if output.status.success() => {
-                match String::from_utf8(output.stdout) {
-                    Ok(s) => {
-                        // Check if diff is too large (more than 1000 lines)
-                        let line_count = s.lines().count();
-                        if line_count > 1000 {
-                            debug!("Skipping large diff for commit {} ({} lines)", commit_sha, line_count);
-                            return None;
-                        }
-                        s
-                    },
-                    Err(_) => return None,
-                }
-            },
-            _ => return None,
-        };
+        let line_count = diff.lines().count();
+        if line_count > 1000 {
+            debug!("Skipping large diff for commit {commit_sha} ({line_count} lines)");
+            return None;
+        }
 
         Some((subject, message, diff))
     }
