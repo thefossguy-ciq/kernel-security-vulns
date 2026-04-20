@@ -4,9 +4,26 @@
 use std::collections::HashMap;
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 use log::{info, debug, warn, error};
 use regex::Regex;
 use indicatif::{ProgressBar, ProgressStyle};
+
+static FIXES_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)Fixes:\s*([a-f0-9]{12,40})").unwrap());
+
+static BOLD_DECISION_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)\*\*(YES|NO)\*\*").unwrap());
+
+static DECISION_PATTERNS: LazyLock<[(Regex, &'static str); 5]> = LazyLock::new(|| {
+    [
+        (Regex::new(r"ANSWER:\s*(YES|NO)").unwrap(), "ANSWER: format"),
+        (Regex::new(r"^\s*(YES|NO)\b").unwrap(), "Start of response"),
+        (Regex::new(r"ANSWER\s+(?:IS|:)\s*(YES|NO)").unwrap(), "ANSWER IS/: format"),
+        (Regex::new(r"(YES|NO)\s*(?:\n|$|EXPLANATION|:)").unwrap(), "GPT-4 style"),
+        (Regex::new(r"DECISION:\s*(YES|NO)").unwrap(), "DECISION: format"),
+    ]
+});
 
 // Import from the commit-classifier library
 use commit_classifier::{
@@ -70,10 +87,9 @@ impl CVEClassifier {
     /// Returns a vector of SHA1 hashes referenced in Fixes tags
     pub fn extract_fixes_references(message: &str) -> Vec<String> {
         let mut fixes = Vec::new();
-        let re = regex::Regex::new(r"(?i)Fixes:\s*([a-f0-9]{12,40})").unwrap();
 
         for line in message.lines() {
-            if let Some(caps) = re.captures(line) {
+            if let Some(caps) = FIXES_RE.captures(line) {
                 if let Some(sha) = caps.get(1) {
                     fixes.push(sha.as_str().to_string());
                 }
@@ -946,40 +962,17 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         // First check for bold indicators in the original response (case-insensitive)
         // Only match standalone **YES** or **NO** - partial bold patterns like **YES or YES**
         // are too permissive and match things like "**No special permissions**"
-        let bold_patterns = [
-            Regex::new(r"(?i)\*\*(YES|NO)\*\*").unwrap(),  // Standard **YES** or **NO**
-        ];
-
-        for bold_pattern in &bold_patterns {
-            if let Some(captures) = bold_pattern.captures(&filtered_response) {
-                let decision = captures.get(1).unwrap().as_str().to_uppercase();
-                debug!("Found bold {decision} indicator");
-                return (decision == "YES", filtered_response.to_string());
-            }
+        if let Some(captures) = BOLD_DECISION_RE.captures(&filtered_response) {
+            let decision = captures.get(1).unwrap().as_str().to_uppercase();
+            debug!("Found bold {decision} indicator");
+            return (decision == "YES", filtered_response.to_string());
         }
 
         // Convert to uppercase for case-insensitive pattern matching
         let upper_response = filtered_response.to_uppercase();
 
         // Look for patterns in this order (most to least reliable)
-        let patterns = [
-            // ANSWER: YES/NO
-            (Regex::new(r"ANSWER:\s*(YES|NO)").unwrap(), "ANSWER: format"),
-
-            // YES/NO at the beginning
-            (Regex::new(r"^\s*(YES|NO)\b").unwrap(), "Start of response"),
-
-            // ANSWER IS/: YES/NO
-            (Regex::new(r"ANSWER\s+(?:IS|:)\s*(YES|NO)").unwrap(), "ANSWER IS/: format"),
-
-            // GPT-4 style: YES/NO at beginning followed by newline, end, or "Explanation"
-            (Regex::new(r"(YES|NO)\s*(?:\n|$|EXPLANATION|:)").unwrap(), "GPT-4 style"),
-
-            // DECISION: YES/NO
-            (Regex::new(r"DECISION:\s*(YES|NO)").unwrap(), "DECISION: format"),
-        ];
-
-        for (pattern, pattern_name) in &patterns {
+        for (pattern, pattern_name) in DECISION_PATTERNS.iter() {
             if let Some(captures) = pattern.captures(&upper_response) {
                 let decision = captures.get(1).unwrap().as_str();
                 debug!("Found {pattern_name} pattern: {decision}");
