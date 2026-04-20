@@ -307,10 +307,10 @@ fn main() -> Result<()> {
 
     // Validate directories exist
     if !review_dir.exists() {
-        return Err(anyhow!("Review directory does not exist: {:?}", review_dir));
+        return Err(anyhow!("Review directory does not exist: {review_dir:?}"));
     }
     if !published_dir.exists() {
-        return Err(anyhow!("Published directory does not exist: {:?}", published_dir));
+        return Err(anyhow!("Published directory does not exist: {published_dir:?}"));
     }
 
     println!("Reviewer Accuracy Report");

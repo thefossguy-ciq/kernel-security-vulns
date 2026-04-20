@@ -280,7 +280,7 @@ fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel) {
             }
         }
 
-        debug!("    must_look={} found_fix={}", must_look, found_fix);
+        debug!("    must_look={must_look} found_fix={found_fix}");
         if must_look && !found_fix {
             println!(
                 "{} is vulnerable to {}",
@@ -359,7 +359,7 @@ fn main() -> Result<()> {
         // We need to be explicit in our git_sha request.
         // If this is a tag, turn it into a commit, if it is a commit, force it to be a commit.
         // See `man git reference` for details about this format.
-        let git_sha_commit = format!("{}^{{commit}}", git_sha);
+        let git_sha_commit = format!("{git_sha}^{{commit}}");
         let git_full_sha = cve_utils::get_full_sha(&kernel_tree, &git_sha_commit)?;
 
         // Turn the git sha into a valid kernel object

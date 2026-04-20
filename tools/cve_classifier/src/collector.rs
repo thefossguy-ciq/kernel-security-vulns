@@ -727,7 +727,7 @@ mod tests {
 
     // Helper function to create a test commit message
     fn create_test_commit_message(subject: &str, body: &str) -> String {
-        format!("{}\n\n{}", subject, body)
+        format!("{subject}\n\n{body}")
     }
 
     #[test]

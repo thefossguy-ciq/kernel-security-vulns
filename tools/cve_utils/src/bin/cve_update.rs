@@ -79,7 +79,7 @@ fn main() -> Result<()> {
                 }
             }
             Ok(_) => {
-                return Err(anyhow!("{} is not a valid CVE ID or year with published entries", target));
+                return Err(anyhow!("{target} is not a valid CVE ID or year with published entries"));
             }
             Err(e) => {
                 eprintln!("Error: {e}");
@@ -137,7 +137,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
     let year_dir = cve_root.join("published").join(year);
 
     if !year_dir.exists() || !year_dir.is_dir() {
-        return Err(anyhow!("Year directory {} does not exist", year));
+        return Err(anyhow!("Year directory {year} does not exist"));
     }
 
     // Find all .sha1 files for this year
@@ -381,7 +381,7 @@ fn run_bippy_and_update_files(
     // Build bippy command with full path from vulns dir
     let vulns_dir = match common::find_vulns_dir() {
         Ok(dir) => dir,
-        Err(e) => return Err(anyhow!("Failed to find vulns directory: {}", e)),
+        Err(e) => return Err(anyhow!("Failed to find vulns directory: {e}")),
     };
     let bippy_path = vulns_dir.join("scripts").join("bippy");
 
@@ -402,7 +402,7 @@ fn run_bippy_and_update_files(
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow!("bippy failed for {}: {}", cve_id, error));
+        return Err(anyhow!("bippy failed for {cve_id}: {error}"));
     }
 
     // Check for changes and update files if needed
@@ -578,19 +578,19 @@ mod tests {
         let sha = "abcdef1234567890abcdef1234567890abcdef12";
 
         // Create SHA1 file
-        let sha1_file = published_dir.join(format!("{}.sha1", cve_id));
+        let sha1_file = published_dir.join(format!("{cve_id}.sha1"));
         let mut file = File::create(&sha1_file).unwrap();
-        writeln!(file, "{}", sha).unwrap();
+        writeln!(file, "{sha}").unwrap();
 
         // Create JSON file
-        let json_file = published_dir.join(format!("{}.json", cve_id));
+        let json_file = published_dir.join(format!("{cve_id}.json"));
         let mut file = File::create(&json_file).unwrap();
-        writeln!(file, "{{\"id\": \"{}\", \"commit\": \"{}\"}}", cve_id, sha).unwrap();
+        writeln!(file, "{{\"id\": \"{cve_id}\", \"commit\": \"{sha}\"}}").unwrap();
 
         // Create mbox file
-        let mbox_file = published_dir.join(format!("{}.mbox", cve_id));
+        let mbox_file = published_dir.join(format!("{cve_id}.mbox"));
         let mut file = File::create(&mbox_file).unwrap();
-        writeln!(file, "From {}-version Mon Sep 17 00:00:00 2001", cve_id).unwrap();
+        writeln!(file, "From {cve_id}-version Mon Sep 17 00:00:00 2001").unwrap();
 
         // Verify files exist
         assert!(sha1_file.exists());
@@ -652,30 +652,30 @@ mod tests {
             let year_dir = cve_root.join("published").join(year);
 
             // Create SHA1 file
-            let sha1_file = year_dir.join(format!("{}.sha1", cve_id));
+            let sha1_file = year_dir.join(format!("{cve_id}.sha1"));
             let mut file = File::create(&sha1_file).unwrap();
-            writeln!(file, "{}", sha).unwrap();
+            writeln!(file, "{sha}").unwrap();
 
             // Create JSON file
-            let json_file = year_dir.join(format!("{}.json", cve_id));
+            let json_file = year_dir.join(format!("{cve_id}.json"));
             let mut file = File::create(&json_file).unwrap();
-            writeln!(file, "{{\"id\": \"{}\", \"commit\": \"{}\"}}", cve_id, sha).unwrap();
+            writeln!(file, "{{\"id\": \"{cve_id}\", \"commit\": \"{sha}\"}}").unwrap();
 
             // Create mbox file
-            let mbox_file = year_dir.join(format!("{}.mbox", cve_id));
+            let mbox_file = year_dir.join(format!("{cve_id}.mbox"));
             let mut file = File::create(&mbox_file).unwrap();
-            writeln!(file, "From {}-version Mon Sep 17 00:00:00 2001", cve_id).unwrap();
+            writeln!(file, "From {cve_id}-version Mon Sep 17 00:00:00 2001").unwrap();
 
             // Create a few .vulnerable files
             if *cve_id == "CVE-2021-33909" || *cve_id == "CVE-2022-0847" {
-                let vulnerable_file = year_dir.join(format!("{}.vulnerable", cve_id));
+                let vulnerable_file = year_dir.join(format!("{cve_id}.vulnerable"));
                 let mut file = File::create(&vulnerable_file).unwrap();
                 writeln!(file, "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2").unwrap();
             }
 
             // Create a .message file
             if *cve_id == "CVE-2023-0179" {
-                let message_file = year_dir.join(format!("{}.message", cve_id));
+                let message_file = year_dir.join(format!("{cve_id}.message"));
                 let mut file = File::create(&message_file).unwrap();
                 writeln!(file, "This is a custom CVE description from a .message file.").unwrap();
                 writeln!(file).unwrap();
@@ -685,16 +685,16 @@ mod tests {
 
             // Create a .reference file
             if *cve_id == "CVE-2022-0185" {
-                let reference_file = year_dir.join(format!("{}.reference", cve_id));
+                let reference_file = year_dir.join(format!("{cve_id}.reference"));
                 let mut file = File::create(&reference_file).unwrap();
-                writeln!(file, "https://nvd.nist.gov/vuln/detail/{}", cve_id).unwrap();
+                writeln!(file, "https://nvd.nist.gov/vuln/detail/{cve_id}").unwrap();
             }
         }
 
         // Test finding CVEs
         for (cve_id, _, year) in sample_cves.iter() {
             let year_dir = cve_root.join("published").join(year);
-            let sha1_file = year_dir.join(format!("{}.sha1", cve_id));
+            let sha1_file = year_dir.join(format!("{cve_id}.sha1"));
 
             // Test extracting CVE ID from path
             let file_stem = sha1_file.file_stem().unwrap().to_str().unwrap();
@@ -706,8 +706,8 @@ mod tests {
 
             // Test file existence
             assert!(sha1_file.exists());
-            assert!(year_dir.join(format!("{}.json", cve_id)).exists());
-            assert!(year_dir.join(format!("{}.mbox", cve_id)).exists());
+            assert!(year_dir.join(format!("{cve_id}.json")).exists());
+            assert!(year_dir.join(format!("{cve_id}.mbox")).exists());
         }
 
         // Test additional file types
@@ -818,7 +818,7 @@ mod tests {
             let year_dir = cve_root.join("published").join(year);
 
             // Create SHA1 file
-            let sha1_file = year_dir.join(format!("{}.sha1", cve_id));
+            let sha1_file = year_dir.join(format!("{cve_id}.sha1"));
             let mut file = File::create(&sha1_file).unwrap();
             writeln!(file, "abcdef1234567890abcdef1234567890abcdef12").unwrap();
         }
@@ -849,24 +849,24 @@ mod tests {
         let sha = "abcdef1234567890abcdef1234567890abcdef12";
 
         // Create SHA1 file
-        let sha1_file = year_dir.join(format!("{}.sha1", cve_id));
+        let sha1_file = year_dir.join(format!("{cve_id}.sha1"));
         let mut file = File::create(&sha1_file).unwrap();
-        writeln!(file, "{}", sha).unwrap();
+        writeln!(file, "{sha}").unwrap();
 
         // Create vulnerable file
-        let vulnerable_file = year_dir.join(format!("{}.vulnerable", cve_id));
+        let vulnerable_file = year_dir.join(format!("{cve_id}.vulnerable"));
         let vulnerable_sha = "1111111111111111111111111111111111111111";
         let mut file = File::create(&vulnerable_file).unwrap();
-        writeln!(file, "{}", vulnerable_sha).unwrap();
+        writeln!(file, "{vulnerable_sha}").unwrap();
 
         // Create message file
-        let message_file = year_dir.join(format!("{}.message", cve_id));
+        let message_file = year_dir.join(format!("{cve_id}.message"));
         let mut file = File::create(&message_file).unwrap();
         writeln!(file, "Custom CVE description for testing bippy command construction.").unwrap();
         writeln!(file, "This message overrides the git commit message.").unwrap();
 
         // Create reference file
-        let reference_file = year_dir.join(format!("{}.reference", cve_id));
+        let reference_file = year_dir.join(format!("{cve_id}.reference"));
         let mut file = File::create(&reference_file).unwrap();
         writeln!(file, "https://example.com/reference").unwrap();
 
@@ -894,7 +894,7 @@ mod tests {
         ];
 
         if vulnerable_file.exists() {
-            cmd_args.push(format!("--vulnerable={}", vulnerable_sha_read));
+            cmd_args.push(format!("--vulnerable={vulnerable_sha_read}"));
         }
 
         if reference_file.exists() {

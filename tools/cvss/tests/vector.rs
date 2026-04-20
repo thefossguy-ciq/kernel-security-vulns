@@ -49,7 +49,7 @@ fn all_valid_vectors_produce_correct_scores() {
         );
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let score_str = format!("{:.1}", expected_score);
+        let score_str = format!("{expected_score:.1}");
         assert!(
             stdout.contains(&score_str),
             "expected score {score_str} in output for {vector}, got: {stdout}"

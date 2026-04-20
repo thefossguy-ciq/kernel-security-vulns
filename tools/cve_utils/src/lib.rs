@@ -69,8 +69,7 @@ pub mod common {
         let kernel_tree_path = PathBuf::from(&kernel_tree);
         if !kernel_tree_path.is_dir() {
             return Err(anyhow!(
-                "CVEKERNELTREE directory does not exist: {}",
-                kernel_tree
+                "CVEKERNELTREE directory does not exist: {kernel_tree}"
             ));
         }
 
@@ -316,16 +315,14 @@ pub mod git_utils {
             Ok(obj) => obj,
             Err(e) => {
                 return Err(anyhow!(
-                    "Failed to resolve reference '{}': {}",
-                    reference,
-                    e
+                    "Failed to resolve reference '{reference}': {e}"
                 ));
             }
         };
 
         // Ensure it's a commit object
         if object.kind() != Some(ObjectType::Commit) {
-            return Err(anyhow!("Reference '{}' is not a commit", reference));
+            return Err(anyhow!("Reference '{reference}' is not a commit"));
         }
 
         Ok(object)
@@ -873,7 +870,7 @@ pub mod git_config {
         let config = Config::open_default().context("Failed to open git config")?;
         let value = config
             .get_string(key)
-            .map_err(|_| anyhow!("Git config value '{}' not found", key))?;
+            .map_err(|_| anyhow!("Git config value '{key}' not found"))?;
         Ok(value)
     }
 
@@ -914,7 +911,7 @@ pub mod cve_validation {
 
         re.captures(cve_id)
             .and_then(|caps| caps.get(1).map(|m| m.as_str().to_string()))
-            .ok_or_else(|| anyhow!("Invalid CVE format: {}", cve_id))
+            .ok_or_else(|| anyhow!("Invalid CVE format: {cve_id}"))
     }
 
     /// Checks if a CVE ID is valid and exists in the repository
@@ -991,7 +988,7 @@ pub mod cve_validation {
             }
         }
 
-        Err(anyhow!("CVE ID '{}' not found", cve_id))
+        Err(anyhow!("CVE ID '{cve_id}' not found"))
     }
 }
 
@@ -1028,10 +1025,7 @@ pub mod cmd_utils {
         if !output.status.success() {
             let error = String::from_utf8_lossy(&output.stderr);
             return Err(anyhow!(
-                "Command failed: {} {:?}\nError: {}",
-                cmd,
-                args,
-                error
+                "Command failed: {cmd} {args:?}\nError: {error}"
             ));
         }
 

@@ -404,8 +404,8 @@ fn show_summary_stats(cve_root: &Path, first_cve_date: &str) -> Result<()> {
     // Print results in order (they're already in chronological order from the collection)
     for (_start_date, formatted_date, count_result) in month_counts {
         match count_result {
-            Ok(count) => println!("{:>15}: {} CVEs", formatted_date, count),
-            Err(e) => eprintln!("Error calculating CVEs for {}: {}", formatted_date, e),
+            Ok(count) => println!("{formatted_date:>15}: {count} CVEs"),
+            Err(e) => eprintln!("Error calculating CVEs for {formatted_date}: {e}"),
         }
     }
 
@@ -1065,7 +1065,7 @@ fn get_commit_author_date_git(kernel_tree: &Path, commit_hash: &str) -> Result<O
 
     let timestamp_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
     let timestamp = timestamp_str.parse::<i64>()
-        .context(format!("Failed to parse timestamp: {}", timestamp_str))?;
+        .context(format!("Failed to parse timestamp: {timestamp_str}"))?;
 
     // Convert to chrono date
     let dt = DateTime::<Utc>::from_timestamp(timestamp, 0)

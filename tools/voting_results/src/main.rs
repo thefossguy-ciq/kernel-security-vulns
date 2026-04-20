@@ -66,7 +66,7 @@ impl VotingResults {
         // Check if range is provided and properly formatted
         let range = match args.range {
             Some(r) if r.contains("..") => r,
-            Some(r) => return Err(anyhow!("Unrecognized argument: {}", r)),
+            Some(r) => return Err(anyhow!("Unrecognized argument: {r}")),
             None => return Err(anyhow!("Please supply a Git range (e.g v6.7.1..v6.7.2)")),
         };
 
@@ -105,7 +105,7 @@ impl VotingResults {
         let script_dir = vulns_dir.join("scripts");
 
         if !proposed_dir.exists() {
-            return Err(anyhow!("Cannot find review directory: {:?}", proposed_dir));
+            return Err(anyhow!("Cannot find review directory: {proposed_dir:?}"));
         }
 
         // Create a new instance with initialized fields

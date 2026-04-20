@@ -1131,9 +1131,9 @@ mod tests {
 
         let cve_content = format!(r#"{{
             "CVE_data_meta": {{ "ID": "CVE-2023-12345" }},
-            "description": {{ "description_data": [{{ "value": "{}" }}] }},
-            "references": {{ "reference_data": [{{ "url": "https://git.kernel.org/commit/{}" }}] }}
-        }}"#, test_subject, test_sha);
+            "description": {{ "description_data": [{{ "value": "{test_subject}" }}] }},
+            "references": {{ "reference_data": [{{ "url": "https://git.kernel.org/commit/{test_sha}" }}] }}
+        }}"#);
 
         // Write the CVE JSON file
         let cve_file = published_dir.join("CVE-2023-12345.json");

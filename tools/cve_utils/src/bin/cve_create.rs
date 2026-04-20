@@ -229,7 +229,7 @@ fn create_cve(git_sha: &str, requested_id: Option<&str>) -> Result<()> {
     // Build bippy command with full path from vulns dir
     let vulns_dir = match cve_utils::common::find_vulns_dir() {
         Ok(dir) => dir,
-        Err(e) => return Err(anyhow!("Failed to find vulns directory: {}", e)),
+        Err(e) => return Err(anyhow!("Failed to find vulns directory: {e}")),
     };
     let bippy_path = vulns_dir.join("scripts").join("bippy");
     let bippy_path_str = bippy_path.to_string_lossy().to_string();

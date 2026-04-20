@@ -250,7 +250,7 @@ fn extract_header<'a>(content: &'a str, header: &str) -> Result<&'a str> {
         }
     }
 
-    Err(anyhow!("Header '{}' not found in content", header))
+    Err(anyhow!("Header '{header}' not found in content"))
 }
 
 #[cfg(test)]
@@ -281,9 +281,9 @@ mod tests {
         // Create some test files
         let cve_id = "CVE-2023-TEST";
         fs::write(temp_path.join(cve_id), "").unwrap();
-        fs::write(temp_path.join(format!("{}.json", cve_id)), "").unwrap();
-        fs::write(temp_path.join(format!("{}.mbox", cve_id)), "").unwrap();
-        fs::write(temp_path.join(format!("{}.sha1", cve_id)), "").unwrap();
+        fs::write(temp_path.join(format!("{cve_id}.json")), "").unwrap();
+        fs::write(temp_path.join(format!("{cve_id}.mbox")), "").unwrap();
+        fs::write(temp_path.join(format!("{cve_id}.sha1")), "").unwrap();
         fs::write(temp_path.join("unrelated.txt"), "").unwrap();
 
         // Test finding the files
@@ -330,7 +330,7 @@ mod tests {
 
         // Create the CVE files
         fs::write(published_dir.join(cve_id), "").unwrap();
-        fs::write(published_dir.join(format!("{}.json", cve_id)), "{}").unwrap();
+        fs::write(published_dir.join(format!("{cve_id}.json")), "{}").unwrap();
 
         // Create a fake mbox file with the necessary headers
         let mbox_content = "From: Test User <test@example.com>
@@ -340,8 +340,8 @@ Message-Id: <test-message-id@example.com>
 
 This is a test CVE entry.
 ";
-        fs::write(published_dir.join(format!("{}.mbox", cve_id)), mbox_content).unwrap();
-        fs::write(published_dir.join(format!("{}.sha1", cve_id)), "0123456789abcdef").unwrap();
+        fs::write(published_dir.join(format!("{cve_id}.mbox")), mbox_content).unwrap();
+        fs::write(published_dir.join(format!("{cve_id}.sha1")), "0123456789abcdef").unwrap();
 
         // Perform the rejection manually
         // 1. Move the files
@@ -355,7 +355,7 @@ This is a test CVE entry.
         }
 
         // 2. Create the rejection email
-        let rejected_mbox_path = rejected_dir.join(format!("{}.mbox.rejected", cve_id));
+        let rejected_mbox_path = rejected_dir.join(format!("{cve_id}.mbox.rejected"));
         let message_id = extract_header(mbox_content, "Message-Id").unwrap();
         let subject = extract_header(mbox_content, "Subject").unwrap();
 
@@ -364,13 +364,12 @@ This is a test CVE entry.
 From: Test User <test@example.com>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: REJECTED:{}
-In-Reply-To: {}
+Subject: REJECTED:{subject}
+In-Reply-To: {message_id}
 
 
-{} has now been rejected and is no longer a valid CVE.
-",
-            subject, message_id, cve_id
+{cve_id} has now been rejected and is no longer a valid CVE.
+"
         );
 
         fs::write(&rejected_mbox_path, rejection_content).unwrap();
@@ -388,7 +387,7 @@ In-Reply-To: {}
         let rejected_mbox_content = fs::read_to_string(&rejected_mbox_path).unwrap();
         assert!(rejected_mbox_content.contains("REJECTED:"), "Email should have REJECTED: in subject");
         assert!(rejected_mbox_content.contains(message_id), "Email should have original Message-Id");
-        assert!(rejected_mbox_content.contains(format!("{} has now been rejected", cve_id).as_str()),
+        assert!(rejected_mbox_content.contains(format!("{cve_id} has now been rejected").as_str()),
                 "Email should state that the CVE is rejected");
     }
 
@@ -407,7 +406,7 @@ In-Reply-To: {}
 
         // Create the CVE files
         fs::write(published_dir.join(cve_id), "").unwrap();
-        fs::write(published_dir.join(format!("{}.json", cve_id)), "{}").unwrap();
+        fs::write(published_dir.join(format!("{cve_id}.json")), "{}").unwrap();
 
         // Create a fake mbox file with the necessary headers
         let mbox_content = "From: Test User <test@example.com>
@@ -417,8 +416,8 @@ Message-Id: <workflow-message-id@example.com>
 
 This is a test CVE entry for workflow testing.
 ";
-        fs::write(published_dir.join(format!("{}.mbox", cve_id)), mbox_content).unwrap();
-        fs::write(published_dir.join(format!("{}.sha1", cve_id)), "0123456789abcdef").unwrap();
+        fs::write(published_dir.join(format!("{cve_id}.mbox")), mbox_content).unwrap();
+        fs::write(published_dir.join(format!("{cve_id}.sha1")), "0123456789abcdef").unwrap();
 
         // Execute the rejection logic directly
 
@@ -445,10 +444,10 @@ This is a test CVE entry for workflow testing.
         }
 
         // 6. Create rejection email
-        let rejected_mbox_path = rejected_dir.join(format!("{}.mbox.rejected", cve_id));
+        let rejected_mbox_path = rejected_dir.join(format!("{cve_id}.mbox.rejected"));
 
         // Get necessary info from the original mbox file
-        let original_mbox_path = rejected_dir.join(format!("{}.mbox", cve_id));
+        let original_mbox_path = rejected_dir.join(format!("{cve_id}.mbox"));
         let original_mbox_content = fs::read_to_string(&original_mbox_path).unwrap();
 
         let message_id = extract_header(&original_mbox_content, "Message-Id").unwrap();
@@ -460,13 +459,12 @@ This is a test CVE entry for workflow testing.
 From: Test User <test@example.com>
 To: <linux-cve-announce@vger.kernel.org>
 Reply-to: <cve@kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: REJECTED:{}
-In-Reply-To: {}
+Subject: REJECTED:{subject}
+In-Reply-To: {message_id}
 
 
-{} has now been rejected and is no longer a valid CVE.
-",
-            subject, message_id, cve_id
+{cve_id} has now been rejected and is no longer a valid CVE.
+"
         );
 
         fs::write(&rejected_mbox_path, rejection_content).unwrap();

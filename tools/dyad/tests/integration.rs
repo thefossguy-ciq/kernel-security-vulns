@@ -35,7 +35,7 @@ fn test_dyad_consistency() {
     // Find and validate the CVE directory
     let cve_dir = match find_cve_dir() {
         Ok(dir) => dir,
-        Err(err) => panic!("Failed to find CVE directory: {}", err),
+        Err(err) => panic!("Failed to find CVE directory: {err}"),
     };
     println!(
         "Running integration test in CVE directory: {}",
@@ -92,9 +92,9 @@ fn test_dyad_consistency() {
     if !failed_cases.is_empty() {
         println!("\n⚠️ Test failures detected:");
         for (cve_id, error) in failed_cases.iter() {
-            println!("❌ Failed: CVE {}", cve_id);
+            println!("❌ Failed: CVE {cve_id}");
             if !error.is_empty() {
-                println!("   Error: {}", error);
+                println!("   Error: {error}");
             }
         }
 
@@ -217,7 +217,7 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
                     }
                     Err(e) => TestResult {
                         success: false,
-                        error_message: format!("Failed to read expected .dyad file: {}", e),
+                        error_message: format!("Failed to read expected .dyad file: {e}"),
                     },
                 }
             } else {
@@ -233,7 +233,7 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
         }
         Err(err) => TestResult {
             success: false,
-            error_message: format!("Failed to execute dyad: {}", err),
+            error_message: format!("Failed to execute dyad: {err}"),
         },
     }
 }
@@ -248,7 +248,7 @@ fn find_cve_dir() -> Result<PathBuf, String> {
             }
             Err(format!("CVE directory not found at: {}", cve_dir.display()))
         }
-        Err(e) => Err(format!("Failed to find vulns directory: {}", e)),
+        Err(e) => Err(format!("Failed to find vulns directory: {e}")),
     }
 }
 

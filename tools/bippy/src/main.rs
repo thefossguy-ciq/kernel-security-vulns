@@ -214,7 +214,7 @@ fn process_commit_text(script_dir: &Path, commit_text: &str, message_file: Optio
             if !trimmed_content.is_empty() {
                 debug!("Using content from .message file: {}", message_path.display());
                 // When using a .message file, use its content as the complete description
-                return format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{}", trimmed_content);
+                return format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{trimmed_content}");
             } else {
                 error!("Warning: Message file {} is empty or contains only whitespace, falling back to commit message", message_path.display());
             }
@@ -582,7 +582,7 @@ mod tests {
 
         // Create a test .message file
         let test_sha = "abc123def456";
-        let message_file_path = script_dir.join(format!("{}.message", test_sha));
+        let message_file_path = script_dir.join(format!("{test_sha}.message"));
         let custom_message = "This is a custom CVE description from a .message file\n\nIt should be used instead of the git commit message.";
         fs::write(&message_file_path, custom_message).unwrap();
 

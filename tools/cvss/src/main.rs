@@ -67,7 +67,7 @@ fn initialize_logging(verbose: bool) {
 /// (without extension) for writing .cvss file.
 fn find_cve_base_path(cve_id: &str) -> Result<PathBuf> {
     let sha1_path = cve_validation::find_cve_id(cve_id)?
-        .ok_or_else(|| anyhow!("CVE '{}' not found", cve_id))?;
+        .ok_or_else(|| anyhow!("CVE '{cve_id}' not found"))?;
     Ok(sha1_path.with_extension("cvss"))
 }
 

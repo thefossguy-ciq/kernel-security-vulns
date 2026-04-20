@@ -85,8 +85,8 @@ mod tests {
 
         for (cve_id, expected_sha) in test_cases {
             let result = common::find_sha_by_cve(&cve_root, cve_id);
-            assert!(result.is_some(), "Should find SHA for {}", cve_id);
-            assert_eq!(result.unwrap(), expected_sha, "SHA should match for {}", cve_id);
+            assert!(result.is_some(), "Should find SHA for {cve_id}");
+            assert_eq!(result.unwrap(), expected_sha, "SHA should match for {cve_id}");
         }
     }
 
@@ -103,8 +103,8 @@ mod tests {
 
         for (sha, expected_cve) in test_cases {
             let result = common::find_cve_by_sha(&cve_root, sha);
-            assert!(result.is_some(), "Should find CVE for {}", sha);
-            assert_eq!(result.unwrap(), expected_cve, "CVE should match for {}", sha);
+            assert!(result.is_some(), "Should find CVE for {sha}");
+            assert_eq!(result.unwrap(), expected_cve, "CVE should match for {sha}");
         }
     }
 
@@ -121,8 +121,8 @@ mod tests {
 
         for (partial_sha, expected_cve) in test_cases {
             let result = common::find_cve_by_sha(&cve_root, partial_sha);
-            assert!(result.is_some(), "Should find CVE for partial SHA {}", partial_sha);
-            assert_eq!(result.unwrap(), expected_cve, "CVE should match for partial SHA {}", partial_sha);
+            assert!(result.is_some(), "Should find CVE for partial SHA {partial_sha}");
+            assert_eq!(result.unwrap(), expected_cve, "CVE should match for partial SHA {partial_sha}");
         }
     }
 

@@ -125,7 +125,7 @@ impl Verhaal {
         }
 
         debug!("\t\tget_version: '{git_sha}' => VERSION NOT FOUND");
-        Err(anyhow!("Version {} not found", git_sha))
+        Err(anyhow!("Version {git_sha} not found"))
     }
 
     /// Returns a vector of kernels that are fixes for this specific git id as listed in the database.
@@ -165,7 +165,7 @@ impl Verhaal {
             }
 
         if fixed_kernels.is_empty() {
-            return Err(anyhow!("No fixes for {} were found", git_sha))
+            return Err(anyhow!("No fixes for {git_sha} were found"))
         }
 
         // Sort the list to be deterministic
@@ -193,11 +193,11 @@ impl Verhaal {
         );
 
         if revert.is_empty() {
-            return Err(anyhow!("No revert for {} was found", git_sha));
+            return Err(anyhow!("No revert for {git_sha} was found"));
         }
         let k = match Kernel::from_id(&revert) {
             Ok(k) => k,
-            Err(err) => return Err(anyhow!("{:?}", err)),
+            Err(err) => return Err(anyhow!("{err:?}")),
         };
         Ok(k)
     }
@@ -223,7 +223,7 @@ impl Verhaal {
         let mut stmt = match self.conn.prepare(sql) {
             Ok(s) => s,
             Err(e) => {
-                return Err(anyhow!("SQL prepare error: {:?} for query: {}", e, sql));
+                return Err(anyhow!("SQL prepare error: {e:?} for query: {sql}"));
             }
         };
 
@@ -322,7 +322,7 @@ impl Verhaal {
         }
 
         if result.kernels.is_empty() && result.reverted_pairs.is_empty() {
-            return Err(anyhow!("git id {} was not backported anywhere", git_sha));
+            return Err(anyhow!("git id {git_sha} was not backported anywhere"));
         }
 
         // Sort for deterministic results
@@ -370,13 +370,13 @@ mod tests {
     fn get_version(git_id: String) -> String {
         let verhaal = match Verhaal::new() {
             Ok(verhaal) => verhaal,
-            Err(error) => panic!("Can not open the database file {:?}", error),
+            Err(error) => panic!("Can not open the database file {error:?}"),
         };
 
         let version = verhaal.get_version(&git_id);
         match version {
             Ok(version) => version,
-            Err(error) => panic!("{:?}", error),
+            Err(error) => panic!("{error:?}"),
         }
     }
 
@@ -425,7 +425,7 @@ mod tests {
     fn found_in_returns_reverted_pairs_test() {
         let verhaal = match Verhaal::new() {
             Ok(verhaal) => verhaal,
-            Err(error) => panic!("Can not open the database file {:?}", error),
+            Err(error) => panic!("Can not open the database file {error:?}"),
         };
 
         // af42269c3523 is the mainline introducing commit for CVE-2024-27005
