@@ -1,0 +1,73 @@
+e597a809a2b9 drm/vc4: platform_get_irq_byname() returns an int
+c0128c7157d6 i2c: s3c24xx: check the size of the SMBUS message before using it
+66751841212c ksmbd: validate EaNameLength in smb2_get_ea()
+53370cf90907 ksmbd: require 3 sub-authorities before reading sub_auth[2]
+ad0057fb9121 ksmbd: fix mechToken leak when SPNEGO decode fails after token alloc
+3d8b9d06bd3a smb: client: fix off-by-8 bounds check in check_wsl_eas()
+3df690bba28e smb: client: fix OOB reads parsing symlink error response
+1badfc431922 HID: alps: fix NULL pointer dereference in alps_raw_event()
+69c02ffde6ed HID: core: clamp report_size in s32ton() to avoid undefined shift
+f880aac8a57e usb: gadget: renesas_usb3: validate endpoint index in standard request handlers
+c088d5dd2fff usb: gadget: f_phonet: fix skb frags[] overflow in pn_rx_complete()
+8f993d30b95d usb: gadget: f_ncm: validate minimum block_len in ncm_unwrap_ntb()
+8f98b81fe011 fbdev: tdfxfb: avoid divide-by-zero on FBIOPUT_VSCREENINFO
+a31e4518bec7 fbdev: udlfb: avoid divide-by-zero on FBIOPUT_VSCREENINFO
+48bd344e1040 ALSA: usx2y: us144mkii: fix NULL deref on missing interface 0
+07704bbf36f5 ALSA: fireworks: bound device-supplied status before string array lookup
+46ce8be2ced3 NFC: digital: Bounds check NFC-A cascade depth in SDD response handler
+8b0c25528cb6 bnge: return after auxiliary_device_uninit() in error path
+600dc40554dc net: usb: cdc-phonet: fix skb frags[] overflow in rx_complete()
+f08fe8891c3e dcache: Limit the minimal number of bucket to two
+0da63230d3ec PCI: endpoint: pci-epf-vntb: Remove duplicate resource teardown
+d799984233a5 PCI: endpoint: pci-epf-vntb: Stop cmd_handler work in epf_ntb_epc_cleanup
+f8e1fc918a9f media: vidtv: fix NULL pointer dereference in vidtv_channel_pmt_match_sections
+9b9f7962e3e8 KVM: SEV: Reject attempts to sync VMSA of an already-launched/encrypted vCPU
+b6408b6cec5d KVM: SEV: Protect *all* of sev_mem_enc_register_region() with kvm->lock
+15bfba1ad77f arm64: mm: Handle invalid large leaf mappings correctly
+4a1c0ddc6e7b ocfs2: handle invalid dinode in ocfs2_group_extend
+e9418da50d9e ALSA: ctxfi: Limit PTP to a single page
+1b81ed612e12 vfio/xe: Reorganize the init to decouple migration from reset
+f08fe8891c3e dcache: Limit the minimal number of bucket to two
+0da63230d3ec PCI: endpoint: pci-epf-vntb: Remove duplicate resource teardown
+d799984233a5 PCI: endpoint: pci-epf-vntb: Stop cmd_handler work in epf_ntb_epc_cleanup
+f8e1fc918a9f media: vidtv: fix NULL pointer dereference in vidtv_channel_pmt_match_sections
+9b9f7962e3e8 KVM: SEV: Reject attempts to sync VMSA of an already-launched/encrypted vCPU
+b6408b6cec5d KVM: SEV: Protect *all* of sev_mem_enc_register_region() with kvm->lock
+15bfba1ad77f arm64: mm: Handle invalid large leaf mappings correctly
+4a1c0ddc6e7b ocfs2: handle invalid dinode in ocfs2_group_extend
+e9418da50d9e ALSA: ctxfi: Limit PTP to a single page
+1b81ed612e12 vfio/xe: Reorganize the init to decouple migration from reset
+3b7da2b4d0fe media: hackrf: fix to not free memory after the device is registered in hackrf_probe()
+8bd29dbe03fc media: as102: fix to not free memory after the device is registered in as102_usb_probe()
+5f8e73bde67e media: vidtv: fix pass-by-value structs causing MSAN warnings
+a0e5a598fe9a media: vidtv: fix nfeeds state corruption on start_streaming failure
+b02da26a992d ocfs2: fix possible deadlock between unlink and dio_end_io_write
+0217c7fb4de4 mm/userfaultfd: fix hugetlb fault mutex hash calculation
+a66485a934c7 media: em28xx: fix use-after-free in em28xx_v4l2_open()
+4a4e0328edd9 nilfs2: fix NULL i_assoc_inode dereference in nilfs_mdt_save_to_shadow_map
+7de554cabf16 ocfs2: fix use-after-free in ocfs2_fault() when VM_FAULT_RETRY
+60a25ef8dacb wireguard: device: use exit_rtnl callback instead of manual rtnl_lock in pre_exit
+51d8c78be0c2 mm/kasan: fix double free for kasan pXds
+0b16e69d17d8 KVM: x86: Use scratch field in MMIO fragment to hold small write values
+76e35091ffc7 media: mediatek: vcodec: fix use-after-free in encoder release path
+bbb15e71156c wifi: rtw88: fix device leak on probe failure
+cb923ee6a80f KVM: SEV: Lock all vCPUs when synchronzing VMSAs for SNP launch finish
+8acffeef5ef7 KVM: SEV: Drop WARN on large size for KVM_MEMORY_ENCRYPT_REG_REGION
+8c964b82a4e9 staging: rtl8723bs: initialize le_tmp64 in rtw_BIP_verify()
+fec114a98b87 bcache: fix cached_dev.sb_bio use-after-free and crash
+75a1621e4f91 staging: sm750fb: fix division by zero in ps_to_hz()
+81ebd43cc0d6 usb: gadget: f_hid: don't call cdev_init while cdev in use
+6ec1235fc941 ASoC: qcom: q6apm: move component registration to unmanaged version
+2ab833a16a82 usbip: validate number_of_packets in usbip_pack_ret_submit()
+e55d98e77561 x86/CPU: Fix FPDSS on Zen1
+2b5dd4632966 nfc: llcp: add missing return after LLCP_CLOSED checks
+a535a9217ca3 can: raw: fix ro->uniq use-after-free in raw_rcv()
+08e57f5e1a90 hwmon: (powerz) Fix use-after-free on USB disconnect
+b9c826916fdc ALSA: 6fire: fix use-after-free on disconnect
+27b7c3e91621 smb: client: avoid double-free in smbd_free_send_io() after smbd_send_batch_flush()
+84ff995ae826 smb: server: avoid double-free in smb_direct_free_sendmsg after smb_direct_flush_send_list()
+8f5857be99f1 mm: blk-cgroup: fix use-after-free in cgwb_release_workfn()
+615d9bb2ccad mm: call ->free_folio() directly in folio_unmap_invalidate()
+4096fd0e8eae clockevents: Add missing resets of the next_event_forced flag
+d187a86de793 x86-64: rename misleadingly named '__copy_user_nocache()' function
+5de7bcaadf16 x86: rename and clean up __copy_from_user_inatomic_nocache()
