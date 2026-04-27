@@ -168,6 +168,8 @@ for h in ${SHAS[@]}; do
     count=$((count + 1))
     percentage=$(echo "scale=4; (${count}/${NOSHAS})*100" | bc | awk '{printf "%.2f\n", $0}')
     alreadyreviewed=""
+    mainlinesha=""
+    pubpath=""
 
     if grep -q -s -F "${oneline}" ${PROCESSEDFILE}; then
         print_blue "Skipping already processed commit: ${oneline}"
