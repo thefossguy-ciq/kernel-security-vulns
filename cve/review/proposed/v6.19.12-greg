@@ -1,0 +1,106 @@
+f8995c2df519 drm/ioc32: stop speculation on the drm_compat_ioctl path
+b17b79ff8963 btrfs: reject root items with drop_progress and zero drop_level
+4576100b8cd0 net/sched: sch_hfsc: fix divide-by-zero in rtsc_min()
+3d5d488f1177 netfilter: x_tables: restrict xt_check_match/xt_check_target extensions for NFPROTO_ARP
+403186400a1a net/mlx5: Fix switchdev mode rollback in case of failure
+dbbd550d7c8d interconnect: qcom: sm8450: Fix NULL pointer dereference in icc_link_nodes()
+4487571ef17a drm/amdgpu: Change AMDGPU_VA_RESERVED_TRAP_SIZE to 64KB
+2884bf72fb8f net: bonding: fix use-after-free in bond_xmit_broadcast()
+5dd8025a49c2 mptcp: fix soft lockup in mptcp_recvmsg()
+a242a9ae58aa netfilter: nf_conntrack_helper: pass helper to expect cleanup
+917b61fa2042 netfilter: ctnetlink: ignore explicit helper on new expectations
+035c25007c9e Bluetooth: hci_sync: Fix UAF in le_read_features_complete
+ad8391d37f33 bpf: sockmap: Fix use-after-free of sk->sk_socket in sk_psock_verdict_data_ready().
+ce8fe5287b87 net: macb: fix clk handling on PCI glue driver removal
+eb7024bfcc5f bpf: Reject sleepable kprobe_multi programs at attach time
+111a12b422a8 io_uring/rsrc: reject zero-length fixed buffer import
+45424e871abf ALSA: caiaq: fix stack out-of-bounds read in init_card
+b948f9d5d305 io_uring/net: fix slab-out-of-bounds read in io_bundle_nbufs()
+bc39a094730c Bluetooth: hci_sync: fix stack buffer overflow in hci_le_big_create_sync
+01cc50ea5167 mips: mm: Allocate tlb_vpn array atomically
+62f553d60a80 drm/amdgpu: fix the idr allocation flags
+93853512f565 comedi: dt2815: add hardware detection to prevent crash
+29f644f14b89 comedi: runflags cannot determine whether to reclaim chanlist
+40014493cece vt: discard stale unicode buffer on alt screen exit after resize
+789b06f9f39c wifi: virt_wifi: remove SET_NETDEV_DEV to avoid use-after-free
+7d73872d949c wifi: mac80211: check tdls flag in ieee80211_tdls_oper
+922814879542 atm: lec: fix use-after-free in sock_def_readable()
+2428083101f6 net: qrtr: replace qrtr_tx_flow radix_tree with xarray to fix memory leak
+ddc748a391dd net: use skb_header_pointer() for TCPv4 GSO frag_off check
+8a768552f7a8 usb: usbtmc: Flush anchored URBs in usbtmc_release
+4b9a9a6d71e3 comedi: Reinit dev->spinlock between attachments to low-level drivers
+45b859b07282 thermal: core: Address thermal zone removal races with resume
+616a63ff495d USB: dummy-hcd: Fix locking/synchronization error
+c4ea7d8907cf net: mana: fix use-after-free in add_adev() error path
+f7a4c78bfeb3 HID: logitech-hidpp: Prevent use-after-free on force feedback initialisation failure
+45ebe43ea00d Revert "drm: Fix use-after-free on framebuffers and property blobs when calling drm_dev_unplug"
+d1857f8296dc gpib: fix use-after-free in IO ioctl handlers
+8a5b0135d4a5 Bluetooth: SCO: fix race conditions in sco_sock_connect()
+eba2936bbe6b usb: gadget: uvc: fix NULL pointer dereference during unbind race
+b854e1c4eff3 xfs: close crash window in attr dabtree inactivation
+323156c3541e wifi: iwlwifi: mvm: don't send a 6E related command when not supported
+9ca562bb8e66 net: ipv6: flowlabel: defer exclusive option free until RCU teardown
+0ffac654e95c Bluetooth: hci_h4: Fix race during initialization
+a54ecccfae62 rds: ib: reject FRMR registration before IB connection is established
+4e453375561f ipv6: avoid overflows in ip6_datagram_send_ctl()
+75dc1980cf48 ALSA: ctxfi: Don't enumerate SPDIF1 at DAIO initialization
+39e2a5bf9704 hwmon: (occ) Fix division by zero in occ_show_power_1()
+917e3ad3321e x86/kexec: Disable KCOV instrumentation after load_segments()
+7f6f127b9bc3 usb: cdns3: gadget: fix NULL pointer dereference in ep_queue
+c32f8748d70c usb: cdns3: gadget: fix state inconsistency on gadget init failure
+4b56770d3455 crypto: tegra - Add missing CRYPTO_ALG_ASYNC
+976ff48c2ac6 net: ethernet: mtk_ppe: avoid NULL deref when gmac0 is disabled
+e1eabb072c75 usb: gadget: u_ether: Fix race between gether_disconnect and eth_stop
+426295ef18c5 kallsyms: clean up @namebuf initialization in kallsyms_lookup_buildid()
+f9a4e3015db1 btrfs: reserve enough transaction items for qgroup ioctls
+7e0ffb72de8a sched_ext: Fix stale direct dispatch state in ddsp_dsq_id
+fa6e24963342 bridge: mrp: reject zero test interval to avoid OOM panic
+4c56a8ac6869 cgroup: Fix cgroup_drain_dying() testing the wrong condition
+62397b493e14 crypto: af-alg - fix NULL pointer dereference in scatterwalk
+629ec78ef860 mpls: add seqcount to protect the platform_label{,s} pair
+da107398cbd4 netfilter: nf_tables: reject immediate NF_QUEUE verdict
+35177c687713 netfilter: ctnetlink: zero expect NAT fields when CTA_EXPECT_NAT absent
+6d52a4a0520a netfilter: nfnetlink_log: account for netlink header size
+a958a4f90ddd netfilter: x_tables: ensure names are nul-terminated
+e6e3eb5ee89a net: sched: cls_api: fix tc_chain_fill_node to initialize tcm_info to zero to prevent an info-leak
+1333eee56cdf scsi: target: tcm_loop: Drain commands in target_reset handler
+c0e296f25767 mshv: Fix error handling in mshv_region_pin
+ae05340ccaa9 net: ipv6: ndisc: fix ndisc_ra_useropt to initialize nduseropt_padX fields to zero to prevent an info-leak
+5597dd284ff8 net: ti: icssg-prueth: fix missing data copy and wrong recycle in ZC RX dispatch
+622363757b22 ASoC: ep93xx: Fix unchecked clk_prepare_enable() and add rollback on failure
+2969554bcfcc Bluetooth: hci_sync: hci_cmd_sync_queue_once() return -EEXIST if exists
+aca377208e7f Bluetooth: hci_sync: fix leaks when hci_cmd_sync_queue_once fails
+5a570c8d6e55 spi: stm32-ospi: Fix reset control leak on probe error
+4216db1043a3 iio: gyro: mpu3050: Fix irq resource leak
+5cefb52c1af6 gpib: lpvo_usb: fix memory leak on disconnect
+33cfe0709b6b usb: misc: usbio: Fix URB memory leak on submit failure
+c8d46f17c2fc s390/zcrypt: Fix memory leak with CCA cards used as accelerator
+c0fd0fe745f5 net: ftgmac100: fix ring allocation unwind on open failure
+6dcf9d0064ce cpufreq: governor: fix double free in cpufreq_dbs_governor_init() error path
+e002e92e88e1 usb: gadget: u_ether: Fix NULL pointer deref in eth_get_drvinfo
+bf16bca66536 net/mlx5: lag: Check for LAG device before creating debugfs
+faeea8bbf6e9 net/sched: cls_fw: fix NULL pointer dereference on shared blocks
+1a280dd4bd1d net/sched: cls_flow: fix NULL pointer dereference on shared blocks
+b0db1accbc73 bpf: reject direct access to nullable PTR_TO_BUF pointers
+8de4e0f44c63 gpio: qixis-fpga: Fix error handling for devm_regmap_init_mmio()
+7f138de156b2 auxdisplay: line-display: fix NULL dereference in linedisp_release
+101ab946b79a comedi: ni_atmio16d: Fix invalid clean-up after failed attach
+9badc2a84e68 PM: EM: Fix NULL pointer dereference when perf domain ID is not found
+d62cf1511743 MIPS: SiByte: Bring back cache initialisation
+2f1763f62909 HID: wacom: fix out-of-bounds read in wacom_intuos_bt_irq
+0a3fe972a7cb HID: core: Mitigate potential OOB by removing bogus memset()
+e716edafedad HID: multitouch: Check to ensure report responses match the request
+d2d8c17ac01a usb: typec: ucsi: validate connector number in ucsi_notify_common()
+e367599529dc usb: gadget: f_rndis: Fix net_device lifecycle with device_move
+06524cd1c901 usb: gadget: f_subset: Fix net_device lifecycle with device_move
+b2cc4fae67a5 usb: gadget: f_ecm: Fix net_device lifecycle with device_move
+d9270c9a8118 usb: gadget: f_eem: Fix net_device lifecycle with device_move
+4e0a88254ad5 usb: gadget: f_hid: move list and spinlock inits from bind to alloc
+6e0e34d85cd4 usb: gadget: f_uac1_legacy: validate control request size
+d64cb81dcbd5 net/sched: sch_netem: fix out-of-bounds access in packet corruption
+2feec5ae5df7 accel/qaic: Handle DBC deactivation if the owner went away
+0e211f6aaa6a hwmon: (tps53679) Fix array access with zero-length block read
+b045ab3dff97 ALSA: ctxfi: Fix missing SPDIFI1 index handling
+679c04c10d65 iio: imu: st_lsm6dsx: Set buffer sampling frequency for accelerometer only
+679b771ea05a usb: ehci-brcm: fix sleep during atomic
+ba2c83167b21 misc: fastrpc: possible double-free of cctx->remote_heap
