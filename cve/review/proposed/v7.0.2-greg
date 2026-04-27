@@ -1,0 +1,32 @@
+6af249c996f7 f2fs: fix to do sanity check on dcc->discard_cmd_cnt conditionally
+0ca0485e4b2e fs/ntfs3: validate rec->used in journal-replay file record check
+6af249c996f7 f2fs: fix to do sanity check on dcc->discard_cmd_cnt conditionally
+2d9c4a4ed4ee f2fs: fix UAF caused by decrementing sbi->nr_pages[] in f2fs_write_end_io()
+3cf11e6f36c1 f2fs: fix to avoid memory leak in f2fs_rename()
+7b9161a605e9 f2fs: fix to avoid uninit-value access in f2fs_sanity_check_node_footer
+235e32320a47 ksmbd: fix use-after-free in __ksmbd_close_fd() via durable scavenger
+6689f01d6740 writeback: Fix use after free in inode_switch_wbs_work_fn()
+39d4ee19c1e7 f2fs: fix use-after-free of sbi in f2fs_compress_write_end_io()
+1f48ad3b19a9 crypto: authencesn - Fix src offset when decrypting in-place
+abe4a6d6f606 crypto: ccp: Don't attempt to copy CSR to userspace if PSP command failed
+e76239fed3cf crypto: ccp: Don't attempt to copy PDH cert to userspace if PSP command failed
+4f685dbfa87c crypto: ccp: Don't attempt to copy ID to userspace if PSP command failed
+51a8de6c50bf fuse: reject oversized dirents in page cache
+204aa22a686b fuse: abort on fatal signal during sync init
+d07b26f39246 ksmbd: require minimum ACE size in smb_check_perm_dacl()
+6551300dc452 smb: server: fix active_num_conn leak on transport allocation failure
+c4d3fc5844d6 smb: client: fix dir separator in SMB1 UNIX mounts
+ce23158bfe58 smb: server: fix max_connections off-by-one in tcp accept path
+0a8cf165566b smb: client: validate the whole DACL before rewriting it in cifsacl
+a58c5af19ff0 smb: client: fix OOB read in smb2_ioctl_query_info QUERY_INFO path
+80bb50e2d459 ALSA: caiaq: take a reference on the USB device in create_card()
+3bfbf5f0a99c crypto: krb5enc - fix async decrypt skipping hash verification
+49110a8ce654 ksmbd: validate owner of durable handle on reconnect
+d6a6aa81eac2 ksmbd: validate response sizes in ipc_validate_msg()
+3e4e2ea2a781 ksmbd: validate num_aces and harden ACE walk in smb_inherit_dacl()
+30010c952077 ksmbd: fix out-of-bounds write in smb2_get_ea() EA alignment
+299f962c0b02 ksmbd: use check_add_overflow() to prevent u16 DACL size overflow
+def036ef87f8 ksmbd: reset rcount per connection in ksmbd_conn_wait_idle_sess_id()
+2c054e17d9d4 net/packet: fix TOCTOU race on mmap'd vnet_hdr in tpacket_snd()
+ac33733b10b4 rxrpc: Fix missing validation of ticket length in non-XDR key preparsing
+404cd6bffe17 mshv_vtl: Fix vmemmap_shift exceeding MAX_FOLIO_ORDER
