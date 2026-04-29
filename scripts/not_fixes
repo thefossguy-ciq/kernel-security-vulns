@@ -1,0 +1,7 @@
+# Used by dyad to drop stable backports that look like a fix for a CVE
+# but did not actually fix the issue (typo, misplaced check, dropped
+# hunk, etc.).  The actual fix is supplied separately, typically as an
+# extra line in the CVE's .sha1 file.
+#
+# List the broken-backport commit ids here, one per line.
+043b4307a99f902697349128fde93b2ddde4686c
