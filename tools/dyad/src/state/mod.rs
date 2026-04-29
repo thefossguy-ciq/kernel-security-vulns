@@ -9,6 +9,7 @@ use cve_utils::Kernel;
 use cve_utils::Verhaal;
 use log::debug;
 use std::collections::HashSet;
+use std::fs;
 
 /// State for dyad tool runtime
 pub struct DyadState {
@@ -22,6 +23,11 @@ pub struct DyadState {
     /// These are pre-computed pairs that should be used directly without going through
     /// the general pairing logic, since we already know exactly which commit each revert fixes.
     pub revert_pairs: Vec<(Kernel, Kernel)>,
+    /// SHAs from scripts/not_reverts: backports whose revert is non-functional
+    /// (e.g. cosmetic compiler-warning fixup followed by an immediate re-apply).
+    /// When a reverted backport's git id is in this set, dyad treats the original
+    /// as still-active on its stable branch and suppresses the re-applied sibling.
+    pub not_reverts: HashSet<String>,
     // HashSets for O(1) deduplication checks
     fixed_set_ids: HashSet<String>,
     vulnerable_set_ids: HashSet<String>,
@@ -45,6 +51,7 @@ impl DyadState {
             fixed_set: vec![],
             vulnerable_set: vec![],
             revert_pairs: vec![],
+            not_reverts: load_not_reverts(),
             fixed_set_ids: HashSet::new(),
             vulnerable_set_ids: HashSet::new(),
             revert_pair_vuln_ids: HashSet::new(),
@@ -113,4 +120,38 @@ pub fn found_in(state: &DyadState, git_sha: &str) -> FoundInResult {
             FoundInResult::default()
         }
     }
+}
+
+/// Load the scripts/not_reverts whitelist of commit SHAs whose revert is known to be
+/// non-functional. Comment lines (starting with '#') and blank lines are skipped.
+/// SHAs are lowercased for case-insensitive matching.
+///
+/// Returns an empty set on any read error so dyad behaves as it did before this file existed.
+fn load_not_reverts() -> HashSet<String> {
+    let vulns_dir = match cve_utils::common::find_vulns_dir() {
+        Ok(p) => p,
+        Err(e) => {
+            debug!("not_reverts: could not locate vulns dir: {e:?}");
+            return HashSet::new();
+        }
+    };
+
+    let path = vulns_dir.join("scripts").join("not_reverts");
+    let contents = match fs::read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) => {
+            debug!("not_reverts: could not read {}: {e:?}", path.display());
+            return HashSet::new();
+        }
+    };
+
+    let set: HashSet<String> = contents
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+        .map(str::to_lowercase)
+        .collect();
+
+    debug!("not_reverts: loaded {} entries", set.len());
+    set
 }
