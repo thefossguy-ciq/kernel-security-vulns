@@ -22,11 +22,6 @@ _help:
 	scripts/cve_update {{GIT_ID}}
 
 
-# Check the cvelistV5 database for any existing CVE entries
-@cvelistV5_check FILENAME:
-	scripts/cvelistV5_check {{FILENAME}}
-
-
 # Publish all modified .json files with the CVE server
 @cve_publish_json:
 	scripts/cve_publish_json
@@ -47,10 +42,6 @@ _help:
 # List a summary of the ids at this point in time
 @summary:
 	scripts/summary
-
-# update cvelistV5 and commit the difference
-@update_cvelistV5:
-	cd cve/cvelistV5 && git pull && cd .. && git commit cvelistV5 -m "update cvelistV5" -s
 
 # Build the tools needed for working with this repo
 @build_utils:
