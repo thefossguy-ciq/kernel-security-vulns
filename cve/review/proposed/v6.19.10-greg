@@ -92,3 +92,7 @@ bab2bc6e850a ("mtd: rawnand: serialize lock/unlock against other NAND operations
 b8db95529979 ("spi: amlogic-spisg: Fix memory leak in aml_spisg_probe()")
 c6cb77c474a3 ("drm/vmwgfx: Don't overwrite KMS surface dirty tracker")
 ba17de98545d ("iommu/amd: Block identity domain when SNP enabled")
+15145675690c ("Bluetooth: L2CAP: Fix type confusion in l2cap_ecred_reconf_rsp()")
+17f89341cb42 ("Bluetooth: MGMT: Fix list corruption and UAF in command complete handlers")
+36eae0956f65 ("netfilter: nft_ct: drop pending enqueued packets on removal")
+a424a34b8fad ("serial: 8250: Fix TX deadlock when using DMA")
