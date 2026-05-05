@@ -46,3 +46,7 @@ _help:
 # Build the tools needed for working with this repo
 @build_utils:
 	cd tools && cargo build --release
+
+# Fetch the latest verhaal.db from sashalevin/verhaal releases
+@verhaal_fetch:
+	scripts/verhaal_fetch

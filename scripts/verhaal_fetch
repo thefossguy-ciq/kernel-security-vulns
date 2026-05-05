@@ -1,0 +1,32 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+#
+# Copyright (c) 2026 - Sasha Levin <sashal@kernel.org>
+#
+# verhaal_fetch - Download the latest verhaal.db from the
+# sashalevin/verhaal "latest" GitHub release and install it
+# at tools/verhaal/verhaal.db, where the cve_utils Rust code
+# expects to find it.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+URL="https://github.com/sashalevin/verhaal/releases/latest/download/verhaal.db"
+
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+DEST_DIR="${DIR}/../tools/verhaal"
+DEST="${DEST_DIR}/verhaal.db"
+
+mkdir -p "${DEST_DIR}"
+
+TMP=$(mktemp "${DEST}.XXXXXX")
+trap 'rm -f "${TMP}"' EXIT
+
+echo "Fetching latest verhaal.db release"
+curl -fSL --progress-bar -o "${TMP}" "${URL}"
+
+mv "${TMP}" "${DEST}"
+trap - EXIT
+
+echo "Updated ${DEST}"
