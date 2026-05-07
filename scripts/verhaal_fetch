@@ -12,7 +12,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-URL="https://github.com/sashalevin/verhaal/releases/latest/download/verhaal.db"
+URL="https://github.com/sashalevin/verhaal/releases/latest/download/verhaal.db.xz"
 
 DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 DEST_DIR="${DIR}/../tools/verhaal"
@@ -23,8 +23,8 @@ mkdir -p "${DEST_DIR}"
 TMP=$(mktemp "${DEST}.XXXXXX")
 trap 'rm -f "${TMP}"' EXIT
 
-echo "Fetching latest verhaal.db release"
-curl -fSL --progress-bar -o "${TMP}" "${URL}"
+echo "Fetching and decompressing latest verhaal.db.xz release"
+curl -fSL --progress-bar "${URL}" | xz --decompress --stdout > "${TMP}"
 
 mv "${TMP}" "${DEST}"
 trap - EXIT
