@@ -220,7 +220,6 @@ be054cc66f73 ("net/sched: act_skbedit: fix divide-by-zero in tcf_skbedit_hash()"
 f1547779402c ("ring-buffer: Fix possible dereference of uninitialized pointer")
 14f66f446463 ("cifs: some missing initializations on replay")
 f0a0da1f907e ("tracing: Fix checking of freed trace_event_file for hist files")
-0089ce1c056a ("ACPI: processor: Update cpuidle driver check in __acpi_processor_start()")
 912b0ee248c5 ("tracing: ring-buffer: Fix to check event length before using")
 144080a5823b ("mm/slab: do not access current->mems_allowed_seq if !allow_spin")
 2c198c272f9c ("most: core: fix leak on early registration failure")
