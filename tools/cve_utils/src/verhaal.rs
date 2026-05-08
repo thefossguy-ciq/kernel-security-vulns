@@ -165,6 +165,25 @@ impl Verhaal {
             }
 
         if fixed_kernels.is_empty() {
+            debug!("No fixes for {git_sha} were found");
+            if let Ok(k) = Kernel::from_id(git_sha) {
+                debug!("kernel = {:?}", k);
+            } else {
+                debug!("{git_sha} is not a valid kernel yet, so maybe this is not in the mainline yet?");
+                // This commit could just be in Linus's tree, but NOT in a release kernel yet, so
+                // let's dig and see if this is in a stable release (this happens at times)
+                let result = self.found_in(git_sha, &[]);
+                let found = result.unwrap();
+                if let Some(k) = found.kernels.into_iter().next() {
+                    // We only care about one of these kernels, so just grab the first and go with
+                    // that, calling into ourself to get the data
+                    debug!("k = {:?}", k);
+                    return self.get_fixes(&k.git_id());
+                } else {
+                    debug!("no kernels were found for this git id.");
+                    return Err(anyhow!("No fixes for {git_sha} were found"));
+                }
+            }
             return Err(anyhow!("No fixes for {git_sha} were found"))
         }
 
