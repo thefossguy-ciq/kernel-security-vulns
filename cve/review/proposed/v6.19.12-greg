@@ -158,3 +158,6 @@ ee6e69d03255 ("iommupt: Fix short gather if the unmap goes into a large mapping"
 0c4a59df370b ("sched_ext: Fix is_bpf_migration_disabled() false negative on non-PREEMPT_RCU")
 16fdabe143fc ("gpio: Fix resource leaks on errors in gpiochip_add_data_with_key()")
 6a502776f4a4 ("misc: fastrpc: check qcom_scm_assign_mem() return in rpmsg_probe")
+5e67ba9bb531 ("net/ipv6: ioam6: prevent schema length wraparound in trace fill")
+8d8c68b1fc06 ("usb: gadget: f_rndis: Protect RNDIS options with mutex")
+caa27923aacd ("usb: gadget: f_subset: Fix unbalanced refcnt in geth_free")
