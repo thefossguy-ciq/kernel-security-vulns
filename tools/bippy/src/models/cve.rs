@@ -10,9 +10,6 @@ pub struct CveMetadata {
     pub assigner_org_id: String,
     #[serde(rename = "cveId")]
     pub cve_id: String,
-    #[serde(rename = "requesterUserId")]
-    pub requester_user_id: String,
-    pub serial: String,
     pub state: String,
 }
 

@@ -170,7 +170,6 @@ struct CveRecordCreationParams<'a> {
     uuid: String,
     cve_number: &'a str,
     commit_subject: &'a str,
-    user_email: &'a str,
     script_name: &'a str,
     script_version: &'a str,
     truncated_description: String,
@@ -208,8 +207,6 @@ fn create_cve_record(params: CveRecordCreationParams) -> CveRecord {
         cve_metadata: CveMetadata {
             assigner_org_id: params.uuid,
             cve_id: params.cve_number.to_string(),
-            requester_user_id: params.user_email.to_string(),
-            serial: "1".to_string(),
             state: "PUBLISHED".to_string(),
         },
         data_type: "CVE_RECORD".to_string(),
@@ -245,8 +242,9 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
         cve_number,
         git_sha_full,
         commit_subject,
-        user_name: _user_name, // Not used in this function
-        user_email,
+        user_name: _user_name,   // Not used in this function
+        user_email: _user_email, // Not emitted; server-managed
+
         dyad_entries: in_dyad_entries,
         script_name,
         script_version,
@@ -277,7 +275,6 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
         uuid,
         cve_number,
         commit_subject,
-        user_email,
         script_name,
         script_version,
         truncated_description,
@@ -411,8 +408,6 @@ mod tests {
             cve_metadata: CveMetadata {
                 assigner_org_id: "test-uuid".to_string(),
                 cve_id: "CVE-2023-1234".to_string(),
-                requester_user_id: "test@example.com".to_string(),
-                serial: "1".to_string(),
                 state: "PUBLISHED".to_string(),
             },
             data_type: "CVE_RECORD".to_string(),
@@ -430,6 +425,8 @@ mod tests {
         assert_eq!(parsed["dataVersion"], "5.0");
         assert_eq!(parsed["cveMetadata"]["cveId"], "CVE-2023-1234");
         assert_eq!(parsed["cveMetadata"]["state"], "PUBLISHED");
+        assert!(parsed["cveMetadata"].get("requesterUserId").is_none());
+        assert!(parsed["cveMetadata"].get("serial").is_none());
         assert_eq!(parsed["containers"]["cna"]["title"], "Test CVE");
 
         // Check that the output ends with a newline
