@@ -679,7 +679,7 @@ mod tests {
             DyadEntry::new("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
         ];
 
-        let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected");
+        let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected").kernel_versions;
         let git_versions = utils::version::generate_git_ranges(&entries);
 
         // Check git versions
@@ -709,7 +709,7 @@ mod tests {
             DyadEntry::new("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
-        let kernel_versions = utils::version::generate_version_ranges(&entries, "affected");
+        let kernel_versions = utils::version::generate_version_ranges(&entries, "affected").kernel_versions;
         let git_versions = utils::version::generate_git_ranges(&entries);
 
         // Check git versions
@@ -738,7 +738,7 @@ mod tests {
             DyadEntry::new("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
-        let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected");
+        let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected").kernel_versions;
         let git_versions = utils::version::generate_git_ranges(&entries);
 
         // Check git versions (should have two entries)

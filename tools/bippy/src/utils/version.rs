@@ -10,6 +10,21 @@ use cve_utils::version_utils::version_is_mainline;
 use log::debug;
 use std::collections::HashSet;
 
+/// Output of `generate_version_ranges`: separates the semver product ranges
+/// (kernel_versions) from stable branch ranges that belong in the git product
+/// (stable_versions).
+#[derive(Default)]
+pub struct VersionRangeOutput {
+    /// Ranges for the semver product (defaultStatus=affected)
+    pub kernel_versions: Vec<VersionRange>,
+    /// Stable branch affected ranges for the git product (defaultStatus=unaffected).
+    #[allow(dead_code)]
+    pub stable_versions: Vec<VersionRange>,
+}
+
+/// Dedup key prefix for semver product entries (kernel version ranges)
+const DEDUP_KERNEL: &str = "kernel";
+
 /// Determine the default status for CVE entries based on the dyad entries.
 /// Delegates to the centralized policy module.
 pub fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
@@ -85,8 +100,9 @@ pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
 }
 
 /// Generate version ranges for the CVE JSON format
-pub fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> Vec<VersionRange> {
+pub fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> VersionRangeOutput {
     let mut kernel_versions = Vec::new();
+    let stable_versions = Vec::new();
     let mut seen_versions = HashSet::new();
 
     // Collect all affected and fixed versions
@@ -137,7 +153,10 @@ pub fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> V
     // Debug output
     log_final_ranges(&kernel_versions);
 
-    kernel_versions
+    VersionRangeOutput {
+        kernel_versions,
+        stable_versions,
+    }
 }
 
 /// Collect and log details of dyad entries
@@ -246,7 +265,7 @@ fn process_explicit_versions(
             continue;
         }
 
-        let ver_key = format!("kernel:{status}:{version}:::");
+        let ver_key = format!("{DEDUP_KERNEL}:{status}:{version}:::");
         if seen_versions.insert(ver_key) {
             kernel_versions.push(VersionRange {
                 version: version.clone(),
@@ -393,7 +412,7 @@ fn add_version_if_new(
     seen_versions: &mut HashSet<String>,
     kernel_versions: &mut Vec<VersionRange>,
 ) {
-    let ver_key = format!("kernel:{status}:{version}:::");
+    let ver_key = format!("{DEDUP_KERNEL}:{status}:{version}:::");
     if seen_versions.insert(ver_key) {
         let version_clone = version.clone();
         kernel_versions.push(VersionRange {
@@ -469,7 +488,7 @@ fn add_pre_affected_unaffected_range(
     seen_versions: &mut HashSet<String>,
     kernel_versions: &mut Vec<VersionRange>,
 ) {
-    let unaffected_key = format!("kernel:unaffected:0:{}:", entry.vulnerable.version());
+    let unaffected_key = format!("{DEDUP_KERNEL}:unaffected:0:{}:", entry.vulnerable.version());
     // First check if we need to process this unaffected range
     if seen_versions.contains(&unaffected_key) {
         return;
@@ -509,7 +528,7 @@ fn add_fixed_unaffected_range(
     };
 
     // Create a unique key for this version
-    let key = format!("kernel:unaffected:{}::{}", entry.fixed.version(), wildcard);
+    let key = format!("{DEDUP_KERNEL}:unaffected:{}::{}", entry.fixed.version(), wildcard);
 
     if seen_versions.insert(key) {
         // Add fixed version as unaffected
@@ -619,7 +638,7 @@ fn process_affected_ranges(
         };
 
         let key = format!(
-            "kernel:affected:{}:{}:",
+            "{DEDUP_KERNEL}:affected:{}:{}:",
             ver_range.version,
             ver_range.less_than.as_deref().unwrap_or("")
         );
@@ -903,7 +922,7 @@ mod tests {
             dyad_entry("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541"),
         ];
 
-        let kernel_versions = generate_version_ranges(&entries, "unaffected");
+        let kernel_versions = generate_version_ranges(&entries, "unaffected").kernel_versions;
 
         // Verify we get at least some entries back
         assert!(!kernel_versions.is_empty());
@@ -1028,7 +1047,7 @@ mod tests {
         let entries = vec![dyad_entry(
             "5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541",
         )];
-        let kernel_versions = generate_version_ranges(&entries, "unaffected");
+        let kernel_versions = generate_version_ranges(&entries, "unaffected").kernel_versions;
         assert!(!kernel_versions.is_empty());
         // Should have at least one affected entry
         let affected: Vec<_> = kernel_versions

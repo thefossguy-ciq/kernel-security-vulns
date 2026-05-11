@@ -14,7 +14,7 @@ use crate::models::{
 use crate::policy;
 use crate::utils::{
     determine_default_status, generate_cpe_ranges, generate_git_ranges, generate_version_ranges,
-    read_uuid,
+    read_uuid, VersionRangeOutput,
 };
 
 /// Parameters for generating a JSON CVE record
@@ -94,7 +94,10 @@ fn create_affected_products(
     let default_status = determine_default_status(dyad_entries);
 
     // Generate version ranges for kernel product
-    let kernel_versions = generate_version_ranges(dyad_entries, default_status);
+    let VersionRangeOutput {
+        kernel_versions,
+        stable_versions: _,
+    } = generate_version_ranges(dyad_entries, default_status);
     let kernel_product = AffectedProduct {
         product: "Linux".to_string(),
         vendor: "Linux".to_string(),
