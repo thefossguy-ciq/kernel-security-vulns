@@ -24,7 +24,6 @@ pub struct VersionRangeOutput {
 /// Dedup key prefix for semver product entries (kernel version ranges)
 const DEDUP_KERNEL: &str = "kernel";
 /// Dedup key prefix for stable branch entries (git product, affected ranges)
-#[allow(dead_code)]
 const DEDUP_STABLE: &str = "stable";
 
 /// Determine the default status for CVE entries based on the dyad entries.
@@ -438,6 +437,8 @@ fn process_version_ranges(
     kernel_versions: &mut Vec<VersionRange>,
     stable_versions: &mut Vec<VersionRange>,
 ) {
+    let fixed_branches = policy::collect_fixed_branches(entries);
+
     for entry in entries {
         // Skip entries that don't represent actual vulnerability windows
         if !policy::entry_should_be_included(entry) {
@@ -454,6 +455,35 @@ fn process_version_ranges(
             );
         } else {
             process_affected_ranges(entry, seen_versions, kernel_versions);
+        }
+
+        // Handle unfixed stable branches (fix=0): add affected range scoped
+        // to the branch in a separate product with defaultStatus=unaffected.
+        if entry.vulnerable.version() != "0"
+            && entry.fixed.version() == "0"
+            && !entry.vulnerable.is_mainline()
+            && !fixed_branches.contains(&entry.vulnerable.major())
+        {
+            let major = entry.vulnerable.major();
+            #[allow(clippy::collapsible_if)]
+            if let Some((prefix, minor_str)) = major.split_once('.') {
+                if let Ok(minor) = minor_str.parse::<u32>() {
+                    let less_than = format!("{}.{}", prefix, minor + 1);
+                    let key = format!(
+                        "{DEDUP_STABLE}:affected:{}:{less_than}:",
+                        entry.vulnerable.version()
+                    );
+                    if seen_versions.insert(key) {
+                        stable_versions.push(VersionRange {
+                            version: entry.vulnerable.version(),
+                            less_than: Some(less_than),
+                            status: "affected".to_string(),
+                            version_type: Some("semver".to_string()),
+                            ..Default::default()
+                        });
+                    }
+                }
+            }
         }
     }
 }
@@ -1081,5 +1111,40 @@ mod tests {
             git_versions[0].less_than,
             Some("2b503c8598d1b232e7fc7526bce9326d92331541".to_string())
         );
+    }
+
+    #[test]
+    fn test_stable_versions_unfixed_branch() {
+        // Unfixed stable backport (fix=0) should emit affected range scoped to branch
+        let entries = vec![dyad_entry(
+            "5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:0:0",
+        )];
+        let output = generate_version_ranges(&entries, "affected");
+        let affected: Vec<_> = output
+            .stable_versions
+            .iter()
+            .filter(|v| v.status == "affected")
+            .collect();
+        assert_eq!(affected.len(), 1);
+        assert_eq!(affected[0].version, "5.15.1");
+        assert_eq!(affected[0].less_than, Some("5.16".to_string()));
+    }
+
+    #[test]
+    fn test_stable_versions_unfixed_branch_suppressed_when_fixed() {
+        // Unfixed backport should NOT emit range if same branch has a fix
+        let entries = vec![
+            dyad_entry("5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:0:0"),
+            dyad_entry(
+                "5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a",
+            ),
+        ];
+        let output = generate_version_ranges(&entries, "affected");
+        let unfixed: Vec<_> = output
+            .stable_versions
+            .iter()
+            .filter(|v| v.less_than == Some("5.16".to_string()))
+            .collect();
+        assert!(unfixed.is_empty());
     }
 }
