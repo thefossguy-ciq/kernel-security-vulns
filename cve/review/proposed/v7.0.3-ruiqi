@@ -1,0 +1,2 @@
+27fdbab4221b Buffer overflow in drivers/xen/sys-hypervisor.c
+24daca4fc07f xen/privcmd: fix double free via VMA splitting

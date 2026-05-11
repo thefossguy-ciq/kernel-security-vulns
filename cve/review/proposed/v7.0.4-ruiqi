@@ -1,0 +1,98 @@
+3c318f97dcc5 ALSA: usb-audio: stop parsing UAC2 rates at MAX_NR_RATES
+0c965d2784fb LoongArch: Add spectre boundry for syscall dispatch table
+2fc87d37be1b drm/nouveau: fix u32 overflow in pushbuf reloc bounds check
+d45963a93c14 leds: qcom-lpg: Check for array overflow when selecting the high resolution
+1214bf28965c greybus: gb-beagleplay: bound bootloader receive buffering
+0eb09f737428 ibmasm: fix OOB reads in command_file_write due to missing size checks
+9aad71144fa3 ibmasm: fix heap over-read in ibmasm_send_i2o_message()
+3bac01168982 mm: fix deferred split queue races during migration
+f5f9e0706051 Input: edt-ft5x06 - fix use-after-free in debugfs teardown
+eb101d2abdcc wifi: rtw88: check for PCI upstream bridge existence
+ae5e95d41574 wifi: mwifiex: fix use-after-free in mwifiex_adapter_cleanup()
+670e8864b1a2 vfio/cdx: Serialize VFIO_DEVICE_SET_IRQS with a per-device mutex
+5ea5880764cb vfio/cdx: Fix NULL pointer dereference in interrupt trigger path
+41ff66baf81c thermal: core: Fix thermal zone governor cleanup issues
+1c78c2002380 spi: imx: fix use-after-free on unbind
+5aa58c3a572b crypto: algif_aead - snapshot IV for async AEAD requests
+8cd35ceadcfc media: amphion: Fix race between m2m job_abort and device_run
+e0da8a8cac74 ALSA: control: Validate buf_len before strnlen() in snd_ctl_elem_init_enum_names()
+f7cf8ece8cee net: caif: clear client service pointer on teardown
+fe72340daaf1 net: strparser: fix skb_head leak in strp_abort_strp()
+34c519feef3e media: mtk-jpeg: fix use-after-free in release path due to uncancelled work
+3446beddba45 PCI: endpoint: pci-epf-ntb: Remove duplicate resource teardown
+8cdf30813ea8 lib/ts_kmp: fix integer overflow in pattern length calculation
+7809fea20c94 net: qrtr: ns: Fix use-after-free in driver remove()
+fd7df93013c5 ALSA: aoa: Skip devices with no codecs in i2sbus_resume()
+d18a3b5d337f erofs: fix the out-of-bounds nameoff handling for trailing dirents
+7d96f3120a7f md/raid10: fix deadlock with check operation and nowait requests
+e4056b84af0f media: rockchip: rkcif: fix off by one bugs
+55da81663b96 mm/damon/core: fix damon_call() vs kdamond_fn() exit race
+ca19808bc6fa mtd: docg3: fix use-after-free in docg3_release()
+38dd6ccfdfbb remoteproc: xlnx: Only access buffer information if IPI is buffered
+c6e80201e057 sched: Use u64 for bandwidth ratio calculations
+399289849560 mm/zone_device: do not touch device folio after calling ->folio_free()
+45cd95763e19 io_uring/register: fix ring resizing with mixed/large SQEs/CQEs
+0fcccfd87152 io_uring/zcrx: fix user_struct uaf
+326941b22806 io_uring/poll: fix signed comparison in io_poll_get_ownership()
+d5d5f80416a3 ALSA: pcmtest: Fix resource leaks in module init error paths
+1f2740150f90 rxrpc: Fix potential UAF after skb_unshare() failure
+def304aae2ed rxrpc: Fix rxkad crypto unalignment handling
+3476c8bb960f rxrpc: Fix error handling in rxgk_extract_token()
+0422e7a4883f rxrpc: Fix re-decryption of RESPONSE packets
+d5ee2ff98322 net: qrtr: ns: Limit the maximum server registration per node
+5640227d9a21 net: qrtr: ns: Limit the maximum number of lookups
+27d5e84e810b net: qrtr: ns: Limit the total number of nodes
+8141a2dc7008 net: rds: fix MR cleanup on copy error
+5a8db80f721d net/smc: avoid early lgr access in smc_clc_wait_msg
+5c9fcac3c872 net: ks8851: Reinstate disabling of BHs around IRQ handler
+df4601653201 net: bridge: use a stable FDB dst snapshot in RCU readers
+082a6d03a2d6 slub: fix data loss and overflow in krealloc()
+7244491dab34 RDMA/rxe: Validate pad and ICRC before payload_size() in rxe_rcv
+67bf002a2d73 ipv4: icmp: validate reply type before using icmp_pointers
+5199c125d25a libceph: Prevent potential null-ptr-deref in ceph_handle_auth_reply()
+828bf7929bed apparmor: Fix string overrun due to missing termination
+9ded47ad003f fbdev: defio: Disconnect deferred I/O from the lifetime of struct fb_info
+82544d36b172 selinux: fix overlayfs mmap() and mprotect() access checks
+24c73e93d6a7 hwmon: (pt5161l) Fix bugs in pt5161l_read_block_data()
+37beb4256016 randomize_kstack: Maintain kstack_offset per task
+e04ed278d25b mm/damon/stat: fix memory leak on damon_start() failure in damon_stat_start()
+40250b2dded0 mm/damon/core: validate damos_quota_goal->nid for node_mem_{used,free}_bp
+d0ad1b05bbe6 KVM: x86: Defer non-architectural deliver of exception payload to userspace read
+e63fb1379f4b KVM: nSVM: Mark all of vmcb02 dirty when restoring nested state
+03bee264f8eb KVM: nSVM: Sync interrupt shadow to cached vmcb12 after VMRUN of L2
+d5bde6113aed KVM: SVM: Explicitly mark vmcb01 dirty after modifying VMCB intercepts
+5d291ef0585e KVM: nSVM: Triple fault if restore host CR3 fails on nested #VMEXIT
+b71138fcc362 KVM: nSVM: Add missing consistency check for nCR3 validity
+33d3617a52f9 KVM: nSVM: Always intercept VMMCALL when L2 is active
+75f9a484e817 ARM: 9472/1: fix race condition on PG_dcache_clean in __sync_icache_dcache()
+eceafc31ea7b ext4: fix bounds check in check_xattrs() to prevent out-of-bounds access
+08841b06fa64 udf: fix partition descriptor append bookkeeping
+7f9f7c697474 md/raid5: fix soft lockup in retry_aligned_read()
+b0cc3ae97e89 md/raid5: validate payload size before accessing journal metadata
+9874b2917b9f x86/shstk: Prevent deadlock during shstk sigreturn
+f8a2fc809bfe wifi: rtl8xxxu: fix potential use of uninitialized value
+4afc61702bdc apparmor: use target task's context in apparmor_getprocattr()
+85fa35120487 Bluetooth: hci_event: fix potential UAF in SSP passkey handlers
+d7e20b9bd6c9 crypto: acomp - fix wrong pointer stored by acomp_save_req()
+f8f08d7cc432 crypto: arm64/aes - Fix 32-bit aes_mac_update() arg treated as 64-bit
+3fcfff4ed35f crypto: atmel-aes - Fix 3-page memory leak in atmel_aes_buff_cleanup
+c8a9a647532f crypto: atmel-tdes - fix DMA sync direction
+bab1adf3b87e crypto: atmel-sha204a - Fix potential UAF and memory leak in remove path
+adb3faf2db1a crypto: nx - fix bounce buffer leaks in nx842_crypto_{alloc,free}_ctx
+4c788c6f921b dm mirror: fix integer overflow in create_dirty_log()
+21e161de2dc6 erofs: fix unsigned underflow in z_erofs_lz4_handle_overlap()
+a0d9555bf9ea ceph: fix num_ops off-by-one when crypto allocation fails
+803447f93d75 ceph: only d_add() negative dentries when they are unhashed
+b62567bca474 ntfs3: add buffer boundary checks to run_unpack()
+984a415f0195 ntfs3: fix integer overflow in run_unpack() volume boundary check
+3bfdc63936dd rtmutex: Use waiter::task instead of current in remove_waiter()
+6929350080f4 rxgk: Fix potential integer overflow in length check
+5db6ef984771 crypto: authencesn - reject short ahash digests during instance creation
+9e6bf146b559 ipv6: rpl: reserve mac_len headroom when recompressed SRH grows
+095a8b0ad3c3 drm/amdgpu: fix zero-size GDS range init on RDNA4
+e5c33cdc6f40 ALSA: aloop: Fix peer runtime UAF during format-change stop
+82d1f01292d3 vmalloc: fix buffer overflow in vrealloc_node_align()
+620b46ed6ae1 mm/page_alloc: return NULL early from alloc_frozen_pages_nolock() in NMI on UP
+5b31044e649e mm/slab: return NULL early from kmalloc_nolock() in NMI on UP
+f9c52a6ba978 net: ipv6: fix NOREF dst use in seg6 and rpl lwtunnels
+fe11e5c40817 netfilter: reject zero shift in nft_bitwise
