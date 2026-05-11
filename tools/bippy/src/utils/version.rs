@@ -466,7 +466,7 @@ fn process_version_ranges(
         {
             let major = entry.vulnerable.major();
             #[allow(clippy::collapsible_if)]
-            if let Some((prefix, minor_str)) = major.split_once('.') {
+            if let Some((prefix, minor_str)) = major.rsplit_once('.') {
                 if let Ok(minor) = minor_str.parse::<u32>() {
                     let less_than = format!("{}.{}", prefix, minor + 1);
                     let key = format!(
@@ -1191,5 +1191,22 @@ mod tests {
             .collect();
         assert_eq!(intro.len(), 1);
         assert_eq!(intro[0].status, "affected");
+    }
+
+    #[test]
+    fn test_stable_versions_2_6_x_branch() {
+        // 2.6.x stable kernels: rsplit_once should produce correct upper bound 2.6.28
+        let entries = vec![dyad_entry(
+            "2.6.27.4:daa0b0ad2666acdb331e6611ca790fd0dfe6a1b0:0:0",
+        )];
+        let output = generate_version_ranges(&entries, "affected");
+        let affected: Vec<_> = output
+            .stable_versions
+            .iter()
+            .filter(|v| v.status == "affected")
+            .collect();
+        assert_eq!(affected.len(), 1);
+        assert_eq!(affected[0].version, "2.6.27.4");
+        assert_eq!(affected[0].less_than, Some("2.6.28".to_string()));
     }
 }
