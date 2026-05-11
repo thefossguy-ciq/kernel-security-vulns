@@ -554,7 +554,7 @@ fn add_fixed_unaffected_range(
     affected_mainline_versions: &HashSet<String>,
     seen_versions: &mut HashSet<String>,
     kernel_versions: &mut Vec<VersionRange>,
-    _stable_versions: &mut Vec<VersionRange>,
+    stable_versions: &mut Vec<VersionRange>,
 ) {
     let fixed_version = entry.fixed.version();
     // For stable kernels, determine the wildcard pattern
@@ -574,6 +574,7 @@ fn add_fixed_unaffected_range(
             add_mainline_fixed_unaffected_range(entry, affected_mainline_versions, kernel_versions);
         } else {
             // For stable kernels with a patch version (e.g., 5.10.234)
+            add_stable_intro_range(entry, seen_versions, stable_versions);
             kernel_versions.push(VersionRange {
                 version: entry.fixed.version(),
                 less_than: None,
@@ -582,6 +583,34 @@ fn add_fixed_unaffected_range(
                 version_type: Some("semver".to_string()),
             });
         }
+    }
+}
+
+/// Emit an affected range for the stable introduction point (vuln_version..fix_version).
+///
+/// This goes into the git product (defaultStatus=unaffected) so consumers know
+/// exactly when the bug appeared on this stable branch.
+fn add_stable_intro_range(
+    entry: &DyadEntry,
+    seen_versions: &mut HashSet<String>,
+    stable_versions: &mut Vec<VersionRange>,
+) {
+    if entry.vulnerable.is_mainline() {
+        return;
+    }
+    let intro_key = format!(
+        "{DEDUP_STABLE}:affected:{}:{}:",
+        entry.vulnerable.version(),
+        entry.fixed.version()
+    );
+    if seen_versions.insert(intro_key) {
+        stable_versions.push(VersionRange {
+            version: entry.vulnerable.version(),
+            less_than: Some(entry.fixed.version()),
+            status: "affected".to_string(),
+            version_type: Some("semver".to_string()),
+            ..Default::default()
+        });
     }
 }
 
@@ -1146,5 +1175,21 @@ mod tests {
             .filter(|v| v.less_than == Some("5.16".to_string()))
             .collect();
         assert!(unfixed.is_empty());
+    }
+
+    #[test]
+    fn test_stable_versions_intro_range() {
+        // Fixed stable entry should emit intro..fix affected range
+        let entries = vec![dyad_entry(
+            "5.15.1:569fd073a954616c8be5a26f37678a1311cc7f91:5.15.2:5dbe126056fb5a1a4de6970ca86e2e567157033a",
+        )];
+        let output = generate_version_ranges(&entries, "affected");
+        let intro: Vec<_> = output
+            .stable_versions
+            .iter()
+            .filter(|v| v.version == "5.15.1" && v.less_than == Some("5.15.2".to_string()))
+            .collect();
+        assert_eq!(intro.len(), 1);
+        assert_eq!(intro[0].status, "affected");
     }
 }
