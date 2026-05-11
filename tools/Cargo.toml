@@ -152,6 +152,10 @@ path = "cve_utils/tests/cve_search.rs"
 name = "score"
 path = "cve_utils/tests/score.rs"
 
+[[test]]
+name = "consistency"
+path = "bippy/tests/consistency.rs"
+
 [lib]
 name = "cve_utils"
 path = "cve_utils/src/lib.rs"
