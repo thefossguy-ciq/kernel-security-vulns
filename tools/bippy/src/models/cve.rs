@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct CveMetadata {
     #[serde(rename = "assignerOrgId")]
     pub assigner_org_id: String,
-    #[serde(rename = "cveID")]
+    #[serde(rename = "cveId")]
     pub cve_id: String,
     #[serde(rename = "requesterUserId")]
     pub requester_user_id: String,

@@ -428,7 +428,7 @@ mod tests {
         // Check basic structure
         assert_eq!(parsed["dataType"], "CVE_RECORD");
         assert_eq!(parsed["dataVersion"], "5.0");
-        assert_eq!(parsed["cveMetadata"]["cveID"], "CVE-2023-1234");
+        assert_eq!(parsed["cveMetadata"]["cveId"], "CVE-2023-1234");
         assert_eq!(parsed["cveMetadata"]["state"], "PUBLISHED");
         assert_eq!(parsed["containers"]["cna"]["title"], "Test CVE");
 
