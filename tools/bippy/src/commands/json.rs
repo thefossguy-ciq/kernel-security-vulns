@@ -210,7 +210,7 @@ fn create_cve_record(params: CveRecordCreationParams) -> CveRecord {
             state: "PUBLISHED".to_string(),
         },
         data_type: "CVE_RECORD".to_string(),
-        data_version: "5.0".to_string(),
+        data_version: "5.1.1".to_string(),
     }
 }
 
@@ -411,7 +411,7 @@ mod tests {
                 state: "PUBLISHED".to_string(),
             },
             data_type: "CVE_RECORD".to_string(),
-            data_version: "5.0".to_string(),
+            data_version: "5.1.1".to_string(),
         };
 
         // Serialize the record
@@ -422,7 +422,7 @@ mod tests {
 
         // Check basic structure
         assert_eq!(parsed["dataType"], "CVE_RECORD");
-        assert_eq!(parsed["dataVersion"], "5.0");
+        assert_eq!(parsed["dataVersion"], "5.1.1");
         assert_eq!(parsed["cveMetadata"]["cveId"], "CVE-2023-1234");
         assert_eq!(parsed["cveMetadata"]["state"], "PUBLISHED");
         assert!(parsed["cveMetadata"].get("requesterUserId").is_none());
