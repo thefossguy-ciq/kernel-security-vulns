@@ -10,6 +10,7 @@
 // defined here.
 
 use cve_utils::dyad::DyadEntry;
+use std::collections::HashSet;
 
 // =============================================================================
 // CONSTANTS
@@ -204,6 +205,26 @@ pub fn truncate_description(description: &str) -> String {
         let separator = if truncated.ends_with('\n') { "" } else { "\n" };
         format!("{truncated}{separator}---truncated---")
     }
+}
+
+// =============================================================================
+// POLICY: Stable Branch Classification
+// =============================================================================
+//
+// When generating stable branch version ranges, we need to know which branches
+// have fixes. This determines whether an unfixed entry should emit a range
+// (only if no later fix exists on the same branch).
+
+/// Collect the set of stable branches that have at least one fix.
+///
+/// Used to suppress unfixed-branch ranges when a later fix exists on the
+/// same branch (the fixed entry will emit the correct narrower range).
+pub fn collect_fixed_branches(entries: &[DyadEntry]) -> HashSet<String> {
+    entries
+        .iter()
+        .filter(|e| e.fixed.version() != "0" && !e.fixed.is_mainline())
+        .map(|e| e.fixed.major())
+        .collect()
 }
 
 #[cfg(test)]
