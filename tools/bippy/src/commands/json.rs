@@ -96,7 +96,7 @@ fn create_affected_products(
     // Generate version ranges for kernel product
     let VersionRangeOutput {
         kernel_versions,
-        stable_versions: _,
+        stable_versions,
     } = generate_version_ranges(dyad_entries, default_status);
     let kernel_product = AffectedProduct {
         product: "Linux".to_string(),
@@ -107,8 +107,14 @@ fn create_affected_products(
         versions: kernel_versions,
     };
 
-    // Generate git ranges for git product
-    let git_versions = generate_git_ranges(dyad_entries);
+    // Generate git ranges for git product, merged with stable backport ranges.
+    // Stable affected ranges go here (not in the semver product) because the git
+    // product uses defaultStatus=unaffected — only explicitly listed ranges are
+    // affected. The semver product (defaultStatus=affected) cannot represent these
+    // ranges: its existing {version:0, lessThan:<intro>, status:unaffected} entries
+    // shadow narrower affected ranges per the schema's first-match algorithm.
+    let mut git_versions = generate_git_ranges(dyad_entries);
+    git_versions.extend(stable_versions);
     let git_product = AffectedProduct {
         product: "Linux".to_string(),
         vendor: "Linux".to_string(),

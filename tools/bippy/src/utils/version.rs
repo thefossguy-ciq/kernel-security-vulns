@@ -17,13 +17,15 @@ use std::collections::HashSet;
 pub struct VersionRangeOutput {
     /// Ranges for the semver product (defaultStatus=affected)
     pub kernel_versions: Vec<VersionRange>,
-    /// Stable branch affected ranges for the git product (defaultStatus=unaffected).
-    #[allow(dead_code)]
+    /// Stable branch affected ranges for the git product (defaultStatus=unaffected)
     pub stable_versions: Vec<VersionRange>,
 }
 
 /// Dedup key prefix for semver product entries (kernel version ranges)
 const DEDUP_KERNEL: &str = "kernel";
+/// Dedup key prefix for stable branch entries (git product, affected ranges)
+#[allow(dead_code)]
+const DEDUP_STABLE: &str = "stable";
 
 /// Determine the default status for CVE entries based on the dyad entries.
 /// Delegates to the centralized policy module.
@@ -102,7 +104,7 @@ pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
 /// Generate version ranges for the CVE JSON format
 pub fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> VersionRangeOutput {
     let mut kernel_versions = Vec::new();
-    let stable_versions = Vec::new();
+    let mut stable_versions = Vec::new();
     let mut seen_versions = HashSet::new();
 
     // Collect all affected and fixed versions
@@ -145,6 +147,7 @@ pub fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> V
         &affected_mainline_versions,
         &mut seen_versions,
         &mut kernel_versions,
+        &mut stable_versions,
     );
 
     // Sort the version ranges
@@ -433,6 +436,7 @@ fn process_version_ranges(
     affected_mainline_versions: &HashSet<String>,
     seen_versions: &mut HashSet<String>,
     kernel_versions: &mut Vec<VersionRange>,
+    stable_versions: &mut Vec<VersionRange>,
 ) {
     for entry in entries {
         // Skip entries that don't represent actual vulnerability windows
@@ -446,6 +450,7 @@ fn process_version_ranges(
                 affected_mainline_versions,
                 seen_versions,
                 kernel_versions,
+                stable_versions,
             );
         } else {
             process_affected_ranges(entry, seen_versions, kernel_versions);
@@ -459,6 +464,7 @@ fn process_unaffected_ranges(
     affected_mainline_versions: &HashSet<String>,
     seen_versions: &mut HashSet<String>,
     kernel_versions: &mut Vec<VersionRange>,
+    stable_versions: &mut Vec<VersionRange>,
 ) {
     // Only add versions before affected as unaffected if no other versions before this are affected
     if entry.vulnerable.is_mainline() {
@@ -477,6 +483,7 @@ fn process_unaffected_ranges(
             affected_mainline_versions,
             seen_versions,
             kernel_versions,
+            stable_versions,
         );
     }
 }
@@ -517,6 +524,7 @@ fn add_fixed_unaffected_range(
     affected_mainline_versions: &HashSet<String>,
     seen_versions: &mut HashSet<String>,
     kernel_versions: &mut Vec<VersionRange>,
+    _stable_versions: &mut Vec<VersionRange>,
 ) {
     let fixed_version = entry.fixed.version();
     // For stable kernels, determine the wildcard pattern
