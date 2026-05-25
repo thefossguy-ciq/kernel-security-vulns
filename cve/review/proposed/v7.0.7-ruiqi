@@ -1,0 +1,105 @@
+772a896a56e0 scsi: target: configfs: Bound snprintf() return in tg_pt_gp_members_show()
+c4cca2369686 ipmi: Add limits to event and receive message requests
+8de779dc40d3 fbdev: udlfb: add vm_ops to dlfb_ops_mmap to prevent use-after-free
+9c0acc169ac7 ACPI: scan: Use acpi_dev_put() in object add error paths
+c5b6285aae05 ASoC: SOF: Don't allow pointer operations on unconfigured streams
+53e7a16070fe spi: rockchip: fix controller deregistration
+0cb2af2ea66a KVM: x86: Fix shadow paging use-after-free due to unexpected GFN
+d6c19b31a3c1 flow_dissector: do not dissect PPPoE PFC frames
+458d5615272d net/sched: sch_red: Replace direct dequeue call with peek and qdisc_dequeue_peeked
+c1fa0bb633e4 exit: prevent preemption of oopsing TASK_DEAD task
+5373f8b19e56 wifi: mt76: mt7921: fix a potential clc buffer length underflow
+a035766f970b wifi: b43legacy: enforce bounds check on firmware key index in RX path
+7a5b81e0c87a wifi: mac80211: drop stray 'static' from fast-RX rx_result
+db57a1aa54ff wifi: rsi: fix kthread lifetime race between self-exit and external-stop
+ac8eb3e18f41 wifi: mac80211: use safe list iteration in radar detect work
+283fc9e44ff5 wifi: mac80211: remove station if connection prep fails
+1f4f78bf8549 wifi: b43: enforce bounds check on firmware key index in b43_rx()
+c623b6358088 wifi: brcmfmac: Fix potential use-after-free issue when stopping watchdog task
+7a400c6fe361 usb: usblp: fix heap leak in IEEE 1284 device ID via short response
+b38e53cbfb9d usb: usblp: fix uninitialized heap leak via LPGETSTATUS ioctl
+6e7247d8f5fe ALSA: usb-audio: Avoid potential endless loop in convert_chmap_v3()
+26265dd69da3 ALSA: usb-audio: Fix UAC3 cluster descriptor size check
+5337213381df ALSA: core: Serialize deferred fasync state checks
+80afd4c84bc8 sched_ext: Read scx_root under scx_cgroup_ops_rwsem in cgroup setters
+14acf9652e56 xfrm: defensively unhash xfrm_state lists in __xfrm_state_delete
+bc0fcb9823cd ipv6: xfrm6: release dst on error in xfrm6_rcv_encap()
+ec54093e6a8f xfrm: ah: account for ESN high bits in async callbacks
+f92d542577db selinux: fix avdcache auditing
+032e70aff025 selinux: use sk blob accessor in socket permission helpers
+a02cd6805562 selinux: allow multiple opens of /sys/fs/selinux/policy
+f26faae96c41 LoongArch: KVM: Fix missing EMULATE_FAIL in kvm_emu_mmio_read()
+21bd244b6de5 Bluetooth: virtio_bt: clamp rx length before skb_put
+daf23014e5d9 Bluetooth: virtio_bt: validate rx pkt_type header length
+634a4408c061 Bluetooth: btmtk: validate WMT event SKB length before struct access
+0beddb0c380b Bluetooth: hci_conn: fix potential UAF in create_big_sync
+5ddb80142611 Bluetooth: hci_event: Fix OOB read and infinite loop in hci_le_create_big_complete_evt
+0a120d961663 Bluetooth: L2CAP: Fix null-ptr-deref in l2cap_sock_new_connection_cb()
+2ff1a41a912d Bluetooth: L2CAP: Fix null-ptr-deref in l2cap_sock_state_change_cb()
+78a88d43dab8 Bluetooth: L2CAP: Fix null-ptr-deref in l2cap_sock_get_sndtimeo_cb()
+45daacbead8a spi: s3c64xx: fix NULL-deref on driver unbind
+bc851db06045 staging: rtl8723bs: os_dep: avoid NULL pointer dereference in rtw_cbuf_alloc
+7746e3bd4cc1 fanotify: fix false positive on permission events
+030e8a40fff6 arm64: signal: Preserve POR_EL0 if poe_context is missing
+4b9e32799181 net: rtnetlink: zero ifla_vf_broadcast to avoid stack infoleak in rtnl_fill_vfinfo
+e9766e6f7d33 rseq: Protect rseq_reset() against interrupts
+d1f73f169c10 sound: ua101: fix division by zero at probe
+cefeed442962 pseries/papr-hvpipe: Prevent kernel stack memory leak to userspace
+1b9f7aafa44f pseries/papr-hvpipe: Fix null ptr deref in papr_hvpipe_dev_create_handle()
+1d324c2f43f7 ip6_gre: Use cached t->net in ip6erspan_changelink().
+44b550d88b26 net/rds: handle zerocopy send cleanup before the message is queued
+0e7c074cfcd9 net: wwan: t7xx: validate port_count against message length in t7xx_port_enum_msg_handler
+525cb7ba6661 platform/chrome: cros_ec_typec: Init mutex in Thunderbolt registration
+ec1fcddb3117 pmdomain: mediatek: fix use-after-free in scpsys_get_bus_protection_legacy()
+e4ef723d8975 fbcon: Avoid OOB font access if console rotation fails
+cc427d24ac64 ibmveth: Disable GSO for packets with small MSS
+9aab1c3d7299 ice: fix double free in ice_sf_eth_activate() error path
+e8368d1f4bed tracefs: Fix default permissions not being applied on initial mount
+55d41b0a2012 udf: reject descriptors with oversized CRC length
+9d72732fe70c spi: topcliff-pch: fix use-after-free on unbind
+69acc488aaf3 ASoC: qcom: q6apm-lpass-dai: Fix multiple graph opens
+973e57c726c1 btrfs: fix btrfs_ioctl_space_info() slot_count TOCTOU which can lead to info-leak
+a7449edf9614 btrfs: fix double free in create_space_info_sub_group() error path
+07004a8c4b57 eventfs: Hold eventfs_mutex and SRCU when remount walks events
+4355142245f7 dm-verity-fec: correctly reject too-small hash devices
+a36d990f5913 isofs: validate Rock Ridge CE continuation extent against volume size
+8c2f1288250a lib/crypto: mpi: Fix integer underflow in mpi_read_raw_from_sgl()
+07b7d66e65d9 lib/scatterlist: fix length calculations in extract_kvec_to_sg
+118cf3f55975 lib/scatterlist: fix temp buffer in extract_user_to_sg()
+1c439de70b1c libceph: Fix slab-out-of-bounds access in auth message processing
+9aa6d860b093 md/raid10: fix divide-by-zero in setup_geo() with zero far_copies
+5293a8882c54 nvmet-tcp: fix race between ICReq handling and queue teardown
+26735dfdd893 pmdomain: core: Fix detach procedure for virtual devices in genpd
+0c99acbc8b6c RDMA/hns: Fix unlocked call to hns_roce_qp_remove()
+c366a7b5ed75 s390/debug: Reject zero-length input before trimming a newline
+04631f55afc5 scsi: mpt3sas: Limit NVMe request size to 2 MiB
+8d09328dfda0 smb/client: fix out-of-bounds read in smb2_compound_op()
+d62b8d236fab smb/client: fix out-of-bounds read in symlink_data()
+f98b48151cc5 smb: client: validate dacloffset before building DACL pointers
+464af6fc2b1d KVM: x86: check for nEPT/nNPT in slow flush hypercalls
+1e68eb96e8be mm/damon/sysfs-schemes: protect memcg_path kfree() with damon_sysfs_lock
+cf3b71421ca0 mm/damon/sysfs-schemes: protect path kfree() with damon_sysfs_lock
+654a27f25530 RDMA/ionic: bound node_desc sysfs read with %.64s
+159f2efabc89 RDMA/mana: Remove user triggerable WARN_ON() in mana_ib_create_qp_rss()
+6dd2d4ad9c84 RDMA/mana: Validate rx_hash_key_len
+c9341307ea16 RDMA/mlx4: Fix mis-use of RCU in mlx4_srq_event()
+c54c7e4cb679 RDMA/mlx4: Fix resource leak on error in mlx4_ib_create_srq()
+c488df06bd55 RDMA/mlx5: Fix error path fall-through in mlx5_ib_dev_res_srq_init()
+34fbf48cf3b4 RDMA/ocrdma: Don't NULL deref uctx on errors in ocrdma_copy_pd_uresp()
+1114c87aa6f1 RDMA/rxe: Reject non-8-byte ATOMIC_WRITE payloads
+4c6f86d85d03 RDMA/rxe: Reject unknown opcodes before ICRC processing
+e38e86995df2 RDMA/vmw_pvrdma: Fix double free on pvrdma_alloc_ucontext() error path
+b5c52908d52c mptcp: fix scheduling with atomic in timestamp sockopt
+5cd6e0ad79d2 mptcp: pm: ADD_ADDR rtx: fix potential data-race
+9634cb35af17 mptcp: pm: ADD_ADDR rtx: always decrease sk refcount
+b7b9a4615697 mptcp: pm: ADD_ADDR rtx: free sk if last
+73b9c1e5da84 KVM: arm64: Fix pin leak and publication ordering in __pkvm_init_vcpu()
+4fddde2a732d bpf: Fix use-after-free in arena_vm_close on fork
+dd66b4285470 octeon_ep_vf: add NULL check for napi_build_skb()
+fc69decc811b 8021q: use RCU for egress QoS mappings
+7dddc74af369 8021q: delete cleared egress QoS mappings
+177730a273b1 crypto: caam - guard HMAC key hex dumps in hash_digest_key
+0bb05e6adfa9 net: stmmac: Prevent NULL deref when RX memory exhausted
+68bf102226cf rust: pin-init: fix incorrect accessor reference lifetime
+c21b90f77687 x86/CPU/AMD: Prevent improper isolation of shared resources in Zen2's op cache
+996454bc0da8 ksmbd: validate inherited ACE SID length
