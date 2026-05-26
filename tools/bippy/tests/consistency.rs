@@ -192,15 +192,9 @@ fn collect_json_files(cve_dir: &Path) -> Vec<PathBuf> {
 /// Verify CVE JSON output is consistent with dyad ground truth.
 ///
 /// Checks: git ranges, CPE ranges, stable-intro ranges, unfixed-branch ranges.
-/// Run with: RUN_INTEGRATION_TESTS=1 cargo test --test consistency -- --ignored
+/// Run with: cargo test --test consistency
 #[test]
-#[ignore]
 fn test_cve_consistency() {
-    if std::env::var("RUN_INTEGRATION_TESTS").is_err() {
-        println!("Skipping - set RUN_INTEGRATION_TESTS=1 to enable");
-        return;
-    }
-
     let cve_dir = find_cve_dir();
     let files = collect_json_files(&cve_dir);
     assert!(!files.is_empty(), "No CVE JSON files found");
@@ -230,12 +224,10 @@ fn test_cve_consistency() {
     let intro = counters.stable_intro.load(Ordering::Relaxed);
     let with_issues = counters.cves_with_issues.load(Ordering::Relaxed);
 
-    println!("\nverify_cve_consistency ({total} CVEs):");
-    println!("  git:            {git}");
-    println!("  cpe:            {cpe}");
-    println!("  unfixed-branch: {unfixed}");
-    println!("  stable-intro:   {intro}");
-    println!("  CVEs w/ issues: {with_issues}");
+    assert_eq!(git, 0, "git range mismatches (of {total} CVEs)");
+    assert_eq!(cpe, 0, "CPE range mismatches (of {total} CVEs)");
+    assert_eq!(unfixed, 0, "unfixed-branch mismatches (of {total} CVEs, {with_issues} CVEs affected)");
+    assert_eq!(intro, 0, "stable-intro mismatches (of {total} CVEs, {with_issues} CVEs affected)");
 }
 
 #[derive(Default)]
@@ -372,14 +364,9 @@ fn check_cross_product(json_path: &Path) -> CrossProductIssues {
 /// Verify cross-product consistency: semver and CPE independently give the
 /// same vulnerability picture (same fix versions, same intro versions).
 ///
-/// Run with: RUN_INTEGRATION_TESTS=1 cargo test --test consistency -- --ignored
+/// Run with: cargo test --test consistency
 #[test]
-#[ignore]
 fn test_cross_product_consistency() {
-    if std::env::var("RUN_INTEGRATION_TESTS").is_err() {
-        return;
-    }
-
     let cve_dir = find_cve_dir();
     let files = collect_json_files(&cve_dir);
     let total = files.len();
@@ -401,8 +388,6 @@ fn test_cross_product_consistency() {
     let intro = intro_mismatch.load(Ordering::Relaxed);
     let with_issues = cves_with_issues.load(Ordering::Relaxed);
 
-    println!("\nverify_cross_product ({total} CVEs):");
-    println!("  fix-mismatch:   {fix}");
-    println!("  intro-mismatch: {intro}");
-    println!("  CVEs w/ issues: {with_issues}");
+    assert_eq!(fix, 0, "fix-mismatch: semver vs CPE fix versions disagree (of {total} CVEs, {with_issues} affected)");
+    assert_eq!(intro, 0, "intro-mismatch: semver vs CPE intro versions disagree (of {total} CVEs, {with_issues} affected)");
 }
