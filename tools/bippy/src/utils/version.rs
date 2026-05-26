@@ -41,10 +41,20 @@ pub fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
         cpe_match: vec![],
     };
 
+    let fixed_branches = policy::collect_fixed_branches(entries);
+
     for entry in entries {
         // Skip entries that don't represent actual vulnerability windows
         // (see policy.rs for detailed explanation)
         if !policy::entry_should_be_included(entry) {
+            continue;
+        }
+
+        // Skip unfixed stable backports when the same branch has a later fix
+        if entry.fixed.version() == "0"
+            && !entry.vulnerable.is_mainline()
+            && fixed_branches.contains(&entry.vulnerable.major())
+        {
             continue;
         }
 
