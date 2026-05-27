@@ -1,0 +1,164 @@
+694921a93f3e clocksource/drivers/timer-sp804: Fix an Oops when read_current_timer is called on ARM32 platforms where the SP804 is not registered as the sched_clock.
+6b329393502e mptcp: do not account for OoO in mptcp_rcvbuf_grow()
+7874eeacfa42 RDMA/iwcm: Fix workqueue list corruption by removing work_list
+e6834a4c4746 bonding: alb: fix UAF in rlb_arp_recv during bond up/down
+df9ac55abd18 apparmor: fix invalid deref of rawdata when export_binary is unset
+87e4b043b98a usb: cdns3: fix role switching during resume
+30bfc2d6a113 MIPS: Work around LLVM bug when gp is used as global register variable
+5551b02fdbfd RDMA/umad: Reject negative data_len in ib_umad_write
+377cae9851e8 ima: Fix stack-out-of-bounds in is_bprm_creds_for_exec()
+dbd3fd05cddf ASoC: nau8821: Cancel delayed work on component remove
+f8b4cd2dad09 mm/slab: fix false lockdep warning in __kfree_rcu_sheaf()
+308e7e4d0a84 serial: caif: fix use-after-free in caif_serial ldisc_close()
+8244f959e2c1 ipv6: Fix out-of-bound access in fib6_add_rt2node().
+e3f000f0dee1 macvlan: observe an RCU grace period in macvlan_common_newlink() error path
+e2938ad00b21 apparmor: fix NULL pointer dereference in __unix_needs_revalidation
+a09dc10d1353 ksmbd: call ksmbd_vfs_kern_path_end_removing() on some error paths
+f8e6343b7a89 Drivers: hv: vmbus: Use kthread for vmbus interrupts on PREEMPT_RT
+d8a73cc46c84 hfsplus: return error when node already exists in hfs_bnode_create
+4a94f052e098 gfs2: Initialize bio->bi_opf early
+22150a7d401d gfs2: Fix slab-use-after-free in qd_put
+faddeb848305 gfs2: Fix use-after-free in iomap inline data write path
+da6f5bbc2e79 gfs2: fix memory leaks in gfs2_fill_super error path
+35f83a75529a netfilter: nft_set_rbtree: don't gc elements on insert
+ae88a5d2f29b net: atm: fix crash due to unvalidated vcc pointer in sigd_send()
+81b84de32bb2 xfrm: fix ip_rt_bug race in icmp_route_lookup reverse path
+1992330d90dd ovl: Fix uninit-value in ovl_fill_real
+f223ebffa185 fs/ntfs3: Initialize new folios before use
+f7edab0cee03 fs/ntfs3: fix ntfs_mount_options leak in ntfs_fill_super()
+e37a75bb866c fs/ntfs3: fix deadlock in ni_read_folio_cmpr
+27b75ca4e51e fs/ntfs3: prevent infinite loops caused by the next valid being the same
+ccd2d799ed44 bpf: Fix a potential use-after-free of BTF object
+8b769e311a86 net: bridge: mcast: always update mdb_n_entries for vlan contexts
+7f261bb906bf netfilter: nf_tables: revert commit_mutex usage in reset path
+eddb98ad9364 ata: libata-eh: correctly handle deferred qc timeouts
+d41e37f26b31 rcu: Fix rcu_read_unlock() deadloop due to softirq
+3a1f4264daed btrfs: fix block_group_tree dirty_list corruption
+b14c5e04bd0f btrfs: fix EEXIST abort due to non-consecutive gaps in chunk allocation
+cc2f39d6ac48 hwrng: core - use RCU and work_struct to fix race condition
+815a8d2feb56 powerpc/eeh: fix recursive pci_lock_rescan_remove locking in EEH event handling
+497330b203d2 regulator: core: fix locking in regulator_resolve_supply() error path
+cb500023a752 PCI/P2PDMA: Fix p2pmem_alloc_mmap() warning condition
+2c1ba9c2adf0 wifi: ath12k: clear stale link mapping of ahvif->links_map
+c0a26bbd3f99 RDMA/hns: Fix WQ_MEM_RECLAIM warning
+87bf64692143 RDMA/rxe: Fix race condition in QP timer handlers
+e6e43e82c79c coresight: tmc-etr: Fix race condition between sysfs and perf mode
+666c53e94c1d dmaengine: fsl-edma: don't explicitly disable clocks in .remove()
+64802f731214 AppArmor: Allow apparmor to handle unaligned dfa tables
+bf7172cd25ed drm/xe/pf: Fix sysfs initialization
+94a8cea54cd9 ext4: fix dirtyclusters double decrement on fs shutdown
+f65c75b0b9b5 s390/cio: Fix device lifecycle handling in css_alloc_subchannel()
+f1370241fe80 accel/amdxdna: Stop job scheduling across aie2_release_resource()
+8bde3e395a85 Revert "hwmon: (ibmpex) fix use-after-free in high/low store"
+c4af8a98bb52 power: supply: ab8500: Fix use-after-free in power_supply_changed()
+3291c51d4684 power: supply: act8945a: Fix use-after-free in power_supply_changed()
+800584336972 power: supply: bq256xx: Fix use-after-free in power_supply_changed()
+5f0b1cb41906 power: supply: bq25980: Fix use-after-free in power_supply_changed()
+642f33e34b96 power: supply: cpcap-battery: Fix use-after-free in power_supply_changed()
+b2ce982e2e0c power: supply: goldfish: Fix use-after-free in power_supply_changed()
+838767f50747 power: supply: pf1550: Fix use-after-free in power_supply_changed()
+62914959b35e power: supply: pm8916_bms_vm: Fix use-after-free in power_supply_changed()
+b7508129978a power: supply: pm8916_lbc: Fix use-after-free in power_supply_changed()
+e2febe375e5e power: supply: rt9455: Fix use-after-free in power_supply_changed()
+8d59cf3887fb power: supply: sbs-battery: Fix use-after-free in power_supply_changed()
+230672599196 power: supply: pm8916_lbc: Fix use-after-free for extcon in IRQ handler
+b0b1a8583d8e bpf: Add a map/btf from a fd array more consistently
+71e99ee20fc3 netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
+d3968a0d85b2 drm/exynos: vidi: use priv->vidi_dev for ctx lookup in vidi_connection_ioctl()
+a5ec7baa44ea ovpn: fix possible use-after-free in ovpn_net_xmit
+4dd5d4c0361a phy: freescale: imx8qm-hsio: fix NULL pointer dereference
+0943404b1f3b net: do not delay zero-copy skbs in skb_attempt_defer_free()
+0c44d61945c4 drm/amdgpu: Use kvfree instead of kfree in amdgpu_gmc_get_nps_memranges()
+57b85fd53fcc drm/i915/acpi: free _DSM package when no connectors
+253708941351 i3c: dw: Fix memory leak in dw_i3c_master_i2c_xfers()
+bbd6e97c836c tpm: tpm_i2c_infineon: Fix locality leak on get_burstcount() failure
+0b7fbf9333fa cpufreq: scmi: Fix device_node reference leak in scmi_cpu_domain_id()
+a1fe789a96fe thermal/of: Fix reference leak in thermal_of_cm_lookup()
+6abc7d5dcf0e md/raid1: fix memory leak in raid1_run()
+442ae406603a io_uring/kbuf: fix memory leak if io_buffer_add_list fails
+a32ae2658471 selftests/bpf: Fix resource leak in serial_test_wq on attach failure
+7d43252b3060 crypto: caam - fix netdev memory leak in dpaa2_caam_probe
+ccb679fdae2e crypto: starfive - Fix memory leak in starfive_aes_aead_do_one_req()
+0da7824734d8 soc: qcom: cmd-db: Use devm_memremap() to fix memory leak in cmd_db_dev_probe
+6259094ee806 soc: mediatek: svs: Fix memory leak in svs_enable_debug_write()
+a519e21e3239 media: chips-media: wave5: Fix memory leak on codec_info allocation failure
+a2633dc243c3 rust: pwm: Fix potential memory leak on init error
+84dd57fb0359 accel/amdxdna: Fix memory leak in amdxdna_ubuf_map
+fef1f756155c ASoC: cs4271: Fix resource leak in cs4271_soc_resume()
+7f0cdcddf8be PCI: mediatek: Fix IRQ domain leak when MSI allocation fails
+f42b3c053b15 PCI: xilinx: Fix INTx IRQ domain leak in error paths
+01464a3fdf91 PCI/portdrv: Fix potential resource leak
+62171369cf17 PCI/PTM: Fix pcie_ptm_create_debugfs() memory leak
+6070a44051b1 wifi: rtw89: debug: Fix memory leak in __print_txpwr_map()
+e43e2aa55704 PCI: rzg3s-host: Fix device node reference leak in rzg3s_pcie_host_parse_port()
+6884028cd7f2 af_unix: Fix memleak of newsk in unix_stream_connect().
+980ce2b02dd0 mtd: parsers: Fix memory leak in mtd_parser_tplink_safeloader_parse()
+9b9d25390847 RDMA/mlx5: Fix memory leak in GET_DATA_DIRECT_SYSFS_PATH handler
+7cce81df7d26 mtd: parsers: ofpart: fix OF node refcount leak in parse_fixed_partitions()
+41b37312bd97 scsi: smartpqi: Fix memory leak in pqi_report_phys_luns()
+c39ee2d264f9 fbdev: of_display_timing: Fix device node reference leak in of_get_display_timings()
+ce4e25198a6a fbdev: au1200fb: Fix a memory leak in au1200fb_drv_probe()
+b89921eed8cf gpib: Fix memory leak in ni_usb_init()
+3f2d8d79cceb watchdog: starfive-wdt: Fix PM reference leak in probe error path
+4feb753ba6e5 mfd: arizona: Fix regulator resource leak on wm5102_clear_write_sequencer() failure
+c0b4a4feeb43 pinctrl: equilibrium: Fix device node reference leak in pinbank_init()
+62b44ebc1f2c iio: sca3000: Fix a resource leak in sca3000_probe()
+e56aa18eba32 pinctrl: meson: amlogic-a4: Fix device node reference leak in bank helpers
+353353309b0f pinctrl: single: fix refcount leak in pcs_add_gpio_func()
+c9be63d56578 drm/amdgpu: Fix memory leak in amdgpu_acpi_enumerate_xcc()
+ee41e5b63c82 drm/amdgpu: Fix memory leak in amdgpu_ras_init()
+ca81109d4a8f ext4: fix memory leak in ext4_ext_shift_extents()
+3e6397b05633 SUNRPC: auth_gss: fix memory leaks in XDR decoding error paths
+dd2fdc350459 SUNRPC: fix gss_auth kref leak in gss_alloc_msg error path
+d5abcc33ee76 crypto: ccp - Fix a crash due to incorrect cleanup usage of kfree
+2d2d574309e3 octeontx2-af: Fix PF driver crash with kexec kernel booting
+e6807641ac94 HID: playstation: Add missing check for input_ff_create_memless
+a9162439ad79 accel/amdxdna: Hold mm structure across iommu_sva_unbind_device()
+e62102ac9b77 wifi: ath12k: do WoW offloads only on primary link
+2583cb925ca1 clk: qcom: gfx3d: add parent to parent request map
+d8c128fb6c22 pinctrl: canaan: k230: Fix NULL pointer dereference when parsing devicetree
+e5c9ffc6ae1b cpuidle: Skip governor when only one idle state is available
+94560267d6c4 ovpn: tcp - don't deref NULL sk_socket member after tcp_close()
+888a0a802c46 spi: wpcm-fiu: Fix potential NULL pointer dereference in wpcm_fiu_probe()
+6af6be278e3b gpio: cdev: Avoid NULL dereference in linehandle_create()
+14ab3da122bd RDMA/siw: Fix potential NULL pointer dereference in header processing
+f851e03bce96 ACPICA: Fix NULL pointer dereference in acpi_ev_address_space_dispatch()
+97f27573837e accel/amdxdna: Fix potential NULL pointer dereference in context cleanup
+920c6af98e98 drm/panthor: Fix NULL pointer dereference on panthor_fw_unplug
+56f7db581ee7 HID: intel-ish-hid: fix NULL-ptr-deref in ishtp_bus_remove_all_clients
+d289cb7fcefe of: unittest: fix possible null-pointer dereferences in of_unittest_property_copy()
+39fe0eac6d75 power: supply: wm97xx: Fix NULL pointer dereference in power_supply_changed()
+1982257570b8 scsi: csiostor: Fix dereference of null pointer rn
+efcffd9a6ad8 staging: greybus: lights: avoid NULL deref
+705d01c8d781 x86/hyperv: Fix error pointer dereference
+d4c98c077c7f drm/exynos: vidi: fix to avoid directly dereferencing user pointer
+c134a40f86ef erofs: fix inline data read failure for ztailpacking pclusters
+0089ce1c056a ACPI: processor: Update cpuidle driver check in __acpi_processor_start()
+03f336a869b3 PCI: endpoint: Add missing NULL check for alloc_workqueue()
+c89477ad7944 inet: RAW sockets using IPPROTO_RAW MUST drop incoming ICMP
+ee5492fd88cf fbnic: close fw_log race between users and teardown
+00b67657535d apparmor: fix NULL sock in aa_sock_file_perm
+226a40c06a18 drm/amd/display: Fix dc_link NULL handling in HPD init
+11d763f0b0af gfs2: Retries missing in gfs2_{rename,exchange}
+342ccffd9f77 drm/display/dp_mst: Add protection against 0 vcpi
+779c59274d03 mtd: intel-dg: Fix accessing regions before setting nregions
+2a14e91b6d76 mctp i2c: initialise event handler read bytes
+ebc2164a4cd4 RDMA/mlx5: Fix UMR hang in LAG error state unload
+70237853edf0 ASoC: nau8821: Fixup nau8821_enable_jack_detect()
+33d589ed60ae smack: /smack/doi: accept previously used values
+19c013e1551b smack: /smack/doi must be > 0
+034bbd806298 icmp: prevent possible overflow in icmp_global_allow()
+5cf76277cdec gpu: nova-core: check for overflow to DMATRFBASE1
+b2bc7c44ed17 fs/ntfs3: Fix slab-out-of-bounds read in DeleteIndexEntryRoot
+abde491143e4 drm/amd/display: Fix out-of-bounds stream encoder index v3
+5a19302cab5c drm/amdkfd: Fix watch_id bounds checking in debug address watch v2
+1956f0a74ccf RDMA/uverbs: Validate wqe_size before using it in ib_uverbs_post_send
+af9e89d8dd39 bpf: Preserve id of register in sync_linked_regs()
+6d1dc8014334 xen-netback: reject zero-queue configuration from guest
+9e7021d2aeae net: usb: catc: enable basic endpoint checking
+76149d53502c procfs: fix missing RCU protection when reading real_parent in do_task_stat()
+2e7577cd5ddc mshv: fix SRCU protection in irqfd resampler ack handler
+7d0507772406 drm/buddy: release free_trees array on buddy mm teardown
+ebbbc4bfad4c smb: client: fix potential UAF and double free in smb2_open_file()
+3c0a60195b37 drm/panthor: Recover from panthor_gpu_flush_caches() failures
+00ffe45ece80 accel/amdxdna: Fix race condition when checking rpm_on
