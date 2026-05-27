@@ -1,0 +1,69 @@
+0c965d2784fb LoongArch: Add spectre boundry for syscall dispatch table
+2fc87d37be1b drm/nouveau: fix u32 overflow in pushbuf reloc bounds check
+d45963a93c14 leds: qcom-lpg: Check for array overflow when selecting the high resolution
+9e6bf146b559 ipv6: rpl: reserve mac_len headroom when recompressed SRH grows
+3c318f97dcc5 ALSA: usb-audio: stop parsing UAC2 rates at MAX_NR_RATES
+e5c33cdc6f40 ALSA: aloop: Fix peer runtime UAF during format-change stop
+7a5f1cd22d47 ALSA: caiaq: fix usb_dev refcount leak on probe failure
+3bac01168982 mm: fix deferred split queue races during migration
+d1fef92e4144 rbd: fix null-ptr-deref when device_add_disk() fails
+095a8b0ad3c3 drm/amdgpu: fix zero-size GDS range init on RDNA4
+5dfd429591f8 drm/imagination: Fix segfault when updating ftrace mask
+6b526dca0966 greybus: gb-beagleplay: fix sleep in atomic context in hdlc_tx_frames()
+082a6d03a2d6 slub: fix data loss and overflow in krealloc()
+828bf7929bed apparmor: Fix string overrun due to missing termination
+620b46ed6ae1 mm/page_alloc: return NULL early from alloc_frozen_pages_nolock() in NMI on UP
+5b31044e649e mm/slab: return NULL early from kmalloc_nolock() in NMI on UP
+25947cc5b237 ext2: reject inodes with zero i_nlink and valid mode in ext2_iget()
+6b1842775a46 mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
+e159f05e12cc net: txgbe: fix RTNL assertion warning when remove module
+d7e20b9bd6c9 crypto: acomp - fix wrong pointer stored by acomp_save_req()
+803447f93d75 ceph: only d_add() negative dentries when they are unhashed
+1c78c2002380 spi: imx: fix use-after-free on unbind
+b99e3ddb91b4 spi: ch341: fix memory leaks on probe failures
+db357034f7e0 spi: fix resource leaks on device setup failure
+30c4d2f26bb3 rtc: ntxec: fix OF node reference imbalance
+fed4626501c8 can: ucan: fix devres lifetime
+744dd97752ef lib: test_hmm: evict device pages on file close to avoid use-after-free
+f5f9e0706051 Input: edt-ft5x06 - fix use-after-free in debugfs teardown
+ae5e95d41574 wifi: mwifiex: fix use-after-free in mwifiex_adapter_cleanup()
+faecdd423c27 of: unittest: fix use-after-free in of_unittest_changeset()
+07fd339b2c25 of: unittest: fix use-after-free in testdrv_probe()
+34c519feef3e media: mtk-jpeg: fix use-after-free in release path due to uncancelled work
+7809fea20c94 net: qrtr: ns: Fix use-after-free in driver remove()
+ca19808bc6fa mtd: docg3: fix use-after-free in docg3_release()
+25e531b422dc usb: xhci: Make usb_host_endpoint.hcpriv survive endpoint_disable()
+670e8864b1a2 vfio/cdx: Serialize VFIO_DEVICE_SET_IRQS with a per-device mutex
+41ff66baf81c thermal: core: Fix thermal zone governor cleanup issues
+8cd35ceadcfc media: amphion: Fix race between m2m job_abort and device_run
+4fb61d95ad21 mm/zsmalloc: copy KMSAN metadata in zs_page_migrate()
+f9c52a6ba978 net: ipv6: fix NOREF dst use in seg6 and rpl lwtunnels
+5ea5880764cb vfio/cdx: Fix NULL pointer dereference in interrupt trigger path
+5199c125d25a libceph: Prevent potential null-ptr-deref in ceph_handle_auth_reply()
+aac0a51b1670 iio: frequency: admv1013: fix NULL pointer dereference on str
+f7cf8ece8cee net: caif: clear client service pointer on teardown
+c45b354911d0 mm/hugetlb: fix early boot crash on parameters without '=' separator
+38dd6ccfdfbb remoteproc: xlnx: Only access buffer information if IPI is buffered
+df4601653201 net: bridge: use a stable FDB dst snapshot in RCU readers
+7079c8c13f2d netconsole: avoid out-of-bounds access on empty string in trim_newline()
+6fae274ce0e3 mm/mempolicy: fix memory leaks in weighted_interleave_auto_store()
+40250b2dded0 mm/damon/core: validate damos_quota_goal->nid for node_mem_{used,free}_bp
+3864c6ba1e04 tcp: call sk_data_ready() after listener migration
+932d922285ef x86/cpu: Disable FRED when PTI is forced on
+874c8f83826c landlock: Fix LOG_SUBDOMAINS_OFF inheritance across fork()
+d647c5b2fbf8 ocfs2: split transactions in dio completion to avoid credit exhaustion
+eb101d2abdcc wifi: rtw88: check for PCI upstream bridge existence
+d18a3b5d337f erofs: fix the out-of-bounds nameoff handling for trailing dirents
+7d96f3120a7f md/raid10: fix deadlock with check operation and nowait requests
+a0d9555bf9ea ceph: fix num_ops off-by-one when crypto allocation fails
+b62567bca474 ntfs3: add buffer boundary checks to run_unpack()
+984a415f0195 ntfs3: fix integer overflow in run_unpack() volume boundary check
+1b6f292cb94d EDAC/versalnet: Fix memory leak in remove and probe error paths
+34f61a07e0cd rxrpc: Fix memory leaks in rxkad_verify_response()
+adb3faf2db1a crypto: nx - fix bounce buffer leaks in nx842_crypto_{alloc,free}_ctx
+344e6a4f7ff4 crypto: nx - fix context leak in nx842_crypto_free_ctx
+bab1adf3b87e crypto: atmel-sha204a - Fix potential UAF and memory leak in remove path
+1f2740150f90 rxrpc: Fix potential UAF after skb_unshare() failure
+85fa35120487 Bluetooth: hci_event: fix potential UAF in SSP passkey handlers
+28abd224db4a ALSA: caiaq: Handle probe errors properly
+3bfdc63936dd rtmutex: Use waiter::task instead of current in remove_waiter()
