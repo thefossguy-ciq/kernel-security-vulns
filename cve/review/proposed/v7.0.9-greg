@@ -1,0 +1,111 @@
+4db2af929279 HID: appletb-kbd: fix UAF in inactivity-timer cleanup path
+1654e53349d4 HID: appletb-kbd: run inactivity autodim from workqueues
+6ae315d37924 sched_ext: Use HK_TYPE_DOMAIN_BOOT to detect isolcpus= domain isolation
+c39e65a4e3b8 spi: bcm63xx: fix controller deregistration
+8d4de97e8352 spi: atmel: fix controller deregistration
+2f38e96c273e regulator: mt6357: fix OF node reference imbalance
+19857374010d spi: st-ssc4: fix controller deregistration
+2edaf5f7ada0 regulator: max77650: fix OF node reference imbalance
+7ea07bc030d8 regulator: bq257xx: fix OF node reference imbalance
+65290b24d8a5 regulator: rk808: fix OF node reference imbalance
+0d15ce31375c regulator: act8945a: fix OF node reference imbalance
+ebe694d67f15 regulator: s2dos05: fix OF node reference imbalance
+8498100ee1d0 regulator: bd9571mwv: fix OF node reference imbalance
+b99206710d03 spi: lantiq-ssc: fix controller deregistration
+77953c76bec9 spi: meson-spicc: fix controller deregistration
+443e3a0005a4 spi: qup: fix controller deregistration
+9acecc9bcff0 spi: at91-usart: fix controller deregistration
+84d31bb1f625 spi: amlogic-spisg: fix controller deregistration
+1044e5a4ccd5 spi: aspeed-smc: fix controller deregistration
+8b0d0011af20 spi: mxs: fix controller deregistration
+2ad30599cccc spi: mt65xx: fix controller deregistration
+c353020fbfa8 spi: dln2: fix controller deregistration
+c1446b61e472 spi: s3c64xx: fix controller deregistration
+e506a700a7ad spi: fsl-espi: fix controller deregistration
+fb45f95c377e spi: omap2-mcspi: fix controller deregistration
+6b627bfe0c44 spi: pic32: fix controller deregistration
+f4838934b695 spi: ep93xx: fix controller deregistration
+76336f249346 spi: mtk-nor: fix controller deregistration
+994b33366be9 spi: pl022: fix controller deregistration
+abe572f630bc spi: ch341: fix devres lifetime
+e63982e6392e spi: sh-hspi: fix controller deregistration
+9b7abfed4c37 spi: fsl: fix controller deregistration
+c3d97c3320b9 spi: bcmbca-hsspi: fix controller deregistration
+e7c510e192ff spi: coldfire-qspi: fix controller deregistration
+ebd81199e00e spi: npcm-pspi: fix controller deregistration
+dbb6b01267c0 spi: cavium-thunderx: fix controller deregistration
+420df79d1a61 spi: pic32-sqi: fix controller deregistration
+123d17dbc5f0 spi: sprd: fix controller deregistration
+9944fa6726af spi: rspi: fix controller deregistration
+45170f67a08b spi: sh-msiof: fix controller deregistration
+ab840cbda4fe spi: slave-mt27xx: fix controller deregistration
+fc3a83b0d9c1 spi: img-spfi: fix controller deregistration
+573c7db8fce9 spi: mpfs: fix controller deregistration
+3c49a4d8799b spi: octeon: fix controller deregistration
+a1d50a37d3b1 spi: imx: fix runtime pm leak on probe deferral
+adbc595e2720 spi: mxic: fix controller deregistration
+220f4f11104a spi: orion: fix controller deregistration
+97b17dd8266d spi: orion: fix runtime pm leak on unbind
+443cde0dc59c spi: orion: fix clock imbalance on registration failure
+f62c060272b9 spi: mpc52xx: fix use-after-free on registration failure
+0f997fdae819 spi: mpc52xx: fix controller deregistration
+706b3dc2ac7a spi: mpc52xx: fix use-after-free on unbind
+666fa7e9ca98 spi: cadence: fix controller deregistration
+964ee9793760 spi: cadence-quadspi: fix controller deregistration
+5b1689a41f02 spi: cadence: fix unclocked access on unbind
+ecea4f0e9db2 spi: cadence: fix clock imbalance on probe failure
+5ff4d5d1af0c spi: cadence-quadspi: fix runtime pm disable imbalance on probe failure
+cba53fe20c18 spi: cadence-quadspi: fix clock imbalance on probe failure
+5e8bb0cc72f1 spi: cadence-quadspi: fix runtime pm and clock imbalance on unbind
+233db2cb14db spi: cadence-quadspi: fix unclocked access on unbind
+0245435f7772 spi: uniphier: fix controller deregistration
+2444eb0ec828 drm/amdgpu/vcn4: Prevent OOB reads when parsing IB
+0a78f2bac142 drm/amdgpu/vcn4: Prevent OOB reads when parsing dec msg
+b193019860d6 drm/amdgpu/vcn3: Prevent OOB reads when parsing dec msg
+f27cfdcfc916 media: iris: Fix use-after-free in iris_release_internal_buffers()
+3d9593ad1a58 media: iris: fix use-after-free of fmt_src during MBPF check
+4ae1709a3140 batman-adv: bla: prevent use-after-free when deleting claims
+5e28b7b94408 drm: Set old handle to NULL before prime swap in change_handle
+abb5f36771cc sctp: revalidate list cursor after sctp_sendmsg_to_asoc() in SCTP_SENDALL
+ad52d61d8218 drm/amdkfd: Clear VRAM on allocation to prevent stale data exposure
+78d2e624fa07 drm/amdgpu/sdma4: replace BUG_ON with WARN_ON in fence emission
+66085e206431 drm/amdgpu: Add bounds checking to ib_{get,set}_value
+3d4c2268bd72 drm/gem: Fix inconsistent plane dimension calculation in drm_gem_fb_init_with_funcs()
+045e0ff208f0 drm/amdkfd: validate SVM ioctl nattr against buffer size
+e6e9faba8100 drm/amdgpu/vcn3: Avoid overflow on msg bound check
+65bce27ea619 drm/amdgpu/vcn4: Avoid overflow on msg bound check
+95bd174a453f media: chips-media: wave5: fix a potential memory leak in wave5_vdi_init()
+f11ae9c04f83 media: i2c: ov5647: Fix runtime PM refcount leak in s_ctrl
+8ea21435fe36 media: pci: zoran: fix potential memory leak in zoran_probe()
+93a528f67ce5 drm/xe: Fix bo leak in xe_dma_buf_init_obj() on allocation failure
+1d0adf2fd94f drm/xe/bo: Fix bo leak on GGTT flag validation in xe_bo_init_locked()
+111ab678471b drm/xe: Fix dma-buf attachment leak in xe_gem_prime_import()
+09a8f3c1c119 drm/xe/bo: Fix bo leak on unaligned size validation in xe_bo_init_locked()
+ce425dd05d0f batman-adv: tp_meter: fix tp_num leak on kmalloc failure
+8cf5dd235eff EDAC/versalnet: Fix device name memory leak
+52bcb57a4e8a vsock/virtio: fix accept queue count leak on transport mismatch
+cac61b58a3b6 HID: playstation: Clamp num_touch_reports
+48d1677779ad HID: pidff: Fix integer overflow in pidff_rescale
+2b7eb2c5dc72 staging: media: atomisp: Disallow all private IOCTLs
+93618edf7538 cgroup: Defer css percpu_ref kill on rmdir until cgroup is depopulated
+d114bfdc9b76 vsock: fix buffer size clamping order
+5f344d809e01 vsock/virtio: fix length and offset in tap skb for split packets
+3a3e3d90cbc7 vsock/virtio: fix empty payload in tap skb for non-linear buffers
+0799e5943611 batman-adv: fix integer overflow on buff_pos
+324354359242 batman-adv: reject new tp_meter sessions during teardown
+3d3cf6a7314a batman-adv: stop tp_meter sessions during mesh teardown
+f03e85835329 batman-adv: stop caching unowned originator pointers in BAT IV
+cf6b60401159 batman-adv: bla: only purge non-released claims
+ba9d20ee9076 batman-adv: bla: put backbone reference on failed claim hash insert
+9ec953298948 kho: fix error handling in kho_add_subtree()
+60a1e131a811 drm/xe/hdcp: Add NULL check for media_gt in intel_hdcp_gsc_check_status()
+58b1e9664d8f media: renesas: vsp1: Fix NULL pointer deref on module unload
+8dd088b8b106 media: intel/ipu6: fix error pointer dereference
+8e3c751259dc media: rockchip: rkcif: Add missing MUST_CONNECT flag to pads
+d51c60a498e8 media: saa7164: add ioremap return checks and cleanups
+47cbfe260831 drm/msm/gem: fix error handling in msm_ioctl_gem_info_get_metadata()
+080f22f5d302 vsock/virtio: fix MSG_PEEK ignoring skb offset when calculating bytes to copy
+f3e969a5b543 media: ti: vpe: Add missing v4l2_device_unregister in vip_remove()
+e280d1e5e3f2 media: rc: xbox_remote: heed DMA restrictions
+7254b31a13aa media: videobuf2: Set vma_flags in vb2_dma_sg_mmap
+ac2c99667575 drm/udl: Increase GET_URB_TIMEOUT
