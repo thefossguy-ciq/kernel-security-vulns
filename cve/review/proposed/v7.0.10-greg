@@ -1,0 +1,145 @@
+972787479ee7 bpf: test_run: Fix the null pointer dereference issue in bpf_lwt_xmit_push_encap
+1c22483a2c4b bpf: reject negative CO-RE accessor indices in bpf_core_parse_spec()
+d12f558e6200 ocfs2: fix listxattr handling when the buffer is full
+70b672833f40 ocfs2: validate group add input before caching
+f2a880e802ad tty: hvc_iucv: fix off-by-one in number of supported devices
+381133848a03 usb: typec: ps883x: Fix Oops at unbind
+2091c6aa0df6 openvswitch: cap upcall PID array size and pre-size vport replies
+2195574dc6d9 netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
+e76607442d5b slip: reject VJ receive packets on instances with no rstate array
+3d07ca5c0fae net/sched: taprio: fix NULL pointer dereference in class dump
+0c22d9511cbd ceph: fix BUG_ON in __ceph_build_xattrs_blob() due to stale blob size
+07d0f496fe7e iommu/amd: Bounds-check devid in __rlookup_amd_iommu()
+a6dea58d8625 iommu/vt-d: Fix oops due to out of scope access
+2aa72276fab9 md: fix array_state=clear sysfs deadlock
+b48c980b6a7e btrfs: fix deadlock between reflink and transaction commit when using flushoncommit
+fda4d71651f7 powerpc/pgtable-frag: Fix bad page state in pte_frag_destroy
+bbcbf045d6c7 powerpc/64s: Fix unmap race with PMD migration entries
+a1aa9ef47c29 bpf: Fix stale offload->prog pointer after constant blinding
+4406942e65ca bpf: Fix RCU stall in bpf_fd_array_map_clear()
+65782b2db732 net/sched: cls_fw: fix NULL dereference of "old" filters before change()
+7d1f98d668ee dm cache: fix null-deref with concurrent writes in passthrough mode
+8f687eeed3da ocfs2: validate bg_bits during freefrag scan
+d7bd8cf0b348 ima_fs: Correctly create securityfs files for unsupported hash algos
+5941a072d488 ext4: fix miss unlock 'sb->s_umount' in extents_kunit_init()
+ca78c31af467 ext4: fix possible null-ptr-deref in extents_kunit_exit()
+22f53f08d9eb ext4: fix possible null-ptr-deref in mbt_kunit_exit()
+4d328dd69538 bpf, sockmap: Fix af_unix iter deadlock
+dca38b7734d2 bpf, sockmap: Fix af_unix null-ptr-deref in proto update
+64c2f93fc325 bpf, sockmap: Take state lock for af_unix iter
+983cc2c7efbc greybus: raw: fix use-after-free on cdev close
+84265cbd96b9 greybus: raw: fix use-after-free if write is called after disconnect
+d06a310b45e1 scsi: sg: Resolve soft lockup issue when opening /dev/sgX
+965dc93481d1 af_unix: Drop all SCM attributes for SOCKMAP.
+a5b98009f16d sched/psi: fix race between file release and pressure write
+4aca914ac152 fsnotify: fix inode reference leak in fsnotify_recalc_mask()
+2674d603a9e6 vrf: Fix a potential NPD when removing a port from a VRF
+5b0c911bcdbd net: phonet: do not BUG_ON() in pn_socket_autobind() on failed bind
+aa6c6d9ee064 bareudp: fix NULL pointer dereference in bareudp_fill_metadata_dst()
+f45a49a2380a PCI: Initialize temporary device in new_id_store()
+dc366607c41c drm: Replace old pointer to new idr
+4066c55e1094 btrfs: only release the dirty pages io tree after successful writes
+c03791085adc cpufreq: Pass the policy to cpufreq_driver->adjust_perf()
+c20e36b7631d dm log: fix out-of-bounds write due to region_count overflow
+5a6baf204610 fuse: fix uninit-value in fuse_dentry_revalidate()
+e98266e823a1 fs/ntfs3: prevent uninitialized lcn caused by zero len
+6e7066bdb481 netfilter: conntrack: remove sprintf usage
+68637b68afcc pwm: atmel-tcb: Cache clock rates and mark chip as atomic
+23f0e34c64ac net: usb: rtl8150: fix use-after-free in rtl8150_start_xmit()
+c4f050ce06c5 bonding: 3ad: implement proper RCU rules for port->aggregator
+ee9dce44362b futex: Drop CLONE_THREAD requirement for private default hash alloc
+039cd522dc70 wifi: rtlwifi: pci: fix possible use-after-free caused by unfinished irq_prepare_bcn_tasklet
+1146d0946b53 wifi: mt76: mt7915: fix use-after-free bugs in mt7915_mac_dump_work()
+c8f62f73bbce wifi: mt76: mt7996: fix use-after-free bugs in mt7996_mac_dump_work()
+a0c584fc1805 bpf: Fix use-after-free in offloaded map/prog info fill
+3e298897f41c ksmbd: fix use-after-free from async crypto on Qualcomm crypto engine
+105425b1969c net/sched: taprio: fix use-after-free in advance_sched() on schedule switch
+3cade698881e net: enetc: fix NTMP DMA use-after-free issue
+1baff47b81f9 ksmbd: fix use-after-free in smb2_open during durable reconnect
+e42c755582f0 net: ena: PHC: Fix potential use-after-free in get_timestamp
+6c77b9510829 idpf: fix double free and use-after-free in aux device error paths
+d227786ab111 fs/mbcache: cancel shrink work before destroying the cache
+d8e27d2d22b6 bpf: fix mm lifecycle in open-coded task_vma iterator
+2d1f7b65f5de dm cache policy smq: fix missing locks in invalidating cache blocks
+67b53a660e6b crypto: hisilicon/sec2 - prevent req used-after-free for sec
+8c0ee19db81f dm cache: fix missing return in invalidate_committed's error path
+c9ef786c0970 perf cgroup: Update metric leader in evlist__expand_cgroup
+f3cc22d4df3e drm/xe: Fix error cleanup in xe_exec_queue_create_ioctl()
+dc2d9842c67d drm/xe/eustall: Fix drm_dev_put called before stream disable in close
+79ea2feb917b iommu/vt-d: Avoid NULL pointer dereference or refcount corruption
+83ae3a18ba95 wifi: mt76: mt7925: prevent NULL pointer dereference in mt7925_tx_check_aggr()
+4d0bf21e3e20 wifi: mt76: mt7921: Place upper limit on station AID
+1921f91298d1 net, bpf: fix null-ptr-deref in xdp_master_redirect() for down master
+bc1dccc518cc drm/msm/dpu: fix mismatch between power and frequency
+4ae3e16f4b3b drm/amd/display: Avoid NULL dereference in dc_dmub_srv error paths
+be8058f31b4e rtla: Fix segfault on multiple SIGINTs
+4d0a375887ab bpf: Fix NULL deref in map_kptr_match_type for scalar regs
+c98324ea7849 pinctrl: pinconf-generic: Fully validate 'pinmux' property
+1603cbb64173 clk: visconti: pll: initialize clk_init_data to zero
+3da56dc063cd sched/fair: Clear rel_deadline when initializing forked entities
+b0e2333a2311 ALSA: hda/conexant: Fix missing error check for jack detection
+54ef02487914 ice: fix NULL pointer dereference in ice_reset_all_vfs()
+4d8e74ad4585 arm64: Reserve an extra page for early kernel mapping
+a6ab75639e23 nvme-apple: Reset q->sq_tail during queue init
+183182235f6d drm/amd/display: Wrap DCN32 phantom-plane allocation in DC_RUN_WITH_PREEMPTION_ENABLED
+786a45757dcd x86/kexec: Push kjump return address even for non-kjump kexec
+d769711fcddd iommu: Fix NULL group->domain dereference in pci_dev_reset_iommu_done()
+981bedbbe613 drm/xe/dma-buf: handle empty bo and UAF races
+962eb04e6755 wifi: mt76: mt7925: prevent NULL vif dereference in mt7925_mac_write_txwi
+dd8592fc6007 wifi: brcmfmac: Fix error pointer dereference
+06277983eca4 drm/sun4i: backend: fix error pointer dereference
+6b606216e03f drm/amd/ras: Fix NULL deref in ras_core_ras_interrupt_detected()
+2b8101cc3b34 drm/amd/ras: Fix NULL deref in ras_core_get_utc_second_timestamp()
+6cbc8360f51a ASoC: SOF: Intel: hda: Place check before dereference
+74b4dbb94606 gfs2: prevent NULL pointer dereference during unmount
+a55f80233f38 fwctl: Fix class init ordering to avoid NULL pointer dereference on device removal
+f2529d08fcb4 usb: typec: Fix error pointer dereference
+fa28351f970f ice: fix potential NULL pointer deref in error path of ice_set_ringparam()
+711987ba281f netfilter: nfnetlink_osf: fix potential NULL dereference in ttl check
+f8c4151d50b1 drm/xe: Fix potential NULL deref in xe_exec_queue_tlb_inval_last_fence_put_unlocked
+28b0a2ab8c82 libceph: Fix potential null-ptr-deref in decode_choose_args()
+5be7a0cef322 smb: client: Use FullSessionKey for AES-256 encryption key derivation
+42726ec644cb tcp: send a challenge ACK on SEG.ACK > SND.NXT
+804054d19886 ksmbd: fix durable fd leak on ClientGUID mismatch in durable v2 open
+7c5c2b661bdb wifi: libertas: don't kill URBs in interrupt context
+236f718ac885 net/rds: Optimize rds_ib_laddr_check
+c8c4a2972f83 padata: Put CPU offline callback in ONLINE section to allow failure
+be3e5d10643d nilfs2: reject zero bd_oblocknr in nilfs_ioctl_mark_blocks_dirty()
+e9b004ff8306 blk-wbt: remove WARN_ON_ONCE from wbt_init_enable_default()
+bf9a38803b26 net: hamradio: 6pack: fix uninit-value in sixpack_receive_buf
+ebf71dd4aff4 net/rds: Restrict use of RDS/IB to the initial network namespace
+12bec2bd4b76 bpf: reject short IPv4/IPv6 inputs in bpf_prog_test_run_skb
+2ff7cf7e0640 gfs2: Call unlock_new_inode before d_instantiate
+d7ea8495fd30 fs/ntfs3: fix missing run load for vcn0 in attr_data_get_block_locked()
+570e2ccc7cb3 f2fs: avoid reading already updated pages during GC
+29c95185ba32 nexthop: fix IPv6 route referencing IPv4 nexthop
+e08a9fac5cf8 vhost_net: fix sleeping with preempt-disabled in vhost_net_busy_poll()
+35eaa6d8d6c2 netdevsim: zero initialize struct iphdr in dummy sk_buff
+1a303baa715e ice: fix double-free of tx_buf skb
+c02053a9055d mailbox: mailbox-test: free channels on probe error
+10a4206a2401 PCI: use generic driver_override infrastructure
+8a700b1fc94d platform/wmi: use generic driver_override infrastructure
+85bb534ff12a vdpa: use generic driver_override infrastructure
+ac4d8bb6e2e1 s390/cio: use generic driver_override infrastructure
+81d6f7c3a70b s390/ap: use generic driver_override infrastructure
+6c8dfb036273 bus: fsl-mc: use generic driver_override infrastructure
+f462dca0c841 net/sched: act_ct: Only release RCU read lock after ct_ft
+5c7209a341ff Bluetooth: fix locking in hci_conn_request_evt() with HCI_PROTO_DEFER
+7253091766de HID: asus: do not abort probe when not necessary
+a6dc643c6931 eventpoll: fix ep_remove struct eventpoll / struct file UAF
+5474e6e17a26 iommu: Fix WARN_ON in __iommu_group_set_domain_nofail() due to reset
+155a372a1cc5 drm/xe/dma-buf: fix UAF with retry loop
+8df2c1b47ee3 HID: usbhid: fix deadlock in hid_post_reset()
+576afddfee8d bpf: Fix OOB in pcpu_init_value
+d34b6919798c drm/msm/a6xx: Correct OOB usage
+0cf004ffb61c sctp: fix OOB write to userspace in sctp_getsockopt_peer_auth_chunks
+10f86a2a5c91 bpf: Fix same-register dst/src OOB read and pointer leak in sock_ops
+7fb4c1967011 net: pull headers in qdisc_pkt_len_segs_init()
+4cbee026db54 bpf: return VMA snapshot from task_vma iterator
+f64caf673cb5 gpu: nova-core: gsp: fix improper handling of empty slot in cmdq
+1e668baadefb power: supply: max77705: Free allocated workqueue and fix removal order
+a6134e62dba2 netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase
+c39f0bc03f84 ALSA: usb-audio: Fix potential leak of pd at parsing UAC3 streams
+918be519c787 ALSA: usb-audio: Bound MIDI 2.0 endpoint descriptor scans
+d6854daa67be ALSA: usb-audio: Bound MIDI endpoint descriptor scans
+cc1ff87bce1c pppoe: drop PFC frames
