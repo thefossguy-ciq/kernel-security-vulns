@@ -1,0 +1,153 @@
+b9ad50d7505e gpio: mvebu: fix NULL pointer dereference in suspend/resume
+34080db3e70d net/rds: fix NULL deref in rds_ib_send_cqe_handler() on masked atomic completion
+c3009418f9fa netfilter: nf_conntrack: destroy stale expectfn expectations on unregister
+b70c687b7cf2 ipv6: Fix a potential NPD in cleanup_prefix_route()
+3c94f241f776 udp: clear skb->dev before running a sockmap verdict
+387a926ee166 tee: optee: prevent use-after-free when the client exits before the supplicant
+193989cc6d80 ipvs: clear the svc scheduler ptr early on edit
+cb9959ab5f99 wifi: cfg80211: enforce HE/EHT cap/oper consistency
+e374b22e9b07 sctp: purge outqueue on stale COOKIE-ECHO handling
+1c1e0fc88d6e gpio: rockchip: fix generic IRQ chip leak on remove
+e4c60a1d4b6c ASoC: SDCA: fix NULL pointer dereference in sdca_dev_unregister_functions
+f329e8325e05 drm/virtio: Fix driver removal with disabled KMS
+ac35b5580ace rust: arm64: set uwtable llvm module flag for CONFIG_UNWIND_TABLES
+4a44b17406cb rust: kasan/kbuild: fix rustc-option when cross-compiling
+77a1f6883dc6 ARM: 9475/1: entry: use byte load for KASAN VMAP stack shadow
+40ab6644b996 fhandle: fix UAF due to unlocked ->mnt_ns read in may_decode_fh()
+29e7b925ae6d IB/isert: Reject login PDUs shorter than ISER_HEADERS_LEN
+74e144274af3 futex/requeue: Prevent NULL pointer dereference in remove_waiter() on self-deadlock
+8783fb803179 i2c: imx: fix clock and pinctrl state inconsistency in runtime PM
+adf67034b1f6 drm/amd/display: Fix NULL deref and buffer over-read in SDP debugfs
+18fc650ccd7f bpf: Free reuseport cBPF prog after RCU grace period.
+791c91dc7a9d ipv6: mcast: Fix use-after-free when processing MLD queries
+de23fb62259a Bluetooth: MGMT: validate advertising TLV before type checks
+9ca7053d6215 Bluetooth: ISO: Fix data-race on iso_pi fields in hci_get_route calls
+4847c5bca222 Bluetooth: SCO: Fix data-race on sco_pi fields in sco_connect
+672bd0519e27 ptp: vclock: Switch from RCU to SRCU
+6d99479799c6 rseq: Fix using an uninitialized stack variable in rseq_exit_user_update()
+894e036a24a2 net/mlx5: Fix slab-out-of-bounds in mlx5_query_nic_vport_mac_list
+a84b6fedbc97 netfilter: nf_log: validate MAC header was set before dumping it
+f580d27e8928 ksmbd: fix use-after-free of a deferred file_lock on double SMB2_CANCEL
+96d47e40bf9d USB: serial: kl5kusb105: fix bulk-out buffer overflow
+c594b83457cc arm64: mm: call pagetable dtor when freeing hot-removed page tables
+1aee05e814d2 erofs: fix use-after-free on sbi->sync_decompress
+3027ecbdb5fd netfilter: nft_ct: bail out on template ct in get eval
+5057e1aca011 net/sched: act_api: use RCU with deferred freeing for action lifecycle
+6c0cf89f36ac wifi: mac80211: limit injected antenna index in ieee80211_parse_tx_radiotap
+e10902df2448 tcp: Add preempt_{disable,enable}_nested() in reqsk_queue_hash_req().
+afd0f17ca462 hsr: Remove WARN_ONCE() in hsr_addr_is_self().
+f723ccaff2fb ipv6: anycast: insert aca into global hash under idev->lock
+37b3009bf597 Bluetooth: fix memory leak in error path of hci_alloc_dev()
+3a5f3f7aff18 ieee802154: 6lowpan: only accept IPv6 packets in lowpan_xmit()
+90918794a4e2 signal: clear JOBCTL_PENDING_MASK for caller in zap_other_threads()
+f0e42f0c4337 ipv6: sit: reload inner IPv6 header after GSO offloads
+1711b6ed6953 ovl: keep err zero after successful ovl_cache_get()
+40a25d59e85b locking/rtmutex: Skip remove_waiter() when waiter is not enqueued
+1a4f03d22fb6 drm/gem: Try to fix change_handle ioctl, attempt 4
+5f41161059fd debugobjects: Do not fill_pool() if pi_blocked_on
+6770d3a8acdf Bluetooth: bnep: reject short frames before parsing
+5cbf290b7935 Bluetooth: ISO: Fix not releasing hdev reference on iso_conn_big_sync
+149324fc762c Bluetooth: MGMT: Fix backward compatibility with userspace
+43c441edacf9 Bluetooth: RFCOMM: hold listener socket in rfcomm_connect_ind()
+23882b828c3c Bluetooth: RFCOMM: validate skb length in MCC handlers
+617eb7c0961a i2c: dev: prevent integer overflow in I2C_TIMEOUT ioctl
+22ba97ea9cc1 xsk: cache csum_start/csum_offset to fix TOCTOU in xsk_skb_metadata()
+183c1076eca4 USB: serial: io_ti: fix heap overflow in get_manuf_info()
+13e91fd07630 RDMA/srp: bound SRP_RSP sense copy by the received length
+322e93448d90 thunderbolt: Clamp XDomain response data copy to allocation size
+f0f3981c43b3 drm/amd/display: Clamp HDMI HDCP2 rx_id_list read to buffer size
+15fe76e23615 RDMA/umem: Fix truncation for block sizes >= 4G
+eb48730bb827 xfrm: iptfs: fix use-after-free on first_skb in __input_process_payload
+a213a8950414 l2tp: pppol2tp: hold reference to session in pppol2tp_ioctl()
+b38cae85d1c4 net: airoha: Fix use-after-free in metadata dst teardown
+80df409e1a48 net: ethernet: mtk_eth_soc: Fix use-after-free in metadata dst teardown
+88fe2e365872 ALSA: PCM: Fix wait queue list corruption in snd_pcm_drain() on linked streams
+a0130d682222 net: ibm: emac: Fix use-after-free during device removal
+a2171131ecda net: qrtr: fix refcount saturation and potential UAF in qrtr_port_remove
+627366c51145 ptp: ocp: fix resource freeing order
+053a401b592b ALSA: timer: Fix UAF at snd_timer_user_params()
+32594b098549 inet: frags: fix use-after-free caused by the fqdir_pre_exit() flush
+e85eb5feca8e misc: fastrpc: fix use-after-free of fastrpc_user in workqueue context
+07ebe87915d8 misc: fastrpc: fix use-after-free race in fastrpc_map_create
+71de0177b28d net: phonet: free phonet_device after RCU grace period
+e3573f739e3d riscv/ptrace: Use USER_REGSET_NOTE_TYPE for REGSET_CFI
+b69004f5a6ad net/mlx5e: xsk: Fix DMA and xdp_frame leak on XDP_TX xmit failure
+2a9d50e9ea40 slimbus: qcom-ngd-ctrl: Register callbacks after creating the ngd
+00633c468382 fs/fcntl: fix SOFTIRQ-unsafe lock order in fasync signaling
+02e545c4297a sched_ext: Don't warn on NULL cgrp_moving_from in scx_cgroup_move_task()
+4157501b9a8f vsock/virtio: fix skb overhead overflow on 32-bit builds
+62443dc21114 netfilter: require Ethernet MAC header before using eth_hdr()
+0fd2b00b2d3d USB: serial: io_ti: fix heap overflow in build_i2c_fw_hdr()
+2b5ff4db5d7a ALSA: seq: dummy: fix UMP event stack overread
+da3039e91d1f ALSA: timer: Forcibly close timer instances at closing
+f50331f2a144 Bluetooth: ISO: Fix a use-after-free of the hci_conn pointer
+7f2d76c9c032 xfrm: policy: fix use-after-free on inexact bin in xfrm_policy_bysel_ctx()
+c32b26aaa2f9 netfilter: nft_tunnel: fix use-after-free on object destroy
+732fd9f0b9c1 zram: fix use-after-free in zram_bvec_write_partial()
+5b6b6fc49189 nvmem: core: fix use-after-free bugs in error paths
+ccb9fd4b8753 netfilter: revalidate bridge ports
+323c98a4ff06 RDMA/core: Validate cpu_id against nr_cpu_ids in DMAH alloc
+ef911805d86a accel/ethosu: reject NPU_OP_RESIZE commands from userspace
+2bd550b547de drm/amdkfd: fix NULL dereference in get_queue_ids()
+fb1764258376 accel/ivpu: Add buffer overflow check in MS get_info_ioctl
+d9faef564438 accel/ivpu: Fix signed integer truncation in IPC receive
+c0837b9cf6ea accel/ethosu: fix OOB write in ethosu_gem_cmdstream_copy_and_validate()
+00f547e0dfec accel/ethosu: fix IFM region index out-of-bounds in command stream parser
+ee6d9b6e5162 accel/ethosu: fix arithmetic issues in dma_length()
+d9d021218162 accel/ethosu: reject DMA commands with uninitialized length
+1d0b597facdd accel/ivpu: Add bounds check for firmware runtime memory
+dd1311bcf0e6 accel/ivpu: Add bounds checks for firmware log indices
+66eba0ffce3b netfilter: conntrack_irc: fix possible out-of-bounds read
+88e994c57a79 staging: rtl8723bs: rtw_mlme: add bounds checks before ie_length subtraction
+e8b4d37eba05 drm/amd/display: Fix out-of-bounds read in dp_get_eq_aux_rd_interval()
+899ee91156e5 net/sched: fix pedit partial COW leading to page cache corruption
+67ba971ae025 netfilter: bridge: make ebt_snat ARP rewrite writable
+0861615c28de sctp: validate cached peer INIT chunk length in COOKIE_ECHO processing
+f8373d7090b7 sctp: fix uninit-value in __sctp_rcv_asconf_lookup()
+6f4c80a2a7e6 sctp: validate embedded INIT chunk and address list lengths in cookie
+c381039ade2e xfrm: espintcp: do not reuse an in-progress partial send
+5eba3e48d78e sctp: diag: reject stale associations in dump_one path
+65423079c742 thunderbolt: Bound root directory content to block size
+a504b9f2797b thunderbolt: Validate XDomain request packet size before type cast
+ff287df16a1a drm/amd/display: Bound VBIOS record-chain walk loops
+fb0707ce00ee drm/amd/display: Clamp VBIOS HDMI retimer register count to array size
+0d046ae10625 debugobjects: Don't call fill_pool() in early boot hardirq context
+73bf3cca7de6 pcnet32: stop holding device spin lock during napi_complete_done
+5a0082ec20a0 net: phy: don't try to setup PHY-driven SFP cages when using genphy
+3c2d42b8ee34 mm/memory-failure: fix hugetlb_lock AA deadlock in get_huge_page_for_hwpoison
+c8a8a75b7334 xfrm: iptfs: fix ABBA deadlock in iptfs_destroy_state()
+55f2ea9ff83c slimbus: qcom-ngd-ctrl: Avoid ABBA on tx_lock/ctrl->lock
+5c65b96b549e Bluetooth: hci_sync: reject oversized Broadcast Announcement prepend
+dd2147335444 Bluetooth: L2CAP: reject BR/EDR signaling packets over MTUsig
+b003086d7696 ksmbd: fix NULL-deref of opinfo->conn in oplock/lease break notifiers
+7d3fb78b5503 ASoC: wm_adsp: Fix NULL dereference when removing firmware controls
+bfd2eb9bba54 firmware: stratix10-rsu: Fix NULL deref on rsu_send_msg() timeout in probe
+d930276f2cdd bnxt_en: Fix NULL pointer dereference
+729ac5a4b966 i2c: qcom-cci: Fix NULL pointer dereference in cci_remove()
+5401fb4fe10f misc: fastrpc: Fix NULL pointer dereference in rpmsg callback
+f9f25118faa4 net: airoha: Add NULL check for of_reserved_mem_lookup() in airoha_qdma_init_hfwd_queues()
+a764b0e8317a net: bonding: fix NULL pointer dereference in bond_do_ioctl()
+cff8eb65d1ea thunderbolt: Reject zero-length property entries in validator
+4db2bd2ed478 thunderbolt: Limit XDomain response copy to actual frame size
+352ea59028ea drm/amdkfd: Fix buffer overflow in SDMA queue checkpoint/restore on GFX11
+da48bc4461b8 drm/amd/display: Use krealloc_array() in dal_vector_reserve()
+347ccc0453fc drm/xe: fix job timeout recovery for unstarted jobs and kernel queues
+093305d801fa wifi: iwlwifi: pcie: simplify the resume flow if fast resume is not used
+4cd92957e8f8 wifi: nl80211: reject oversized EMA RNR lists
+ec4cbdd163f9 drm/xe/multi_queue: skip submit when primary queue is suspended
+e8694f7cc292 wifi: fix leak if split 6 GHz scanning fails
+6edb934de9bd gpio: zynq: fix runtime PM leak on remove
+f7f2fbb0e893 netfilter: x_tables: avoid leaking percpu counter pointers
+5d563a5da871 drm/vc4: fix krealloc() memory leak
+ba36786b21d1 drm/xe: fix refcount leak in xe_range_fence_insert()
+c7d573551f92 netfilter: nft_meta_bridge: fix stale stack leak via IIFHWADDR register
+26682f5efc27 tee: shm: fix shm leak in register_shm_helper()
+3f26bb732cc1 drm/virtio: fix dma_fence refcount leak on error in virtio_gpu_dma_fence_wait()
+63838c323924 ARM: socfpga: Fix OF node refcount leak in SMP setup
+c05fa14db43e vsock/vmci: fix sk_ack_backlog leak on failed handshake
+695fcefd4a81 i2c: imx-lpi2c: fix resource leaks switching to devm_dma_request_chan()
+b66829b17f63 firmware: samsung: acpm: Fix mailbox channel leak on probe error
+09a5bf856aa7 octeontx2-af: fix memory leak in rvu_setup_hw_resources()
+00739e4dd46d mm/cma: fix reserved page leak on activation failure
+ae7676952790 drm/v3d: Fix vaddr leak when indirect CSD has zeroed workgroups
+ab185e0c4fb8 netfilter: nft_fib: fix stale stack leak via the OIFNAME register
