@@ -305,10 +305,10 @@ unmet direct dependencies detected|\
     fi
     echo
 
-    hits=$(grep -F "${subject}" ${FINALDIR}/* | grep ${TAG} | grep -v annotated | wc -l)
+    hits=$(grep -F -dskip "${subject}" ${FINALDIR}/* | grep ${TAG} | grep -v annotated | wc -l)
     if [ ${hits} -gt 0 ]; then
         print_red "Positively voted for in:\n"
-        positives=$(grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !')
+        positives=$(grep -Fl -dskip "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !')
         for f in ${positives}; do
             print_blue "  ${f}"
         done
@@ -317,11 +317,11 @@ unmet direct dependencies detected|\
         clipcommitto=$((clipcommitto - ${hits} - 3))
     fi
 
-    if grep -Fq "${subject}" ${FINALDIR}/*; then
+    if grep -Fq -dskip "${subject}" ${FINALDIR}/*; then
         print_red "Annotations\n"
     fi
 
-    for annotated in $(grep -Fl "${subject}" ${FINALDIR}/*); do
+    for annotated in $(grep -Fl -dskip "${subject}" ${FINALDIR}/*); do
         annotation0=$(mktemp /tmp/cve-review-XXXXX)
         annotation1=$(mktemp /tmp/cve-review-XXXXX)
 
