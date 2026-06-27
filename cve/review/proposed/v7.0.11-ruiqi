@@ -1,0 +1,178 @@
+0e59645683b7 iommu/amd: Fix illegal cap/mmio access in IOMMU debugfs
+bf736184d063 ksmbd: close durable scavenger races against m_fp_list lookups
+3da1fdf4efbc smb: client: reject userspace cifs.spnego descriptions
+4b83cbc4c15f ksmbd: fix null pointer dereference in compare_guid_key()
+904901561e61 ksmbd: fix null pointer dereference in proc_show_files()
+af92ee994cc7 ksmbd: fix SID memory leak in set_posix_acl_entries_dacl() on overflow
+69f030cf9548 ksmbd: validate SID in parent security descriptor during ACL inheritance
+f9b2d3b703d1 regulator: tps65219: fix irq_data.rdev not being assigned
+44126343d58c x86/mm: Disable broadcast TLB flush when PCID is disabled
+d1ebfce2c1d1 smb: client: require net admin for CIFS SWN netlink
+4d8690dace00 smb: client: protect tc_count increment in smb2_find_smb_sess_tcon_unlocked()
+d4d76c9ee199 smb: client: use data_len for SMB2 READ encrypted folioq copy
+b59d5c51bb32 ALSA: ua101: Reject too-short USB descriptors
+e4d3386b74fb ALSA: pcm: Don't setup bogus iov_iter for silencing
+7b7d6572145c ALSA: asihpi: Fix potential OOB array access at reading cache
+93d93f5f8da7 io_uring/waitid: clear waitid info before copying it to userspace
+e46e6bc97fb1 ipv6: ioam: refresh hdr pointer before ioam6_event()
+6a288a4ddb4a mm/page_alloc: fix initialization of tags of the huge zero folio with init_on_free
+63451de16e0a mm/migrate_device: fix spinlock leak in migrate_vma_insert_huge_pmd_page
+ab1513597c6c Bluetooth: fix UAF in l2cap_sock_cleanup_listen() vs l2cap_conn_del()
+84c24fb151fc Bluetooth: ISO: drop ISO_END frames received without prior ISO_START
+c1bb9336ae6b Bluetooth: hci_uart: fix UAFs and race conditions in close and init paths
+3374ef8cf993 Bluetooth: L2CAP: ecred_reconfigure: send packed pdu, not stack pointer
+d3f7d17960ed Bluetooth: MGMT: validate Add Extended Advertising Data length
+e83f5e24da74 Bluetooth: serialize accept_q access
+4eb82ba54342 net: devmem: reject dma-buf bind with non-page-aligned size or SG length
+aaec7096f996 net: hsr: defer node table free until after RCU readers
+7d260c5d2d89 net/mlx5e: Fix use-after-free in mlx5e_tx_reporter_timeout_recover
+5db89c99566f net: ifb: report ethtool stats over num_tx_queues
+4322dcde6b41 netfilter: ip6t_hbh: reject oversized option lists
+e196115ec330 netfilter: nf_queue: hold bridge skb->dev while queued
+0d3a282ab5f1 netfilter: ipset: stop hash:* range iteration at end
+b6a91f68ebfe netfilter: nft_inner: Fix IPv6 inner_thoff desync
+4908f1395fb1 net: ethtool: fix NULL pointer dereference in phy_reply_size
+e3adf69f8eb1 net: ethtool: phy: avoid NULL deref when PHY driver is unbound
+e4865a56d013 ACPI: driver: Check ACPI_COMPANION() against NULL during probe
+9a415cc53711 sched_ext: Avoid UAF in scx_root_enable_workfn() init failure path
+979c017803c4 l2tp: use list_del_rcu in l2tp_session_unhash
+2bccfb8476ca qed: fix double free in qed_cxt_tables_alloc()
+d71c841be5d9 wifi: mac80211: capture fast-RX rate before mesh reuses skb->cb
+d4ea0dfd7501 ipv6: ioam: add NULL check for idev in ipv6_hop_ioam()
+99e22ddf4edb vsock/vmci: fix UAF when peer resets connection during handshake
+a4f0b001782b vsock/virtio: reset connection on receiving queue overflow
+915fab69823a ipv4: raw: reject IP_HDRINCL packets with ihl < 5
+5d49b568c188 ixgbevf: fix use-after-free in VEPA multicast source pruning
+9fc75b71fdd3 rbd: eliminate a race in lock_dwork draining on unmap
+4a9b16541ad3 lsm: hold cred_guard_mutex for lsm_set_self_attr()
+c0bf0a4f3f1f octeontx2-af: CGX: add bounds check to cgx_speed_mbps index
+be309f8eae8b af_unix: Fix UAF read of tail->len in unix_stream_data_wait()
+a6e6ccd5bd07 wifi: mac80211: consume only present negotiated TTLM maps
+9b244c242bec octeontx2-pf: avoid double free of pool->stack on AQ init failure
+09e8f9a9aa19 ASoC: codecs: pcm512x: fix null-ptr dereference in pcm512x_overclock_xxx_put()
+9ce754ed8e7a KVM: arm64: vgic-its: Reject restored DTE with out-of-range num_eventid_bits
+ea6ec3343e05 spi: ti-qspi: fix use-after-free after DMA setup failure
+0ce1bc9e46ec RDMA/siw: Reject MPA FPDU length underflow before signed receive math
+e7537735028c fwctl: pds: Validate RPC input size before parsing
+215c90ee6561 device property: set fwnode->secondary to NULL in fwnode_init()
+b0fe80c0b925 drm/v3d: Fix use-after-free of CPU job query arrays on error path
+9af1b6e175c8 drm/virtio: use uninterruptible resv lock for plane updates
+00907da2126e drm/xe/multi_queue: Fix secondary queue error case
+cd86529ec614 drm/amd/display: Fix integer overflow in bios_get_image()
+6c92f6d9600e drm/amd/display: Validate payload length and link_index in dc_process_dmub_aux_transfer_async
+f8ce8b8331a1 batman-adv: v: stop OGMv2 on disabled interface
+f50487e35663 batman-adv: tvlv: reject oversized TVLV packets
+20c2d6a20ca9 batman-adv: mcast: fix use-after-free in orig_node RCU release
+2d8826a2d365 batman-adv: dat: handle forward allocation error
+9cd3f16c320b batman-adv: fix fragment reassembly length accounting
+94f3b133168d batman-adv: fix tp_meter counter underflow during shutdown
+bc62216dc8e2 batman-adv: frag: disallow unicast fragment in fragment
+0459430add32 batman-adv: bla: fix report_work leak on backbone_gw purge
+f80d3d98d2ff batman-adv: bla: avoid NULL-ptr deref for claim via dropped interface
+6c65cf23d4c6 batman-adv: tp_meter: avoid use of uninit sender vars
+d5487249a81e batman-adv: tp_meter: directly shut down timer on cleanup
+94d27005016b batman-adv: tt: fix TOCTOU race for reported vlans
+fc92cdfcb295 batman-adv: tt: fix negative last_changeset_len
+b64963a2ceeb batman-adv: tt: fix negative tt_buff_len
+4afca954622d hwmon: (pmbus/adm1266) reject implausible blackbox record_count
+487566cb1ccd hwmon: (pmbus/adm1266) include PEC byte in pmbus_block_xfer read buffer
+d7834d92251b hwmon: (pmbus/adm1266) cap PDIO scan in get_multiple at ADM1266_PDIO_NR
+491403b9b76c hwmon: (pmbus/adm1266) register the gpio_chip after pmbus_do_probe()
+e72ce0298103 pinctrl: meson: amlogic-a4: fix deadlock issue
+6d3daa9b8d31 firmware: arm_ffa: Unregister bus notifier on teardown for FF-A v1.0
+6ebcbb53fc9b riscv: Fix register corruption from uninitialized cregs on error
+3974ea193840 firmware: arm_ffa: Bound PARTITION_INFO_GET_REGS copies
+2af18f8e36b2 firmware: arm_ffa: Keep framework RX release under lock
+4a1cc9e96b31 firmware: arm_ffa: Validate framework notification message layout
+0399e3f872ca firmware: arm_ffa: Align RxTx buffer size before mapping
+38290b180a4d firmware: arm_ffa: Snapshot notifier callbacks under lock
+a6848a50404e firmware: arm_ffa: Fix sched-recv callback partition lookup
+b62eb8dcf2c4 netfilter: x_tables: allocate hook ops while under mutex
+d338693d7785 netfilter: x_tables: unregister the templates first
+b4597d5fd7d2 netfilter: x_tables: add and use xtables_unregister_table_exit
+b7f0544d86d4 netfilter: ebtables: move to two-stage removal scheme
+92c603fa07bc netfilter: ebtables: close dangling table module init race
+16bc4b6686b2 netfilter: x_tables: close dangling table module init race
+657b594b2084 fprobe: Fix unregister_fprobe() to wait for RCU grace period
+a3bf0f28d4ba fs/statmount: fix slab out-of-bounds write in statmount_mnt_idmap
+91840be8f710 irq_work: Fix use-after-free in irq_work_single() on PREEMPT_RT
+b35a13036755 nvme-pci: fix use-after-free in nvme_free_host_mem()
+3a8389d42bdf zonefs: handle integer overflow in zonefs_fname_to_fno
+03cb001ef87b tcp: Fix out-of-bounds access for twsk in tcp_ao_established_key().
+2c7b1227e582 ASoC: SOF: amd: Fix error code handling in psp_send_cmd()
+dbc30a57bd8e powerpc/hv-gpci: fix preempt count leak in sysfs show paths
+cce18c263e96 netfs: Fix missing locking around retry adding new subreqs
+dc7832d05deb netfs: fix VM_BUG_ON_FOLIO() issue in netfs_write_begin() call
+0ef37eef83fa netfs: Fix overrun check in netfs_extract_user_iter()
+156ac2ec2ee7 netfs: Fix netfs_invalidate_folio() to clear dirty bit if all changes gone
+a41168aef634 netfs: Fix read-gaps to remove netfs_folio from filled folio
+3e5dd91b87a8 netfs: Fix early put of sink folio in netfs_read_gaps()
+dbe556972100 netfs: Fix potential UAF in netfs_unlock_abandoned_read_pages()
+ded0c6f16060 netfs: Fix netfs_read_folio() to wait on writeback
+c0410adf3da6 afs: Fix the locking used by afs_get_link()
+06937db21ee3 net: ethernet: cortina: Make RX SKB per-port
+b266bacba796 net: ethernet: cortina: Drop half-assembled SKB
+7320d6eb861e wifi: ath11k: fix error path leak in ath11k_tm_cmd_wmi_ftm()
+235fb5376139 net: shaper: fix trivial ordering issue in net_shaper_commit()
+a9a2fa1da619 net: shaper: reject duplicate leaves in GROUP request
+8054f85b83f4 net: shaper: set ret to -ENOMEM when genlmsg_new() fails in group_doit
+637ad3a56a3b block: don't overwrite bip_vcnt in bio_integrity_copy_user()
+2c6e6a18a37b block: recompute nr_integrity_segments in blk_insert_cloned_request
+8582792cf23b block: bio-integrity: Fix null-ptr-deref in bio_integrity_map_user()
+aa16b2bc0f02 accel/qaic: Add overflow check to remap_pfn_range during mmap
+7bf563badd37 net/smc: avoid NULL deref of conn->lnk in smc_msg_event tracepoint
+c0c70a11365c drm/msm/dpu: don't mix devm and drmm functions
+2b4abf879360 drm/msm/adreno: fix userspace-triggered crash on a2xx-a4xx
+b5c7a7f452b8 drm/msm/a6xx: Check kzalloc return in a8xx_hfi_send_perf_table
+5a30862dec5a ASoC: sdw_utils: Check speaker component string allocation
+31467b23823f powerpc/time: Remove redundant preempt_disable|enable() calls from arch_irq_work_raise()
+277740023def net/smc: reject CHID-0 ACCEPT that matches an empty ism_dev slot
+285943c6e7ca net: tls: fix off-by-one in sg_chain entry count for wrapped sk_msg ring
+ff26a0e8377d net: tls: prevent chain-after-chain in plain text SG
+775d8d7ad02a ovpn: tcp - use cached peer pointer in ovpn_tcp_close()
+1fef6614673f ovpn: respect peer refcount in CMD_NEW_PEER error path
+1854082fe0dd phy: apple: atc: Fix typec switch/mux leak on unbind
+702809dabdec vfio/pci: Check BAR resources before exporting a DMABUF
+8d0a5af8b1ba net/mlx5: Do not restore destination-less TC rules
+0d435a7ebcd4 ASoC: codecs: fs210x: fix possible buffer overflow
+8a220d1c312c cachefiles: Fix error return when vfs_mkdir() fails
+ae38d9179190 vsock/virtio: fix zerocopy completion for multi-skb sends
+496ba79b9496 spi: mtk-snfi: Fix resource leak in mtk_snand_read_page_cache()
+b09a45601094 hwmon: (lm90) Stop work before releasing hwmon device
+873e919e3101 hwmon: (lm90) Add lock protection to lm90_alert
+92cee08dc4f0 wifi: iwlwifi: mld: fix TSO segmentation explosion when AMSDU is disabled
+d733ed481fd2 wifi: iwlwifi: mld: don't dereference a pointer before NULL checking it
+379e8f1ca5e9 drm/gem: Make the GEM LRU lock part of drm_device
+d3ded53fab90 drm/xe/gsc: Fix double-free of managed BO in error path
+96bf49b526e2 drm/xe/pf: Fix CFI failure in debugfs access
+cf18e3645560 io_uring: propagate array_index_nospec opcode into req->opcode
+593889c40142 srcu: Don't queue workqueue handlers to never-online CPUs
+8817005efbdf cgroup/rstat: validate cpu before css_rstat_cpu() access
+c326f9c68921 net/mlx5e: xsk: Fix unlocked writing to ICOSQ
+5acc641e590e igc: set tx buffer type for SMD frames
+ea17fc4d7dc2 phy: qcom: qmp-usbc: Fix out-of-bounds array access in dp swing config
+35f0f0a2536a net: mana: Fix TOCTOU double-fetch of hwc_msg_id from DMA buffer
+5c69e090ae5d platform/x86: intel-hid: Check ACPI_HANDLE() against NULL
+a9f305c5a355 platform/x86: intel-vbtn: Check ACPI_HANDLE() against NULL
+5b7437339011 RDMA/rtrs: Fix use-after-free in path file creation cleanup
+4df78ff02629 bridge: mcast: Fix a possible use-after-free when removing a bridge port
+649932fc3815 erofs: fix managed cache race for unaligned extents
+f718506edd2d wifi: mac80211: bounds-check link_id in ieee80211_ml_epcs
+a74e893f30db wifi: mac80211: fix MLE defragmentation
+60a1969fae62 ALSA: seq: Serialize UMP output teardown with event_input
+576ec047d20b tracing: Avoid NULL return from hist_field_name() on truncation
+b8d7519352ba net: shaper: rework the VALID marking (again)
+2b50aceafe66 crypto/krb5, rxrpc: Fix lack of pre-decrypt/pre-verify length checks
+d2bc90cf6c75 rxrpc: Fix DATA decrypt vs splice() by copying data to buffer in recvmsg
+ddf8029623a1 bpf, skmsg: fix verdict sk_data_ready racing with ktls rx
+1bbf0ced1d9d tcp: fix stale per-CPU tcp_tw_isn leak enabling ISN prediction
+30c073cab97a gpio: aggregator: fix a potential use-after-free
+85686c72966c nvme-pci: fix dma_vecs leak on p2p memory
+1bf86336e4b6 nvme-pci: fix dma mapping leak on data setup error
+b809d0409991 net: mana: validate rx_req_idx to prevent out-of-bounds array access
+bddc09212c24 tap: fix stack info leak in tap_ioctl() SIOCGIFHWADDR
+4db79a322db8 net: gro: don't merge zcopy skbs
+dc278e9bf2b9 blk-mq: pop cached request if it is usable
+3515503322f4 ksmbd: fix durable reconnect error path file lifetime
+f6982769910e block: avoid use-after-free in disk_free_zone_resources()
+43a1e3744548 security/keys: fix missed RCU read section on lookup
