@@ -19,6 +19,13 @@ use commit_classifier::CommitFeatures;
 // Type definition for commit information result
 type CommitInfoResult = (String, Option<(String, String)>, bool, Option<String>);
 
+/// SHA-256 hash of `data` as a lowercase hex string
+fn sha256_hex(data: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize().iter().map(|b| format!("{b:02x}")).collect()
+}
+
 pub struct CVEDataCollector {
     pub kernel_repo_path: PathBuf,
     pub cve_commits_path: Option<PathBuf>,
@@ -300,9 +307,7 @@ impl CVEDataCollector {
         let subject = lines.first().unwrap_or(&"").trim().to_string();
 
         // Hash the message
-        let mut hasher = Sha256::new();
-        hasher.update(message.as_bytes());
-        let hash = format!("{:x}", hasher.finalize());
+        let hash = sha256_hex(message.as_bytes());
 
         Some((hash, subject))
     }
@@ -748,16 +753,12 @@ mod tests {
         let full_message = create_test_commit_message(subject, body);
 
         // Calculate SHA-256 hash of the full message
-        let mut hasher = Sha256::new();
-        hasher.update(full_message.as_bytes());
-        let expected_hash = format!("{:x}", hasher.finalize());
+        let expected_hash = sha256_hex(full_message.as_bytes());
 
         // Since we can't call the original method without a git repo,
         // we'll reimplement the logic here for testing
         let subject_line = full_message.lines().next().unwrap_or("").to_string();
-        let mut hasher = Sha256::new();
-        hasher.update(full_message.as_bytes());
-        let message_hash = format!("{:x}", hasher.finalize());
+        let message_hash = sha256_hex(full_message.as_bytes());
 
         // Verify subject line and hash match expectations
         assert_eq!(subject_line, subject);
