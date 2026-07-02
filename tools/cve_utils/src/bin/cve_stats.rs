@@ -671,7 +671,7 @@ fn get_author_stats(
 
     // Sort authors by count
     let mut authors: Vec<_> = author_counts.into_iter().collect();
-    authors.sort_by(|a, b| b.1.cmp(&a.1));
+    authors.sort_by_key(|e| std::cmp::Reverse(e.1));
 
     authors
 }
@@ -697,7 +697,7 @@ fn show_subsystem_stats(
     let mut subsystems: Vec<_> = main_subsystems.iter()
         .map(|(name, cves)| (name.clone(), cves.len()))
         .collect();
-    subsystems.sort_by(|a, b| b.1.cmp(&a.1));
+    subsystems.sort_by_key(|e| std::cmp::Reverse(e.1));
 
     // Display top subsystems
     for (subsystem, count) in subsystems.iter().take(num_subsystems) {
@@ -709,7 +709,7 @@ fn show_subsystem_stats(
             .filter(|(name, _)| name.starts_with(&sub_prefix))
             .map(|(name, cves)| (name.replace('_', "/"), cves.len()))
             .collect();
-        sub_entries.sort_by(|a, b| b.1.cmp(&a.1));
+        sub_entries.sort_by_key(|e| std::cmp::Reverse(e.1));
 
         // Display top sub-subsystems
         for (sub_name, sub_count) in sub_entries.iter().take(num_sub_subsystems) {
@@ -849,10 +849,10 @@ fn show_version_stats(cve_root: &Path, num_versions: usize) {
 
     // Sort by count (descending)
     let mut fixed_list: Vec<_> = fixed_versions.into_iter().collect();
-    fixed_list.sort_by(|a, b| b.1.cmp(&a.1));
+    fixed_list.sort_by_key(|e| std::cmp::Reverse(e.1));
 
     let mut vuln_list: Vec<_> = vuln_versions.into_iter().collect();
-    vuln_list.sort_by(|a, b| b.1.cmp(&a.1));
+    vuln_list.sort_by_key(|e| std::cmp::Reverse(e.1));
 
     // Show fixed versions
     println!("\nTop {num_versions} Major Kernel Versions Where CVEs Were Fixed:");
