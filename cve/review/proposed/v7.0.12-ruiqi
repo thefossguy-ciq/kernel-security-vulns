@@ -1,0 +1,148 @@
+2905281cbda5 Input: usbtouchscreen - clamp NEXIO data_len/x_len to URB buffer size
+1b9bc71153b0 net/sched: sch_sfb: Replace direct dequeue call with peek and qdisc_dequeue_peeked
+f4268b466190 nfc: llcp: Fix use-after-free in llcp_sock_release()
+b493ea2765cc nfc: llcp: Fix use-after-free race in nfc_llcp_recv_cc()
+742b04d0550b xfrm: Check for underflow in xfrm_state_mtu
+f706e6a4ce75 accel/rocket: fix UAF via dangling GEM handle in create_bo
+92170e6afe92 netfilter: synproxy: refresh tcphdr after skb_ensure_writable
+f438d1786d65 netfilter: ebtables: fix OOB read in compat_mtw_from_user
+18014147d3ee netfilter: nf_tables: fix dst corruption in same register operation
+f4feb1e20058 tun: free page on short-frame rejection in tun_xdp_one()
+3bcf7aec6a9d tap: free page on error paths in tap_get_user_xdp()
+9e4389b00387 net/smc: Do not re-initialize smc hashtables
+3589d20a666c net/iucv: fix locking in .getsockopt
+87a1e0fe7776 ipv4: free net->ipv4.sysctl_local_reserved_ports after unregister_net_sysctl_table()
+4cc54bdd54b3 ALSA: pcm: oss: Fix setup list UAF on proc write error
+86f1d0f063e4 net/mlx5: HWS: Reject unsupported remove-header action
+f229426072fc net: hsr: fix potential OOB access in supervision frame handling
+2e357f002c61 net: Avoid checksumming unreadable skb tail on trim
+7a84b965ffc1 ethtool: module: avoid racy updates to dev->ethtool bitfield
+12c2496a71f8 ethtool: cmis: validate start_cmd_payload_size from module
+b4bc94353050 tunnels: load network headers after skb_cow() in iptunnel_pmtud_build_icmp[v6]()
+7d9ef0cb2715 vxlan: do not reuse cached ip_hdr() value after skb_tunnel_check_pmtu()
+509323077ef7 tunnels: do not assume transport header in iptunnel_pmtud_check_icmp()
+cc57232cae23 ksmbd: fix FSCTL permission bypass by adding a permission check for FSCTL_SET_SPARSE
+f63ad68e18d7 ASoC: codecs: simple-mux: Fix enum control bounds check
+8ba68464e478 bonding: refuse to enslave CAN devices
+5eec4427b89c bridge: Fix sleep in atomic context in netlink path
+7281b096b072 ethtool: coalesce: cap profile updates at NET_DIM_PARAMS_NUM_PROFILES
+596c51ed9e12 ethtool: linkstate: fix unbalanced ethnl_ops_complete() on PHY lookup error
+c3fc9976f686 ethtool: tsinfo: don't pass ERR_PTR to genlmsg_cancel on prepare failure
+67cfdd9210b9 ethtool: eeprom: add more safeties to EEPROM Netlink fallback
+9d5e7a46a9f6 ipv6: rpl: fix hdrlen overflow in ipv6_rpl_srh_decompress()
+eda0b7f203bb net/sched: Revert "net/sched: Restrict conditions for adding duplicating netems to qdisc tree"
+9552b11e3eda net/sched: fix packet loop on netem when duplicate is on
+db875221ab08 net/sched: Fix ethx:ingress -> ethy:egress -> ethx:ingress mirred loop
+a005fa5d7502 net/sched: act_mirred: Fix blockcast recursion bypass leading to stack overflow
+f4251190e58b net/handshake: hand off the pinned file reference to accept_doit
+09dba37eee70 net/handshake: Take a long-lived file reference at submit
+ea5fe6a73ca5 net/handshake: Drain pending requests at net namespace exit
+d733f519f644 dpll: zl3073x: use __dpll_device_change_ntf() and remove change_work
+00e1950716c6 Bluetooth: l2cap: clear chan->ident on ECRED reconfiguration success
+41c2713b204e Bluetooth: L2CAP: Fix possible crash on l2cap_ecred_conn_rsp
+950007767823 gpio: rockchip: teardown bugs and resource leaks
+5b05aa36ee24 net: mana: Skip redundant detach on already-detached port
+f14fe6395a8b sctp: fix race between sctp_wait_for_connect and peeloff
+1e584c304cfb vsock/virtio: bind uarg before filling zerocopy skb
+9f72412bcf60 ipv6: fix possible infinite loop in rt6_fill_node()
+9c7da87c2dc8 ipv6: fix possible infinite loop in fib6_select_path()
+ff6e798c2eac net: skbuff: fix pskb_carve leaking zcopy pages
+44eeff9bc467 Revert "x86/fpu: Refine and simplify the magic number check during signal return"
+c9d8e9adaa63 iio: imu: st_lsm6dsx: fix stack leak in tagged FIFO buffer
+474f8928d50b iio: imu: adis16550: fix stack leak in trigger handler
+387c86b582e0 iio: pressure: bmp280: fix stack leak in bmp580 trigger handler
+8fbc349e8383 usb: typec: tcpm: validate VDO count in Discover Identity ACK handlers
+3389c149c68c usb: typec: tcpm: bound altmode_desc[] per iteration in svdm_consume_modes()
+167dd8d12226 usb: typec: ucsi: displayport: NAK DP_CMD_CONFIGURE without a payload VDO
+8a18f896e667 usb: typec: altmodes/displayport: validate count before reading Status Update VDO
+4af7ad0e6d7a usb: typec: wcove: don't write past struct pd_message in wcove_read_rx_buffer()
+aa2f716327be usb: typec: tcpm/tcpci_maxim: validate header NDO against RX_BYTE_CNT
+288a81a85070 usb: typec: ucsi: validate connector number in ucsi_connector_change()
+438061ed1ad8 USB: serial: safe_serial: fix memory corruption with small endpoint
+dab48a7e74e6 Input: ims-pcu - fix usb_free_coherent() size in ims_pcu_buffers_free()
+e1a9d791fd66 USB: serial: cypress_m8: fix memory corruption with small endpoint
+04aa71da5f35 mm/vmalloc: do not trigger BUG() on BH disabled context
+441f92f7d386 mm/damon/sysfs-schemes: delete tried region in regions_rmdirs()
+fa0b9b2b7ae3 ipc: limit next_id allocation to the valid ID range
+2c6f81d58741 mm/migrate_device: fix pgtable leak in migrate_vma_insert_huge_pmd_page
+3b041514cb6e memfd: deny writeable mappings when implying SEAL_WRITE
+bf62f69574b1 zram: fix use-after-free in zram_writeback_endio
+3f8968e9cbf9 mm/rmap: initialize nr_pages to 1 at loop start in try_to_unmap_one
+a7511dcd9dd4 auxdisplay: line-display: fix OOB read on zero-length message_store()
+8c8e620467a7 Bluetooth: L2CAP: use chan timer to close channels in cleanup_listen()
+2a3ac9ee11db Bluetooth: HIDP: fix missing length checks in hidp_input_report()
+47f23a259517 Bluetooth: ISO: fix UAF in iso_recv_frame
+4b5f8e608749 Bluetooth: ISO: serialize iso_sock_clear_timer with socket lock
+bfea6091e0ff Bluetooth: hci_sync: fix UAF in hci_le_create_cis_sync
+6cdc46b38cf1 Input: xpad - fix out-of-bounds access for Share button
+837263307489 KVM: arm64: Correctly cap ZCR_EL2 provided by a guest hypervisor
+db3f2195d293 KVM: SEV: Require in-GHCB scratch area if GHCB v2+ is in use
+5867d7e202e0 KVM: SEV: Compute the correct max length of the in-GHCB scratch area
+121d88de56bc KVM: SEV: Check PSC request indices against the actual size of the buffer
+c8cc238093ca KVM: SEV: Use READ_ONCE() when reading entries/indices from PSC buffer
+a9aba21a539c iio: adc: nxp-sar-adc: fix division by zero in write_raw
+8ce176501f83 iio: adc: nxp-sar-adc: zero-initialize dma_slave_config
+6bdc3023d62e iio: gyro: itg3200: fix i2c read into the wrong stack location
+eedf7602fbd9 iio: ssp_sensors: cancel delayed work_refresh on remove
+673478bc29cf iio: chemical: mhz19b: reject oversized serial replies
+6f5ed4f2c7c8 iio: buffer: hw-consumer: fix use-after-free in error path
+a09399935508 iio: buffer: Fix DMA fence leak in iio_buffer_enqueue_dmabuf()
+60df93d30f9b USB: serial: omninet: fix memory corruption with small endpoint
+9ea06a3fbf9f usb: dwc2: Fix use after free in debug code
+030675aa54cf i2c: davinci: fix division by zero on missing clock-frequency
+a17dc12bfed8 x86/ftrace: Relocate %rip-relative percpu refs in dynamic trampolines
+f72eed9b84fb bpf: sockmap: fix tail fragment offset in bpf_msg_push_data
+e68842b33564 macsec: fix replay protection at XPN lower-PN wrap
+d47548a36639 ipv6: exthdrs: refresh nh pointer after ipv6_hop_jumbo()
+2156a29aecff octeontx2-af: validate body pcifunc in rvu_mbox_handler_rep_event_notify
+f7b52afe3592 ipv6: exthdrs: refresh nh after handling HAO option
+8b484efd5cb4 ip6: vti: Use ip6_tnl.net in vti6_siocdevprivate().
+dd433671fef3 ipv6: validate extension header length before copying to cmsg
+05f95729ca84 l2tp: use refcount_inc_not_zero in l2tp_session_get_by_ifname
+11b326fb0a37 ip6: vti: Use ip6_tnl.net in vti6_changelink().
+98d0912e9f84 net: skbuff: fix missing zerocopy reference in pskb_carve helpers
+c0a8899e02dd HID: wacom: Fix OOB write in wacom_hid_set_device_mode()
+f040e590c035 nfc: hci: fix out-of-bounds read in HCP header parsing
+7e2a4f7ca095 xfrm: route MIGRATE notifications to caller's netns
+7dbac7680eb6 xfrm: ipcomp: Free destination pages on acomp errors
+79d8be262377 xfrm: ah: use skb_to_full_sk in async output callbacks
+98fb1c1bb11e ALSA: firewire-motu: Protect register DSP event queue positions
+bed6e04be8e6 netfilter: conntrack: tcp: do not force CLOSE on invalid-seq RST without direction check
+dfa0d7b0ff1e xfrm: esp: restore combined single-frag length gate
+7f83d1740732 xfrm: iptfs: reset runtime state when cloning SAs
+ead6680f354f dma-buf: fix UAF in dma_buf_fd() tracepoint
+0e60dafe97ec ksmbd: OOB read regression in smb_check_perm_dacl() ACE-walk loops
+6fe472c1bbbe tty: serial: pch_uart: add check for dma_alloc_coherent()
+a3bb136bff5e tty: serial: samsung: Remove redundant port lock acquisition in rx helpers
+f74c8696f141 uio: uio_pci_generic_sva: fix double free of devm_kzalloc() memory
+d96209626a29 usbip: vudc: Fix use after free bug in vudc_remove due to race condition
+52f2ad3f7e5e usb: usbtmc: check URB actual_length for interrupt-IN notifications
+4ce058df2ee0 USB: serial: belkin_sa: validate interrupt status length
+9f9bfc80c67f USB: serial: cypress_m8: validate interrupt packet headers
+cb3560e8eab1 USB: serial: digi_acceleport: fix memory corruption with small endpoints
+4085f0dbb1ce USB: serial: mxuport: fix memory corruption with small endpoint
+915b36d70195 USB: serial: mct_u232: fix memory corruption with small endpoint
+245aba83e3c2 USB: serial: mct_u232: fix missing interrupt-in transfer sanity check
+c8547c74988e usb: gadget: net2280: Fix double free in probe error path
+6c5dbc104dad usb: gadget: composite: fix integer underflow in WebUSB GET_URL handling
+2796646f6d89 usb: gadget: f_fs: serialize DMABUF cancel against request completion
+01deda015206 thunderbolt: property: Reject u32 wrap in tb_property_entry_valid()
+de21b59c29e3 thunderbolt: property: Reject dir_len < 4 to prevent size_t underflow
+928abe19fbf0 thunderbolt: property: Cap recursion depth in __tb_property_parse_dir()
+9eed1bd59937 scsi: fcoe: Reject FIP descriptors with zero fip_dlen in CVL walker
+778c2ab142c6 scsi: target: iscsi: Fix CRC overread and double-free in iscsit_handle_text_cmd()
+bf33e01f8838 scsi: target: iscsi: Bound iscsi_encode_text_output() appends to rsp_buf
+85db7391310b scsi: target: iscsi: Validate CHAP_R length before base64 decode
+13d33b9ef670 drm/hyperv: validate resolution_count and fix WIN8 fallback
+7f87763f47a3 drm/hyperv: validate VMBus packet size in receive callback
+7164d78559b0 drm/gem: fix race between change_handle and handle_delete
+5c4063c87a61 drm/i915: Fix potential UAF in TTM object purge
+9a9254c4a2a3 serial: fsl_lpuart: fix rx buffer and DMA map leaks in start_rx_dma
+e984d61d92e7 drm/amdkfd: fix NULL pointer bug in svm_range_set_attr
+93f5534b35a0 drm/amdkfd: fix a vulnerability of integer overflow in kfd debugger
+2e7f55eb408c drm/amdgpu: fix lock leak on ENOMEM in AMDGPU_GEM_OP_GET_MAPPING_INFO
+1c824497d8ac drm/amdgpu: fix calling VM invalidation in amdgpu_hmm_invalidate_gfx
+962d684b5dc0 drm/amdgpu: fix amdgpu_hmm_range_get_pages
+a1ba4594232c drm/amdgpu: check num_entries in GEM_OP GET_MAPPING_INFO
+13031fb6b835 KVM: arm64: vgic-its: Drop the translation cache reference only for the erased entry
+70543358fa08 KVM: arm64: Reassign nested_mmus array behind mmu_lock
