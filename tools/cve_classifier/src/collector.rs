@@ -419,12 +419,12 @@ impl CVEDataCollector {
         if let Some(refs_output) = self.safe_git_command(&list_refs_cmd) {
             for line in refs_output.lines() {
                 // Look for linux- branches in any remote (origin, stable, etc.)
-                if line.contains(" refs/remotes/") && line.contains("/linux-") {
-                    if let Some(branch_name) = line.split_whitespace().nth(1) {
-                        // Extract branch name from the full ref path
-                        let branch_name = branch_name.trim();
-                        linux_branches.push(branch_name.to_string());
-                    }
+                if line.contains(" refs/remotes/") && line.contains("/linux-")
+                    && let Some(branch_name) = line.split_whitespace().nth(1)
+                {
+                    // Extract branch name from the full ref path
+                    let branch_name = branch_name.trim();
+                    linux_branches.push(branch_name.to_string());
                 }
             }
         }
@@ -544,20 +544,20 @@ impl CVEDataCollector {
             };
 
             // Only check message hash and subject deduplication for non-backported commits
-            if !has_upstream_sha {
-                if let Some((hash, subject)) = hash_opt {
-                    // Check for duplicate message hash
-                    if seen_messages.contains(&hash) {
-                        continue;
-                    }
-                    seen_messages.insert(hash);
-
-                    // Check for duplicate subject
-                    if seen_subjects.contains(&subject) {
-                        continue;
-                    }
-                    seen_subjects.insert(subject);
+            if !has_upstream_sha
+                && let Some((hash, subject)) = hash_opt
+            {
+                // Check for duplicate message hash
+                if seen_messages.contains(&hash) {
+                    continue;
                 }
+                seen_messages.insert(hash);
+
+                // Check for duplicate subject
+                if seen_subjects.contains(&subject) {
+                    continue;
+                }
+                seen_subjects.insert(subject);
             }
 
             // Not a backport or first time seeing this upstream SHA

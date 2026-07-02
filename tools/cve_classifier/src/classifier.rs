@@ -961,10 +961,8 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         let yes_pos = upper_response.find("YES");
         let no_pos = upper_response.find("NO");
 
-        if yes_pos.is_some() && no_pos.is_some() {
+        if let (Some(yes_idx), Some(no_idx)) = (yes_pos, no_pos) {
             // Return based on which comes first
-            let yes_idx = yes_pos.unwrap();
-            let no_idx = no_pos.unwrap();
             debug!("Found both YES and NO at positions {yes_idx} and {no_idx}");
             return (yes_idx < no_idx, filtered_response.to_string());
         } else if yes_pos.is_some() {
@@ -1117,70 +1115,70 @@ mod tests {
     fn test_parse_bold_yes_indicator() {
         let response = "**YES** This commit should be backported to stable kernel trees because it fixes a real bug that can lead to crashes or undefined behavior.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 
     #[test]
     fn test_parse_bold_no_indicator() {
         let response = "Based on my analysis of this commit and understanding of stable kernel rules, here is my determination: **NO** This commit should NOT be backported to stable kernel trees.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, false);
+        assert!(!decision);
     }
 
     #[test]
     fn test_parse_bold_yes_with_context() {
         let response = "Let me analyze this commit based on the information provided: **YES** This commit should definitely be backported to stable kernel trees.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 
     #[test]
     fn test_parse_bold_no_with_emphasis() {
         let response = "**NO** This commit should **NOT** be backported to stable kernel trees.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, false);
+        assert!(!decision);
     }
 
     #[test]
     fn test_parse_plain_no_without_bold() {
         let response = "NO This commit should not be backported to stable kernel trees.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, false);
+        assert!(!decision);
     }
 
     #[test]
     fn test_parse_partial_bold_yes() {
         let response = "The answer is **YES, this commit needs a CVE assignment.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 
     #[test]
     fn test_parse_answer_format() {
         let response = "ANSWER: YES\n\nThis is a security fix.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 
     #[test]
     fn test_parse_with_think_blocks() {
         let response = "<think>\nSome internal reasoning\n</think>\n**YES** This is a security vulnerability.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 
     #[test]
     fn test_parse_mixed_case_bold() {
         let response = "**yes** this should be backported";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 
     #[test]
     fn test_parse_no_clear_indicator() {
         let response = "This commit appears to be a feature addition and not a bug fix.";
         let (decision, explanation) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, false); // Should default to false
+        assert!(!decision); // Should default to false
         assert!(explanation.contains("feature addition"));
     }
 
@@ -1200,13 +1198,13 @@ mod tests {
 
 This fixes a kernel panic."#;
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true, "Should parse as YES despite **No** in body text");
+        assert!(decision, "Should parse as YES despite **No** in body text");
     }
 
     #[test]
     fn test_parse_decision_format() {
         let response = "DECISION: YES\n\nThis is a security fix.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
-        assert_eq!(decision, true);
+        assert!(decision);
     }
 }

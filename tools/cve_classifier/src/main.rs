@@ -407,11 +407,11 @@ fn generate_and_save_prompt(
     let prompt = CVEClassifier::construct_prompt(&commit_text, &similar_commits, fixes_context.as_deref());
 
     let prompt_dir_path = Path::new(prompt_dir);
-    if !prompt_dir_path.exists() {
-        if let Err(e) = fs::create_dir_all(prompt_dir_path) {
-            error!("Failed to create prompt directory: {e}");
-            return false;
-        }
+    if !prompt_dir_path.exists()
+        && let Err(e) = fs::create_dir_all(prompt_dir_path)
+    {
+        error!("Failed to create prompt directory: {e}");
+        return false;
     }
 
     let filename = format!("{sha}.txt");
@@ -740,19 +740,19 @@ fn main() {
     let prompt_file = matches.get_one::<String>("send-prompt").map(String::as_str);
 
     let model_dir_path = Path::new(model_dir);
-    if !model_dir_path.exists() {
-        if let Err(e) = fs::create_dir_all(model_dir_path) {
-            error!("Failed to create model directory: {e}");
-            std::process::exit(1);
-        }
+    if !model_dir_path.exists()
+        && let Err(e) = fs::create_dir_all(model_dir_path)
+    {
+        error!("Failed to create model directory: {e}");
+        std::process::exit(1);
     }
 
     let vectorstore_dir = model_dir_path.join("vectorstore");
-    if !vectorstore_dir.exists() {
-        if let Err(e) = fs::create_dir_all(&vectorstore_dir) {
-            error!("Failed to create vectorstore directory: {e}");
-            std::process::exit(1);
-        }
+    if !vectorstore_dir.exists()
+        && let Err(e) = fs::create_dir_all(&vectorstore_dir)
+    {
+        error!("Failed to create vectorstore directory: {e}");
+        std::process::exit(1);
     }
 
     let llm_providers = if let Some(models) = matches.get_one::<String>("models") {
@@ -807,10 +807,10 @@ fn main() {
         process_custom_prompt(&config, prompt_file_path);
     }
 
-    if matches.contains_id("make-prompt") {
-        if let Some(dir) = prompt_dir {
-            info!("All prompts saved to directory: {dir}");
-        }
+    if matches.contains_id("make-prompt")
+        && let Some(dir) = prompt_dir
+    {
+        info!("All prompts saved to directory: {dir}");
     }
 
     if !matches.get_flag("train") && !matches.contains_id("commit") && !matches.contains_id("commits") &&
@@ -823,11 +823,11 @@ fn main() {
 fn save_explanation(dir: &str, file_stem: &str, provider_results: &HashMap<String, ProviderResult>) {
     let explanation_dir_path = Path::new(dir);
 
-    if !explanation_dir_path.exists() {
-        if let Err(e) = fs::create_dir_all(explanation_dir_path) {
-            error!("Failed to create explanation directory: {e}");
-            return;
-        }
+    if !explanation_dir_path.exists()
+        && let Err(e) = fs::create_dir_all(explanation_dir_path)
+    {
+        error!("Failed to create explanation directory: {e}");
+        return;
     }
 
     let filename = format!("{file_stem}.txt");
