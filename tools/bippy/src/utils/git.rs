@@ -12,7 +12,7 @@ pub fn get_commit_subject(_repo: &Repository, obj: &Object) -> Result<String> {
         .as_commit()
         .ok_or_else(|| anyhow::anyhow!("Object is not a commit"))?;
 
-    Ok(commit.summary().unwrap_or("").to_string())
+    Ok(commit.summary().ok().flatten().unwrap_or("").to_string())
 }
 
 /// Get the full commit message text

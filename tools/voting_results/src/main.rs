@@ -393,7 +393,7 @@ impl VotingResults {
         let short_sha = format!("{:.12}", commit.id());
 
         // Get the summary (first line of commit message)
-        let summary = commit.summary().unwrap_or("").to_string();
+        let summary = commit.summary().ok().flatten().unwrap_or("").to_string();
 
         // Combine to match the format from the git command
         let oneline = format!("{short_sha} {summary}");
@@ -453,7 +453,7 @@ impl VotingResults {
 
                             // Check if this commit's subject matches our target subject
                             if let Some(c) = commit
-                                && let Some(commit_subject) = c.summary()
+                                && let Ok(Some(commit_subject)) = c.summary()
                                 && commit_subject == subject {
                                     reviewer_votes.insert(reviewer.to_string(), true);
                                     break;

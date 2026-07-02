@@ -528,7 +528,7 @@ pub mod git_utils {
         } else {
             commit.id().to_string()[0..12].to_string() // Otherwise use the first 12 chars
         };
-        let message = commit.summary().unwrap_or("").to_string();
+        let message = commit.summary().ok().flatten().unwrap_or("").to_string();
 
         // Format based on the common kernel commit output of:
         // git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n" "${GIT_SHA_FULL}")
@@ -624,7 +624,7 @@ pub mod git_utils {
                 continue;
             }
 
-            if let Some(path) = entry.path()
+            if let Ok(path) = entry.path()
                 && patterns.iter().any(|pattern| match_pattern(path, pattern)) {
                     modified_files.push(PathBuf::from(path));
                 }

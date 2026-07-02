@@ -17,7 +17,7 @@ gumdrop = { version = "0.8.1" }
 log = "0.4.26"
 rusqlite = "0.40"
 owo-colors = { version = "4", features = ["supports-colors"] }
-git2 = "0.20"
+git2 = { version = "0.21", features = ["ssh", "https"] }
 grep = "0.4"
 # Voting results dependencies
 clap = { version = "4.4", features = ["derive"] }
