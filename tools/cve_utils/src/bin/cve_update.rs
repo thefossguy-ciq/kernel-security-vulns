@@ -267,16 +267,7 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
     }
 
     // Run bippy on the files and collect updated file paths
-    let updated_files = run_bippy_and_update_files(
-        sha1_file,
-        &cve_data.cve_id,
-        &cve_data.shas,
-        &cve_data.vulnerable_shas,
-        &cve_data.root_path,
-        cve_data.has_reference_file,
-        cve_data.has_message_file,
-        cve_data.has_cvss_file,
-    )?;
+    let updated_files = run_bippy_and_update_files(sha1_file, &cve_data)?;
 
     Ok(updated_files)
 }
@@ -362,16 +353,7 @@ fn prepare_cve_files(sha1_file: &Path) -> Result<CveFileData> {
 }
 
 /// Run bippy on a CVE and update the files if needed
-fn run_bippy_and_update_files(
-    sha1_file: &Path,
-    cve_id: &str,
-    shas: &[String],
-    vulnerable_shas: &[String],
-    root_path: &Path,
-    has_reference_file: bool,
-    has_message_file: bool,
-    has_cvss_file: bool,
-) -> Result<Vec<String>> {
+fn run_bippy_and_update_files(sha1_file: &Path, cve_data: &CveFileData) -> Result<Vec<String>> {
     // Create temporary files for the new json and mbox content
     let tmp_json = NamedTempFile::new()
         .context("Failed to create temporary JSON file")?;
@@ -388,27 +370,27 @@ fn run_bippy_and_update_files(
     // Build command and run bippy
     let bippy_params = BippyCommandParams {
         bippy_path: &bippy_path,
-        cve_id,
-        shas,
-        vulnerable_shas,
+        cve_id: &cve_data.cve_id,
+        shas: &cve_data.shas,
+        vulnerable_shas: &cve_data.vulnerable_shas,
         tmp_json: &tmp_json,
         tmp_mbox: &tmp_mbox,
         sha1_file,
-        has_reference_file,
-        has_message_file,
-        has_cvss_file,
+        has_reference_file: cve_data.has_reference_file,
+        has_message_file: cve_data.has_message_file,
+        has_cvss_file: cve_data.has_cvss_file,
     };
     let output = build_and_run_bippy_command(&bippy_params)?;
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow!("bippy failed for {cve_id}: {error}"));
+        return Err(anyhow!("bippy failed for {}: {error}", cve_data.cve_id));
     }
 
     // Check for changes and update files if needed
     let mut updated_files = Vec::new();
-    check_and_update_json_file(root_path, &tmp_json, &mut updated_files)?;
-    check_and_update_mbox_file(root_path, &tmp_mbox, &mut updated_files)?;
+    check_and_update_json_file(&cve_data.root_path, &tmp_json, &mut updated_files)?;
+    check_and_update_mbox_file(&cve_data.root_path, &tmp_mbox, &mut updated_files)?;
 
     Ok(updated_files)
 }
