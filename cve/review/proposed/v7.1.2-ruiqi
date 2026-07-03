@@ -1,0 +1,7 @@
+3979840cd858 io_uring/net: Avoid msghdr on op_connect/op_bind async data
+a07848492105 fuse: re-lock request before replacing page cache folio
+95e8a48d7a85 iio: adc: ti-ads1298: add bounds check to pga_settings index
+a287620312dc vc_screen: fix null-ptr-deref in vcs_notifier() during concurrent vcs_write
+10fc708b4de7 serial: 8250_dw: unregister 8250 port if clk_notifier_register() fails
+609ca17d869d ksmbd: reject non-VALID session in compound request branch
+06b41351779e virtiofs: fix UAF on submount umount
