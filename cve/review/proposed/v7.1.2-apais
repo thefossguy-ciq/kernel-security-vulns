@@ -1,0 +1,8 @@
+7e00cafa33b5 ("io_uring/net: Avoid msghdr on op_connect/op_bind async data")
+a07848492105 ("fuse: re-lock request before replacing page cache folio")
+307dc4240bd4 ("iio: light: veml6075: add bounds check to veml6075_it_ms index")
+95e8a48d7a85 ("iio: adc: ti-ads1298: add bounds check to pga_settings index")
+a287620312dc ("vc_screen: fix null-ptr-deref in vcs_notifier() during concurrent vcs_write")
+609ca17d869d ("ksmbd: reject non-VALID session in compound request branch")
+7d8bf3d8f910 ("media: vidtv: fix NULL pointer dereference in vidtv_mux_push_si")
+06b41351779e ("virtiofs: fix UAF on submount umount")
