@@ -665,7 +665,7 @@ fn handle_prompt_result(config: &RunConfig, result: PredictionResult, file_stem:
     } else {
         let should_assign_cve = result.should_select;
         let status = if should_assign_cve { "ASSIGN CVE" } else { "NO CVE NEEDED" };
-        info!("Result: {} (Votes: {})", status, &result.vote_ratio);
+        info!("Result: {} (Votes: {})", status, result.vote_ratio);
 
         if config.verbose {
             print_provider_details(&result.provider_results);
