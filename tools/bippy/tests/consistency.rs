@@ -3,8 +3,6 @@
 // Verify CVE JSON consistency against dyad ground truth and cross-product
 // agreement between semver and CPE version types.
 
-#![allow(clippy::collapsible_if)]
-
 use cve_utils::dyad::DyadEntry;
 use rayon::prelude::*;
 use serde_json::Value;
@@ -56,10 +54,9 @@ fn check_consistency(json_path: &Path) -> ConsistencyIssues {
             for v in p["versions"].as_array().unwrap_or(&Vec::new()) {
                 if v["versionType"].as_str() == Some("git")
                     && v["status"].as_str() == Some("affected")
+                    && let (Some(ver), Some(lt)) = (v["version"].as_str(), v["lessThan"].as_str())
                 {
-                    if let (Some(ver), Some(lt)) = (v["version"].as_str(), v["lessThan"].as_str()) {
-                        actual_git.insert((ver.to_string(), lt.to_string()));
-                    }
+                    actual_git.insert((ver.to_string(), lt.to_string()));
                 }
             }
         }

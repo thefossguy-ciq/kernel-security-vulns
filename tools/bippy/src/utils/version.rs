@@ -475,23 +475,22 @@ fn process_version_ranges(
             && !fixed_branches.contains(&entry.vulnerable.major())
         {
             let major = entry.vulnerable.major();
-            #[allow(clippy::collapsible_if)]
-            if let Some((prefix, minor_str)) = major.rsplit_once('.') {
-                if let Ok(minor) = minor_str.parse::<u32>() {
-                    let less_than = format!("{}.{}", prefix, minor + 1);
-                    let key = format!(
-                        "{DEDUP_STABLE}:affected:{}:{less_than}:",
-                        entry.vulnerable.version()
-                    );
-                    if seen_versions.insert(key) {
-                        stable_versions.push(VersionRange {
-                            version: entry.vulnerable.version(),
-                            less_than: Some(less_than),
-                            status: "affected".to_string(),
-                            version_type: Some("semver".to_string()),
-                            ..Default::default()
-                        });
-                    }
+            if let Some((prefix, minor_str)) = major.rsplit_once('.')
+                && let Ok(minor) = minor_str.parse::<u32>()
+            {
+                let less_than = format!("{}.{}", prefix, minor + 1);
+                let key = format!(
+                    "{DEDUP_STABLE}:affected:{}:{less_than}:",
+                    entry.vulnerable.version()
+                );
+                if seen_versions.insert(key) {
+                    stable_versions.push(VersionRange {
+                        version: entry.vulnerable.version(),
+                        less_than: Some(less_than),
+                        status: "affected".to_string(),
+                        version_type: Some("semver".to_string()),
+                        ..Default::default()
+                    });
                 }
             }
         }
