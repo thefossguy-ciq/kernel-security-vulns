@@ -109,3 +109,11 @@ f3e969a5b543 media: ti: vpe: Add missing v4l2_device_unregister in vip_remove()
 e280d1e5e3f2 media: rc: xbox_remote: heed DMA restrictions
 7254b31a13aa media: videobuf2: Set vma_flags in vb2_dma_sg_mmap
 ac2c99667575 drm/udl: Increase GET_URB_TIMEOUT
+01a0d6cd7032 ("drm/msm: always recover the gpu")
+235b333e2878 ("drm/colorop: Fix blob property reference tracking in state lifecycle")
+619eab23e1ce ("mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()")
+72773ff1cdfa ("media: rzv2h-ivc: Fix concurrent buffer list access")
+74b73fa56a39 ("drm/amdkfd: Add upper bound check for num_of_nodes")
+de2a02cc28d6 ("drm/amdgpu/vce: Prevent partial address patches")
+e6c2e6c2e1fa ("drm/amdgpu: zero-initialize GART table on allocation")
+f75e16074566 ("media: i2c: ov8856: free control handler on error in ov8856_init_controls()")
