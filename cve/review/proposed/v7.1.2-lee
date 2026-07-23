@@ -1,0 +1,10 @@
+a07848492105 fuse: re-lock request before replacing page cache folio [auto: cve already created]
+b08472db93b1 agp/amd64: Fix broken error propagation in agp_amd64_probe() [auto: cve already created]
+307dc4240bd4 iio: light: veml6075: add bounds check to veml6075_it_ms index [auto: cve already created]
+95e8a48d7a85 iio: adc: ti-ads1298: add bounds check to pga_settings index [auto: cve already created]
+a287620312dc vc_screen: fix null-ptr-deref in vcs_notifier() during concurrent vcs_write [auto: cve already created]
+10fc708b4de7 serial: 8250_dw: unregister 8250 port if clk_notifier_register() fails [auto: cve already created]
+a2b8d7827f48 drivers/base/memory: set mem->altmap after successful device registration
+609ca17d869d ksmbd: reject non-VALID session in compound request branch [auto: cve already created]
+7d8bf3d8f910 media: vidtv: fix NULL pointer dereference in vidtv_mux_push_si [auto: cve already created]
+06b41351779e virtiofs: fix UAF on submount umount [auto: cve already created]
