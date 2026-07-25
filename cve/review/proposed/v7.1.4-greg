@@ -32,6 +32,7 @@
 277281c10c63 crypto: qat - fix VF2PF work teardown race in adf_disable_sriov()
 286533cb14a3 gpio: sch: use raw_spinlock_t in the irq startup path
 29b9667982e4 ALSA: firewire: isight: bound the sample count to the packet payload
+29bef9934b25 io_uring/io-wq: re-check IO_WQ_BIT_EXIT for each linked work item
 2b66974a1b61 tipc: fix out-of-bounds read in broadcast Gap ACK blocks
 2b929b91b0f3 ALSA: ice1712: check snd_ctl_new1() return value
 2f884d371faf bpf: Allow LPM map access from sleepable BPF programs
@@ -41,11 +42,14 @@
 35d4a3cf70a8 mm/damon/ops-common: handle extreme intervals in damon_hot_score()
 37540b8c287f s390: Revert support for DCACHE_WORD_ACCESS
 38bf27511ef4 ACPI: NFIT: core: Fix acpi_nfit_init() error cleanup
+3a0a8bc51a13 fuse-uring: fix EFAULT clobber in fuse_uring_commit
 3a413ece2504 nvmet-auth: validate reply message payload bounds against transfer length
 3bf39f711ff2 staging: rtl8723bs: fix OOB reads in is_ap_in_tkip() IE loop
 3ee2128b6f0e iio: adc: spear: Initialize completion before requesting IRQ
 40ef3edf151e vfio/pci: Use a private flag to prevent power state change with VFs
+44cccefe6574 xfs: only log freed extents for the current RTG in zoned growfs
 45f1458a8501 netpoll: fix a use-after-free on shutdown path
+46725a0056c8 fuse-uring: fix data races on ring->ready
 46c8beeccd8a HID: letsketch: fix UAF on inrange_timer at driver unbind
 478cdd736f2c Input: touchwin - reset the packet index on every complete packet
 4bd0b274054f Bluetooth: fix UAF in bt_accept_dequeue()
@@ -107,9 +111,11 @@ b5befa80fdbe fuse: re-lock request before returning from fuse_ref_folio()
 b66774b48dd9 Bluetooth: L2CAP: Fix UAF in channel timeout by holding conn ref
 b670bf89824e media: nxp: imx8-isi: Fix use-after-free on remove
 b902890c62d2 mm/shrinker: do not hold RCU lock in shrinker_debugfs_count_show()
+b9399d25fbb3 usb: free iso schedules on failed submit
 bb067a99a035 Bluetooth: bnep: pin L2CAP connection during netdev registration
 bc0e4f16c44e USB: iowarrior: fix use-after-free on disconnect
 be6d26bf2749 ksmbd: serialize QUERY_DIRECTORY requests per file
+bea4fe98204b fuse-uring: end fuse_req on io-uring cancel task work
 c205bd1b28fb ALSA: cmipci: check snd_ctl_new1() return value
 c3e94604675e tracing: Fix NULL pointer dereference in func_set_flag()
 c5371e0b91b2 usbip: vudc: fix NULL deref in vep_dequeue()
@@ -134,6 +140,7 @@ e30453c61e18 mm: shrinker: fix NULL pointer dereference in debugfs
 e3046eeada29 hwrng: virtio: clamp device-reported used.len at copy_data()
 e561b35633f4 iio: adc: lpc32xx: Initialize completion before requesting IRQ
 e64d170346d0 ALSA: ymfpci: check snd_ctl_new1() return value
+e8422d89e8af staging: vme_user: fix location monitor leak in fake bridge
 ec457f9afe5a smb: client: resolve SWN tcon from live registrations
 ed51de4a86e1 staging: rtl8723bs: fix OOB read in update_beacon_info() IE loop
 ee89db004238 Input: maplemouse - fix NULL pointer dereference in open()
