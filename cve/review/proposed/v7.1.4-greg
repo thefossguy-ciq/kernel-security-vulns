@@ -1,154 +1,154 @@
-8bc4d43bccbd tcp: restore RCU grace period in tcp_ao_destroy_sock
-35d4a3cf70a8 mm/damon/ops-common: handle extreme intervals in damon_hot_score()
-7cd9103283b2 netfilter: ipset: fix race between dump and ip_set_list resize
-351dd7d2c80d wifi: mt76: mt7921/mt7925: fix NULL dereference in CSA beacon
-7ef78d71ca71 KVM: VMX: Grab vmcs12 on CR8 interception update iff vCPU is in guest mode
-7693c0cc415f ALSA: usb-audio: avoid kobject path lookup in DualSense match
-40ef3edf151e vfio/pci: Use a private flag to prevent power state change with VFs
-f7d380fb525c virtio_pci: fix vq info pointer lookup via wrong index
-e3046eeada29 hwrng: virtio: clamp device-reported used.len at copy_data()
-abf76d3239de USB: chaoskey: Fix slab-use-after-free in chaoskey_release()
-0bfeec21984f usb: misc: usbio: fix disconnect UAF in client teardown
-c3e94604675e tracing: Fix NULL pointer dereference in func_set_flag()
-53b7c271f06b smb: client: restrict implied bcc[0] exemption to responses without data area
-6d827ade51a2 crypto: amlogic - avoid double cleanup in meson_crypto_probe()
-277281c10c63 crypto: qat - fix VF2PF work teardown race in adf_disable_sriov()
-d129c3177d7b net: af_key: initialize alg_key_len for IPComp states
-b66774b48dd9 Bluetooth: L2CAP: Fix UAF in channel timeout by holding conn ref
-5b6eedd7cc29 ntfs: avoid calling post_write_mst_fixup() for invalid index_block
-590cc4d78248 HID: logitech-dj: Fix maxfield check in DJ short report validation
-45f1458a8501 netpoll: fix a use-after-free on shutdown path
-7993211bde16 ipv4: igmp: remove multicast group from hash table on device destruction
-e30453c61e18 mm: shrinker: fix NULL pointer dereference in debugfs
-63b02a9409cb mm: swap_cgroup: fix NULL deref in lookup_swap_cgroup_id on swapless host
-a622d2e9608c netfilter: ebtables: terminate table name before find_table_lock()
-a9029dd55696 cpufreq: Fix hotplug-suspend race during reboot
-0e7a690fe435 nilfs2: reject CLEAN_SEGMENTS ioctl with out-of-range segment numbers
-2f884d371faf bpf: Allow LPM map access from sleepable BPF programs
-95ee2231896d btrfs: check and set EXTENT_DELALLOC_NEW before clearing EXTENT_DELALLOC
-534b5f98ab73 iommu/vt-d: Avoid WARNING in sva unbind path
-ca674df13b19 KVM: VMX: Handle bad values on proxied writes to LBR MSRs
-95f90eea0708 usb: gadget: function: rndis: add length check to response query
-21b5bf155435 usb: gadget: function: rndis: add length check for header
-eedc6867ebad Bluetooth: btusb: fix use-after-free on registration failure
-c5b600a3c05b Bluetooth: btusb: fix use-after-free on marvell probe failure
-1720db928e5a 6lowpan: fix NHC entry use-after-free on error path
-d3a9a8cf2d7f staging: media: ipu7: fix double-free and use-after-free in error paths
-10f293a07f9e ksmbd: fix use-after-free of a deferred file_lock on SMB2_CLOSE then SMB2_CANCEL
-b670bf89824e media: nxp: imx8-isi: Fix use-after-free on remove
-266d3dd8b757 cpufreq: pcc: fix use-after-free and double free in _OSC evaluation
-7705b4140d18 HID: lg-g15: cancel pending work on remove to fix a use-after-free
-67e511d2989e usb: gadget: udc: Fix use-after-free in gadget_match_driver
-ff002c153f97 USB: idmouse: fix use-after-free on disconnect race
-19bdfc7b3c17 USB: ldusb: fix use-after-free on disconnect race
-bc0e4f16c44e USB: iowarrior: fix use-after-free on disconnect
-c602254ba4c1 USB: iowarrior: fix use-after-free on disconnect race
-62fc8eb1b148 USB: legousbtower: fix use-after-free on disconnect race
-1f0bdc2884b6 usb: typec: ucsi: ccg: Fix use-after-free of ucsi on remove
-d351da750669 fuse-uring: Avoid use-after-free in fuse_uring_async_stop_queues
-30adce93d5c4 usb: gadget: f_printer: take kref only for successful open
-38bf27511ef4 ACPI: NFIT: core: Fix acpi_nfit_init() error cleanup
-5cff1529a2f9 ALSA: us144mkii: capture_urb_complete: redundant usb_anchor_urb corrupts anchor list on each resubmission
-114a116aaa5f binder: fix UAF in binder_thread_release()
-f223d27a546c binder: fix UAF in binder_free_transaction()
-6c9dddeb582f crypto: krb5 - filter out async aead implementations at alloc
-fa85d985f614 Bluetooth: MGMT: Fix UAF of hci_conn_params in add_device_complete
-8b2c1d41bc36 mfd: cros_ec: Delay dev_set_drvdata() until probe success
-65476d31d805 mm: shrinker: fix shrinker_info teardown race with expansion
-12917f591cea Bluetooth: hci_conn: Fix null ptr deref in hci_abort_conn()
-ec457f9afe5a smb: client: resolve SWN tcon from live registrations
-be6d26bf2749 ksmbd: serialize QUERY_DIRECTORY requests per file
-d20d1c8ba576 ksmbd: fix UAF of struct file_lock in SMB2_LOCK deferred-lock cancellation
-b1845a227fda media: mtk-jpeg: cancel workqueue on release for supported platforms only
-af3d1bb9a09d crypto: loongson - Remove broken and unused loongson-rng
-5c6f845e77ec crypto: qat - protect service table iterations with service_lock
-01980b5da56e spi: fsl-lpspi: terminate the RX channel on TX prepare failure path
-b5befa80fdbe fuse: re-lock request before returning from fuse_ref_folio()
-f8fce75fedf7 fuse: clear intr_entry in fuse_resend and fuse_remove_pending_req
-1efd3d474fc0 fuse-uring: make a fuse_req on SQE commit only findable after memcpy
-e561b35633f4 iio: adc: lpc32xx: Initialize completion before requesting IRQ
-3ee2128b6f0e iio: adc: spear: Initialize completion before requesting IRQ
-2b66974a1b61 tipc: fix out-of-bounds read in broadcast Gap ACK blocks
-9f32f3826501 staging: vme_user: bound slave read/write to the kern_buf size
-57382ec6ac63 fs/ntfs3: validate Dirty Page Table capacity in log_replay copy_lcns
-4bd0b274054f Bluetooth: fix UAF in bt_accept_dequeue()
-3320ba068198 ksmbd: add a permission check for FSCTL_SET_ZERO_DATA
-8813b0612275 HID: multitouch: fix out-of-bounds bit access on mt_io_flags
-f8f680609c2b usb: gadget: composite: fix dead empty check in the USB_DT_OTG handler
-8c6314489550 usb: misc: usbio: bound bulk IN response length to the received transfer
-0a6070839b1e tracing: Prevent out-of-bounds read in glob matching
-2094dab19d45 xfs: fail recovery on a committed log item with no regions
 010382937fb6 usb: dwc3: run gadget disconnect from sleepable suspend context
-c9a71daaecb2 audit: Fix data races of skb_queue_len() readers on audit_queue
-fa09f08ede3d coresight: etb10: restore atomic_t for shared reading state
-4dcddc1c794d NTB: epf: Avoid calling pci_irq_vector() from hardirq context
-90f0109019e6 gpio: eic-sprd: use raw_spinlock_t in the irq startup path
-286533cb14a3 gpio: sch: use raw_spinlock_t in the irq startup path
+01980b5da56e spi: fsl-lpspi: terminate the RX channel on TX prepare failure path
+027e128abb82 ACPI: NFIT: core: Fix possible NULL pointer dereference
+08f0e65e784c crypto: ccp - Do not initialize SNP for ioctl(SNP_CONFIG)
+0a6070839b1e tracing: Prevent out-of-bounds read in glob matching
+0bfeec21984f usb: misc: usbio: fix disconnect UAF in client teardown
+0e7a690fe435 nilfs2: reject CLEAN_SEGMENTS ioctl with out-of-range segment numbers
+0e9943d2e4c6 Input: iforce - bound the device-reported force-feedback effect index
+10dd1a736d55 i2c: i801: fix hardware state machine corruption in error path
+10f293a07f9e ksmbd: fix use-after-free of a deferred file_lock on SMB2_CLOSE then SMB2_CANCEL
+114a116aaa5f binder: fix UAF in binder_thread_release()
+12917f591cea Bluetooth: hci_conn: Fix null ptr deref in hci_abort_conn()
+1463ca3ec660 staging: rtl8723bs: fix OOB reads in rtw_get_sec_ie(), rtw_get_wapi_ie(), and rtw_get_wps_attr()
+147996e7e7c9 ALSA: usx2y: us144mkii: fix work UAF on disconnect
+1720db928e5a 6lowpan: fix NHC entry use-after-free on error path
+198f45eeb9f7 fuse-uring: fix moving cancelled entry to ent_in_userspace list
+19bdfc7b3c17 USB: ldusb: fix use-after-free on disconnect race
+1b1937eb08f5 btrfs: do not trim a device which is not writeable
+1b2c6b56a9fa riscv: mm: Unconditionally sfence.vma for spurious fault
+1c57a69be962 fuse-uring: remove request-less entries from ent_w_req_queue to fix NULL deref
+1edd1f02dddd ALSA: es1938: check snd_ctl_new1() return value
+1efd3d474fc0 fuse-uring: make a fuse_req on SQE commit only findable after memcpy
+1f0bdc2884b6 usb: typec: ucsi: ccg: Fix use-after-free of ucsi on remove
+2094dab19d45 xfs: fail recovery on a committed log item with no regions
+216a7795ec21 crypto: hisi-trng - Remove crypto_rng interface
+21b5bf155435 usb: gadget: function: rndis: add length check for header
+2295d2bb101f i2c: core: fix NULL-deref on adapter registration failure
+24ca1fea8f27 USB: serial: digi_acceleport: fix write buffer corruption
+252f8c681adc staging: rtl8723bs: don't drop short TX frames in _rtw_pktfile_read()
 2564ca2e31bd io_uring/nop: fix file reference leak with IOSQE_FIXED_FILE
+266d3dd8b757 cpufreq: pcc: fix use-after-free and double free in _OSC evaluation
+277281c10c63 crypto: qat - fix VF2PF work teardown race in adf_disable_sriov()
+286533cb14a3 gpio: sch: use raw_spinlock_t in the irq startup path
+29b9667982e4 ALSA: firewire: isight: bound the sample count to the packet payload
+2b66974a1b61 tipc: fix out-of-bounds read in broadcast Gap ACK blocks
+2b929b91b0f3 ALSA: ice1712: check snd_ctl_new1() return value
+2f884d371faf bpf: Allow LPM map access from sleepable BPF programs
+30adce93d5c4 usb: gadget: f_printer: take kref only for successful open
+3320ba068198 ksmbd: add a permission check for FSCTL_SET_ZERO_DATA
+351dd7d2c80d wifi: mt76: mt7921/mt7925: fix NULL dereference in CSA beacon
+35d4a3cf70a8 mm/damon/ops-common: handle extreme intervals in damon_hot_score()
+37540b8c287f s390: Revert support for DCACHE_WORD_ACCESS
+38bf27511ef4 ACPI: NFIT: core: Fix acpi_nfit_init() error cleanup
+3a413ece2504 nvmet-auth: validate reply message payload bounds against transfer length
+3bf39f711ff2 staging: rtl8723bs: fix OOB reads in is_ap_in_tkip() IE loop
+3ee2128b6f0e iio: adc: spear: Initialize completion before requesting IRQ
+40ef3edf151e vfio/pci: Use a private flag to prevent power state change with VFs
+45f1458a8501 netpoll: fix a use-after-free on shutdown path
+46c8beeccd8a HID: letsketch: fix UAF on inrange_timer at driver unbind
+478cdd736f2c Input: touchwin - reset the packet index on every complete packet
+4bd0b274054f Bluetooth: fix UAF in bt_accept_dequeue()
+4be6cbeb93d2 KVM: arm64: nv: Avoid dereferencing NULL VNCR pseudo-TLB
+4dcddc1c794d NTB: epf: Avoid calling pci_irq_vector() from hardirq context
+534b5f98ab73 iommu/vt-d: Avoid WARNING in sva unbind path
+53b7c271f06b smb: client: restrict implied bcc[0] exemption to responses without data area
+53cd102a7a56 nvmet: fix pre-auth out-of-bounds heap read in Discovery Get Log Page
+54243797cedf fuse: avoid 32-bit prune notification count wrap
+57382ec6ac63 fs/ntfs3: validate Dirty Page Table capacity in log_replay copy_lcns
+57c10915f2c1 Input: synaptics-rmi4 - bound the F3A keymap to the GPIO count
+590cc4d78248 HID: logitech-dj: Fix maxfield check in DJ short report validation
+5948aaf64f81 perf/aux: Fix page UAF in map_range()
+5a1364da2f04 crypto: ccp - Do not initialize SNP for ioctl(SNP_COMMIT)
+5a752a616e75 staging: rtl8723bs: fix heap buffer overflow in rtw_cfg80211_set_wpa_ie()
+5b6eedd7cc29 ntfs: avoid calling post_write_mst_fixup() for invalid index_block
+5c1ea24b53bf USB: serial: digi_acceleport: fix hard lockup on disconnect
+5c6f845e77ec crypto: qat - protect service table iterations with service_lock
+5cff1529a2f9 ALSA: us144mkii: capture_urb_complete: redundant usb_anchor_urb corrupts anchor list on each resubmission
+5ed62a96e06b Input: goodix - clamp the device-reported contact count
+61f28012e565 smb/client: Fix error code in smb2_aead_req_alloc()
+62fc8eb1b148 USB: legousbtower: fix use-after-free on disconnect race
+63b02a9409cb mm: swap_cgroup: fix NULL deref in lookup_swap_cgroup_id on swapless host
+65476d31d805 mm: shrinker: fix shrinker_info teardown race with expansion
+66366d291f66 mm/swap: add cond_resched() in swap_reclaim_full_clusters to prevent softlockup
+66725039f709 Input: mms114 - reject an oversized device packet size
+67e511d2989e usb: gadget: udc: Fix use-after-free in gadget_match_driver
+6bfc8d01ac40 USB: serial: keyspan_pda: fix information leak
+6c9dddeb582f crypto: krb5 - filter out async aead implementations at alloc
+6d827ade51a2 crypto: amlogic - avoid double cleanup in meson_crypto_probe()
+75fe87e19d8a HID: appleir: fix UAF on pending key_up_timer in remove()
+7693c0cc415f ALSA: usb-audio: avoid kobject path lookup in DualSense match
+7705b4140d18 HID: lg-g15: cancel pending work on remove to fix a use-after-free
+7811ec9e973d crypto: crypto4xx - Remove insecure and unused rng_alg
+7993211bde16 ipv4: igmp: remove multicast group from hash table on device destruction
+7cd9103283b2 netfilter: ipset: fix race between dump and ip_set_list resize
+7ef78d71ca71 KVM: VMX: Grab vmcs12 on CR8 interception update iff vCPU is in guest mode
+83a3dfc01894 USB: serial: digi_acceleport: fix broken rx after throttle
+8813b0612275 HID: multitouch: fix out-of-bounds bit access on mt_io_flags
+8af681279586 USB: ulpi: fix memory leak on registration failure
+8b2c1d41bc36 mfd: cros_ec: Delay dev_set_drvdata() until probe success
+8bc4d43bccbd tcp: restore RCU grace period in tcp_ao_destroy_sock
+8c6314489550 usb: misc: usbio: bound bulk IN response length to the received transfer
+8df560fefe6f ALSA: aoa: check snd_ctl_new1() return value
+90f0109019e6 gpio: eic-sprd: use raw_spinlock_t in the irq startup path
+9202ee546b0c xfs: fix null pointer dereference in tracepoint
+95ee2231896d btrfs: check and set EXTENT_DELALLOC_NEW before clearing EXTENT_DELALLOC
+95f90eea0708 usb: gadget: function: rndis: add length check to response query
+966cb76fb285 hfs/hfsplus: fix u32 overflow in check_and_correct_requested_length
+9f32f3826501 staging: vme_user: bound slave read/write to the kern_buf size
+a1fc19d61f66 staging: rtl8723bs: fix WEP length underflow and OOB read in OnAuth()
+a622d2e9608c netfilter: ebtables: terminate table name before find_table_lock()
+a6ac4e24c1a8 Input: mms114 - fix touch indexing for MMS134S and MMS136
+a9029dd55696 cpufreq: Fix hotplug-suspend race during reboot
+abf76d3239de USB: chaoskey: Fix slab-use-after-free in chaoskey_release()
+af3d1bb9a09d crypto: loongson - Remove broken and unused loongson-rng
+b1845a227fda media: mtk-jpeg: cancel workqueue on release for supported platforms only
+b5befa80fdbe fuse: re-lock request before returning from fuse_ref_folio()
+b66774b48dd9 Bluetooth: L2CAP: Fix UAF in channel timeout by holding conn ref
+b670bf89824e media: nxp: imx8-isi: Fix use-after-free on remove
 b902890c62d2 mm/shrinker: do not hold RCU lock in shrinker_debugfs_count_show()
 bb067a99a035 Bluetooth: bnep: pin L2CAP connection during netdev registration
-966cb76fb285 hfs/hfsplus: fix u32 overflow in check_and_correct_requested_length
-d67aadee19ff hfs/hfsplus: zero-initialize buffer in hfs_bnode_read
-cc9af5e461ea xfs: use null daddr for unset first bad log block
-9202ee546b0c xfs: fix null pointer dereference in tracepoint
-6bfc8d01ac40 USB: serial: keyspan_pda: fix information leak
-83a3dfc01894 USB: serial: digi_acceleport: fix broken rx after throttle
-5c1ea24b53bf USB: serial: digi_acceleport: fix hard lockup on disconnect
-24ca1fea8f27 USB: serial: digi_acceleport: fix write buffer corruption
-8af681279586 USB: ulpi: fix memory leak on registration failure
-c5371e0b91b2 usbip: vudc: fix NULL deref in vep_dequeue()
-027e128abb82 ACPI: NFIT: core: Fix possible NULL pointer dereference
-d5541eb148da Bluetooth: ISO: avoid NULL deref of conn in iso_conn_big_sync()
-4be6cbeb93d2 KVM: arm64: nv: Avoid dereferencing NULL VNCR pseudo-TLB
-2295d2bb101f i2c: core: fix NULL-deref on adapter registration failure
-ee89db004238 Input: maplemouse - fix NULL pointer dereference in open()
-1c57a69be962 fuse-uring: remove request-less entries from ent_w_req_queue to fix NULL deref
-252f8c681adc staging: rtl8723bs: don't drop short TX frames in _rtw_pktfile_read()
-5a752a616e75 staging: rtl8723bs: fix heap buffer overflow in rtw_cfg80211_set_wpa_ie()
-a1fc19d61f66 staging: rtl8723bs: fix WEP length underflow and OOB read in OnAuth()
-f9654207e922 staging: rtl8723bs: fix OOB read in OnAssocRsp() IE loop
-ed51de4a86e1 staging: rtl8723bs: fix OOB read in update_beacon_info() IE loop
-ef61d628dfad staging: rtl8723bs: fix OOB reads in IE loops in issue_assocreq() and join_cmd_hdl()
-3bf39f711ff2 staging: rtl8723bs: fix OOB reads in is_ap_in_tkip() IE loop
-1463ca3ec660 staging: rtl8723bs: fix OOB reads in rtw_get_sec_ie(), rtw_get_wapi_ie(), and rtw_get_wps_attr()
-f8001e1a516b staging: rtl8723bs: fix OOB write in HT_caps_handler()
-e64d170346d0 ALSA: ymfpci: check snd_ctl_new1() return value
-8df560fefe6f ALSA: aoa: check snd_ctl_new1() return value
+bc0e4f16c44e USB: iowarrior: fix use-after-free on disconnect
+be6d26bf2749 ksmbd: serialize QUERY_DIRECTORY requests per file
 c205bd1b28fb ALSA: cmipci: check snd_ctl_new1() return value
-1edd1f02dddd ALSA: es1938: check snd_ctl_new1() return value
-c7fa99d30c7a ALSA: gus: check snd_ctl_new1() return value
-2b929b91b0f3 ALSA: ice1712: check snd_ctl_new1() return value
-46c8beeccd8a HID: letsketch: fix UAF on inrange_timer at driver unbind
-75fe87e19d8a HID: appleir: fix UAF on pending key_up_timer in remove()
-147996e7e7c9 ALSA: usx2y: us144mkii: fix work UAF on disconnect
-5948aaf64f81 perf/aux: Fix page UAF in map_range()
-cba38ec4cbd3 writeback: fix race between cgroup_writeback_umount() and inode_switch_wbs()
-54243797cedf fuse: avoid 32-bit prune notification count wrap
-66366d291f66 mm/swap: add cond_resched() in swap_reclaim_full_clusters to prevent softlockup
-61f28012e565 smb/client: Fix error code in smb2_aead_req_alloc()
-53cd102a7a56 nvmet: fix pre-auth out-of-bounds heap read in Discovery Get Log Page
-1b1937eb08f5 btrfs: do not trim a device which is not writeable
-fb1758e74b80 crypto: ccp - Do not initialize SNP for SEV ioctls
-5a1364da2f04 crypto: ccp - Do not initialize SNP for ioctl(SNP_COMMIT)
-f91e9dbb5845 crypto: ccp - Do not initialize SNP for ioctl(SNP_VLEK_LOAD)
-08f0e65e784c crypto: ccp - Do not initialize SNP for ioctl(SNP_CONFIG)
-1b2c6b56a9fa riscv: mm: Unconditionally sfence.vma for spurious fault
-10dd1a736d55 i2c: i801: fix hardware state machine corruption in error path
-198f45eeb9f7 fuse-uring: fix moving cancelled entry to ent_in_userspace list
-f7f3f9fd81e7 ALSA: caiaq: fix out-of-bounds read in the Traktor Kontrol S4 input parser
-df2b818fa009 Input: elan_i2c - prevent division by zero and arithmetic underflow
-5ed62a96e06b Input: goodix - clamp the device-reported contact count
-57c10915f2c1 Input: synaptics-rmi4 - bound the F3A keymap to the GPIO count
-d577e46785d4 Input: synaptics-rmi4 - bound the F30 keymap to the GPIO/LED count
-0e9943d2e4c6 Input: iforce - bound the device-reported force-feedback effect index
-a6ac4e24c1a8 Input: mms114 - fix touch indexing for MMS134S and MMS136
-ce0e1cae2609 iio: accel: bmc150: clamp the device-reported FIFO frame count
+c3e94604675e tracing: Fix NULL pointer dereference in func_set_flag()
+c5371e0b91b2 usbip: vudc: fix NULL deref in vep_dequeue()
+c5b600a3c05b Bluetooth: btusb: fix use-after-free on marvell probe failure
+c602254ba4c1 USB: iowarrior: fix use-after-free on disconnect race
 c77a6cbb36ff ALSA: virtio: Validate control metadata from the device
-29b9667982e4 ALSA: firewire: isight: bound the sample count to the packet payload
-3a413ece2504 nvmet-auth: validate reply message payload bounds against transfer length
-478cdd736f2c Input: touchwin - reset the packet index on every complete packet
-66725039f709 Input: mms114 - reject an oversized device packet size
-37540b8c287f s390: Revert support for DCACHE_WORD_ACCESS
-7811ec9e973d crypto: crypto4xx - Remove insecure and unused rng_alg
-216a7795ec21 crypto: hisi-trng - Remove crypto_rng interface
+c7fa99d30c7a ALSA: gus: check snd_ctl_new1() return value
+c9a71daaecb2 audit: Fix data races of skb_queue_len() readers on audit_queue
+ca674df13b19 KVM: VMX: Handle bad values on proxied writes to LBR MSRs
+cba38ec4cbd3 writeback: fix race between cgroup_writeback_umount() and inode_switch_wbs()
+cc9af5e461ea xfs: use null daddr for unset first bad log block
+ce0e1cae2609 iio: accel: bmc150: clamp the device-reported FIFO frame count
+d129c3177d7b net: af_key: initialize alg_key_len for IPComp states
+d20d1c8ba576 ksmbd: fix UAF of struct file_lock in SMB2_LOCK deferred-lock cancellation
+d351da750669 fuse-uring: Avoid use-after-free in fuse_uring_async_stop_queues
+d3a9a8cf2d7f staging: media: ipu7: fix double-free and use-after-free in error paths
+d5541eb148da Bluetooth: ISO: avoid NULL deref of conn in iso_conn_big_sync()
+d577e46785d4 Input: synaptics-rmi4 - bound the F30 keymap to the GPIO/LED count
+d67aadee19ff hfs/hfsplus: zero-initialize buffer in hfs_bnode_read
+df2b818fa009 Input: elan_i2c - prevent division by zero and arithmetic underflow
+e30453c61e18 mm: shrinker: fix NULL pointer dereference in debugfs
+e3046eeada29 hwrng: virtio: clamp device-reported used.len at copy_data()
+e561b35633f4 iio: adc: lpc32xx: Initialize completion before requesting IRQ
+e64d170346d0 ALSA: ymfpci: check snd_ctl_new1() return value
+ec457f9afe5a smb: client: resolve SWN tcon from live registrations
+ed51de4a86e1 staging: rtl8723bs: fix OOB read in update_beacon_info() IE loop
+ee89db004238 Input: maplemouse - fix NULL pointer dereference in open()
+eedc6867ebad Bluetooth: btusb: fix use-after-free on registration failure
+ef61d628dfad staging: rtl8723bs: fix OOB reads in IE loops in issue_assocreq() and join_cmd_hdl()
+f223d27a546c binder: fix UAF in binder_free_transaction()
+f7d380fb525c virtio_pci: fix vq info pointer lookup via wrong index
+f7f3f9fd81e7 ALSA: caiaq: fix out-of-bounds read in the Traktor Kontrol S4 input parser
+f8001e1a516b staging: rtl8723bs: fix OOB write in HT_caps_handler()
+f8f680609c2b usb: gadget: composite: fix dead empty check in the USB_DT_OTG handler
+f8fce75fedf7 fuse: clear intr_entry in fuse_resend and fuse_remove_pending_req
+f91e9dbb5845 crypto: ccp - Do not initialize SNP for ioctl(SNP_VLEK_LOAD)
+f9654207e922 staging: rtl8723bs: fix OOB read in OnAssocRsp() IE loop
+fa09f08ede3d coresight: etb10: restore atomic_t for shared reading state
+fa85d985f614 Bluetooth: MGMT: Fix UAF of hci_conn_params in add_device_complete
+fb1758e74b80 crypto: ccp - Do not initialize SNP for SEV ioctls
+ff002c153f97 USB: idmouse: fix use-after-free on disconnect race
 ffdd2bc37895 crypto: af_alg - Remove zero-copy support from skcipher and aead
