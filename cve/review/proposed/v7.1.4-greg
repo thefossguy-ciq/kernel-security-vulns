@@ -1,161 +1,354 @@
+010382937fb6 ("usb: dwc3: run gadget disconnect from sleepable suspend context")
 010382937fb6 usb: dwc3: run gadget disconnect from sleepable suspend context
 01980b5da56e spi: fsl-lpspi: terminate the RX channel on TX prepare failure path
+027e128abb82 ("ACPI: NFIT: core: Fix possible NULL pointer dereference")
 027e128abb82 ACPI: NFIT: core: Fix possible NULL pointer dereference
+05ed733b65ab ("net/sched: dualpi2: fix GSO backlog accounting")
+084d23f81832 ("netfilter: ebtables: module names must be null-terminated")
 08f0e65e784c crypto: ccp - Do not initialize SNP for ioctl(SNP_CONFIG)
+0a5213bbff62 ("xfs: fix exchmaps reservation limit check")
 0a6070839b1e tracing: Prevent out-of-bounds read in glob matching
+0bddda5a1166 ("usb: mtu3: unmap request DMA on queue failure")
 0bfeec21984f usb: misc: usbio: fix disconnect UAF in client teardown
 0e7a690fe435 nilfs2: reject CLEAN_SEGMENTS ioctl with out-of-range segment numbers
+0e9943d2e4c6 ("Input: iforce - bound the device-reported force-feedback effect index")
 0e9943d2e4c6 Input: iforce - bound the device-reported force-feedback effect index
+0ffedf43910e ("KVM: x86: Ensure vendor's exit handler runs before fastpath userspace exits")
 10dd1a736d55 i2c: i801: fix hardware state machine corruption in error path
 10f293a07f9e ksmbd: fix use-after-free of a deferred file_lock on SMB2_CLOSE then SMB2_CANCEL
 114a116aaa5f binder: fix UAF in binder_thread_release()
+1172160f2a2d ("iio: pressure: bmp280: zero-init bmp580 trigger handler buffer")
 12917f591cea Bluetooth: hci_conn: Fix null ptr deref in hci_abort_conn()
+145f820dcbb2 ("smb: client: fix change notify replay double-free")
 1463ca3ec660 staging: rtl8723bs: fix OOB reads in rtw_get_sec_ie(), rtw_get_wapi_ie(), and rtw_get_wps_attr()
 147996e7e7c9 ALSA: usx2y: us144mkii: fix work UAF on disconnect
 1720db928e5a 6lowpan: fix NHC entry use-after-free on error path
+172fc8b19825 ("iommufd: Break the loop on failure in iommufd_fault_fops_read()")
 198f45eeb9f7 fuse-uring: fix moving cancelled entry to ent_in_userspace list
 19bdfc7b3c17 USB: ldusb: fix use-after-free on disconnect race
 1b1937eb08f5 btrfs: do not trim a device which is not writeable
+1b1acf2dada0 ("ACPI: CPPC: Suppress UBSAN warning caused by field misuse")
 1b2c6b56a9fa riscv: mm: Unconditionally sfence.vma for spurious fault
+1c57a69be962 ("fuse-uring: remove request-less entries from ent_w_req_queue to fix NULL deref")
 1c57a69be962 fuse-uring: remove request-less entries from ent_w_req_queue to fix NULL deref
+1c6267a1d5cf ("smb: client: Fix next buffer leak in receive_encrypted_standard()")
+1edd1f02dddd ("ALSA: es1938: check snd_ctl_new1() return value")
 1edd1f02dddd ALSA: es1938: check snd_ctl_new1() return value
 1efd3d474fc0 fuse-uring: make a fuse_req on SQE commit only findable after memcpy
 1f0bdc2884b6 usb: typec: ucsi: ccg: Fix use-after-free of ucsi on remove
 2094dab19d45 xfs: fail recovery on a committed log item with no regions
+216a7795ec21 ("crypto: hisi-trng - Remove crypto_rng interface")
 216a7795ec21 crypto: hisi-trng - Remove crypto_rng interface
+218cfe364b55 ("i2c: imx-lpi2c: mark I2C adapter when hardware is powered down")
 21b5bf155435 usb: gadget: function: rndis: add length check for header
+2295d2bb101f ("i2c: core: fix NULL-deref on adapter registration failure")
 2295d2bb101f i2c: core: fix NULL-deref on adapter registration failure
+24ca1fea8f27 ("USB: serial: digi_acceleport: fix write buffer corruption")
 24ca1fea8f27 USB: serial: digi_acceleport: fix write buffer corruption
+252f8c681adc ("staging: rtl8723bs: don't drop short TX frames in _rtw_pktfile_read()")
 252f8c681adc staging: rtl8723bs: don't drop short TX frames in _rtw_pktfile_read()
 2564ca2e31bd io_uring/nop: fix file reference leak with IOSQE_FIXED_FILE
+2641a9e0a1dd ("Bluetooth: L2CAP: cancel pending_rx_work before taking conn->lock")
+265b861bece3 ("crypto: chacha20poly1305 - validate poly1305 template argument")
 266d3dd8b757 cpufreq: pcc: fix use-after-free and double free in _OSC evaluation
 277281c10c63 crypto: qat - fix VF2PF work teardown race in adf_disable_sriov()
+27b536a2ec8e ("crypto: ecc - Fix carry overflow in vli multiplication")
+286533cb14a3 ("gpio: sch: use raw_spinlock_t in the irq startup path")
 286533cb14a3 gpio: sch: use raw_spinlock_t in the irq startup path
+2957771379fa ("rust: block: fix GenDisk cleanup paths")
+29b9667982e4 ("ALSA: firewire: isight: bound the sample count to the packet payload")
 29b9667982e4 ALSA: firewire: isight: bound the sample count to the packet payload
 29bef9934b25 io_uring/io-wq: re-check IO_WQ_BIT_EXIT for each linked work item
+2a88561d66eb ("smb: client: fix query_info() replay double-free")
 2b66974a1b61 tipc: fix out-of-bounds read in broadcast Gap ACK blocks
+2b929b91b0f3 ("ALSA: ice1712: check snd_ctl_new1() return value")
 2b929b91b0f3 ALSA: ice1712: check snd_ctl_new1() return value
+2dc0bfd2fe35 ("partitions: aix: bound the pp_count scan to the ppe array")
+2f4acd0fcd86 ("xfs: resample the data fork mapping after cycling ILOCK")
 2f884d371faf bpf: Allow LPM map access from sleepable BPF programs
 30adce93d5c4 usb: gadget: f_printer: take kref only for successful open
+3137b243c939 ("usb: gadget: f_fs: initialize reset_work at allocation time")
 3320ba068198 ksmbd: add a permission check for FSCTL_SET_ZERO_DATA
+3348f444a4ce ("usb: cdnsp: fix stream context array leak in cdnsp_alloc_stream_info()")
 351dd7d2c80d wifi: mt76: mt7921/mt7925: fix NULL dereference in CSA beacon
 35d4a3cf70a8 mm/damon/ops-common: handle extreme intervals in damon_hot_score()
+37540b8c287f ("s390: Revert support for DCACHE_WORD_ACCESS")
 37540b8c287f s390: Revert support for DCACHE_WORD_ACCESS
+388e4139db27 ("ksmbd: add permission checks for FSCTL_DUPLICATE_EXTENTS_TO_FILE")
+38b72267b7e2 ("iio: light: gp2ap002: fix runtime PM leak on read error")
 38bf27511ef4 ACPI: NFIT: core: Fix acpi_nfit_init() error cleanup
+39406c05f8f1 ("x86/mm: Fix freeing of PMD-sized vmemmap pages")
+39a31ad9e2a5 ("crypto: drbg - Fix returning success on failure in CTR_DRBG")
 3a0a8bc51a13 fuse-uring: fix EFAULT clobber in fuse_uring_commit
+3a1230e7b043 ("exfat: bound uniname advance in exfat_find_dir_entry()")
+3a413ece2504 ("nvmet-auth: validate reply message payload bounds against transfer length")
 3a413ece2504 nvmet-auth: validate reply message payload bounds against transfer length
 3bf39f711ff2 staging: rtl8723bs: fix OOB reads in is_ap_in_tkip() IE loop
+3c5eed894efd ("iio: temperature: tmp006: use devm_iio_trigger_register")
+3ec997bd5508 ("udf: validate sparing table length as an entry count, not a byte count")
 3ee2128b6f0e iio: adc: spear: Initialize completion before requesting IRQ
+3f57657b6ea2 ("crypto: caam - use print_hex_dump_devel to guard key hex dumps")
+40ef3edf151e ("vfio/pci: Use a private flag to prevent power state change with VFs")
 40ef3edf151e vfio/pci: Use a private flag to prevent power state change with VFs
+42c37c4b75d3 ("usb: xhci: Fix sleep in atomic context in xhci_free_streams()")
+435990e25bf1 ("ALSA: seq: Fix uninitialised heap leak in snd_seq_event_dup()")
+44a5fd874bb6 ("iio: accel: kxsd9: fix runtime PM imbalance on write_raw() error")
 44cccefe6574 xfs: only log freed extents for the current RTG in zoned growfs
+44df157a1183 ("ksmbd: add a WRITE_DAC/WRITE_OWNER check to SMB2 SET_INFO SECURITY")
+4575e9aac533 ("vfio/pci: Latch disable_idle_d3 per device")
+45de375b2506 ("xfs: fix memory leak in xfs_dqinode_metadir_create()")
 45f1458a8501 netpoll: fix a use-after-free on shutdown path
 46725a0056c8 fuse-uring: fix data races on ring->ready
 46c8beeccd8a HID: letsketch: fix UAF on inrange_timer at driver unbind
+47443565d10c ("iommufd: Move vevent memory allocation outside spinlock")
+478cdd736f2c ("Input: touchwin - reset the packet index on every complete packet")
 478cdd736f2c Input: touchwin - reset the packet index on every complete packet
+47b6bcef6e67 ("net: usb: kalmia: bound RX frame length in kalmia_rx_fixup()")
+49f06cff50a4 ("block: skip sync_blockdev() on surprise removal in bdev_mark_dead()")
+49f6e3c3ef19 ("xhci: sideband: fix ring sg table pages leak")
+4a60127debb9 ("ALSA: compress: Fix task creation error unwind")
 4bd0b274054f Bluetooth: fix UAF in bt_accept_dequeue()
+4be31c943a3a ("smb: client: fix double-free in SMB2_flush() replay")
+4be6cbeb93d2 ("KVM: arm64: nv: Avoid dereferencing NULL VNCR pseudo-TLB")
 4be6cbeb93d2 KVM: arm64: nv: Avoid dereferencing NULL VNCR pseudo-TLB
+4d70986002f2 ("iommufd: Set upper bounds on cache invalidation entry_num and entry_len")
+4dcddc1c794d ("NTB: epf: Avoid calling pci_irq_vector() from hardirq context")
 4dcddc1c794d NTB: epf: Avoid calling pci_irq_vector() from hardirq context
+504e2b4ab97a ("dma-buf/udmabuf: skip redundant cpu sync to fix cacheline EEXIST warning")
+5140f099ecd8 ("NFSv4: include MAY_WRITE in open permission mask for O_TRUNC")
+52e2f2191115 ("ksmbd: use opener credentials for delete-on-close")
+53040a81ae57 ("bpf: Keep dynamic inner array lookups nullable")
+534b5f98ab73 ("iommu/vt-d: Avoid WARNING in sva unbind path")
 534b5f98ab73 iommu/vt-d: Avoid WARNING in sva unbind path
 53b7c271f06b smb: client: restrict implied bcc[0] exemption to responses without data area
 53cd102a7a56 nvmet: fix pre-auth out-of-bounds heap read in Discovery Get Log Page
+54243797cedf ("fuse: avoid 32-bit prune notification count wrap")
 54243797cedf fuse: avoid 32-bit prune notification count wrap
+54bab9ba5a9f ("ksmbd: prevent path traversal bypass by restricting caseless retry")
 57382ec6ac63 fs/ntfs3: validate Dirty Page Table capacity in log_replay copy_lcns
+57c10915f2c1 ("Input: synaptics-rmi4 - bound the F3A keymap to the GPIO count")
 57c10915f2c1 Input: synaptics-rmi4 - bound the F3A keymap to the GPIO count
 590cc4d78248 HID: logitech-dj: Fix maxfield check in DJ short report validation
 5948aaf64f81 perf/aux: Fix page UAF in map_range()
 5a1364da2f04 crypto: ccp - Do not initialize SNP for ioctl(SNP_COMMIT)
 5a752a616e75 staging: rtl8723bs: fix heap buffer overflow in rtw_cfg80211_set_wpa_ie()
 5b6eedd7cc29 ntfs: avoid calling post_write_mst_fixup() for invalid index_block
+5c1ea24b53bf ("USB: serial: digi_acceleport: fix hard lockup on disconnect")
 5c1ea24b53bf USB: serial: digi_acceleport: fix hard lockup on disconnect
 5c6f845e77ec crypto: qat - protect service table iterations with service_lock
 5cff1529a2f9 ALSA: us144mkii: capture_urb_complete: redundant usb_anchor_urb corrupts anchor list on each resubmission
+5ed62a96e06b ("Input: goodix - clamp the device-reported contact count")
 5ed62a96e06b Input: goodix - clamp the device-reported contact count
+5f0419457f89 ("udf: validate free block extents against the partition length")
+5fa1d6a5ec23 ("isofs: bound Rock Ridge symlink components to the SL record")
+60d877910a43 ("iio: chemical: scd30: Cleanup initializations and fix sign-extension bug")
 61f28012e565 smb/client: Fix error code in smb2_aead_req_alloc()
+6255da28d4bb ("proc: protect ptrace_may_access() with exec_update_lock (FD links)")
 62fc8eb1b148 USB: legousbtower: fix use-after-free on disconnect race
+6325d6e22043 ("iio: buffer: hw-consumer: free scan_mask on buffer release")
 63b02a9409cb mm: swap_cgroup: fix NULL deref in lookup_swap_cgroup_id on swapless host
+63ccdfac8677 ("wifi: rtw89: correct drop logic for malformed AMPDU frames")
+648927ceb840 ("mm/slab: do not limit zeroing to orig_size when only red zoning is enabled")
 65476d31d805 mm: shrinker: fix shrinker_info teardown race with expansion
 66366d291f66 mm/swap: add cond_resched() in swap_reclaim_full_clusters to prevent softlockup
+6650527444da ("proc: protect ptrace_may_access() with exec_update_lock (part 1)")
+66725039f709 ("Input: mms114 - reject an oversized device packet size")
 66725039f709 Input: mms114 - reject an oversized device packet size
 67e511d2989e usb: gadget: udc: Fix use-after-free in gadget_match_driver
+687617555ced ("Bluetooth: L2CAP: validate option length before reading conf opt value")
+692c354bef03 ("usb: dwc3: meson-g12a: fix refcount leak in dwc3_meson_g12a_resume()")
+69f888381d2e ("OPP: of: Fix potential memory leak in opp_parse_supplies()")
+6b3014ec0e9a ("HID: wacom: fix slab-out-of-bounds write in wacom_wac_queue_insert")
+6bfc8d01ac40 ("USB: serial: keyspan_pda: fix information leak")
 6bfc8d01ac40 USB: serial: keyspan_pda: fix information leak
+6c5dcab95f4c ("netfilter: flowtable: IPIP tunnel hardware offload is not yet support")
 6c9dddeb582f crypto: krb5 - filter out async aead implementations at alloc
 6d827ade51a2 crypto: amlogic - avoid double cleanup in meson_crypto_probe()
+6de2aeffabaa ("libfs: set SB_I_NOEXEC and SB_I_NODEV by default in init_pseudo()")
+6ebf2eb46fbd ("iommufd: Set veventq_depth upper bound")
+73fde0cbff7d ("HID: hid-lenovo-go: cancel cfg_setup work in hid_go_cfg_remove()")
 75fe87e19d8a HID: appleir: fix UAF on pending key_up_timer in remove()
+760ef2c579c2 ("smb/client: fix chown/chgrp with SMB3 POSIX Extensions")
+7693c0cc415f ("ALSA: usb-audio: avoid kobject path lookup in DualSense match")
 7693c0cc415f ALSA: usb-audio: avoid kobject path lookup in DualSense match
 7705b4140d18 HID: lg-g15: cancel pending work on remove to fix a use-after-free
+7811ec9e973d ("crypto: crypto4xx - Remove insecure and unused rng_alg")
 7811ec9e973d crypto: crypto4xx - Remove insecure and unused rng_alg
+786d2d84416a ("module: decompress: check return value of module_extend_max_pages()")
 7993211bde16 ipv4: igmp: remove multicast group from hash table on device destruction
+7a94138caeb2 ("PCI: altera: Fix resource leaks on probe failure")
+7ad2bcf24414 ("smb: client: harden POSIX SID length parsing")
+7b681dd5fbf6 ("usb: typec: tcpm: Validate SVID index in svdm_consume_modes()")
 7cd9103283b2 netfilter: ipset: fix race between dump and ip_set_list resize
+7d29f7e9dbd8 ("RDMA/siw: bound Read Response placement to the RREAD length")
 7ef78d71ca71 KVM: VMX: Grab vmcs12 on CR8 interception update iff vCPU is in guest mode
+8005dc808bcc ("crypto: caam - use print_hex_dump_devel to guard key hex dumps")
+803c8a9502e9 ("rust_binder: use a u64 stride when cleaning up the offsets array")
+82cfd4739011 ("usb: gadget: f_fs: Initialize epfile->in early to fix endpoint direction checks")
+8320c77e6738 ("iio: gyro: bmg160: bail out when bandwidth/filter is not in table")
+83a3dfc01894 ("USB: serial: digi_acceleport: fix broken rx after throttle")
 83a3dfc01894 USB: serial: digi_acceleport: fix broken rx after throttle
+84eec3f7fc73 ("xfs: fix pointer arithmetic error on 32-bit systems")
+87bd2ad568e1 ("posix-cpu-timers: Fix pid refcount leak in do_cpu_nanosleep() error path")
 8813b0612275 HID: multitouch: fix out-of-bounds bit access on mt_io_flags
+896df22ee576 ("firmware_loader: fix device reference leak in firmware_upload_register()")
+8986c932905e ("smb: client: reject overlapping data areas in SMB2 responses")
+8af681279586 ("USB: ulpi: fix memory leak on registration failure")
 8af681279586 USB: ulpi: fix memory leak on registration failure
 8b2c1d41bc36 mfd: cros_ec: Delay dev_set_drvdata() until probe success
 8bc4d43bccbd tcp: restore RCU grace period in tcp_ao_destroy_sock
 8c6314489550 usb: misc: usbio: bound bulk IN response length to the received transfer
+8cc8bbbfab14 ("KVM: arm64: Bound used_lrs when flushing the pKVM hyp vCPU")
+8df560fefe6f ("ALSA: aoa: check snd_ctl_new1() return value")
 8df560fefe6f ALSA: aoa: check snd_ctl_new1() return value
+8e80af52db65 ("userfaultfd: gate must_wait writability check on pte_present()")
+90f0109019e6 ("gpio: eic-sprd: use raw_spinlock_t in the irq startup path")
 90f0109019e6 gpio: eic-sprd: use raw_spinlock_t in the irq startup path
+91bc6767a4f5 ("iio: adc: ad_sigma_delta: fix clear_pending_event for registerless devices")
+9202ee546b0c ("xfs: fix null pointer dereference in tracepoint")
 9202ee546b0c xfs: fix null pointer dereference in tracepoint
+954d196bebb2 ("ksmbd: validate NTLMv2 response before updating session key")
+95ee2231896d ("btrfs: check and set EXTENT_DELALLOC_NEW before clearing EXTENT_DELALLOC")
 95ee2231896d btrfs: check and set EXTENT_DELALLOC_NEW before clearing EXTENT_DELALLOC
 95f90eea0708 usb: gadget: function: rndis: add length check to response query
+963af8d97a8c ("RDMA/rtrs-srv: Bound RDMA-Write length to chunk size in rdma_write_sg")
+9647492b5e41 ("smb: client: fix query directory replay double-free")
 966cb76fb285 hfs/hfsplus: fix u32 overflow in check_and_correct_requested_length
+96cce16e26dd ("bpf: Support for hardening against JIT spraying")
+98495b5a4d77 ("coresight: ultrasoc-smb: Fix OOB write in smb_sync_perf_buffer()")
 9f32f3826501 staging: vme_user: bound slave read/write to the kern_buf size
+9f76b039a72d ("KVM: arm64: Don't leak PFN when kvm_translate_vncr() races MMU notifier")
 a1fc19d61f66 staging: rtl8723bs: fix WEP length underflow and OOB read in OnAuth()
+a257407e2bbb ("Bluetooth: btmtksdio: fix infinite loop in btmtksdio_txrx_work()")
+a26b499b757c ("vfio: prevent infinite loop in vfio_mig_get_next_state() on blocked arc")
+a3af84b0fa00 ("x86/bugs: Enable IBPB flush on BPF JIT allocation")
 a622d2e9608c netfilter: ebtables: terminate table name before find_table_lock()
+a6ac4e24c1a8 ("Input: mms114 - fix touch indexing for MMS134S and MMS136")
 a6ac4e24c1a8 Input: mms114 - fix touch indexing for MMS134S and MMS136
+a6f0643e4f63 ("bpf: Reject BPF_MAP_TYPE_INODE_STORAGE creation if BPF LSM is uninitialized")
+a9029dd55696 ("cpufreq: Fix hotplug-suspend race during reboot")
 a9029dd55696 cpufreq: Fix hotplug-suspend race during reboot
+aa496720618f ("bpf: Reject fragmented frames in devmap")
 abf76d3239de USB: chaoskey: Fix slab-use-after-free in chaoskey_release()
+adf4bc07f814 ("iio: adc: ti-ads1119: fix PM reference leak in buffer preenable")
 af3d1bb9a09d crypto: loongson - Remove broken and unused loongson-rng
+af791d295737 ("iio: event: Fix event FIFO reset race")
 b1845a227fda media: mtk-jpeg: cancel workqueue on release for supported platforms only
+b1a58ed9eab1 ("i2c: core: fix adapter deregistration race")
+b383bcad3d2f ("ksmbd: run set info with opener credentials")
+b3ac78756588 ("crypto: qat - validate RSA CRT component lengths")
+b4ecbdc4f883 ("USB: misc: uss720: unregister parport on probe failure")
+b55e182f2324 ("smb: client: fix double-free in SMB2_open() replay")
 b5befa80fdbe fuse: re-lock request before returning from fuse_ref_folio()
+b65020d5398f ("ALSA: hda/cs35l41: Fix firmware load work teardown")
 b66774b48dd9 Bluetooth: L2CAP: Fix UAF in channel timeout by holding conn ref
 b670bf89824e media: nxp: imx8-isi: Fix use-after-free on remove
+b70a3aca1693 ("fuse-uring: Avoid queue->stopped races and set/read that value under lock")
+b902890c62d2 ("mm/shrinker: do not hold RCU lock in shrinker_debugfs_count_show()")
 b902890c62d2 mm/shrinker: do not hold RCU lock in shrinker_debugfs_count_show()
 b9399d25fbb3 usb: free iso schedules on failed submit
+b9452b594fd3 ("bpf: Validate BTF repeated field counts before expansion")
+baa5e094886f ("ksmbd: use opener credentials for ADS I/O")
+baa6b6068a3f ("usb: gadget: f_fs: Fix DMA fence leak")
+badc53620fe8 ("nvme: target: rdma: fix ndev refcount leak on queue connect")
+badff6c3bed8 ("Bluetooth: btnxpuart: Fix out-of-bounds firmware read in nxp_recv_fw_req_v3()")
 bb067a99a035 Bluetooth: bnep: pin L2CAP connection during netdev registration
+bb365a506b1e ("KVM: x86: Unconditionally recompute CR8 intercept on PPR update")
 bc0e4f16c44e USB: iowarrior: fix use-after-free on disconnect
+bc4a98288978 ("rust_binder: clear freeze listener on node removal")
+bcb8889c4981 ("cpufreq: qcom-cpufreq-hw: Fix possible double free")
 be6d26bf2749 ksmbd: serialize QUERY_DIRECTORY requests per file
+be93d186ae88 ("iommufd: Use sizeof(*hdr) instead of sizeof(hdr) in veventq read")
 bea4fe98204b fuse-uring: end fuse_req on io-uring cancel task work
+c085d82613d5 ("platform/x86: intel-hid: Protect ACPI notify handler against recursion")
+c1016dd1d8b2 ("ksmbd: track the connection owning a byte-range lock")
+c205bd1b28fb ("ALSA: cmipci: check snd_ctl_new1() return value")
 c205bd1b28fb ALSA: cmipci: check snd_ctl_new1() return value
 c3e94604675e tracing: Fix NULL pointer dereference in func_set_flag()
+c5371e0b91b2 ("usbip: vudc: fix NULL deref in vep_dequeue()")
 c5371e0b91b2 usbip: vudc: fix NULL deref in vep_dequeue()
 c5b600a3c05b Bluetooth: btusb: fix use-after-free on marvell probe failure
 c602254ba4c1 USB: iowarrior: fix use-after-free on disconnect race
+c72da0688575 ("iio: adc: ad_sigma_delta: fix CS held asserted and state leaks")
+c77a6cbb36ff ("ALSA: virtio: Validate control metadata from the device")
 c77a6cbb36ff ALSA: virtio: Validate control metadata from the device
+c7fa99d30c7a ("ALSA: gus: check snd_ctl_new1() return value")
 c7fa99d30c7a ALSA: gus: check snd_ctl_new1() return value
+c9a71daaecb2 ("audit: Fix data races of skb_queue_len() readers on audit_queue")
 c9a71daaecb2 audit: Fix data races of skb_queue_len() readers on audit_queue
+ca674df13b19 ("KVM: VMX: Handle bad values on proxied writes to LBR MSRs")
 ca674df13b19 KVM: VMX: Handle bad values on proxied writes to LBR MSRs
 cba38ec4cbd3 writeback: fix race between cgroup_writeback_umount() and inode_switch_wbs()
+cbfe53599eeb ("netfilter: ebtables: zero chainstack array")
 cc9af5e461ea xfs: use null daddr for unset first bad log block
+ce0e1cae2609 ("iio: accel: bmc150: clamp the device-reported FIFO frame count")
 ce0e1cae2609 iio: accel: bmc150: clamp the device-reported FIFO frame count
+cedff600f164 ("ksmbd: require source read access for duplicate extents")
 d129c3177d7b net: af_key: initialize alg_key_len for IPComp states
 d20d1c8ba576 ksmbd: fix UAF of struct file_lock in SMB2_LOCK deferred-lock cancellation
 d351da750669 fuse-uring: Avoid use-after-free in fuse_uring_async_stop_queues
 d3a9a8cf2d7f staging: media: ipu7: fix double-free and use-after-free in error paths
+d5541eb148da ("Bluetooth: ISO: avoid NULL deref of conn in iso_conn_big_sync()")
 d5541eb148da Bluetooth: ISO: avoid NULL deref of conn in iso_conn_big_sync()
+d577e46785d4 ("Input: synaptics-rmi4 - bound the F30 keymap to the GPIO/LED count")
 d577e46785d4 Input: synaptics-rmi4 - bound the F30 keymap to the GPIO/LED count
 d67aadee19ff hfs/hfsplus: zero-initialize buffer in hfs_bnode_read
+d766e4e5e85d ("xfs: don't wrap around quota ids in dqiterate")
+d8202786b3d7 ("udf: validate VAT header length against the VAT inode size")
+da5b58478a9c ("netfilter: handle unreadable frags")
+daedde7f024e ("vfio/pci: Release the VGA arbiter client on register_device() failure")
+db0a0768d092 ("HID: hid-goodix-spi: validate report size to prevent stack buffer overflow")
+dc7fe87de492 ("vfio: Remove device debugfs before releasing devres")
+dd29c017aed6 ("sched/rt: Have RT_PUSH_IPI be default off for non PREEMPT_RT")
+df2b818fa009 ("Input: elan_i2c - prevent division by zero and arithmetic underflow")
 df2b818fa009 Input: elan_i2c - prevent division by zero and arithmetic underflow
+e0f844d9d742 ("usb: dwc3: fix dwc3_readl() and dwc3_writel() calls in dwc3_ulpi_setup()")
+e187bc02f8fa ("mm: do file ownership checks with the proper mount idmap")
+e30453c61e18 ("mm: shrinker: fix NULL pointer dereference in debugfs")
 e30453c61e18 mm: shrinker: fix NULL pointer dereference in debugfs
 e3046eeada29 hwrng: virtio: clamp device-reported used.len at copy_data()
+e3d9c7160d48 ("smb: client: mask server-provided mode to 07777 in modefromsid")
+e5248a742603 ("svcrdma: wake sq waiters when the transport closes")
 e561b35633f4 iio: adc: lpc32xx: Initialize completion before requesting IRQ
+e64d170346d0 ("ALSA: ymfpci: check snd_ctl_new1() return value")
 e64d170346d0 ALSA: ymfpci: check snd_ctl_new1() return value
+e8042f6e1d7b ("KVM: arm64: Clear __hyp_running_vcpu when flushing the pKVM hyp vCPU")
 e8422d89e8af staging: vme_user: fix location monitor leak in fake bridge
+e8da46d99d37 ("usb: typec: tcpci_rt1711h: unregister TCPCI port with devres")
+eba85fee7fc6 ("KVM: guest_memfd: Treat memslot binding offset+size as unsigned values")
 ec457f9afe5a smb: client: resolve SWN tcon from live registrations
+ed459fe31937 ("crypto: pcrypt - restore callback for non-parallel fallback")
 ed51de4a86e1 staging: rtl8723bs: fix OOB read in update_beacon_info() IE loop
+ee89db004238 ("Input: maplemouse - fix NULL pointer dereference in open()")
 ee89db004238 Input: maplemouse - fix NULL pointer dereference in open()
 eedc6867ebad Bluetooth: btusb: fix use-after-free on registration failure
 ef61d628dfad staging: rtl8723bs: fix OOB reads in IE loops in issue_assocreq() and join_cmd_hdl()
+efb8763d7bbb ("net: ipv4: bound TCP reordering sysctl writes and MTU probe sizes")
+f13e90059908 ("KVM: SEV: Pin source page for write when adding CPUID data for SNP guest")
 f223d27a546c binder: fix UAF in binder_free_transaction()
+f2365a63b02d ("vfio/mlx5: Fix racy bitfields and tighten struct layout")
+f34f1712229d ("PCI/IOV: Skip VF Resizable BAR restore on read error")
+f7d380fb525c ("virtio_pci: fix vq info pointer lookup via wrong index")
 f7d380fb525c virtio_pci: fix vq info pointer lookup via wrong index
+f7f3f9fd81e7 ("ALSA: caiaq: fix out-of-bounds read in the Traktor Kontrol S4 input parser")
 f7f3f9fd81e7 ALSA: caiaq: fix out-of-bounds read in the Traktor Kontrol S4 input parser
 f8001e1a516b staging: rtl8723bs: fix OOB write in HT_caps_handler()
+f865a57896bd ("PCI: mediatek: Fix IRQ domain leak when port fails to enable")
 f8f680609c2b usb: gadget: composite: fix dead empty check in the USB_DT_OTG handler
 f8fce75fedf7 fuse: clear intr_entry in fuse_resend and fuse_remove_pending_req
 f91e9dbb5845 crypto: ccp - Do not initialize SNP for ioctl(SNP_VLEK_LOAD)
 f9654207e922 staging: rtl8723bs: fix OOB read in OnAssocRsp() IE loop
+f96e1cdcb63e ("smb: client: fix double-free in SMB2_close() replay")
+f9bbadb6c945 ("smb: client: fix double-free in SMB2_ioctl() replay")
+fa09f08ede3d ("coresight: etb10: restore atomic_t for shared reading state")
 fa09f08ede3d coresight: etb10: restore atomic_t for shared reading state
+fa11039d6cdf ("regulator: scmi: fix of_node refcount leak in scmi_regulator_probe()")
 fa85d985f614 Bluetooth: MGMT: Fix UAF of hci_conn_params in add_device_complete
 fb1758e74b80 crypto: ccp - Do not initialize SNP for SEV ioctls
+fbe67ff37a6f ("iio: pressure: mpl115: fix runtime PM leak on read error")
+fc16126cc11d ("x86,fs/resctrl: Prevent out-of-bounds access while offlining CPU when SNC enabled")
+fc3b071a7c8d ("fpga: dfl-afu: validate DMA mapping length in afu_dma_map_region()")
 ff002c153f97 USB: idmouse: fix use-after-free on disconnect race
+ffd017237cfe ("mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access")
+ffdd2bc37895 ("crypto: af_alg - Remove zero-copy support from skcipher and aead")
 ffdd2bc37895 crypto: af_alg - Remove zero-copy support from skcipher and aead
