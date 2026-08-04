@@ -122,6 +122,14 @@ name = "cvss_vector"
 path = "cvss/tests/vector.rs"
 
 [[test]]
+name = "cvss_rationale"
+path = "cvss/tests/rationale.rs"
+
+[[test]]
+name = "cvss_corpus"
+path = "cvss/tests/corpus.rs"
+
+[[test]]
 name = "dyad"
 path = "dyad/tests/dyad.rs"
 
