@@ -81,10 +81,22 @@ pub struct CvssV31 {
     pub base_severity: String,
 }
 
+/// Free-text note attached to a metric. The CVE schema means this as "which
+/// scenario does this score apply to"; we use it to carry the reasoning
+/// behind each metric value, as it is the only text field a metric has.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Scenario {
+    pub lang: String,
+    pub value: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CvssMetric {
     #[serde(rename = "cvssV3_1")]
     pub cvss_v3_1: CvssV31,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub scenarios: Vec<Scenario>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
