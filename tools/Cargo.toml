@@ -101,6 +101,10 @@ name = "cve_stats"
 path = "cve_utils/src/bin/cve_stats.rs"
 
 [[bin]]
+name = "cvss_backfill"
+path = "cve_utils/src/bin/cvss_backfill.rs"
+
+[[bin]]
 name = "cvss"
 path = "cvss/src/main.rs"
 
