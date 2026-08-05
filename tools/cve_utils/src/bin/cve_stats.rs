@@ -497,8 +497,14 @@ fn show_author_stats(cve_root: &Path, kernel_tree: &Path, num_authors: usize) ->
     author_vec.sort_by(|a, b| b.1.cmp(a.1));
 
     // Show the top N authors
+    let mut order = 0;
+    let mut prev_count = 0;
     for (i, (author, count)) in author_vec.iter().take(num_authors).enumerate() {
-        println!("{}. {} ({} commits)", i + 1, author, count);
+        if prev_count != **count {
+            order += i - order;
+        }
+        prev_count = **count;
+        println!("{}. {} ({} commits)", order + 1, author, count);
     }
 
     Ok(())
