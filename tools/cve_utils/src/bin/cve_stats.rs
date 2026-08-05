@@ -96,6 +96,18 @@ fn find_cve_root() -> Result<PathBuf> {
 fn main() {
     let cli = Args::parse();
 
+    // If no args specified, show usage
+    if !cli.summary && cli.authors.is_none() && cli.subsystem.is_none() &&
+       cli.versions.is_none() && !cli.ttf {
+        println!("Usage: cve_stats [--summary] [--authors[=N]] [--subsystem[=M[,S]]] [--versions[=N]] [--ttf]");
+        println!("  --summary              Show general CVE statistics");
+        println!("  --authors[=N]          Show top N CVE commit authors (default: 10)");
+        println!("  --subsystem[=M[,S]]    Show top M subsystems with S sub-subsystems each (default: M=10,S=3)");
+        println!("  --versions[=N]         Show top N kernel versions with CVE fixes (default: 10)");
+        println!("  --ttf                  Show Time to Fix analysis");
+        std::process::exit(1);
+    }
+
     // Validate CVEKERNELTREE environment variable
     let kernel_tree = env::var("CVEKERNELTREE").map_or_else(
         |_| {
@@ -207,17 +219,6 @@ fn run(args: &Args, cve_root: &Path, kernel_tree: &Path) -> Result<()> {
     // Show time-to-fix analysis if requested
     if args.ttf {
         show_time_to_fix_stats(cve_root, kernel_tree);
-    }
-
-    // If no args specified, show usage
-    if !args.summary && args.authors.is_none() && args.subsystem.is_none() &&
-       args.versions.is_none() && !args.ttf {
-        println!("Usage: cve_stats [--summary] [--authors[=N]] [--subsystem[=M[,S]]] [--versions[=N]] [--ttf]");
-        println!("  --summary              Show general CVE statistics");
-        println!("  --authors[=N]          Show top N CVE commit authors (default: 10)");
-        println!("  --subsystem[=M[,S]]    Show top M subsystems with S sub-subsystems each (default: M=10,S=3)");
-        println!("  --versions[=N]          Show top N kernel versions with CVE fixes (default: 10)");
-        println!("  --ttf                  Show Time to Fix analysis");
     }
 
     Ok(())
