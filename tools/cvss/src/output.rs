@@ -4,30 +4,51 @@
 //
 // Copyright (c) 2026 - Sasha Levin <sashal@kernel.org>
 
+use std::path::Path;
+
 use crate::scoring::formula::ScoreResult;
 use crate::scoring::metrics::CvssMetrics;
+use crate::scoring::rationale::Rationale;
 
-pub fn print_result(
-    cve_id: Option<&str>,
-    vector: &str,
-    metrics: &CvssMetrics,
-    result: &ScoreResult,
-    verbose: bool,
-    json_output: bool,
-) {
-    if json_output {
-        print_json(cve_id, vector, result);
+/// Everything there is to say about one scored vector.
+pub struct Result_<'a> {
+    pub cve_id: Option<&'a str>,
+    pub vector: &'a str,
+    pub metrics: &'a CvssMetrics,
+    pub result: &'a ScoreResult,
+    pub rationale: Option<&'a Rationale>,
+    pub path: Option<&'a Path>,
+    pub verbose: bool,
+    pub json: bool,
+}
+
+pub fn print_result(args: &Result_) {
+    if args.json {
+        print_json(args);
         return;
     }
 
-    if let Some(id) = cve_id {
-        println!("{}  {:.1}  {}  {}", id, result.score, result.severity, vector);
+    if let Some(id) = args.cve_id {
+        println!(
+            "{}  {:.1}  {}  {}",
+            id, args.result.score, args.result.severity, args.vector
+        );
     } else {
-        println!("{:.1}  {}  {}", result.score, result.severity, vector);
+        println!(
+            "{:.1}  {}  {}",
+            args.result.score, args.result.severity, args.vector
+        );
     }
 
-    if verbose {
-        print_verbose(metrics, result);
+    if args.verbose {
+        print_verbose(args.metrics, args.result);
+
+        if let Some(rationale) = args.rationale {
+            println!("  ---");
+            for line in rationale.render().lines() {
+                println!("  {line}");
+            }
+        }
     }
 }
 
@@ -75,25 +96,28 @@ fn print_verbose(metrics: &CvssMetrics, result: &ScoreResult) {
     );
 }
 
-fn print_json(cve_id: Option<&str>, vector: &str, result: &ScoreResult) {
-    let json = if let Some(id) = cve_id {
-        serde_json::json!({
-            "cveId": id,
-            "score": result.score,
-            "severity": result.severity,
-            "vectorString": vector
-        })
-    } else {
-        serde_json::json!({
-            "score": result.score,
-            "severity": result.severity,
-            "vectorString": vector
-        })
-    };
+fn print_json(args: &Result_) {
+    let mut json = serde_json::Map::new();
+
+    if let Some(id) = args.cve_id {
+        json.insert("cveId".to_string(), id.into());
+    }
+    json.insert("score".to_string(), args.result.score.into());
+    json.insert("severity".to_string(), args.result.severity.clone().into());
+    json.insert("vectorString".to_string(), args.vector.into());
+    if let Some(path) = args.path {
+        json.insert("path".to_string(), path.display().to_string().into());
+    }
+    if let Some(rationale) = args.rationale {
+        json.insert(
+            "rationale".to_string(),
+            rationale.to_scenario_value().into(),
+        );
+    }
 
     let formatter = serde_json::ser::PrettyFormatter::with_indent(b"   ");
     let mut buf = Vec::new();
     let mut ser = serde_json::ser::Serializer::with_formatter(&mut buf, formatter);
-    serde::Serialize::serialize(&json, &mut ser).unwrap();
+    serde::Serialize::serialize(&serde_json::Value::Object(json), &mut ser).unwrap();
     println!("{}", String::from_utf8(buf).unwrap());
 }

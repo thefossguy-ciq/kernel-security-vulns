@@ -17,7 +17,8 @@ mod policy;
 mod utils;
 
 use commands::{generate_json, generate_mbox, json::CveRecordParams, mbox::MboxParams};
-use models::{Args, CvssMetric, CvssV31, DyadEntry};
+use cve_utils::cvss::rationale::Rationale;
+use models::{Args, CvssMetric, CvssV31, DyadEntry, Scenario};
 use utils::{
     get_commit_subject, get_commit_text, read_message_file, read_tags_file,
     run_dyad, strip_commit_text,
@@ -312,54 +313,41 @@ fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
 
 /// Parse a .cvss file into CvssMetric entries.
 ///
-/// Each line has the format: `CNA_ID CVSS_VECTOR`
-/// Lines starting with '#' and empty lines are ignored.
-fn parse_cvss_file(path: &Path) -> Vec<CvssMetric> {
-    let content = match std::fs::read_to_string(path) {
-        Ok(c) => c,
-        Err(e) => {
-            warn!("Failed to read CVSS file {}: {e}", path.display());
-            return Vec::new();
-        }
+/// The file holds one or more `CNA_ID CVSS_VECTOR` lines, optionally followed
+/// by a blank line and the rationale for the score. The rationale is published
+/// as `metrics[].scenarios[].value`.
+///
+/// A file we were told to use but cannot use is an error, not a reason to
+/// carry on: dropping the metrics would quietly strip the score from a record
+/// that already has one.
+fn parse_cvss_file(path: &Path) -> Result<Vec<CvssMetric>> {
+    let file = cve_utils::cvss::file::CvssFile::read(path)?;
+    file.validate()?;
+
+    let scenarios = match file.rationale.as_ref().map(Rationale::to_scenario_value) {
+        Some(value) => vec![Scenario {
+            lang: "en".to_string(),
+            value,
+        }],
+        None => Vec::new(),
     };
 
-    let mut metrics = Vec::new();
-    for line in content.lines() {
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-
-        let (_cna_id, vector_str) = match line.split_once(char::is_whitespace) {
-            Some((id, v)) => (id.trim(), v.trim()),
-            None => {
-                warn!("Invalid CVSS line (expected 'CNA_ID VECTOR'): {line}");
-                continue;
+    Ok(file
+        .entries
+        .iter()
+        .map(|entry| {
+            let result = entry.score();
+            CvssMetric {
+                cvss_v3_1: CvssV31 {
+                    version: "3.1".to_string(),
+                    vector_string: entry.vector_string(),
+                    base_score: result.score,
+                    base_severity: result.severity,
+                },
+                scenarios: scenarios.clone(),
             }
-        };
-
-        let parsed = match cve_utils::cvss::vector::parse_vector(vector_str) {
-            Ok(m) => m,
-            Err(e) => {
-                warn!("Invalid CVSS vector '{vector_str}': {e}");
-                continue;
-            }
-        };
-
-        let result = cve_utils::cvss::formula::compute_base_score(&parsed);
-        let canonical = cve_utils::cvss::vector::format_vector(&parsed);
-
-        metrics.push(CvssMetric {
-            cvss_v3_1: CvssV31 {
-                version: "3.1".to_string(),
-                vector_string: canonical,
-                base_score: result.score,
-                base_severity: result.severity.clone(),
-            },
-        });
-    }
-
-    metrics
+        })
+        .collect())
 }
 
 /// Output parameters for generating files
@@ -482,7 +470,8 @@ fn main() -> Result<()> {
 
     // Parse CVSS file if specified
     let cvss_metrics = match args.cvss {
-        Some(ref path) => parse_cvss_file(path),
+        Some(ref path) => parse_cvss_file(path)
+            .with_context(|| format!("reading CVSS file {}", path.display()))?,
         None => Vec::new(),
     };
 
@@ -808,6 +797,138 @@ mod tests {
         file.write_all(b"").unwrap();
         let result = utils::file::read_uuid(dir.path());
         assert!(result.is_err());
+    }
+
+    const TEST_CNA: &str = "f4215fc3-5b6b-47ff-a258-f7189bd81038";
+    const TEST_VECTOR: &str = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H";
+
+    fn test_rationale() -> String {
+        [
+            "AV:L - reachable only through local file I/O",
+            "AC:L - fully deterministic, no race to win",
+            "PR:L - an unprivileged local user suffices",
+            "UI:N - no action from any other user is needed",
+            "S:U - stays inside the kernel's own security authority",
+            "C:N - the fault happens before any data is returned",
+            "I:H - an attacker-chosen modification of protected state",
+            "A:H - panics outright on panic_on_oops builds",
+        ]
+        .join("\n")
+    }
+
+    fn write_cvss_file(dir: &std::path::Path, content: &str) -> PathBuf {
+        let path = dir.join("CVE-2026-00001.cvss");
+        std::fs::write(&path, content).unwrap();
+        path
+    }
+
+    #[test]
+    fn test_parse_cvss_file_without_rationale() {
+        let dir = tempdir().unwrap();
+        let path = write_cvss_file(dir.path(), &format!("{TEST_CNA} {TEST_VECTOR}\n"));
+
+        let metrics = parse_cvss_file(&path).unwrap();
+        assert_eq!(metrics.len(), 1);
+        assert_eq!(metrics[0].cvss_v3_1.vector_string, TEST_VECTOR);
+        assert_eq!(metrics[0].cvss_v3_1.base_score, 7.1);
+        assert_eq!(metrics[0].cvss_v3_1.base_severity, "HIGH");
+        assert!(metrics[0].scenarios.is_empty());
+    }
+
+    #[test]
+    fn test_parse_cvss_file_with_rationale() {
+        let dir = tempdir().unwrap();
+        let path = write_cvss_file(
+            dir.path(),
+            &format!("{TEST_CNA} {TEST_VECTOR}\n\n{}\n", test_rationale()),
+        );
+
+        let metrics = parse_cvss_file(&path).unwrap();
+        assert_eq!(metrics.len(), 1);
+        assert_eq!(metrics[0].scenarios.len(), 1);
+        assert_eq!(metrics[0].scenarios[0].lang, "en");
+
+        let value = &metrics[0].scenarios[0].value;
+        assert_eq!(value.lines().count(), 8);
+        assert!(value.starts_with("AV:L - reachable only through local file I/O"));
+        assert!(value.ends_with("A:H - panics outright on panic_on_oops builds"));
+    }
+
+    #[test]
+    fn test_parse_cvss_file_rejects_over_length_rationale() {
+        let dir = tempdir().unwrap();
+        let padding = "word ".repeat(1000);
+        let over_long = test_rationale().replace(
+            "AV:L - reachable only through local file I/O",
+            &format!("AV:L - reachable only through local file I/O {padding}"),
+        );
+        let path = write_cvss_file(
+            dir.path(),
+            &format!("{TEST_CNA} {TEST_VECTOR}\n\n{over_long}\n"),
+        );
+
+        let err = parse_cvss_file(&path).unwrap_err().to_string();
+        assert!(err.contains("4096"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn test_parse_cvss_file_rejects_rationale_that_disagrees_with_the_vector() {
+        let dir = tempdir().unwrap();
+        let path = write_cvss_file(
+            dir.path(),
+            &format!(
+                "{TEST_CNA} CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H\n\n{}\n",
+                test_rationale()
+            ),
+        );
+
+        assert!(parse_cvss_file(&path).is_err());
+    }
+
+    #[test]
+    fn test_parse_cvss_file_reports_unusable_files() {
+        let dir = tempdir().unwrap();
+
+        // Silently returning no metrics here would strip the score from a
+        // record that already has one.
+        let path = write_cvss_file(dir.path(), "not-a-cvss-file\n");
+        assert!(parse_cvss_file(&path).is_err());
+
+        let missing = dir.path().join("CVE-2026-00002.cvss");
+        assert!(parse_cvss_file(&missing).is_err());
+    }
+
+    #[test]
+    fn test_parse_cvss_file_handles_crlf() {
+        let dir = tempdir().unwrap();
+        let content = format!("{TEST_CNA} {TEST_VECTOR}\n\n{}\n", test_rationale());
+        let path = write_cvss_file(dir.path(), &content.replace('\n', "\r\n"));
+
+        let metrics = parse_cvss_file(&path).unwrap();
+        assert_eq!(metrics.len(), 1);
+        assert_eq!(metrics[0].scenarios.len(), 1);
+        assert_eq!(metrics[0].scenarios[0].value.lines().count(), 8);
+        assert!(!metrics[0].scenarios[0].value.contains('\r'));
+    }
+
+    #[test]
+    fn test_cvss_metric_serializes_scenarios() {
+        let dir = tempdir().unwrap();
+        let path = write_cvss_file(
+            dir.path(),
+            &format!("{TEST_CNA} {TEST_VECTOR}\n\n{}\n", test_rationale()),
+        );
+
+        let metrics = parse_cvss_file(&path).unwrap();
+        let json = serde_json::to_string_pretty(&metrics[0]).unwrap();
+        assert!(json.contains("\"cvssV3_1\""), "{json}");
+        assert!(json.contains("\"scenarios\""), "{json}");
+        assert!(json.contains("\"lang\": \"en\""), "{json}");
+
+        // A metric with no rationale must not grow an empty scenarios array.
+        let bare = write_cvss_file(dir.path(), &format!("{TEST_CNA} {TEST_VECTOR}\n"));
+        let bare_json = serde_json::to_string(&parse_cvss_file(&bare).unwrap()[0]).unwrap();
+        assert!(!bare_json.contains("scenarios"), "{bare_json}");
     }
 
     #[test]

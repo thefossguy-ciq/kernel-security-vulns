@@ -101,6 +101,10 @@ name = "cve_stats"
 path = "cve_utils/src/bin/cve_stats.rs"
 
 [[bin]]
+name = "cvss_backfill"
+path = "cve_utils/src/bin/cvss_backfill.rs"
+
+[[bin]]
 name = "cvss"
 path = "cvss/src/main.rs"
 
@@ -120,6 +124,14 @@ path = "cvss/tests/formula.rs"
 [[test]]
 name = "cvss_vector"
 path = "cvss/tests/vector.rs"
+
+[[test]]
+name = "cvss_rationale"
+path = "cvss/tests/rationale.rs"
+
+[[test]]
+name = "cvss_corpus"
+path = "cvss/tests/corpus.rs"
 
 [[test]]
 name = "dyad"

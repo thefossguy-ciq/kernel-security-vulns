@@ -86,15 +86,49 @@ file is present, the cve_update script will use that to add a URL reference to
 the json and mbox entry.  The file can contain multiple URL references, one per
 line.
 
-Proposed, not implemented yet, here for discussion, might disappear at any moment:
 If a:
 	published/YEAR/CVE-YEAR-ID.cvss
-file is present, the cve_update script will use that to provide a CVSS score to
-the json and mbox entry.  The file contents must be a CVSS format, where the
-value and level will be automatically generated.  For example, the content of
-"CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H" will result in a value of 7.0
-and a level of HIGH.  See the tool, scripts/FIXME for how to validate a CVSS
-string and compute these values.
+file is present, the cve_update script will use it to provide a CVSS score for
+the json and mbox entry.  Not every CVE has one; we score what we judge to
+matter most, so a missing .cvss file is a decision and not a gap.
+
+The first line is the org id of the CNA that assigned the score followed by the
+CVSS v3.1 vector.  The numeric score and the severity level are computed from
+the vector, never stored.  For example:
+
+	f4215fc3-5b6b-47ff-a258-f7189bd81038 CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H
+
+results in a value of 7.0 and a level of HIGH.
+
+After a blank line the file may carry the reasoning behind the score, one
+paragraph per metric in vector order, wrapped at 72 columns with continuation
+lines indented four spaces:
+
+	f4215fc3-5b6b-47ff-a258-f7189bd81038 CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H
+
+	AV:L - Despite living in net/sctp/, `proc_sctp_do_auth()` is a procfs
+	    sysctl ->proc_handler that no received SCTP packet, socket, or
+	    association path ever invokes.
+	AC:L - Both trigger paths are fully deterministic and entirely
+	    attacker-scripted, with no race and no victim state.
+	PR:L - ...
+	UI:N - ...
+	S:U - ...
+	C:N - ...
+	I:H - ...
+	A:H - ...
+
+A few older entries hold free prose there instead, which is also accepted.
+
+The explanation is published in the json record as the metrics entry's
+scenarios[].value, with the wrapping undone so each metric is one line.  That
+field holds at most 4096 characters, which the tools enforce: a longer
+explanation is kept in the .cvss file but left out of the record rather than
+producing something the CVE schema would reject.
+
+Use the 'cvss' tool to write these files; it computes the score, keeps the
+formatting canonical, and refuses a rationale that disagrees with the vector it
+is meant to explain.  'cvss --check' validates the files already in the tree.
 
 
 Rejected
