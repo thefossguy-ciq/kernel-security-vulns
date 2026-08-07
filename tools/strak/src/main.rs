@@ -432,7 +432,7 @@ fn print_unfixed_cves(dyad_records: &Vec<DyadRecord>, test_kernel: &Kernel, ctx:
     }
 
     println!(
-        "\nTotal Vulnerable CVE's in {} : {}",
+        "\nTotal Vulnerable CVEs in {} : {}",
         test_kernel
             .version()
             .if_supports_color(Stdout, |x| x.green()),
