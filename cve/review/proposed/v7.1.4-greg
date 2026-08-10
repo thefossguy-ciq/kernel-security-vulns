@@ -352,3 +352,12 @@ ff002c153f97 USB: idmouse: fix use-after-free on disconnect race
 ffd017237cfe ("mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access")
 ffdd2bc37895 ("crypto: af_alg - Remove zero-copy support from skcipher and aead")
 ffdd2bc37895 crypto: af_alg - Remove zero-copy support from skcipher and aead
+151edde741f8 ("staging: vme_user: fix location monitor leak in tsi148 bridge")
+1b0d946d6f08 ("Bluetooth: hci_uart: clear HCI_UART_SENDING when write_work is canceled")
+2dfe9f5c91d0 ("mm/khugepaged: write all dirty file folios when collapsing")
+55f1ad573e34 ("HID: wacom: use GFP_ATOMIC in wacom_wac_queue_flush()")
+95f90eea0708 ("usb: gadget: function: rndis: add length check to response query")
+ab92ed206d41 ("iio: core: fix uninitialized data in debugfs")
+b81dde13cc16 ("debugobjects: Plug race against a concurrent OOM disable")
+ec2612b8ad9e ("HID: wacom: stop hardware after post-start probe failures")
+f24df84cbe05 ("time/jiffies: Register jiffies clocksource before usage")
