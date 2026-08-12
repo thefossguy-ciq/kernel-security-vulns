@@ -401,3 +401,7 @@ bbf0a8e93120 ("ksmbd: restore DACL size on check_add_overflow() to avoid malform
 5152c6d49e3f ("ksmbd: validate ACE size against SID sub-authorities")
 952b5d36f6a2 ("fuse-uring: fix race between registration and connection abortion")
 25f744ffa0c8 ("KVM: SVM: Bump asid_generation on CPU online to avoid ASID collision after hotplug")
+426ffae6ecc7 ("drm/amdkfd: clamp v9 CRIU control stack checkpoint copy to BO size")
+6a8269b6459e ("btrfs: free mapping node on duplicate reloc root insert")
+a1e0eb8f55cf ("ovl: check access to copy_file_range source with src mounter creds")
+c2130f6553f4 ("ata: sata_dwc_460ex: fix infinite loop in NCQ tag completion bit-scanning")
