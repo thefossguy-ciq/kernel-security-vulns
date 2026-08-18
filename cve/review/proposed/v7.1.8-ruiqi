@@ -1,0 +1,177 @@
+295dd295e213 net: mpls: initialize rtm_tos in mpls_getroute()
+d9e6a7623938 mm/slab: prevent unbounded recursion in free path with new kmalloc type
+2c5d2d3c3f70 thunderbolt: Prevent XDomain delayed work use-after-free on disconnect
+51a0e8399858 btrfs: skip global block reserve accounting for rescue mounts
+8bed376124ab ntfs: harden runlist realloc size calculations
+db3d0e0e5d4b netfilter: nf_conntrack_sip: widen NAT rewrite delta to s32 in sip_help_tcp()
+233a4d3a39fc drm/mediatek: Check CRTC state before freeing
+cbfe2b24a1ea KVM: arm64: vgic: Fix race between LPI release and re-registration
+63918731f9ae keys: fix out-of-bounds read in keyring_get_key_chunk()
+58565eef0f8d keys: make keyring key-chunk byte order agree with keyring_diff_objects()
+f4f699790590 netfilter: nf_tables: make nft_object rhltable per table
+15cab31a3730 ipvs: fix places with wrong packet offsets
+342e24a339b9 ipvs: do not mangle ICMP replies for non-first fragments
+39e88f28fb32 netfilter: nft_payload: fix mask build for partial field offload
+78f75d632f74 rds: tcp: hold the RCU lock across ipv6_chk_addr() in rds_tcp_laddr_check()
+072cd1f21819 nexthop: take nh->lock for f6i_list walks in replace check and notify
+4787a6d2629b nexthop: avoid unlocked f6i_list walk in nh_rt_cache_flush
+72f2b4516faf xsk: reclaim invalid Tx descriptors in ZC batch path
+98b87885de4b scsi: libiscsi: Fix stale-data leak into the SCSI sense buffer
+c1dea15f819c scsi: libiscsi_tcp: Bound SCSI Response data segment to the connection buffer
+96b2dbbe58a1 erofs: ensure valid f_path for page cache sharing
+47abd2ca2815 wifi: ath12k: fix out-of-bounds clear_bit in ath12k_mac_dp_peer_cleanup()
+b0e8adb2ccb4 hwmon: (nct6775-core) Fix number of temperature registers for NCT6116
+aa9429edf9fc hwmon: (lm90) Only report alarms if driver is ready
+080bbf42faf7 hwmon: (nzxt-smart2) DMA-align output buffer
+dbc3791e3b24 net: do not send ICMP/NDISC Redirects when peer allocation fails
+d0b704e569ac hwmon: (nct6775-core) Prevent access to unsupported weight registers
+22666ba14201 forcedeth: fix UAF of txrx_stats in nv_remove
+cb0b7f9c43b0 hwmon: (adt7470) Fix busy-loop and I2C flooding in update thread
+1b46fe9dc8f8 hwmon: (adt7470) Fix divide-by-zero TOCTOU crash in fan speed read
+6fb7b769d6ed rtase: fix double free of multi-frag skb on DMA map failure
+aef96eead286 net/sched: cls_u32: validate offshift to prevent shift-out-of-bounds
+0502d5077e41 wifi: mac80211: validate individual TWT params before driver setup
+a81fc9266e1c netfs: clear PG_private_2 on copy-to-cache append failure
+37a1c535c80c netfs: handle single writeback rolling buffer allocation failure
+87eb3d272dcb netfs: release readahead folios on iterator preparation failure
+1d78d56c43ef netfs: Fix folio_queue ENOMEM in writeback by adding a mempool
+e095f249e220 net: ethernet: mtk_eth_soc: pass eth to mtk_handle_irq_rx in poll_controller
+9f7007ee9858 idpf: bound interrupt-vector register fill to the allocated array
+d57e506f6a1e Bluetooth: ISO: clear iso_data always when detaching conn from hcon
+c4740e7f23ff Bluetooth: L2CAP: fix UAF in l2cap_le_connect_rsp
+89cf154d7c18 Bluetooth: ISO: lock sk in iso_sock_getname
+4311fd6f4290 Bluetooth: ISO: lock sk in iso_connect_ind
+0d255e63fcf3 Bluetooth: ISO: hold sk properly in iso_conn_ready
+ce57442a3792 Bluetooth: ISO: fix leaking sk after socket release
+200fa1629c57 Bluetooth: ISO: avoid deadlocks in iso_sock_timeout
+aa9f7cb2bd3a Bluetooth: ISO: ensure no dangling hcon references in iso_conn
+fdfde532ab1c Bluetooth: ISO: fix refcounting of iso_conn
+af24e338bf5d Bluetooth: ISO: fix race of kfree vs kref_get_unless_zero
+b640ff9af3c8 Bluetooth: btintel: Validate length before parsing diagnostics TLV
+5761d003daa9 Bluetooth: hci_conn: hold conn reference in abort_conn_sync()
+2f5d635ad590 Bluetooth: hci_sync: hold conn in hci_connect_acl/le_sync() callbacks
+56e78b670356 Bluetooth: hci_sync: hold conn in hci_connect_big_sync() callback
+44fc74069d89 Bluetooth: hci_sync: hold conn in hci_connect_pa_sync() callback
+abf9753edf3f Bluetooth: hci_sync: hold conn in hci_past_sync() callback
+2c1e4e00613d Bluetooth: hci_sync: fix hci_conn_del() use in hci_le_create_conn_sync
+f71b4a30983b scsi: ufs: core: Cancel RTC work in active-active suspend
+a8ddfd2425bb scsi: target: Clear cmd_cnt when initial counter enrollment fails
+0279fd451a99 scsi: ufs: core: Initialize hba->rpmbs list in ufshcd
+51b093a7ba27 net: sxgbe: check descriptor ring allocation failures
+a0188cc13369 riscv: mm: Fix out-of-bounds page-table walk during memory hot-remove
+451c9075d6c5 qede: sync udp_tunnel ports outside qede_lock in the recovery path
+e7188199eff4 ksmbd: fix use-after-free in __close_file_table_ids()
+e8bb506e6ef7 ksmbd: use memcmp() to compare ClientGUIDs
+0762262ac3e7 mshv: Fix race in mshv_irqfd_deassign
+9be311cfbe61 iommufd/viommu: Publish a vDEVICE only after vdevice_init() succeeds
+ba5c0f28a26e iommufd: Fix wrong hwpt passed to iommufd_auto_response_faults on replace
+738e6f32e61d iommu/iommufd: Fix IOPF group ownership UAF
+11055a46f398 ACPI: CPPC: Check all controls for fast switching
+83abe2fd5b3a mm/hugetlb: fix swap entry corruption when clearing uffd-wp at fork()
+015b5bcbcb62 pinctrl: devicetree: don't free uninitialized dev_name on error path
+89b1b79c3088 mm/percpu-km: fix bitmap overflow and accounting in pcpu_create_chunk()
+dd9623f58ec7 mm/hugetlb: fix list corruption in allocate_file_region_entries()
+4165b7d1c45c userfaultfd: wait on source PMD during UFFDIO_MOVE
+9910e835580f KVM: x86: Cancel delayed I/O APIC EOI handling before destroying vCPUs
+7d3aae206663 KVM: SVM: Update x2APIC MSR intercepts if AVIC is inhibited while L2 is active
+8fa01be5a614 KVM: s390: pci: Reject adapter interrupt forwarding if already enabled
+36f6999ecde3 KVM: s390: pci: Fix memory accounting for pinned/unpinned pages
+5580c9858f1e KVM: s390: pci: Fix resource leak on IRQ registration failure
+8bf09b9b7d32 KVM: s390: pci: Fix NULL dereference on AIBV allocation failure
+868d32ac72cb KVM: s390: pci: Validate AIBV and AISB before pinning guest pages
+a10ea943356b dibs: fix use-after-free of dmb_node in loopback attach/detach/unregister
+74b21f52c5c5 sctp: validate Adaptation Indication parameter length
+f865c143629d audit: fix potential integer overflow in audit_log_n_string()
+246df90b5f1a audit: fix potential use-after-free in audit_del_rule()
+8f2f62855a41 Bluetooth: mgmt: fix pending command UAF in EIR updates
+abd93c85c866 Bluetooth: SCO: give the socket its own sco_conn reference
+d0a7b48ad092 Bluetooth: mgmt: fix UAF in pair command cancellation
+cdc36db204ff Bluetooth: hci_sync: Fix advertising data UAFs
+47778d2c2087 Bluetooth: HIDP: reject frames without a transaction header
+34f53d27b81a Bluetooth: HIDP: validate numbered report payloads
+88c17de85ddb bpf: lwt: Fix dst reference leak on reroute failure
+4af1ec68d54b afs: Fix UAF when sending a message
+a54bf16965f8 ALSA: 6fire: Fix UAF at error handling during probe
+f495b6c4c859 ALSA: pcm: wake linked drain waiters on unlink
+21e196884334 ALSA: seq: Fix division by zero in initialize_timer()
+c2744d5f3aea ALSA: timer: Clear SNDRV_TIMER_IFLG_DEAD once the close completes
+70c977815af0 ALSA: ump: fix double free of out_cvts on rawmidi error
+4a05b2d1b464 ALSA: usb-audio: fix use-after-free in ump_to_endpoint()
+441aaad150c5 ALSA: usb-audio: fix stack info leak in RME Digiface status
+0970274613fb ALSA: usb-audio: fix OOB write in snd_usbmidi_akai_output()
+d0199ae1666f ALSA: usb-audio: Fix DMA buffer out-of-bounds write when fill_max is set
+b14361aca635 fou: Fix use-after-free in fou_create()
+0565052b7e2f igbvf: Fix leak in TX DMA error cleanup
+a63d2dbaeb50 ipvs: do not propagate one-packet flag to synced conns
+cb469993b3a6 ksmbd: reject repeated SMB2 NEGOTIATE requests
+f621d6ebeebb net/smc: fix socket use-after-free during link group termination
+f30415929be8 netfilter: ipset: do not update comments from kernel-side hash adds
+bba13ad17b1a of/address: Fix NULL bus dereference in of_pci_range_parser_one()
+b4f1719dfea0 tipc: avoid use-after-free in poll trace queue dumps
+52075128273a x86/CPU/AMD: Carve out a Zen5 models range
+2f067f5a450e wifi: mac80211: fix tid_tx use-after-free on BA session stop
+99a948382af8 wifi: mwifiex: use the subframe length when parsing A-MSDU TDLS frames
+db1856ea9196 binfmt_misc: restore write access when removing an entry
+8e85d50ba111 binfmt_misc: reject a flag character as the field delimiter
+79055d82772b binfmt_misc: don't let an 'F' entry pin its own instance
+b8206f516fe7 binfmt_misc: don't leak the user namespace when the mount fails
+bc0e8faf90e7 io_uring: preserve task restrictions across exec
+e923bd21058e mm/huge_memory: unlock i_mmap_rwsem before releasing after-split folios
+0b45f6927a14 mm/page_reporting: use system_freezable_wq to fix UAF during suspend
+a39789f211b8 net: bridge: stop fast-leave after deleting a port group
+6aea62e433fe net: ipv6: clear suppressed fib6 rule result
+817ff6efdb7f net: pktgen: fix proc entry use-after-free
+af421e9aed39 um: vector: fix use-after-free in vector_mmsg_rx()
+cc679d7a6303 uprobes: Fix NULL pointer dereference in hprobe_expire()
+d0d641596304 veth: convert frag_list skbs before running XDP
+1395a676ec15 vxlan: re-fetch eth header after route_shortcircuit()
+8eca411347e1 vxlan: use neigh_ha_snapshot() in route_shortcircuit()
+b9553558b48d vxlan: use pskb_network_may_pull() for transmit path header pulls
+26bb2dd0a883 vxlan: use pskb_network_may_pull() in route_shortcircuit()
+e65848e4ce35 ublk: reset kernel-owned dev_info fields in ublk_ctrl_add_dev()
+ac8719969e6c tracing: Check return value of __register_event() in trace_module_add_events()
+93dde0bf2f39 scsi: scsi_debug: Fix REPORT ZONES alloc_len underflow OOB write
+bd0e9289e264 sctp: prevent peer transport count overflow
+725668c6b6aa power: supply: max17040: handle missing status supplier
+d211028bac1b s390/qeth: Check CAP_NET_ADMIN for private ioctls
+7f40b346462f s390/dasd: Fix undersized format-check buffer
+983279d7f86a s390/zcrypt: Fix wrong domain value verification with EP11 CPRBs
+e935cd525af4 s390/zcrypt: Close speculative mem read possibility
+36b230835b8a s390/zcrypt: Fix buffer over-read in cca_cipher2protkey
+01476391aece s390/zcrypt: Fix missing mem scrub at clear key import in cca_clr2cipherkey()
+06afe425d528 s390/zcrypt: Validate length for CCA AES cipher key requests
+a9ae0f6dd45c s390/zcrypt: Validate length for CCA ECC private key requests
+a58a2b0ce354 net: openvswitch: fix potential UAF on meter attach failure
+e1cf066244da net: openvswitch: fix skb leak on flow key update failure during recirculation
+bc62e843bc48 net: openvswitch: fix skb leak on flow key update failure during ct
+d99607c888f2 i2c: jz4780: Cache host clock rate at probe to prevent CCF prepare_lock deadlock
+00d86dd5c203 i2c: imx: mark I2C adapter when hardware is powered down
+02925f51377f can: ems_usb: validate CPC message lengths
+eb96c5890792 can: j1939: transport: j1939_session_fresh_new(): initialize receive buffer
+0293dd153f9d can: kvaser_usb_leaf: kvaser_usb_leaf_wait_cmd(): validate received command extents
+39132f166ca8 can: peak_usb: add bounds check for USB channel index
+9b3d5a6d952c can: peak_usb: peak_usb_start(): fix double free of transfer buffer on URB submit error
+93fcab2c6968 can: peak_usb: validate uCAN receive record lengths
+6395789e4739 drm/vc4: Supply the overflow slot size in BPOS, not the whole bin BO size
+48a570c964d8 drm/vc4: Zero the tile state data array before each BIN job
+bb493058c35c drm/amd/pm: fix pptable use-after-free
+000acb4ce7fb drm/amd/display: check if dml21_add_phantom_plane() is successful
+f327e389c07c drm/amd/display: Fix divide-by-zero in calculate_mcache_setting on zero viewport
+114b42507b6a drm/amd/display: use proper context for logging
+99b2fe4f19e3 drm/amdkfd: Fix missing authorization check in KFD_IOC_DBG_TRAP_DISABLE
+83463a96ea3c drm/amdkfd: fix uint32_t overflow in EOP ring buffer size alignment
+ff8bc5a68a9a drm/amdkfd: hold event_mutex while checkpointing CRIU events
+83195b778f2d drm/vmwgfx: fix guest_memory_dirty bitfield clobbered as size
+55ec09c9ce10 drm/vmwgfx: reject DX_BIND_QUERY without a DX context
+f47d542d5912 drm/vmwgfx: clamp dirty-page range with min, not max
+250af2e8c3e9 drm/vmwgfx: take fman->lock around fence list mutation in fifo_down
+f739416dc555 drm/vmwgfx: drop dma_buf reference on foreign-fd prime import
+85891d174707 drm/vmwgfx: validate DRAW_PRIMITIVES header size before division
+f4f1db96bfd6 drm/vmwgfx: bound DMA command body size against suffix pointer
+05eaa887e7b4 drm/vmwgfx: avoid destroy_workqueue(NULL) on vkms init failure
+d5ed8749168a drm/vmwgfx: enforce cursor size limits for MOB cursors
+54d56d5b42d2 drm/vmwgfx: use check_add_overflow for shader size+offset bound
+706c93c5813c drm/vmwgfx: validate external BO copy bounds for both stride paths
+63ddb3ad08ff drm/xe/oa: (De-)whitelist OA registers on OA stream open/release
+7aa7d4bf9d3f usb: typec: ucsi: Fix race condition and ordering in port unregistration
+af80e2bfde93 drm/xe: Wait on external BO kernel fences in exec IOCTL
