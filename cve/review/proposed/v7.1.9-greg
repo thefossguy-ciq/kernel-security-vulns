@@ -1,0 +1,176 @@
+a16fd3ad9d89 samples/damon/mtier: error out for zero quota goal target values
+683c6ba6e58e bonding: alb: re-check primary_is_promisc under RTNL in bond_alb_monitor
+0ef349734a93 btrfs: initialize inode mapping flags for cached inodes
+af39eb111ce6 net/mlx5: fw_tracer, return NULL on create error
+fdeba03fea78 bpf: Fix netns reference imbalance in conntrack kfuncs
+e2fe6a0efecb serial: 8250_dma: Clear stale RX state on shutdown
+91542863abad ring-buffer: Fix crash passing ERR_PTR to kthread_stop()
+06befa61c427 mm/damon/lru_sort: error out for >10000 active_mem_bp
+1c3e23e78862 staging: rtl8723bs: fix OOB read in rtw_get_wpa_ie()
+ae2140735015 staging: rtl8723bs: fix OOB read in WMM_param_handler()
+2c56ef658ac8 staging: rtl8723bs: fix missing shared-key auth challenge length check
+6829665d0509 staging: rtl8723bs: validate monitor transmit frame lengths
+4cd774c1feb3 arm64: dts: qcom: purwa: Fix GPU IOMMU property
+1acef6d85bfd soc: aspeed: lpc-snoop: Fix usercopy overflow in snoop_file_read
+ff10b6db0ab7 nvmem: apple-spmi-nvmem: wrap regmap calls to satisfy CFI
+2ca1eea3cd17 ALSA: usx2y: bound the hwdep mmap fault offset
+4da94744707b drm/v3d: Serialize the scheduler timeout handlers
+42c5ca1f0a28 perf/core: Fix group leader use-after-free after sibling detach
+c3730b8373bb tracing: Fix race between update_event_fields and, event_define_fields
+d852729c5f4f xfs: handle NULL b_addr in xfs_buf_free
+3874892dd27d net: tap: set skb->dev before parsing virtio net header in tap_get_user_xdp()
+b69859204d4d tracing: Fix NULL pointer dereference in module event cache removal
+8a7ed561671a net/sched: act_ct: fix sk_buff leak when the header checks reject a packet
+3e8ec7c03872 fsverity: Fix bpf_get_fsverity_digest() dynptr assumptions
+0fa78ef637de btrfs: lzo: reject inline extents without valid headers
+e5fd3f514e27 bpf: tcp: Fix use-after-free in bpf_iter_tcp_established_batch()
+42bc45df5905 vhost-scsi: reject feature changes after endpoint
+a347304b2ca1 net/sched: cls_api: Always acquire rtnl_lock when destroying locked classifiers
+e7386770be1b net/mlx5e: fix BQL reset on SQ re-activation
+c2f811314be3 usb: atm: cxacru: properly kill rcv_urb on error in cxacru_cm()
+30825970339c netfilter: ebt_nflog: pin the NFLOG backend
+bc5bde9ce3cc ipv4: fix use-after-free in fib_nhc_update_mtu()
+e033cbf3975a fbdev: bitblit: bound-check glyph index in bit_cursor()
+63981fc786da ovl: don't warn when the mount is completed from another user namespace
+79fdf39f1a31 binfmt_misc: don't warn when the mount is completed from another user namespace
+b96c529cd255 Revert "drm/amdgpu: fix aperture mapping leak"
+a213dfaa2596 x86/mce: Set up the polling timer before CMCI discovery
+a31e0ad44469 vsock/virtio: avoid refilling the RX queue after teardown
+7bca91d63341 tls: don't leave a full plaintext sk_msg ring unpushed
+5ec42d57655c KVM: x86/mmu: WARN and clear role.invalid when creating a child shadow page
+a76624733730 bpf, sockmap: Fix sk_redir use-after-free in send verdict
+beb33f8ee1ca sctp: clear new_transport when removing a peer
+8aecf0bbcc72 netfilter: nf_flow_table: drop existing skb dst before skb_dst_set_noref()
+b8a39a09ae4e net: remove WARN_ON_ONCE() from sk_mc_loop()
+d0c80dbb9704 net/atm: fix slab-out-of-bounds read in vcc_setsockopt()
+26444eb71465 mm/vmalloc: acquire init_mm lock on huge vmap to avoid ptdump UAF
+f8a80cfb6861 ALSA: usb: Fix UAF at delayed release of MIDI2 EPs
+bf98d7b0d5a9 ring-buffer: Prevent subbuf order change when resizing is disabled
+aca1f2d5de17 mm/huge_memory: initialise workingset state before folio split
+b1896543ce59 s390/ism: Fix UAF of sba and ieq during ism_dev_exit()
+fde39b8a5217 net: usb: ipheth: fix carrier_work UAF on disconnect
+9d3277b2c07c arm64: remove redundant concurrent ptdump UAF mitigation
+33ec10567fe1 ovpn: skip rehash for peers already removed from by_id
+47d7f7051253 net/sched: cls_route: fix fastmap use-after-free on filter
+9e6869be4906 net/dibs: Correct freeing of dmb_clientid_arr
+ec680ea4ba1b enic: fix tx_hang_reset use-after-free on device removal
+d0f86fb36eb2 udp: fix potential use-after-free in tunnel segmentation
+7700a31039cd ata: pata_sl82c105: fix bridge revision use-after-free
+5f26a690e8ef mac802154: fix netdev use-after-free in beacon worker
+2195424c3da2 net/x25: fix use-after-free of the socket by its timers
+4986410316b1 smb: client: Fix use-after-free in cifs_try_adding_channels()
+fd73b6917021 eventfs: Fix use-after-free in eventfs_remove_rec()
+8c283e7b56ad sctp: fix use-after-free of cached ASCONF chunk
+8c13364db9c9 sched_ext: Skip sub-disable teardown for never-linked sub-schedulers
+cf616096a0f3 NFS: Pin the 'struct nfs_server' during a FREE_STATEID call
+d533882ce106 hwmon: (nzxt-smart2) Check return value of init_device() in probe
+c9158ceaf277 sctp: clear control chunk transport if it is being removed
+2615f0fb90df ALSA: us144mkii: re-anchor capture URBs on resubmission
+5d9686af2976 net: smc: fix splice entry lifetime imbalance in smc_rx_splice
+0e243671bc7b ipv6: prevent in6_dev_get() from resurrecting inet6_dev
+b37971686ec5 vxlan: do not arm the ageing timer on a device that is down
+cba9ccb47e9f tipc: read le->link under the node lock in tipc_node_link_down()
+ff8da20b6f47 Revert "thermal/drivers/hwmon: Cleanup coding style a bit"
+9f2cf069a9a7 sctp: keep chunk->transport in step with the list it is queued on
+1c8629651cb5 tls: rx: restore msg_iter before TLS 1.3 optimistic retry
+af0e5cdd031f tls: don't abort the connection on signal-interrupted sends
+69ee44e1a23b ALSA: usb-audio: fix OOB write on Type II inbound URBs
+620f1e52a46f ALSA: FCP: fix OOB write in fcp_meter_ctl_get()
+afa58b738491 net/ncsi: fix heap OOB read in NCSI_CMD_SEND_CMD payload length
+4aeb63d5ac2d NFS: Decrement refcounts if allocating nfs_free_stateid_data fails
+1cb4298810e2 bnge: Fix NULL pointer dereference in aux device release
+59aed1eb60d7 ovpn: ensure socket is owned by ovpn before deref sk_user_data
+3141e3d61469 drm/amd/display: Check for tg ops in dce110_set_avmute
+1a35da325cac packet: synchronize pressure clearing with ring reconfiguration
+27c32e553834 mm/ptdump: always stabilise against page table freeing using init_mm
+d6764992f17b thunderbolt: Bound the DROM dual link port number before indexing sw->ports
+3abd29c61d2e Input: evdev - sanitize event type index when fetching event masks
+90f305f2c7a3 Input: evdev - fix information leak in evdev_pass_values()
+646922a03794 ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
+99609cb0aa78 ipvs: return the csum validation for forward hook
+9dc325327bab ("gpio: pca953x: fix pca953x_irq_bus_sync_unlock regmap lock")
+3f012bdbabe2 ("ovpn: zero-initialize sockaddr before learning a floated endpoint")
+d2a4e4e626b2 ("btrfs: fix memory leak in btrfs_do_encoded_write()")
+8d51e0fd3e69 ("accel/amxdna: Fix page-insertion errors in amdxdna_insert_pages()")
+a4c6f804b44c ("bpf: Preserve pointer state for commuted arithmetic")
+976245094925 ("net/smc: fix qentry overwrite for CONFIRM_LINK and ADD_LINK_CONT in smc_llc_event_handler()")
+1c4dac9bf1d2 ("devlink: fix net namespace reference leak in reload")
+4a19f7ab5972 ("accel/amdxdna: Fix locally exploitable BUG_ON in amdxdna_insert_pages()")
+1ed35ac7f3fe ("vhost_iotlb: bound map allocation in add_range")
+0619aaa34c0c ("vhost/vdpa: reject overflowing PA map page counts on 32-bit")
+727e1f569855 ("vdpa/mlx5: Fix buffer length in create_direct_keys()")
+59bd68ab05a8 ("hwmon: (pmbus) Fix type confusion in notification logic")
+d1000fd7995e ("bnxt: fix memory leak in bnxt_queue_mem_alloc error cases")
+1bb30b181d9f ("xsk: require at least 16 bytes of TX metadata")
+9f60a67df8d3 ("xsk: clear metadata pointer when no timestamp is requested")
+439ce2dddf3d ("xsk: validate launch-time metadata size")
+849b1664dbda ("xsk: validate metadata when processing requests")
+2a33516f9ef5 ("net/sched: sch_cake: drop WARN_ON(1) for malformed packets in ACK filter")
+d876c493fc4b ("vhost-scsi: Validate T10 PI scatterlist counts")
+cf6f8b29befb ("net/openvswitch: check Ethernet header length in key_extract()")
+c5f500161709 ("drm/xe: Fix memory leak in exec_queue_set_hang_replay_state()")
+c3faf548a00f ("bnxt_en: Disable EOP for TPA on all chips to prevent data corruption")
+a0ab2ba83e35 ("tcp: fix TFO max_qlen accounting across reuseport migration")
+8ae344eb540a ("net: prestera: validate firmware header length")
+185a4caeecab ("net/smc: fix TOCTOU race between smc_listen_out() and listener close")
+68bf02b6b4ad ("net: thunderbolt: Tear down DMA paths before stopping the rings")
+8444d66aa6b6 ("watchdog: at91sam9_wdt: prevent timer rearm during teardown")
+7a3c0289c3c8 ("rqspinlock: Reset tail when preserving queue on deadlock")
+36c4d73ce05d ("hwmon: (corsair-psu) fix possible out-of-bounds access on missing string termination")
+edd11a943357 ("hwmon: (ltc4282) Avoid overflow in maximum power calculation")
+e253dd5f9f6d ("hwmon: (ltc4282) Clamp negative current limits")
+7e22c9f79b20 ("usb: misc: usbio: check ibuf_len against rxbuf_len in bulk msg")
+6b1c8a9403a2 ("usb: gadget: f_ncm: Use unsigned int for ndp_index")
+1f428e309473 ("net: usb: ax88179_178a: fix skb leak in ax88179_tx_fixup()")
+a7ad0034453b ("vt: add permission check for KDSKBMETA ioctl")
+e25d47a52693 ("vt: stabilize tty reference in kbd_keycode with tty_port_tty_get")
+478a1c3abebf ("mm: fix incorrect flush address in direct page table reclaim")
+5ff232d31106 ("ima: fix out-of-bounds read in xattr_verify()")
+558f67f1340f ("ipvs: stop estimator after disabled calc phase")
+e0ba936287df ("ipvs: clear IPv4 options after rebasing tunnel ICMP errors")
+03390aa32e66 ("packet: use consistent hard_header_len in non-ring send paths")
+21b5953e7494 ("packet: use consistent hard_header_len in TX_RING send path")
+c2707480cfbf ("net/packet: reset the MAC header on the packet-socket transmit path")
+33f2b2eb33d6 ("net: fix skb length accounting after generic XDP frag adjustment")
+5d1c224dd914 ("net: openvswitch: reallocate update replies for mismatched IDs")
+dedd34b0f231 ("net/sched: reject overly deep qdisc hierarchies")
+3b9a324e646d ("net: remove CAP_SYS_RAWIO zero-padding in dev_validate_header")
+653d7ddf6cba ("inet: frags: publish queues before arming timer")
+63488dba65ef ("net: bridge: mrp: fix uninitialised bytes on the wire")
+6d4514ca9cdf ("futex: Prevent robust futex exit race some more")
+4ff9548d8494 ("ipv4: Fix fib_nlmsg_size() for RTA_VIA nexthops")
+b0495bb58af0 ("mei: pull kvfree out of spinlock")
+e3c04834ae1a ("serial: qcom-geni: fix TX DMA buffer flush")
+142341547127 ("serial: 8250_of: clear stuck empty-FIFO RX-timeout on LPC32xx")
+36672c8d7d14 ("serial: amba-pl011: cancel RS485 hrtimers after freeing IRQ")
+6102ceb4eab8 ("misc: fastrpc: Remove buffer from list prior to unmap operation")
+b85a0e91d7d6 ("misc: fastrpc: take fl->lock when moving mmaps on interrupted invoke")
+2fae94ee14f7 ("misc: fastrpc: fix memory leak in fastrpc_channel_ctx_free")
+5deb65c34e68 ("mm/damon/ops-common: putback folios on invalid migrate nid")
+33192a26cdde ("mm/huge_memory: fix huge_zero_pfn race")
+53a43508ee33 ("net: devmem: prevent net-iov / page mixing")
+d2121faf133a ("NTB: ntb_netdev: Preserve RX queue depth on allocation failure")
+d45cc8020d7c ("netfilter: bridge: release template ct on non-IP path")
+2d19b95c9723 ("netfilter: nf_conntrack: defer invalid log until after unlock")
+452636ea5410 ("net: atlantic: free stranded TX buffers on ring deinit")
+e8e7471ef686 ("net: atlantic: free RX pages of consumed but not refilled buffers")
+883b56ae58fe ("net/sched: act_gact, act_police: range check the fallback control action")
+c27e36054537 ("dibs: initialise dibs->lock in dibs_dev_alloc()")
+e48e8edbef2e ("xdp: reject clones that overrun skb_shared_info tailroom")
+ebac8f6b1ef0 ("vsock/virtio: read virtqueues under worker locks")
+cb6379feaaff ("veth: fix skb length accounting after XDP frag adjustment")
+de845981da67 ("vhost: reset the vring metadata cache on vring reconfiguration")
+1d78d33275ef ("KVM: SVM: Serialize accesses to the owner and mirror list with separate lock")
+f0ece16ffca7 ("eventfs: Use children field for rcu head and add memory barriers")
+6b69f2ef10cd ("ptp: ocp: Fix board ID over-read")
+6d014e44b68d ("ring-buffer: Initialise reader page order in rb_allocate_cpu_buffer()")
+f27bdc43077e ("ring-buffer: Use current_context for safe per-CPU buffer swap")
+8db4bab826cc ("mm/page_table_check: skip special zero mappings")
+d1ad8fb2ac6a ("ipv6: fix Route Information option length validation")
+f803c086399d ("ip6_tunnel: clear skb2->cb[] in ip6ip6_err()")
+d2f96bcb89d3 ("fs,fsverity: remove check for fsverity being enabled in setattr_prepare()")
+cf6c993c0fec ("fscrypt: use the mount idmap for the owner check in fscrypt_ioctl_set_policy()")
+5457025fa8ca ("sched/psi: Shut down rtpoll_timer in psi_cgroup_free()")
+5f8b69642d18 ("sched_ext: Take cgroup_lock() first in scx_cgroup_lock()")
+b80bed5c871a ("ima: Instantiate file_truncate and path_truncate hooks")
+86da3f7e1e60 ("mm/filemap: __filemap_add_folio() restore index before retrying")
