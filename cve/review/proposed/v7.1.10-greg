@@ -1,0 +1,76 @@
+5b602344a49e ceph: avoid fs reclaim while using current->journal_info
+0c8886827165 netfilter: ipset: fix refcount race between list:set GC and swap
+42d217add8d8 firewire: ohci: fix NULL pointer dereference in ar_context_release
+3992ced109c7 gve: fix NULL dereference due to missing ptp adjfine
+f2a1c4c6fe0a drm/amd/display: Fix NULL pointer dereference in amdgpu_dm_crtc_set_vblank()
+d02f59206434 netfilter: nf_tables_offload: suppress WARN_ON_ONCE for ENOMEM in abort path
+6bcd76c134c5 af_packet: Don't send zero-byte data in tpacket_snd().
+44f3468a0aef gpio: sloppy-logic-analyzer: fix use-after-free via debugfs trigger on unbind
+c125ee35a49a mmc: atmel-mci: Fix use-after-free in atmci_remove due to race condition
+0c88e10d12de xfs: avoid UAF on sc->tempip in xrep_tempfile_create
+26cb8ebbfaf7 block: stop the timeout timer when releasing a never added disk
+2014ac62df9d netfilter: flowtable: publish GC-visible tuple last
+e16e960d55a4 ipvlan: inherit needed_headroom and needed_tailroom from phy_dev
+cef51860becd macvlan: inherit needed_headroom and needed_tailroom from lowerdev
+92465f46f3c3 net: expect instance lock in netdev_queue_get_dma_dev()
+9006c116dd11 l2tp: fix tunnel and session refcount leak on seq_file release
+5b17f3f34391 powerpc/pseries: papr-phy-attest - validate cmd.length, plug mem leak
+d15d51fb26e8 fbdev: bound mode sysfs output to the sysfs buffer
+95e647d2a530 fbdev: clear fb_info->mode before deleting a videomode
+81cc73be40c6 fbdev: core: Fix pointer desynchronization in fb_io_read()
+2b8f13d3c7e2 drm/panthor: skip zero-sized firmware sections
+17661c67b206 ASoC: SOF: ipc4-pcm: Continue the pipeline trigger in case of IPC timeout
+9da976eb649c Input: sur40 - fix input device registration ordering
+0c0e418dbcf0 ASoC: SOF: ipc4-topology: Refresh copier IPC payload before widget setup
+360f2974fcea crypto: tegra - fix rctx->cryptlen calculation in tegra_gcm_do_one_req()
+5f3a13e0bb5e net: ngbe: fix NULL pointer dereference in non-MSI-X interrupt enabling
+f12afefb7b01 ASoC: xilinx: formatter_pcm: pass aud_drv_data to irq handlers
+36a05d282007 net: ethernet: ti: am65-cpsw-nuss: Fix port_id extraction from SRC TAG
+51e96fa31f7e eth: bnxt: avoid deadlock when canceling IRQ affinity notifier
+921ac6cb066d drm/log: Fix division by zero when scale module parameter is 0
+60baa179ed13 drm/log: Fix out-of-bounds read on empty message length
+f4f2bba28df9 drm/log: Fix infinite loop when scale is too large for display
+6bf14575c655 gve: fix zero-length skb frag with header-split
+7d5c576cb1c8 Input: cs40l50-vibra - validate custom data from user space
+732f38c36059 Input: psxpad-spi - set driver data before use
+c83e79c0842e Input: byd - synchronize timer deletion before freeing private data
+090a95dbe13d pmdomain: mediatek: mfg: initialize prev_o in mtk_mfg_attach_dev()
+3e013bc8b941 pmdomain: mediatek: fix remaining %pOF after of_node_put()
+650c88738ae8 optee: ffa: Add NULL check in optee_ffa_lend_protmem
+41d44ac7a61e ovpn: fix NULL dereference when killing missing key
+f60b396ee174 net/sched: act_api: fix TOCTOU NULL deref on a->goto_chain
+d141f087b1af s390/qeth: validate user buffer length in SNMP and ARP query ioctls
+49c5adc2b7d6 Input: synaptics-rmi4 - bound the F54 report size to the allocated buffer
+437b6551cfcc libceph: fix multiple unsafe decodes in decode_locker()
+00ead17c7de1 libceph: fix OOB read in decode_watchers() via missing bounds check
+813f8136a2ce xfs: bounds-check buffer log item's dirty bitmap
+296736076b3f Input: focaltech - fix array out-of-bounds in focaltech_process_rel_packet
+9ecf8ba763d0 drm/connector/hdmi: Fix out of bounds memory read
+a005b7f1a491 s390/vfio_ccw: Fix out of bounds check on CCW array
+6e7566ba4739 drm/amdkfd: Add bounds check for CRAT subtype length
+d93660df4dd1 ipvs: revalidate ihl to prevent out-of-bounds access
+1ba381759e45 ASoC: codecs: lpass-tx-macro: Fix enum kcontrol accesses
+3660b98d1204 libceph: Avoid using invalid osd indices from primary_temp
+00179ed9fbe0 mmc: loongson2: Fix sg iteration in data reorder functions
+35ac6754ba6d s390/zcrypt: Improve CCA CPRB length and overflow checks
+0864a163783b s390/zcrypt: Improve EP11 CPRB domain handling with ASN.1 parsing
+cc3144da377d xfs: fix off-by-one in rtrefcount btree root level validation
+66694b5f90f3 regulator: fp9931: Fix VPOS/VNEG voltage selector table
+3dbb44d88b1e sctp: validate cookie AUTH state before use
+6d3724e616fa net/sched: cls_u32: skip hash tables in u32_bind_class()
+617bbd087148 drm/shmem_helper: Check VMA boundaries for PMD mappings
+dc76c3c8e8ad Input: synaptics-rmi4 - zero report size on F54 work error
+5e9d136ad74d drm/amdgpu: validate GEM_CREATE domain combinations
+5751c781d3c9 Input: iforce - validate input packet lengths
+fbfd76746adc Input: synaptics-rmi4 - block s_input when F54 queue is busy
+f64ea900e4bd mmc: omap_hsmmc: fix busy_timeout overflow in ns conversion on 32-bit
+17ac0bc866fc s390/zcrypt: Improve EP11 CPRB length and overflow checks
+60837e4b840a tcp: fix icsk_ack.ato bitfield overflow
+ae31bcc92bb4 mmc: sdhci: make tuning_err a signed int
+b8bb9ba3f101 drm/amdgpu: Fix UVD decode image min size calculation
+8fb41964f7e4 ASoC: tas2562: Validate values for volume writes
+8786d74bf50e Input: synaptics-rmi4 - propagate F54 worker errors to V4L2 queue
+eb3632544724 s390/zcrypt: Pad trailing CCA or EP11 message with zeros
+35772b4981f3 mptcp: options: reset DSS fields in case of unexpected size
+27f380ef0e1d Input: hynitron_cstxxx - validate touch count and finger IDs
+50958bb928ba ceph: fix hanging __ceph_get_caps() with stale mds_wanted
