@@ -28,12 +28,14 @@
 if [[ -t 1 ]]; then
 	txtred=$(tput setaf 1)          # Red
 	txtgrn=$(tput setaf 2)          # Green
+	txtylw=$(tput setaf 3)		# Yellow
 	txtblu=$(tput setaf 4)          # Blue
 	txtcyn=$(tput setaf 6)          # Cyan
 	txtrst=$(tput sgr0)             # Text reset
 else
 	txtred=""
 	txtgrn=""
+	txtylw=""
 	txtblu=""
 	txtcyn=""
 	txtrst=""
@@ -66,6 +68,8 @@ cd "${DIR}"/../ || exit 1
 # Get a list of the json files that are modified in some way (not deleted) and
 # only submit those to the system, cutting down on round trips
 files=$(git status -s -- cve/published | grep -v "^ D" | awk '{print $2}' | grep "\.json$" )
+num_files=$(echo "${files}" | wc -l)
+file_num=1
 for file in ${files}; do
 	cve=$(echo "${file}" | cut -f 1 -d '.' | cut -f 4 -d '/')
 	root=$(echo "${file}" | cut -f 1 -d '.' )
@@ -84,7 +88,8 @@ for file in ${files}; do
 
 	# Attempt to upload the file to cve.org using the `cve` tool, and
 	# capture any output, including error output.
-	echo "Uploading ${txtcyn}${cve}${txtrst} for commit ${txtgrn}${sha}${txtrst}"
+	echo "${txtylw}${file_num}/${num_files}${txtrst} Uploading ${txtcyn}${cve}${txtrst} for commit ${txtgrn}${sha}${txtrst}"
+	file_num=$((${file_num}+1))
 	output=$(cve -o Linux publish "${cve}" -f "${root}.json" 2>&1)
 	good=$?
 
