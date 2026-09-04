@@ -1,0 +1,77 @@
+965a251f23ff rndis_host: add overflow check in rndis_rx_fixup()
+b37c4d0a2fd9 mailbox: mchp-ipc-sbi: Add null check for devm_kasprintf()
+bf1af4dfdc01 dmaengine: fsl-edma: Add error handling for devm_kasprintf
+737a3b535247 nvmet-tcp: Do not WARN on remotely-controlled oversized SGL allocations
+008cb88edb41 PCI: host-generic: Fix NULL pointer dereference on 32-bit CAM systems
+43a556b2fd43 Bluetooth: RFCOMM: take rfcomm_mutex for the deferred setup accept
+9ff145a25c5c iommu/tegra241-cmdqv: Fix CMD_SYNC use-after-free on teardown
+d616de490ec0 iommu/iommufd: Fix NULL pointer deref in iommufd_ioas_change_process when racing with iopt_map_file_pages
+d0d48d999b0e ipv6: fix use-after-free in ip6_finish_output2()
+c9e9bb757971 nvmet: pci-epf: fix use-after-free in nvmet_pci_epf_exec_iod_work()
+bf3e39df3a39 HID: ft260: fix stack-use-after-return write in I2C read race
+ad8fb82b0442 HID: sensor: custom: Fix use-after-free in enable_sensor
+506fd50a9027 HID: uclogic: fix use-after-free of inrange_timer on remove
+1c7efabfbaf7 futex: Avoid private hash use-after-free on final put
+1f74d3bff6fe HID: nintendo: stop device IO before hid_hw_stop on probe failure
+33af47e847fe Bluetooth: hci_event: fix LE list UAF on reset
+f57b399c4fa1 Bluetooth: hci_sync: Fix accept list UAF during suspend
+ac200079db50 nfc: nci: fix out-of-bounds write in nci_target_auto_activated()
+8cbe06c1e699 nfc: nci: fix uninit-value in the RF discover/activated NTF handlers
+ba98d6796d12 nvmet-fc: fix invalid free in LS IOD error path
+0cdc7dde00ec ocfs2: fix missing metadata reservation for large xattrs
+a13cdb19fcb2 HID: core: fix OOB read of field->usage in hid_set_field()
+78b20c8eeacd nfc: llcp: fix OOB read and u8 offset wrap in TLV parsers
+67bb1074e3d2 HID: pidff: fix OOB write when hid->inputs is empty
+d92255b405fb net/ionic: avoid OOB TX partner lookup for hwstamp RXQ
+02442d5fe8ee ALSA: dummy: Check card index validity at probe
+55c68ac93e7d nfc: llcp: bound the connect_sn TLV walk to the skb
+27b376b945c0 HID: nintendo: fix out-of-bounds read in joycon_ctlr_read_handler()
+95491fb05105 null_blk: fix UBSAN shift-out-of-bounds when zone_size is 0 or overflows
+2eed77fdcb0c kcov: fix data corruption and race conditions on PREEMPT_RT
+b7eea80be25f xfs: validate attr entry pointer before field access
+7ad21dcfeb51 nfc: fdp: bound the device-reported read length and fix an skb leak
+95674f506c63 nfc: llcp: reject PDUs shorter than the LLCP header
+5cdcca5d62a6 nfc: st21nfca: validate ATR_REQ length against the received frame
+0428fa2c22e2 nfc: nci: add data_len bound checks to activation parameter extractors
+4a3f00262a04 nvmet-tcp: bound SGL data length before allocating command buffers
+918b8d231c57 ALSA: FCP: Use a private URB for the notification endpoint
+cd17d6ff7b7d ALSA: scarlett2: Use a private URB for the notification endpoint
+79aba4c94034 nvmet: fix NULL pointer dereference in nvmet_execute_identify_nslist()
+934b7778aa7b HID: hyperv: validate initial device info bounds
+db8d634128d2 HID: magicmouse: prevent unbounded recursion in magicmouse_raw_event()
+0af3b8970568 HID: magicmouse: do not keep a stale msc->input if no input is claimed
+061db6b7a910 fbdev: serialize mode sysfs access with lock_fb_info()
+8e7ff730dd96 futex: Fix race in futex_pivot_pending() during private hash resize
+d723bc1fe2e7 HID: nintendo: register input device after capabilities are set
+9838a80096ba Bluetooth: ISO: do not force BT_LISTEN after a failed BIG sync
+02bf61dfb44f HID: asus: fix missing hid_is_usb() check
+4cdb6b4b34d7 HID: huawei: fix missing hid_is_usb() check
+b57af2448268 HID: rapoo: fix missing hid_is_usb() check
+6f611e5e5f33 fbdev: Wrap user-invoked calls to fb_set_var() in helper
+59b3732f95dd futex/pi: Reject cross-mm private futex owners
+f9ece060cc43 futex: Sanitize and document task_struct::futex::state transitions
+c5f0bc9fd1ce futex/pi: Plug private futex exec() race
+bde023808364 futex: Fix race on the initial mm->futex.phash.ref allocation
+527eaaefddb6 xfs: don't livelock in scrub on a circular unlinked list
+8ed78104722b xfs: rtsummary scrub should treat rtbitmap corruption errors as an xref error
+fc6487579083 drm/xe: Fix DPT allocation paths.
+54b6bd40898d ext4: stop retrying saturated xattr cache entries
+a1735eae5544 nilfs2: reject invalid block index in GC ioctl
+0241ea5fb0fe xfs: restore nofs context unconditionally in xfs_trans_roll
+efc33b5102ff mptcp: pm: fix memory leak from alloc-during-teardown race
+5718fc62198c nfc: pn533: purge fragmented skbs during cleanup
+2e65bafdfd3a nfc: nci: free destination parameters when closing a connection
+659ae9d02cb5 nvmet: pci-epf: put CQ ref on create_cq mapping failure
+884cf2cc957d Bluetooth: ISO: zero the sockaddr before returning it in getname
+bb34ae5da336 io_uring/cmd: fix iovec leak when the async cmd is not recycled
+3f3a6a16bbe8 io_uring/rsrc: fix folio size overflow in io_vec_fill_bvec()
+344a56d7c8e0 nfc: digital: clamp SENSF_RES length to the destination buffer
+25519469972e nfc: microread: validate target discovery payload lengths
+c0726f0caf8c ipv4: reject undersized MTUs in ip_do_fragment()
+3ddcfb013322 nvmet-auth: zero the AUTH_RECEIVE response buffer
+da32af420d6d ext4: don't enable DAX on new encrypted files
+c87abbab6147 ext4: fix incorrect function call when initializing s_resgid
+0acd4eeb4b22 Bluetooth: hci_event: validate LE Set CIG Parameters response
+5d95286b6d6e Bluetooth: MGMT: reject HCI_CMD_SYNC params_len above 255
+2bf6b9baca93 Bluetooth: hci_aml: validate firmware segment lengths
+a5edadbae57e ptp: vmclock: prevent read-only mappings from becoming writable
