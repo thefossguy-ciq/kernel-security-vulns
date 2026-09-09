@@ -1,0 +1,2 @@
+d5dc1e69fd72 inet: frags: strip GSO state from fragments before reassembly [auto: cve already created]
+20a4fed8d7b3 UPSTREAM: HID: multitouch: fix out-of-bounds bit access on mt_io_flags [auto: already quorate]
