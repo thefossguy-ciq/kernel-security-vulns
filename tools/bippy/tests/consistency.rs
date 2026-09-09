@@ -411,3 +411,80 @@ fn test_cross_product_consistency() {
     assert_eq!(fix, 0, "fix-mismatch: semver vs CPE fix versions disagree (of {total} CVEs, {with_issues} affected)");
     assert_eq!(intro, 0, "intro-mismatch: semver vs CPE intro versions disagree (of {total} CVEs, {with_issues} affected)");
 }
+
+// ─── unit tests for the range extraction helpers ────────────────────────────
+
+#[cfg(test)]
+mod range_tests {
+    use super::{
+        dyad_cpe_ranges, dyad_git_ranges, json_git_ranges, json_semver_ranges, FIRST_LINUX_COMMIT,
+    };
+    use cve_utils::dyad::DyadEntry;
+    use serde_json::json;
+
+    fn entries(lines: &[&str]) -> Vec<DyadEntry> {
+        lines
+            .iter()
+            .map(|l| DyadEntry::new_no_validate(l).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn json_git_ranges_takes_only_affected_git_entries() {
+        let products = json!([{
+            "versions": [
+                {"versionType": "git", "status": "affected", "version": "aaa", "lessThan": "bbb"},
+                {"versionType": "git", "status": "unaffected", "version": "ccc", "lessThan": "ddd"},
+                {"versionType": "semver", "status": "affected", "version": "6.0", "lessThan": "6.1"},
+            ]
+        }]);
+        let ranges = json_git_ranges(products.as_array());
+        assert_eq!(ranges.len(), 1);
+        assert!(ranges.contains(&("aaa".to_string(), "bbb".to_string())));
+    }
+
+    #[test]
+    fn json_semver_ranges_skips_empty_bounds() {
+        let products = json!([{
+            "versions": [
+                {"versionType": "semver", "status": "affected", "version": "6.0", "lessThan": "6.1"},
+                {"versionType": "semver", "status": "affected", "version": "", "lessThan": "6.2"},
+                {"versionType": "semver", "status": "affected", "version": "6.3"},
+            ]
+        }]);
+        let ranges = json_semver_ranges(products.as_array());
+        assert_eq!(ranges.len(), 1);
+        assert!(ranges.contains(&("6.0".to_string(), "6.1".to_string())));
+    }
+
+    #[test]
+    fn json_ranges_tolerate_a_record_with_no_products() {
+        assert!(json_git_ranges(None).is_empty());
+        assert!(json_semver_ranges(None).is_empty());
+    }
+
+    #[test]
+    fn dyad_git_ranges_start_at_the_first_commit_when_introduction_is_unknown() {
+        let e = entries(&[
+            "0:0:6.1.5:fixsha",             // introduced before git history
+            "6.0:vulnsha:6.1.5:otherfix",   // ordinary pair
+            "6.0:unfixedsha:0:0",           // still unfixed, no range to state
+        ]);
+        let ranges = dyad_git_ranges(&e);
+        assert_eq!(ranges.len(), 2);
+        assert!(ranges.contains(&(FIRST_LINUX_COMMIT.to_string(), "fixsha".to_string())));
+        assert!(ranges.contains(&("vulnsha".to_string(), "otherfix".to_string())));
+    }
+
+    #[test]
+    fn dyad_cpe_ranges_skip_unfixed_and_same_version_pairs() {
+        let e = entries(&[
+            "6.0:vulnsha:6.1.5:fixsha",       // ordinary pair
+            "6.1.5:samea:6.1.5:sameb",        // introduced and fixed in one release
+            "6.0:unfixedsha:0:0",             // still unfixed
+        ]);
+        let ranges = dyad_cpe_ranges(&e);
+        assert_eq!(ranges.len(), 1);
+        assert!(ranges.contains(&("6.0".to_string(), "6.1.5".to_string())));
+    }
+}
