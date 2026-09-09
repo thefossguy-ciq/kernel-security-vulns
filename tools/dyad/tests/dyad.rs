@@ -13,42 +13,36 @@ use predicates::prelude::*;
 use std::process::Command;
 
 #[test]
-fn can_run() -> Result<(), Box<dyn std::error::Error>> {
+fn can_run() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     cmd.assert()
         .failure()
         .stdout(predicate::str::contains("Error: At least one --sha1 value is required"));
-
-    Ok(())
 }
 
 #[test]
-fn invalid_git_id() -> Result<(), Box<dyn std::error::Error>> {
+fn invalid_git_id() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     cmd.arg("--sha1=5dce04fefe3e");
     cmd.assert().failure().stderr(predicate::str::contains(
         "Error: The provided git SHA1 '5dce04fefe3e' could not be found in the repository",
     ));
-
-    Ok(())
 }
 
 #[test]
-fn invalid_vulnerable_git_id() -> Result<(), Box<dyn std::error::Error>> {
+fn invalid_vulnerable_git_id() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     cmd.arg("--vulnerable=5dce04fefe3e").arg("--sha1=d9407ff11809");
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("Error: The provided vulnerable git SHA1 '5dce04fefe3e' could not be found in the repository"));
-
-    Ok(())
 }
 
 #[test]
-fn fixed_single_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
+fn fixed_single_stable_branch() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -59,12 +53,10 @@ fn fixed_single_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixed_multiple_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
+fn fixed_multiple_stable_branch() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -79,12 +71,10 @@ fn fixed_multiple_stable_branch() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixed_only_mainline_branch() -> Result<(), Box<dyn std::error::Error>> {
+fn fixed_only_mainline_branch() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -95,12 +85,10 @@ fn fixed_only_mainline_branch() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_fixed_in_stable_and_then_mainline() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -113,12 +101,10 @@ fn vulnerable_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::err
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_always_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_always_fixed_in_stable_and_then_mainline() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -131,12 +117,10 @@ fn vulnerable_always_fixed_in_stable_and_then_mainline() -> Result<(), Box<dyn s
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn unfixed_stable_branches_1() -> Result<(), Box<dyn std::error::Error>> {
+fn unfixed_stable_branches_1() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -154,12 +138,10 @@ fn unfixed_stable_branches_1() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn unfixed_stable_branches_2() -> Result<(), Box<dyn std::error::Error>> {
+fn unfixed_stable_branches_2() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -184,12 +166,10 @@ fn unfixed_stable_branches_2() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn loads_of_fixes() -> Result<(), Box<dyn std::error::Error>> {
+fn loads_of_fixes() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -206,12 +186,10 @@ fn loads_of_fixes() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn no_fixes() -> Result<(), Box<dyn std::error::Error>> {
+fn no_fixes() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -224,12 +202,10 @@ fn no_fixes() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn multiple_fixes_hard() -> Result<(), Box<dyn std::error::Error>> {
+fn multiple_fixes_hard() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -247,12 +223,10 @@ fn multiple_fixes_hard() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn lots_vuln_fix_in_same_version() -> Result<(), Box<dyn std::error::Error>> {
+fn lots_vuln_fix_in_same_version() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -271,12 +245,10 @@ fn lots_vuln_fix_in_same_version() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn multiple_fixes_hard_to_pick_correct_pairs() -> Result<(), Box<dyn std::error::Error>> {
+fn multiple_fixes_hard_to_pick_correct_pairs() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -295,12 +267,10 @@ fn multiple_fixes_hard_to_pick_correct_pairs() -> Result<(), Box<dyn std::error:
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fake_fixes() -> Result<(), Box<dyn std::error::Error>> {
+fn fake_fixes() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -314,12 +284,10 @@ fn fake_fixes() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn invalid_data_in_fixes() -> Result<(), Box<dyn std::error::Error>> {
+fn invalid_data_in_fixes() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -334,12 +302,10 @@ fn invalid_data_in_fixes() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn lots_stable_branches_4_x_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
+fn lots_stable_branches_4_x_vulnerable() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -357,12 +323,10 @@ fn lots_stable_branches_4_x_vulnerable() -> Result<(), Box<dyn std::error::Error
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn lots_stable_branches_3_x_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
+fn lots_stable_branches_3_x_vulnerable() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -380,12 +344,10 @@ fn lots_stable_branches_3_x_vulnerable() -> Result<(), Box<dyn std::error::Error
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn stable_branches_have_git_ids_for_wrong_commits() -> Result<(), Box<dyn std::error::Error>> {
+fn stable_branches_have_git_ids_for_wrong_commits() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -403,12 +365,10 @@ fn stable_branches_have_git_ids_for_wrong_commits() -> Result<(), Box<dyn std::e
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn old_vulnerablity_multiple_fixes_out_of_order() -> Result<(), Box<dyn std::error::Error>> {
+fn old_vulnerablity_multiple_fixes_out_of_order() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -421,13 +381,11 @@ fn old_vulnerablity_multiple_fixes_out_of_order() -> Result<(), Box<dyn std::err
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
 fn complex_beast_old_stable_unfixed_stable_vulnerability_backported(
-) -> Result<(), Box<dyn std::error::Error>> {
+) {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -447,12 +405,10 @@ fn complex_beast_old_stable_unfixed_stable_vulnerability_backported(
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_and_fixed_same_branch() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_and_fixed_same_branch() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -465,12 +421,10 @@ fn vulnerable_and_fixed_same_branch() -> Result<(), Box<dyn std::error::Error>> 
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_and_fixed_same_branch_some_not() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_and_fixed_same_branch_some_not() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -489,12 +443,10 @@ fn vulnerable_and_fixed_same_branch_some_not() -> Result<(), Box<dyn std::error:
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixes_line_corrupted() -> Result<(), Box<dyn std::error::Error>> {
+fn fixes_line_corrupted() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -507,12 +459,10 @@ fn fixes_line_corrupted() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixes_line_is_not_real() -> Result<(), Box<dyn std::error::Error>> {
+fn fixes_line_is_not_real() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -529,12 +479,10 @@ fn fixes_line_is_not_real() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixes_line_sha_is_not_in_tree() -> Result<(), Box<dyn std::error::Error>> {
+fn fixes_line_sha_is_not_in_tree() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -545,12 +493,10 @@ fn fixes_line_sha_is_not_in_tree() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() -> Result<(), Box<dyn std::error::Error>> {
+fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -562,12 +508,10 @@ fn fixes_line_goes_back_in_time_to_fix_things_not_there_bizarrely() -> Result<()
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn reverts_in_some_branches_so_do_not_count_them() -> Result<(), Box<dyn std::error::Error>> {
+fn reverts_in_some_branches_so_do_not_count_them() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -580,12 +524,10 @@ fn reverts_in_some_branches_so_do_not_count_them() -> Result<(), Box<dyn std::er
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn revert_with_no_fixes() -> Result<(), Box<dyn std::error::Error>> {
+fn revert_with_no_fixes() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -599,12 +541,10 @@ fn revert_with_no_fixes() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixes_line_requires_manual_lookup() -> Result<(), Box<dyn std::error::Error>> {
+fn fixes_line_requires_manual_lookup() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -619,12 +559,10 @@ fn fixes_line_requires_manual_lookup() -> Result<(), Box<dyn std::error::Error>>
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn multiple_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
+fn multiple_vulnerable() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -640,12 +578,10 @@ fn multiple_vulnerable() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn fixes_line_hard_to_parse() -> Result<(), Box<dyn std::error::Error>> {
+fn fixes_line_hard_to_parse() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -658,12 +594,10 @@ fn fixes_line_hard_to_parse() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_for_stable_only() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_for_stable_only() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -676,12 +610,10 @@ fn vulnerable_for_stable_only() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_for_mainline() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_for_mainline() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -697,12 +629,10 @@ fn vulnerable_for_mainline() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_for_backported_commit() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_for_backported_commit() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -722,12 +652,10 @@ fn vulnerable_for_backported_commit() -> Result<(), Box<dyn std::error::Error>> 
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_for_multiple_ids() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -744,12 +672,10 @@ fn vulnerable_for_multiple_ids() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
        .success()
        .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_for_short_id() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_for_short_id() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -763,12 +689,10 @@ fn vulnerable_for_short_id() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn multiple_fixes_same_stable_release() -> Result<(), Box<dyn std::error::Error>> {
+fn multiple_fixes_same_stable_release() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -788,12 +712,10 @@ fn multiple_fixes_same_stable_release() -> Result<(), Box<dyn std::error::Error>
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn sort_releases_properly() -> Result<(), Box<dyn std::error::Error>> {
+fn sort_releases_properly() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -808,12 +730,10 @@ fn sort_releases_properly() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn vulnerable_in_mainline_and_stable_same_branch() -> Result<(), Box<dyn std::error::Error>> {
+fn vulnerable_in_mainline_and_stable_same_branch() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -826,12 +746,10 @@ fn vulnerable_in_mainline_and_stable_same_branch() -> Result<(), Box<dyn std::er
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
+fn invalid_fixes_in_db() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -843,12 +761,10 @@ fn invalid_fixes_in_db() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Error>> {
+fn multiple_fixed_multiple_vulnerable_ids() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -869,12 +785,10 @@ fn multiple_fixed_multiple_vulnerable_ids() -> Result<(), Box<dyn std::error::Er
     cmd.assert()
        .success()
        .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 #[test]
-fn single_fixed_multiple_vulnerable_sort_order() -> Result<(), Box<dyn std::error::Error>> {
+fn single_fixed_multiple_vulnerable_sort_order() {
     let mut cmd = Command::new(cargo::cargo_bin!("dyad"));
 
     let output =
@@ -895,8 +809,6 @@ fn single_fixed_multiple_vulnerable_sort_order() -> Result<(), Box<dyn std::erro
     cmd.assert()
        .success()
        .stdout(predicate::str::ends_with(output));
-
-    Ok(())
 }
 
 /// Test for CVE-2024-27005: revert-based fixes on stable branches

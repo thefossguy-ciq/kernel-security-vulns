@@ -242,7 +242,7 @@ fn find_default_match(
 
 /// Process unfixed vulnerabilities to find matching pairs
 ///
-/// Uses pre-built HashSets for O(1) membership checks instead of O(n) scans.
+/// Uses pre-built `HashSets` for O(1) membership checks instead of O(n) scans.
 fn process_unfixed_vulnerabilities(
     vulnerable_kernel: &Kernel,
     paired_vuln_keys: &HashSet<(String, String)>,  // (version, git_id) of already-paired vulns

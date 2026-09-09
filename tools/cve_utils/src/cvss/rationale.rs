@@ -11,7 +11,7 @@ use std::fmt;
 use super::metrics::CvssMetrics;
 
 /// Maximum length of `metrics[].scenarios[].value` in a CVE record, from
-/// `definitions.metrics` in cve/CVE_JSON_5.1.1_schema.json.
+/// `definitions.metrics` in `cve/CVE_JSON_5.1.1_schema.json`.
 pub const MAX_SCENARIO_LEN: usize = 4096;
 
 /// Column a rendered rationale line is wrapped to, indent included.
@@ -46,7 +46,8 @@ impl MetricKey {
         Self::A,
     ];
 
-    pub fn abbreviation(self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(self) -> &'static str {
         match self {
             Self::Av => "AV",
             Self::Ac => "AC",
@@ -59,6 +60,11 @@ impl MetricKey {
         }
     }
 
+    /// Parse the one- or two-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "AV" => Ok(Self::Av),
@@ -74,7 +80,8 @@ impl MetricKey {
     }
 
     /// The value this metric has in `metrics`, as a vector abbreviation.
-    pub fn value_of(self, metrics: &CvssMetrics) -> &'static str {
+    #[must_use]
+    pub const fn value_of(self, metrics: &CvssMetrics) -> &'static str {
         match self {
             Self::Av => metrics.av.abbreviation(),
             Self::Ac => metrics.ac.abbreviation(),
@@ -105,6 +112,7 @@ pub struct MetricRationale {
 
 impl MetricRationale {
     /// "AV:L - Despite living in net/sctp/, ..." — one line, unwrapped.
+    #[must_use]
     pub fn to_line(&self) -> String {
         format!("{}:{} - {}", self.key, self.value, self.text)
     }
@@ -129,6 +137,14 @@ impl Rationale {
     /// new per-metric paragraph; everything else continues the paragraph it
     /// follows. If the first non-blank line is not such a header the whole
     /// block is treated as prose, split into paragraphs on blank lines.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the block is empty, if a line looks like a metric
+    /// justification but could not be read as one, if text precedes the first
+    /// metric header, or if a header carries no justification text. A value is
+    /// only required to be a single uppercase letter, so one that no CVSS v3.1
+    /// metric defines is not rejected here.
     pub fn parse(text: &str) -> Result<Self> {
         if text.trim().is_empty() {
             return Err(anyhow!("empty rationale"));
@@ -201,6 +217,7 @@ impl Rationale {
 
     /// Render back to the wrapped form stored in a .cvss file. Always ends
     /// with a newline.
+    #[must_use]
     pub fn render(&self) -> String {
         let mut out = match self {
             // A metric's text hangs off its key; prose has nothing to hang
@@ -235,6 +252,11 @@ impl Rationale {
 
     /// Same as [`Self::to_scenario_value`], but refuses to hand back a value
     /// the CVE schema would reject.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the rendered value is empty or exceeds the length the
+    /// CVE schema allows.
     pub fn checked_scenario_value(&self) -> Result<String> {
         let value = self.to_scenario_value();
         // JSON Schema maxLength counts code points, not bytes.
@@ -252,6 +274,11 @@ impl Rationale {
     /// eight keys, in vector order, each with the value the vector gives it.
     ///
     /// Prose rationales carry no per-metric claims, so nothing to check.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a key is missing, out of vector order, or claims a
+    /// value the vector does not have.
     pub fn validate(&self, metrics: &CvssMetrics) -> Result<()> {
         let Self::PerMetric(entries) = self else {
             return Ok(());
@@ -316,10 +343,9 @@ fn dedent(text: &str) -> String {
 
     for line in text.lines().filter(|line| !line.trim().is_empty()) {
         let indent = &line[..line.len() - line.trim_start().len()];
-        common = Some(match common {
-            None => indent,
-            Some(prefix) => &prefix[..shared_prefix_len(prefix, indent)],
-        });
+        common = Some(common.map_or(indent, |prefix| {
+            &prefix[..shared_prefix_len(prefix, indent)]
+        }));
     }
 
     let common = common.unwrap_or_default();
@@ -376,7 +402,7 @@ fn collapse_whitespace(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
-/// Greedy word wrap to WRAP_WIDTH columns, indenting continuation lines by
+/// Greedy word wrap to `WRAP_WIDTH` columns, indenting continuation lines by
 /// `indent`, so every rendered line ends at the same margin. A word longer
 /// than the available width gets a line to itself rather than being split.
 fn wrap(text: &str, indent: &str) -> String {
@@ -391,15 +417,14 @@ fn wrap(text: &str, indent: &str) -> String {
             WRAP_WIDTH - indent_width
         };
 
-        if current.is_empty() {
-            current.push_str(word);
-        } else if current.chars().count() + 1 + word.chars().count() <= available {
-            current.push(' ');
-            current.push_str(word);
-        } else {
-            lines.push(std::mem::take(&mut current));
-            current.push_str(word);
+        if !current.is_empty() {
+            if current.chars().count() + 1 + word.chars().count() <= available {
+                current.push(' ');
+            } else {
+                lines.push(std::mem::take(&mut current));
+            }
         }
+        current.push_str(word);
     }
 
     if !current.is_empty() {
@@ -424,6 +449,7 @@ fn wrap(text: &str, indent: &str) -> String {
 mod tests {
     use super::*;
     use crate::cvss::vector::parse_vector;
+    use std::fmt::Write as _;
 
     const VECTOR: &str = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H";
 
@@ -521,10 +547,12 @@ mod tests {
         // As pasted out of a commit message. Rendering strips the indent, so
         // treating this as prose would mean parse(render(x)) != x and a file
         // that fails its own validation on the next read.
-        let indented: String = full_rationale()
+        let indented = full_rationale()
             .lines()
-            .map(|line| format!("    {line}\n"))
-            .collect();
+            .fold(String::new(), |mut acc, line| {
+                let _ = writeln!(acc, "    {line}");
+                acc
+            });
 
         let r = Rationale::parse(&indented).unwrap();
         assert!(matches!(r, Rationale::PerMetric(_)));
@@ -545,10 +573,12 @@ mod tests {
 
     #[test]
     fn dedent_handles_a_multi_character_common_indent() {
-        let indented: String = full_rationale()
+        let indented = full_rationale()
             .lines()
-            .map(|line| format!("\t\t{line}\n"))
-            .collect();
+            .fold(String::new(), |mut acc, line| {
+                let _ = writeln!(acc, "\t\t{line}");
+                acc
+            });
         let r = Rationale::parse(&indented).unwrap();
         assert!(matches!(r, Rationale::PerMetric(_)));
         r.validate(&parse_vector(VECTOR).unwrap()).unwrap();
@@ -612,6 +642,26 @@ mod tests {
                 "line too long: {line:?}"
             );
         }
+    }
+
+    #[test]
+    fn render_does_not_split_an_over_long_word() {
+        // A word wider than the wrap column gets its own line rather than
+        // being cut in half or glued onto the line before it.
+        let long_word = "a".repeat(WRAP_WIDTH + 10);
+        let rendered = Rationale::parse(&format!("AV:L - short {long_word} tail"))
+            .unwrap()
+            .render();
+        let lines: Vec<&str> = rendered.trim_end().lines().collect();
+        assert!(
+            lines.iter().any(|l| l.trim() == long_word),
+            "long word was not kept whole: {lines:?}"
+        );
+        assert_eq!(
+            rendered.split_whitespace().last(),
+            Some("tail"),
+            "text after the long word was dropped"
+        );
     }
 
     #[test]

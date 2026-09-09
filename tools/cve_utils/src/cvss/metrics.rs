@@ -16,7 +16,8 @@ pub enum AttackVector {
 }
 
 impl AttackVector {
-    pub fn weight(&self) -> f64 {
+    #[must_use]
+    pub const fn weight(&self) -> f64 {
         match self {
             Self::Network => 0.85,
             Self::Adjacent => 0.62,
@@ -25,7 +26,8 @@ impl AttackVector {
         }
     }
 
-    pub fn abbreviation(&self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(&self) -> &'static str {
         match self {
             Self::Network => "N",
             Self::Adjacent => "A",
@@ -34,6 +36,11 @@ impl AttackVector {
         }
     }
 
+    /// Parse the single-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "N" => Ok(Self::Network),
@@ -63,20 +70,27 @@ pub enum AttackComplexity {
 }
 
 impl AttackComplexity {
-    pub fn weight(&self) -> f64 {
+    #[must_use]
+    pub const fn weight(&self) -> f64 {
         match self {
             Self::Low => 0.77,
             Self::High => 0.44,
         }
     }
 
-    pub fn abbreviation(&self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(&self) -> &'static str {
         match self {
             Self::Low => "L",
             Self::High => "H",
         }
     }
 
+    /// Parse the single-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "L" => Ok(Self::Low),
@@ -103,7 +117,8 @@ pub enum PrivilegesRequired {
 }
 
 impl PrivilegesRequired {
-    pub fn weight(&self, scope: Scope) -> f64 {
+    #[must_use]
+    pub const fn weight(&self, scope: Scope) -> f64 {
         match (self, scope) {
             (Self::None, _) => 0.85,
             (Self::Low, Scope::Unchanged) => 0.62,
@@ -113,7 +128,8 @@ impl PrivilegesRequired {
         }
     }
 
-    pub fn abbreviation(&self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(&self) -> &'static str {
         match self {
             Self::None => "N",
             Self::Low => "L",
@@ -121,6 +137,11 @@ impl PrivilegesRequired {
         }
     }
 
+    /// Parse the single-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "N" => Ok(Self::None),
@@ -148,20 +169,27 @@ pub enum UserInteraction {
 }
 
 impl UserInteraction {
-    pub fn weight(&self) -> f64 {
+    #[must_use]
+    pub const fn weight(&self) -> f64 {
         match self {
             Self::None => 0.85,
             Self::Required => 0.62,
         }
     }
 
-    pub fn abbreviation(&self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(&self) -> &'static str {
         match self {
             Self::None => "N",
             Self::Required => "R",
         }
     }
 
+    /// Parse the single-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "N" => Ok(Self::None),
@@ -187,13 +215,19 @@ pub enum Scope {
 }
 
 impl Scope {
-    pub fn abbreviation(&self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(&self) -> &'static str {
         match self {
             Self::Unchanged => "U",
             Self::Changed => "C",
         }
     }
 
+    /// Parse the single-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "U" => Ok(Self::Unchanged),
@@ -220,7 +254,8 @@ pub enum CiaImpact {
 }
 
 impl CiaImpact {
-    pub fn weight(&self) -> f64 {
+    #[must_use]
+    pub const fn weight(&self) -> f64 {
         match self {
             Self::High => 0.56,
             Self::Low => 0.22,
@@ -228,7 +263,8 @@ impl CiaImpact {
         }
     }
 
-    pub fn abbreviation(&self) -> &'static str {
+    #[must_use]
+    pub const fn abbreviation(&self) -> &'static str {
         match self {
             Self::High => "H",
             Self::Low => "L",
@@ -236,6 +272,11 @@ impl CiaImpact {
         }
     }
 
+    /// Parse the single-letter abbreviation used in a CVSS vector string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `s` is not a valid abbreviation for this metric.
     pub fn from_abbreviation(s: &str) -> Result<Self> {
         match s {
             "H" => Ok(Self::High),
@@ -256,7 +297,7 @@ impl fmt::Display for CiaImpact {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CvssMetrics {
     pub av: AttackVector,
     pub ac: AttackComplexity,
@@ -270,6 +311,9 @@ pub struct CvssMetrics {
 
 #[cfg(test)]
 mod tests {
+    // CVSS weights and scores are exact, spec-defined values. Comparing them
+    // with an epsilon would let a wrong score pass.
+    #![allow(clippy::float_cmp, reason = "spec-defined values compare exactly")]
     use super::*;
 
     #[test]

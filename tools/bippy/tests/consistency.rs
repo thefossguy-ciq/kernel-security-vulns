@@ -13,12 +13,88 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 // ─── verify_cve_consistency logic ───────────────────────────────────────────
 
+/// Mirrors `bippy::policy::FIRST_LINUX_COMMIT`; the binary's modules are not
+/// importable from an integration test.
+const FIRST_LINUX_COMMIT: &str = "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2";
+
 #[derive(Default)]
 struct ConsistencyIssues {
     git: usize,
     cpe: usize,
     unfixed_branch: usize,
     stable_intro: usize,
+}
+
+/// Affected git ranges as the JSON states them.
+fn json_git_ranges(products: Option<&Vec<Value>>) -> HashSet<(String, String)> {
+    let mut ranges = HashSet::new();
+    let Some(prods) = products else {
+        return ranges;
+    };
+    for p in prods {
+        for v in p["versions"].as_array().unwrap_or(&Vec::new()) {
+            if v["versionType"].as_str() == Some("git")
+                && v["status"].as_str() == Some("affected")
+                && let (Some(ver), Some(lt)) = (v["version"].as_str(), v["lessThan"].as_str())
+            {
+                ranges.insert((ver.to_string(), lt.to_string()));
+            }
+        }
+    }
+    ranges
+}
+
+/// Affected semver ranges as the JSON states them, across all products.
+fn json_semver_ranges(products: Option<&Vec<Value>>) -> HashSet<(String, String)> {
+    let mut ranges = HashSet::new();
+    let Some(prods) = products else {
+        return ranges;
+    };
+    for p in prods {
+        for v in p["versions"].as_array().unwrap_or(&Vec::new()) {
+            if v["versionType"].as_str() == Some("semver") && v["status"].as_str() == Some("affected")
+            {
+                let start = v["version"].as_str().unwrap_or("");
+                let lt = v["lessThan"].as_str().unwrap_or("");
+                if !start.is_empty() && !lt.is_empty() {
+                    ranges.insert((start.to_string(), lt.to_string()));
+                }
+            }
+        }
+    }
+    ranges
+}
+
+/// Git ranges the dyad file says the JSON should carry. A vulnerability with
+/// no known introducing commit starts at the first commit in the tree.
+fn dyad_git_ranges(entries: &[DyadEntry]) -> HashSet<(String, String)> {
+    let mut ranges = HashSet::new();
+    for e in entries {
+        if e.fixed.version() == "0" || e.fixed.git_id() == "0" {
+            continue;
+        }
+        let start = if e.vulnerable.git_id() == "0" {
+            FIRST_LINUX_COMMIT.to_string()
+        } else {
+            e.vulnerable.git_id()
+        };
+        ranges.insert((start, e.fixed.git_id()));
+    }
+    ranges
+}
+
+/// CPE ranges the dyad file says the JSON should carry.
+fn dyad_cpe_ranges(entries: &[DyadEntry]) -> HashSet<(String, String)> {
+    let mut ranges = HashSet::new();
+    for e in entries {
+        if e.is_same_version() {
+            continue;
+        }
+        if e.vulnerable.version() != "0" && e.fixed.version() != "0" {
+            ranges.insert((e.vulnerable.version(), e.fixed.version()));
+        }
+    }
+    ranges
 }
 
 fn check_consistency(json_path: &Path) -> ConsistencyIssues {
@@ -35,32 +111,18 @@ fn check_consistency(json_path: &Path) -> ConsistencyIssues {
         return issues;
     }
 
-    let content = match fs::read_to_string(json_path) {
-        Ok(c) => c,
-        Err(_) => return issues,
+    let Ok(content) = fs::read_to_string(json_path) else {
+        return issues;
     };
-    let data: Value = match serde_json::from_str(&content) {
-        Ok(v) => v,
-        Err(_) => return issues,
+    let Ok(data) = serde_json::from_str::<Value>(&content) else {
+        return issues;
     };
 
     let cna = &data["containers"]["cna"];
     let products = cna["affected"].as_array();
 
     // Extract git ranges from JSON
-    let mut actual_git: HashSet<(String, String)> = HashSet::new();
-    if let Some(prods) = products {
-        for p in prods {
-            for v in p["versions"].as_array().unwrap_or(&Vec::new()) {
-                if v["versionType"].as_str() == Some("git")
-                    && v["status"].as_str() == Some("affected")
-                    && let (Some(ver), Some(lt)) = (v["version"].as_str(), v["lessThan"].as_str())
-                {
-                    actual_git.insert((ver.to_string(), lt.to_string()));
-                }
-            }
-        }
-    }
+    let actual_git = json_git_ranges(products);
 
     // Extract CPE ranges from JSON
     let actual_cpe: HashSet<(String, String)> = iter_cpe_matches(cna)
@@ -69,48 +131,11 @@ fn check_consistency(json_path: &Path) -> ConsistencyIssues {
         .collect();
 
     // Collect all semver affected ranges across all products
-    let mut all_affected_ranges: HashSet<(String, String)> = HashSet::new();
-    if let Some(prods) = products {
-        for p in prods {
-            for v in p["versions"].as_array().unwrap_or(&Vec::new()) {
-                if v["versionType"].as_str() == Some("semver")
-                    && v["status"].as_str() == Some("affected")
-                {
-                    let start = v["version"].as_str().unwrap_or("");
-                    let lt = v["lessThan"].as_str().unwrap_or("");
-                    if !start.is_empty() && !lt.is_empty() {
-                        all_affected_ranges.insert((start.to_string(), lt.to_string()));
-                    }
-                }
-            }
-        }
-    }
+    let all_affected_ranges = json_semver_ranges(products);
 
-    // Build expected git ranges from dyad
-    const FIRST_LINUX_COMMIT: &str = "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2";
-    let mut expected_git: HashSet<(String, String)> = HashSet::new();
-    for e in &entries {
-        if e.fixed.version() == "0" || e.fixed.git_id() == "0" {
-            continue;
-        }
-        let start = if e.vulnerable.git_id() == "0" {
-            FIRST_LINUX_COMMIT.to_string()
-        } else {
-            e.vulnerable.git_id()
-        };
-        expected_git.insert((start, e.fixed.git_id()));
-    }
-
-    // Build expected CPE ranges from dyad
-    let mut expected_cpe: HashSet<(String, String)> = HashSet::new();
-    for e in &entries {
-        if e.is_same_version() {
-            continue;
-        }
-        if e.vulnerable.version() != "0" && e.fixed.version() != "0" {
-            expected_cpe.insert((e.vulnerable.version(), e.fixed.version()));
-        }
-    }
+    // Build expected ranges from dyad
+    let expected_git = dyad_git_ranges(&entries);
+    let expected_cpe = dyad_cpe_ranges(&entries);
 
     // Check git
     let git_missing = expected_git.difference(&actual_git).count();
@@ -255,7 +280,7 @@ fn iter_cpe_matches(cna: &Value) -> impl Iterator<Item = (&str, &str)> {
         })
 }
 
-/// Extract fix versions from semver/original_commit_for_fix entries.
+/// Extract fix versions from `semver/original_commit_for_fix` entries.
 fn get_fixes_from_semver(cna: &Value) -> HashSet<String> {
     let mut fixes = HashSet::new();
     for p in cna["affected"].as_array().unwrap_or(&vec![]) {
@@ -328,13 +353,11 @@ struct CrossProductIssues {
 fn check_cross_product(json_path: &Path) -> CrossProductIssues {
     let mut issues = CrossProductIssues::default();
 
-    let content = match fs::read_to_string(json_path) {
-        Ok(c) => c,
-        Err(_) => return issues,
+    let Ok(content) = fs::read_to_string(json_path) else {
+        return issues;
     };
-    let data: Value = match serde_json::from_str(&content) {
-        Ok(v) => v,
-        Err(_) => return issues,
+    let Ok(data) = serde_json::from_str::<Value>(&content) else {
+        return issues;
     };
 
     let cna = &data["containers"]["cna"];

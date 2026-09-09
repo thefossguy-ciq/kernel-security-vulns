@@ -28,6 +28,12 @@ pub struct DyadEntry {
 
 impl DyadEntry {
     /// Create a new `DyadEntry` from a colon-separated string
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DyadError`] if the string does not have four colon-separated
+    /// fields, if either git id fails validation, or if either version does
+    /// not match the one the git id resolves to.
     pub fn new(s: &str) -> Result<Self, DyadError> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 4 {
@@ -67,6 +73,11 @@ impl DyadEntry {
     /// Create a new `DyadEntry` from a colon-separated string with NO validation
     /// Only do this if you know what you are doing (i.e. the output comes straight from dyad
     /// directly.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DyadError`] if the string does not have four colon-separated
+    /// fields.
     pub fn new_no_validate(s: &str) -> Result<Self, DyadError> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 4 {
@@ -89,25 +100,29 @@ impl DyadEntry {
 
     /// Check if this is a valid dyad entry by verifying that the sha values match the release, AND
     /// that the sha values are "full".  Useful if you create a dyad object from calling
-    /// new_no_validate()
-    pub fn is_valid(&self) -> bool {
+    /// `new_no_validate()`
+    #[must_use]
+    pub const fn is_valid(&self) -> bool {
         // FIXME
         true
     }
 
     /// Check if this vulnerability is found/fixed in the same kernel version
+    #[must_use]
     pub fn is_same_version(&self) -> bool {
         self.vulnerable.version() == self.fixed.version()
     }
 
     /// Check if this vulnerability has been fixed
     #[cfg(test)]
+    #[must_use]
     pub fn is_fixed(&self) -> bool {
         !self.fixed.is_empty()
     }
 
     /// Check if vulnerability spans across different kernel versions
     #[cfg(test)]
+    #[must_use]
     pub fn is_cross_version(&self) -> bool {
         !self.vulnerable.is_empty()
             && !self.fixed.is_empty()

@@ -595,8 +595,9 @@ fn review_commits(
         }
 
         // Verify that we really have a subject before attempting to look it up
-        let mut proposed_votes_len = 0;
-        if !commit.subject.is_empty() {
+        let proposed_votes_len = if commit.subject.is_empty() {
+            0
+        } else {
             // Check if commit has been previously reviewed in a different session
             if let Some((filename, previous_sha)) = check_previously_reviewed(&commit.subject, processed_file.parent().unwrap())? {
                 println!("\n{} Potentially already reviewed in", "WARNING:".red());
@@ -621,8 +622,8 @@ fn review_commits(
                     println!("  {vote}");
                 }
             }
-            proposed_votes_len = proposed_votes.len();
-        }
+            proposed_votes.len()
+        };
 
         // Apply highlighting to the commit message
         let highlighted_message = highlight_commit_message(&commit.full_message, &good_patterns, &bad_patterns);
@@ -979,18 +980,10 @@ fn highlight_commit_message(message: &str, good_patterns: &[&str], bad_patterns:
 fn get_terminal_height() -> usize {
     use std::mem;
     use std::os::unix::io::AsRawFd;
-    #[repr(C)]
-    struct Winsize {
-        ws_row: u16,
-        ws_col: u16,
-        ws_xpixel: u16,
-        ws_ypixel: u16,
-    }
     unsafe {
-        let mut size: Winsize = mem::zeroed();
+        let mut size: libc::winsize = mem::zeroed();
         let fd = std::io::stdout().as_raw_fd();
-        const TIOCGWINSZ: u64 = 0x5413;
-        if libc::ioctl(fd, TIOCGWINSZ, &mut size) == 0 && size.ws_row > 0 {
+        if libc::ioctl(fd, libc::TIOCGWINSZ, &raw mut size) == 0 && size.ws_row > 0 {
             return size.ws_row as usize;
         }
     }
@@ -1147,12 +1140,12 @@ mod tests {
         };
 
         // Check the logic using our helper function
-        let cve_id = check_if_published(&commit, &cve_root, test_sha.to_string());
+        let cve_id = check_if_published(&commit, &cve_root, test_sha);
         assert_eq!(cve_id, Some("CVE-2023-12345".to_string()));
     }
 
     // Helper function for the test - simplified version of check_already_published
-    fn check_if_published(commit: &Commit, cve_root: &Path, mainline_sha: String) -> Option<String> {
+    fn check_if_published(commit: &Commit, cve_root: &Path, mainline_sha: &str) -> Option<String> {
         if mainline_sha.is_empty() {
             return None;
         }
@@ -1172,7 +1165,7 @@ mod tests {
 
             // Check if this file contains our commit subject and mainline SHA
             if let Ok(file_content) = fs::read_to_string(&path)
-                && file_content.contains(&commit.subject) && file_content.contains(&mainline_sha) {
+                && file_content.contains(&commit.subject) && file_content.contains(mainline_sha) {
                     // Extract CVE ID from filename
                     let cve_id = path.file_stem()?.to_str()?.to_string();
                     return Some(cve_id);

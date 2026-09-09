@@ -19,7 +19,7 @@ use std::sync::{Arc, Mutex};
 /// 3. Compares the output with existing .dyad files, skipping lines starting with "#"
 /// 4. Fails if there are differences
 #[test]
-#[ignore]
+#[ignore = "needs RUN_INTEGRATION_TESTS=1 and a populated CVE tree"]
 fn test_dyad_consistency() {
     // Skip this test unless explicitly enabled
     if env::var("RUN_INTEGRATION_TESTS").is_err() {
@@ -44,9 +44,7 @@ fn test_dyad_consistency() {
 
     // Collect and prepare test cases
     let mut test_cases = get_test_cases(&cve_dir);
-    if test_cases.is_empty() {
-        panic!("No test cases found");
-    }
+    assert!(!test_cases.is_empty(), "No test cases found");
 
     // Limit test cases if requested
     if limit_tests > 0 && test_cases.len() > limit_tests {
@@ -88,10 +86,11 @@ fn test_dyad_consistency() {
     pb.finish_with_message("Testing complete");
 
     // Report results
-    let failed_cases = failed_cases.lock().unwrap();
+    // Take the vec out so the guard is not held across the reporting below.
+    let failed_cases = std::mem::take(&mut *failed_cases.lock().unwrap());
     if !failed_cases.is_empty() {
         println!("\n⚠️ Test failures detected:");
-        for (cve_id, error) in failed_cases.iter() {
+        for (cve_id, error) in &failed_cases {
             println!("❌ Failed: CVE {cve_id}");
             if !error.is_empty() {
                 println!("   Error: {error}");
@@ -124,14 +123,11 @@ struct TestResult {
 /// Run a single test case and check output against expected .dyad file
 fn run_test_case(test_case: &TestCase) -> TestResult {
     // Find the dyad binary
-    let dyad_path = match find_dyad_binary() {
-        Some(path) => path,
-        None => {
-            return TestResult {
-                success: false,
-                error_message: "Failed to find dyad binary".to_string(),
-            }
-        }
+    let Some(dyad_path) = find_dyad_binary() else {
+        return TestResult {
+            success: false,
+            error_message: "Failed to find dyad binary".to_string(),
+        };
     };
 
     // Build command with git SHA(s) - handle multi-line SHA files
@@ -183,12 +179,12 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
                         // Filter out lines starting with "#" for comparison
                         let expected_filtered = expected
                             .lines()
-                            .filter(|line| !line.trim_start().starts_with("#"))
+                            .filter(|line| !line.trim_start().starts_with('#'))
                             .collect::<Vec<&str>>()
                             .join("\n");
                         let actual_filtered = actual
                             .lines()
-                            .filter(|line| !line.trim_start().starts_with("#"))
+                            .filter(|line| !line.trim_start().starts_with('#'))
                             .collect::<Vec<&str>>()
                             .join("\n");
 
@@ -238,7 +234,7 @@ fn run_test_case(test_case: &TestCase) -> TestResult {
     }
 }
 
-/// Find the CVE directory using cve_utils
+/// Find the CVE directory using `cve_utils`
 fn find_cve_dir() -> Result<PathBuf, String> {
     match cve_utils::common::find_vulns_dir() {
         Ok(vulns_dir) => {

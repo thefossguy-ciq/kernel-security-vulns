@@ -285,13 +285,14 @@ pub fn generate_mbox(params: &MboxParams) -> String {
         String::new()
     } else {
         let mut section = String::from("\nSeverity\n========\n\n");
-        for metric in cvss_metrics.iter() {
-            section.push_str(&format!(
+        for metric in *cvss_metrics {
+            let _ = write!(
+                section,
                 "  CVSS v3.1: {} {}\n  Vector:    {}\n\n",
                 metric.cvss_v3_1.base_score,
                 metric.cvss_v3_1.base_severity,
                 metric.cvss_v3_1.vector_string,
-            ));
+            );
         }
         section
     };

@@ -2,6 +2,7 @@
 // (c) 2025, Sasha Levin <sashal@kernel.org>
 
 use std::collections::HashSet;
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use log::{info, debug, warn, error};
@@ -23,7 +24,10 @@ type CommitInfoResult = (String, Option<(String, String)>, bool, Option<String>)
 fn sha256_hex(data: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(data);
-    hasher.finalize().iter().map(|b| format!("{b:02x}")).collect()
+    hasher.finalize().iter().fold(String::new(), |mut hex, b| {
+        let _ = write!(hex, "{b:02x}");
+        hex
+    })
 }
 
 pub struct CVEDataCollector {
@@ -50,7 +54,7 @@ impl CVEDataCollector {
             Err(e) => return Err(format!("Failed to verify git repository: {e}")),
         }
 
-        let mut collector = CVEDataCollector {
+        let mut collector = Self {
             kernel_repo_path: kernel_repo_path.to_path_buf(),
             cve_commits_path: cve_commits_path.map(Path::to_path_buf),
             seen_commit_messages: HashSet::new(),
@@ -184,20 +188,18 @@ impl CVEDataCollector {
             return None;
         };
 
-        let author_name = match self.safe_git_command(&["log", "-1", "--pretty=format:%an", commit_sha]) {
-            Some(name) => name,
-            None => "Unknown".to_string(),
-        };
+        let author_name = self
+            .safe_git_command(&["log", "-1", "--pretty=format:%an", commit_sha])
+            .unwrap_or_else(|| "Unknown".to_string());
 
         let Some(date_str) = self.safe_git_command(&["log", "-1", "--pretty=format:%aI", commit_sha]) else {
             warn!("Failed to retrieve commit date for SHA: {commit_sha}");
             return None;
         };
 
-        let datetime = match DateTime::parse_from_rfc3339(&date_str) {
-            Ok(dt) => dt.with_timezone(&Utc),
-            Err(_) => Utc::now(), // Fallback to current time if invalid
-        };
+        // Fall back to the current time if the date does not parse
+        let datetime = DateTime::parse_from_rfc3339(&date_str)
+            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
         let diff_text = self.safe_git_command(
             &["show", "-U20", "--format=", commit_sha]
@@ -285,15 +287,19 @@ impl CVEDataCollector {
             &range
         ];
 
-        if let Some(output) = self.safe_git_command(&cmd) {
-            output.lines()
-                .filter(|line| !line.is_empty())
-                .map(ToString::to_string)
-                .collect()
-        } else {
-            warn!("Failed to get commits for branch {branch}");
-            Vec::new()
-        }
+        self.safe_git_command(&cmd).map_or_else(
+            || {
+                warn!("Failed to get commits for branch {branch}");
+                Vec::new()
+            },
+            |output| {
+                output
+                    .lines()
+                    .filter(|line| !line.is_empty())
+                    .map(ToString::to_string)
+                    .collect()
+            },
+        )
     }
 
     fn get_commit_message_hash(&self, commit_sha: &str) -> Option<(String, String)> {
@@ -486,20 +492,15 @@ impl CVEDataCollector {
         let commit_info_results: Vec<CommitInfoResult> = non_cve_shas.par_iter()
             .map(|sha| {
                 let hash_result = self.get_commit_message_hash(sha);
-                let mut is_backport = false;
-                let mut upstream_sha = None;
 
-                // Fetch commit message to check for upstream reference
-                if let Some(message) = self.safe_git_command(&["log", "-1", "--pretty=format:%B", sha])
-                    && let Some(extracted_sha) = Self::extract_upstream_commit(&message)
-                {
-                    // Check if this is a backport of a CVE commit
-                    if self.cve_commits.contains(&extracted_sha) {
-                        is_backport = true;
-                    }
-                    // Store the upstream SHA whether it's a CVE or not
-                    upstream_sha = Some(extracted_sha);
-                }
+                // Fetch commit message to check for upstream reference. The
+                // upstream SHA is kept whether or not it names a CVE commit.
+                let upstream_sha = self
+                    .safe_git_command(&["log", "-1", "--pretty=format:%B", sha])
+                    .and_then(|message| Self::extract_upstream_commit(&message));
+                let is_backport = upstream_sha
+                    .as_ref()
+                    .is_some_and(|extracted_sha| self.cve_commits.contains(extracted_sha));
 
                 dedup_pb.inc(1);
                 (sha.clone(), hash_result, is_backport, upstream_sha)
@@ -733,6 +734,22 @@ mod tests {
     // Helper function to create a test commit message
     fn create_test_commit_message(subject: &str, body: &str) -> String {
         format!("{subject}\n\n{body}")
+    }
+
+    #[test]
+    fn sha256_hex_matches_known_vectors() {
+        // Standard NIST vectors, plus an explicit length check: a bare
+        // {:x} per byte would drop the leading zero of any byte below 0x10
+        // and shorten the digest, which the vectors alone need not catch.
+        assert_eq!(
+            sha256_hex(b""),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(sha256_hex(b"abc").len(), 64);
     }
 
     #[test]

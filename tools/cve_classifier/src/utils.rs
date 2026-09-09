@@ -28,7 +28,7 @@ mod tests {
         // We can't call setup_logging directly in tests because env_logger can only be initialized once
 
         // Instead we'll just verify that the function exists and has the right signature
-        let _setup_fn: fn(bool, bool) = super::setup_logging;
+        const _: fn(bool, bool) = super::setup_logging;
 
         // In a real test environment, we might use a mocking framework to verify behavior
     }

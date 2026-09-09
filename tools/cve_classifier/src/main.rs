@@ -116,22 +116,24 @@ fn parse_arguments() -> clap::ArgMatches {
         .get_matches()
 }
 
+/// The published-CVE directory, used when `--cve-commits` is not given.
+fn default_cve_path() -> PathBuf {
+    match get_cve_root() {
+        Ok(cve_root) => cve_root.join("published"),
+        Err(e) => {
+            error!("Failed to find CVE root directory: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
 fn run_training(matches: &clap::ArgMatches) {
     info!("Starting training process...");
 
     // Use the provided path or fall back to the default published directory
-    let cve_path = match matches.get_one::<String>("cve-commits").map(String::as_str) {
-        Some(path) => PathBuf::from(path),
-        None => {
-            match get_cve_root() {
-                Ok(cve_root) => cve_root.join("published"),
-                Err(e) => {
-                    error!("Failed to find CVE root directory: {e}");
-                    std::process::exit(1);
-                }
-            }
-        }
-    };
+    let cve_path = matches
+        .get_one::<String>("cve-commits")
+        .map_or_else(default_cve_path, PathBuf::from);
 
     let kernel_repo = matches.get_one::<String>("kernel-repo").unwrap();
     let expanded_kernel_repo = shellexpand::tilde(kernel_repo);
@@ -325,18 +327,9 @@ fn configure_exec_provider(config: &RunConfig, classifier: &mut CVEClassifier) {
 /// Gets the CVE path and initializes the data collector
 fn initialize_collector(config: &RunConfig) -> CVEDataCollector {
     // Use the provided path or fall back to the default published directory
-    let cve_path = match config.matches.get_one::<String>("cve-commits").map(String::as_str) {
-        Some(path) => PathBuf::from(path),
-        None => {
-            match get_cve_root() {
-                Ok(cve_root) => cve_root.join("published"),
-                Err(e) => {
-                    error!("Failed to find CVE root directory: {e}");
-                    std::process::exit(1);
-                }
-            }
-        }
-    };
+    let cve_path = config.matches
+        .get_one::<String>("cve-commits")
+        .map_or_else(default_cve_path, PathBuf::from);
 
     debug!("CVE commits path: {}", cve_path.display());
     match CVEDataCollector::new(config.kernel_repo_path, Some(&cve_path)) {
@@ -360,7 +353,9 @@ fn generate_and_save_prompt(
     
     // Only attempt to find similar commits if we have a vectorstore
     let similar_commits = if classifier.vectorstore.is_some() {
-        if !classifier.embeddings.is_initialized() {
+        if classifier.embeddings.is_initialized() {
+            classifier.find_similar_commits(&commit_text, 5)
+        } else {
             info!("Initializing embeddings model for prompt generation");
             if let Err(e) = classifier.embeddings.initialize() {
                 warn!("Failed to initialize embeddings model: {e}. Continuing without RAG.");
@@ -368,8 +363,6 @@ fn generate_and_save_prompt(
             } else {
                 classifier.find_similar_commits(&commit_text, 5)
             }
-        } else {
-            classifier.find_similar_commits(&commit_text, 5)
         }
     } else {
         debug!("No vectorstore available, skipping RAG");
@@ -654,8 +647,8 @@ fn configure_prompt_exec(config: &RunConfig, configs: &mut HashMap<String, serde
 
 /// Handles the result of prompt processing
 fn handle_prompt_result(config: &RunConfig, result: PredictionResult, file_stem: &str) {
+    let should_assign_cve = result.should_select;
     if config.batch_mode {
-        let should_assign_cve = result.should_select;
         let decision = if should_assign_cve { "yes" } else { "no" };
         println!("{file_stem} {decision}");
 
@@ -663,7 +656,6 @@ fn handle_prompt_result(config: &RunConfig, result: PredictionResult, file_stem:
             save_explanation(dir, file_stem, &result.provider_results);
         }
     } else {
-        let should_assign_cve = result.should_select;
         let status = if should_assign_cve { "ASSIGN CVE" } else { "NO CVE NEEDED" };
         info!("Result: {} (Votes: {})", status, result.vote_ratio);
 
@@ -755,13 +747,15 @@ fn main() {
         std::process::exit(1);
     }
 
-    let llm_providers = if let Some(models) = matches.get_one::<String>("models") {
-        models.split(',')
-            .map(|s| s.trim().to_string())
-            .collect::<Vec<String>>()
-    } else {
-        vec!["claude".to_string()]
-    };
+    let llm_providers = matches.get_one::<String>("models").map_or_else(
+        || vec!["claude".to_string()],
+        |models| {
+            models
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect::<Vec<String>>()
+        },
+    );
 
     if matches.contains_id("commit") || matches.contains_id("commits") {
         info!("Using LLM providers: {llm_providers:?}");

@@ -77,7 +77,7 @@ fn initialize_logging(verbose: bool) {
         .init();
 }
 
-/// Find the CVE path using cve_utils library functions, return the base path
+/// Find the CVE path using `cve_utils` library functions, return the base path
 /// (without extension) for writing .cvss file.
 fn find_cve_base_path(cve_id: &str) -> Result<PathBuf> {
     let sha1_path = cve_validation::find_cve_id(cve_id)?

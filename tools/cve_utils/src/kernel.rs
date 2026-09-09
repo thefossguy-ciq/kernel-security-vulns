@@ -91,6 +91,7 @@ impl Kernel {
     /// Create a new kernel object with a given git id
     /// There is no verification at all that the git id given here is valid, ONLY use this if you
     /// really really know what you are doing.
+    #[must_use]
     pub fn from_id_no_validate(id: &str, version: &str) -> Self {
         let mut kernel = Self::empty_kernel();
         kernel.git_id = id.to_string();
@@ -480,9 +481,13 @@ mod tests {
         k2.version = "6.9".to_string();
         k2.git_id = "ff956a3be95b45b2a823693a8c9db740939ca35e".to_string();
         assert_eq!(k1.compare(&k2), Ordering::Equal);
-        assert!(k1 == k2);
+        assert_eq!(k1, k2);
 
-        // Test sorting of lists of kernels, first the easy one with versions being the sort order
+    }
+
+    #[test]
+    fn sort_kernels_by_version() {
+        // Sorting a list of kernels orders them by version.
         let mut kernels: Vec<Kernel> = vec![
             alloc_kernel(
                 "6.1.132".to_string(),
@@ -543,8 +548,12 @@ mod tests {
         assert_eq!(kernels[3].version, "6.8.3");
         assert_eq!(kernels[4].version, "6.9");
 
-        // Now a harder test, only look at git commit ids
-        kernels = Vec::new();
+    }
+
+    #[test]
+    fn sort_kernels_by_git_id() {
+        // Kernels that share a version sort by git id.
+        let mut kernels: Vec<Kernel> = Vec::new();
         let v = "6.11".to_string();
         kernels.push(alloc_kernel(
             v.clone(),
@@ -563,7 +572,7 @@ mod tests {
             "4e9903b0861c9df3464b82db4a7025863bac1897".to_string(),
         ));
         kernels.push(alloc_kernel(
-            v.clone(),
+            v,
             "4f336dc07eceb77d2164bc1121a5ae6003b19f55".to_string(),
         ));
         kernels.sort();

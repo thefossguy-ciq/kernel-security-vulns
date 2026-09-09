@@ -105,7 +105,7 @@ impl VotingResults {
         let script_dir = vulns_dir.join("scripts");
 
         if !proposed_dir.exists() {
-            return Err(anyhow!("Cannot find review directory: {proposed_dir:?}"));
+            return Err(anyhow!("Cannot find review directory: {}", proposed_dir.display()));
         }
 
         // Create a new instance with initialized fields
@@ -431,24 +431,17 @@ impl VotingResults {
                             // Try to get the current commit's full SHA from the repo
                             let commit = match git2::Oid::from_str(possible_sha) {
                                 Ok(oid) => self.repo.find_commit(oid).ok(),
-                                Err(_) => {
-                                    // For short SHAs, we need a different approach
-                                    if possible_sha.len() >= 7 {
-                                        // Try to use lookup_prefix if available
-                                        match self.repo.revparse_single(possible_sha) {
-                                            Ok(obj) => {
-                                                if let Some(commit) = obj.as_commit() {
-                                                    self.repo.find_commit(commit.id()).ok()
-                                                } else {
-                                                    None
-                                                }
-                                            }
-                                            Err(_) => None,
-                                        }
-                                    } else {
-                                        None
-                                    }
-                                }
+                                // A short SHA is not a valid Oid, so resolve it
+                                // through revparse instead.
+                                Err(_) if possible_sha.len() >= 7 => self
+                                    .repo
+                                    .revparse_single(possible_sha)
+                                    .ok()
+                                    .and_then(|obj| {
+                                        obj.as_commit()
+                                            .and_then(|c| self.repo.find_commit(c.id()).ok())
+                                    }),
+                                Err(_) => None,
                             };
 
                             // Check if this commit's subject matches our target subject
@@ -611,7 +604,7 @@ impl VotingResults {
         for file_path in &self.annotated_files {
             if let Ok(file) = File::open(file_path) {
                 let reader = BufReader::new(file);
-                let mut lines_iter = reader.lines().peekable();
+                let mut lines_iter = reader.lines();
 
                 // Find the line containing the SHA
                 while let Some(Ok(line)) = lines_iter.next() {
@@ -1118,20 +1111,15 @@ mod tests {
         let script_dir = temp_dir.path().to_path_buf();
 
         // Get kernel tree path from the CVEKERNELTREE environment variable
-        let kernel_tree = match env::var("CVEKERNELTREE") {
-            Ok(path) => PathBuf::from(path),
-            Err(_) => {
-                panic!("CVEKERNELTREE environment variable not set. It needs to be set to the stable repo directory");
-            }
-        };
+        let kernel_tree = PathBuf::from(env::var("CVEKERNELTREE").expect(
+            "CVEKERNELTREE environment variable not set. It needs to be set to the stable repo directory",
+        ));
 
         // Validate kernel tree path
-        if !kernel_tree.is_dir() {
-            panic!(
-                "CVEKERNELTREE directory does not exist: {}",
-                kernel_tree.display()
-            );
-        }
+        assert!(kernel_tree.is_dir(), 
+            "CVEKERNELTREE directory does not exist: {}",
+            kernel_tree.display()
+        );
 
         VotingResults {
             repo: Repository::open(&kernel_tree).expect("Failed to open kernel repository"),

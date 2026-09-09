@@ -19,16 +19,16 @@ pub struct DyadState {
     pub git_sha_full: Vec<Kernel>,
     pub fixed_set: Vec<Kernel>,
     pub vulnerable_set: Vec<Kernel>,
-    /// Direct pairs of (vulnerable_backport, revert_commit) for revert-based fixes.
+    /// Direct pairs of (`vulnerable_backport`, `revert_commit`) for revert-based fixes.
     /// These are pre-computed pairs that should be used directly without going through
     /// the general pairing logic, since we already know exactly which commit each revert fixes.
     pub revert_pairs: Vec<(Kernel, Kernel)>,
-    /// SHAs from scripts/not_reverts: backports whose revert is non-functional
+    /// SHAs from `scripts/not_reverts`: backports whose revert is non-functional
     /// (e.g. cosmetic compiler-warning fixup followed by an immediate re-apply).
     /// When a reverted backport's git id is in this set, dyad treats the original
     /// as still-active on its stable branch and suppresses the re-applied sibling.
     pub not_reverts: HashSet<String>,
-    /// SHAs from scripts/not_fixes: stable backports that look like a fix for
+    /// SHAs from `scripts/not_fixes`: stable backports that look like a fix for
     /// the CVE but did not actually fix the issue (typo, misplaced check,
     /// dropped hunk, etc.).  Kernels matching these SHAs are dropped from the
     /// fix set; the actual fix needs to be supplied separately (e.g. via an
@@ -65,7 +65,7 @@ impl DyadState {
         }
     }
 
-    /// Add a kernel to fixed_set if not already present.
+    /// Add a kernel to `fixed_set` if not already present.
     /// Returns true if the kernel was added, false if it was already present.
     pub fn add_to_fixed_set(&mut self, kernel: Kernel) -> bool {
         let id = kernel.git_id();
@@ -77,7 +77,7 @@ impl DyadState {
         }
     }
 
-    /// Add a kernel to vulnerable_set if not already present.
+    /// Add a kernel to `vulnerable_set` if not already present.
     /// Returns true if the kernel was added, false if it was already present.
     pub fn add_to_vulnerable_set(&mut self, kernel: Kernel) -> bool {
         let id = kernel.git_id();
@@ -89,7 +89,7 @@ impl DyadState {
         }
     }
 
-    /// Add a revert pair if not already present (checked by vulnerable kernel's git_id).
+    /// Add a revert pair if not already present (checked by vulnerable kernel's `git_id`).
     /// Returns true if the pair was added, false if it was already present.
     pub fn add_revert_pair(&mut self, vuln_kernel: Kernel, fix_kernel: Kernel) -> bool {
         let vuln_id = vuln_kernel.git_id();
@@ -117,7 +117,7 @@ pub fn validate_env_vars(state: &mut DyadState) {
 ///
 /// Returns a `FoundInResult` containing:
 /// - `kernels`: Non-reverted backports
-/// - `reverted_pairs`: Pairs of (reverted_backport, revert_commit) where the backport was later reverted
+/// - `reverted_pairs`: Pairs of (`reverted_backport`, `revert_commit`) where the backport was later reverted
 pub fn found_in(state: &DyadState, git_sha: &str) -> FoundInResult {
     let result = state.verhaal.found_in(git_sha, &state.fixed_set);
     match result {

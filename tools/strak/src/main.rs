@@ -119,22 +119,14 @@ fn read_dyad(published_dir: &Path) -> Result<Vec<DyadRecord>> {
             dyad_records.append(&mut subdir_records);
         } else if file_type.is_file() {
             let file_name = entry.file_name().to_string_lossy().to_string();
-            // Only look at files that end in .dyad
-            if file_name.ends_with(".dyad") {
+            // Only look at files that end in .dyad, stripping the suffix to
+            // get the CVE id.
+            if let Some(cve_name) = file_name.strip_suffix(".dyad") {
                 //debug!("{} Reading {}", "#".cyan(), file_name);
-                // strip the .dyad for the string
-                let mut cve_name = file_name.to_string();
-                let mut dot = cve_name.len();
-
-                let dot_pos_check = cve_name.rfind('.');
-                if let Some(dot_pos) = dot_pos_check {
-                    dot = dot_pos;
-                }
-                cve_name.truncate(dot);
 
                 // Create a new dyad record for this CVE id
-                let mut dyad_record = DyadRecord::new(&cve_name);
-                let full_path = published_dir.join(file_name);
+                let mut dyad_record = DyadRecord::new(cve_name);
+                let full_path = published_dir.join(&file_name);
                 let dyad_content = fs::read_to_string(full_path)?;
 
                 // Parse each dyad entry
@@ -226,7 +218,7 @@ struct AncestryWindow {
 /// v6.11 -> v6.10
 fn previous_stable_tag(kernel_tree: &Path, base_tag: &str) -> Result<String> {
     let kernel_tree_str = kernel_tree.to_string_lossy();
-    let parent = format!("{}~1", base_tag);
+    let parent = format!("{base_tag}~1");
     let tag = run_command(
         "git",
         &[
@@ -276,11 +268,10 @@ fn build_ancestry_context(kernel_tree: &Path, git_sha: &str) -> Result<AncestryW
     let prev_stable = previous_stable_tag(kernel_tree, &base_tag)?;
 
     debug!(
-        "Ancestry context: describe='{}' base_tag='{}' base_version='{}' prev_stable='{}'",
-        describe_output, base_tag, base_tag_version, prev_stable
+        "Ancestry context: describe='{describe_output}' base_tag='{base_tag}' base_version='{base_tag_version}' prev_stable='{prev_stable}'"
     );
 
-    let rev_list_range = format!("{}..{}", prev_stable, git_sha);
+    let rev_list_range = format!("{prev_stable}..{git_sha}");
     let rev_list_output = run_command(
         "git",
         &["rev-list", &rev_list_range],
@@ -306,7 +297,7 @@ fn build_ancestry_context(kernel_tree: &Path, git_sha: &str) -> Result<AncestryW
     })
 }
 
-/// Wrapper for is_ancestor() so we can get some debugging output easier.
+/// Wrapper for `is_ancestor()` so we can get some debugging output easier.
 fn do_is_ancestor(first: &Kernel, second: &Kernel, ctx: &AncestryWindow) -> bool {
     // "Fast" hack for doing a `git merge-base --is-ancestor first second`
     //

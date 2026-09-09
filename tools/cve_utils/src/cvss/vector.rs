@@ -6,14 +6,19 @@
 
 use anyhow::{anyhow, Result};
 
-use super::metrics::*;
+use super::metrics::{CvssMetrics, AttackVector, AttackComplexity, PrivilegesRequired, UserInteraction, Scope, CiaImpact};
 
 const VECTOR_PREFIX: &str = "CVSS:3.1/";
 const METRIC_COUNT: usize = 8;
 
-/// Parse a CVSS v3.1 vector string into CvssMetrics.
+/// Parse a CVSS v3.1 vector string into `CvssMetrics`.
 ///
 /// Expected format: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+///
+/// # Errors
+///
+/// Returns an error if the prefix is missing, if the metric count is wrong,
+/// or if any metric key or value is unrecognised.
 pub fn parse_vector(s: &str) -> Result<CvssMetrics> {
     let s = s.trim();
 
@@ -120,7 +125,8 @@ pub fn parse_vector(s: &str) -> Result<CvssMetrics> {
     })
 }
 
-/// Format CvssMetrics as a CVSS v3.1 vector string.
+/// Format `CvssMetrics` as a CVSS v3.1 vector string.
+#[must_use]
 pub fn format_vector(metrics: &CvssMetrics) -> String {
     format!(
         "CVSS:3.1/AV:{}/AC:{}/PR:{}/UI:{}/S:{}/C:{}/I:{}/A:{}",

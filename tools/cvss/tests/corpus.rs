@@ -18,7 +18,7 @@ fn collect_cvss_files() -> Vec<PathBuf> {
     let mut files: Vec<PathBuf> = WalkDir::new(&cve_dir)
         .into_iter()
         .filter_map(Result::ok)
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .filter(|path| path.is_file() && path.extension().is_some_and(|e| e == "cvss"))
         .collect();
     files.sort();

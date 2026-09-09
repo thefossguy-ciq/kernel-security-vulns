@@ -26,34 +26,43 @@ use super::rationale::Rationale;
 use super::vector::{format_vector, parse_vector};
 
 /// One scored vector, attributed to the CNA that assigned it.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CvssEntry {
     pub cna_id: String,
     pub metrics: CvssMetrics,
 }
 
 impl CvssEntry {
+    #[must_use]
     pub fn vector_string(&self) -> String {
         format_vector(&self.metrics)
     }
 
+    #[must_use]
     pub fn score(&self) -> ScoreResult {
         compute_base_score(&self.metrics)
     }
 }
 
 /// The parsed contents of a .cvss file.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CvssFile {
     pub entries: Vec<CvssEntry>,
     pub rationale: Option<Rationale>,
 }
 
 impl CvssFile {
-    pub fn new(entries: Vec<CvssEntry>, rationale: Option<Rationale>) -> Self {
+    #[must_use]
+    pub const fn new(entries: Vec<CvssEntry>, rationale: Option<Rationale>) -> Self {
         Self { entries, rationale }
     }
 
+    /// Read and parse a `.cvss` file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read, or if its contents are not
+    /// a well-formed CVSS file.
     pub fn read(path: &Path) -> Result<Self> {
         let content = fs::read_to_string(path)
             .context(format!("failed to read {}", path.display()))?;
@@ -62,6 +71,11 @@ impl CvssFile {
 
     /// Parse the file contents. The header runs up to the first blank line;
     /// everything after it is the rationale.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a header line is not `CNA: <vector>`, if a vector
+    /// fails to parse, or if the rationale block is malformed.
     pub fn parse(content: &str) -> Result<Self> {
         // A file that came back through an editor with CRLF endings has no
         // literal "\n\n", which would put the whole rationale in the header
@@ -109,6 +123,7 @@ impl CvssFile {
     }
 
     /// Render to the on-disk form. Always ends with a newline.
+    #[must_use]
     pub fn render(&self) -> String {
         let mut out = String::new();
 
@@ -129,6 +144,11 @@ impl CvssFile {
 
     /// Replace the file atomically, so a write that fails part way through
     /// cannot leave a truncated file where a rationale used to be.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the temporary file cannot be created or written, or
+    /// if the rename over `path` fails.
     pub fn write(&self, path: &Path) -> Result<()> {
         let dir = path.parent().unwrap_or_else(|| Path::new("."));
         let mut tmp = NamedTempFile::new_in(dir)
@@ -156,6 +176,11 @@ impl CvssFile {
     ///
     /// With more than one entry there is no single vector to check against,
     /// so the rationale is accepted as-is.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the rationale does not describe the single scored
+    /// vector.
     pub fn validate(&self) -> Result<()> {
         let Some(rationale) = &self.rationale else {
             return Ok(());
@@ -173,6 +198,9 @@ impl CvssFile {
 
 #[cfg(test)]
 mod tests {
+    // CVSS weights and scores are exact, spec-defined values. Comparing them
+    // with an epsilon would let a wrong score pass.
+    #![allow(clippy::float_cmp, reason = "spec-defined values compare exactly")]
     use super::*;
     use crate::cvss::rationale::MetricKey;
 

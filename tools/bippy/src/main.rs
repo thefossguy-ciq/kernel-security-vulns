@@ -212,12 +212,12 @@ fn process_commit_text(script_dir: &Path, commit_text: &str, message_file: Optio
         if let Ok(Some(message_content)) = read_message_file(message_path) {
             let trimmed_content = message_content.trim();
             // Check if message file has actual content after trimming
-            if !trimmed_content.is_empty() {
+            if trimmed_content.is_empty() {
+                error!("Warning: Message file {} is empty or contains only whitespace, falling back to commit message", message_path.display());
+            } else {
                 debug!("Using content from .message file: {}", message_path.display());
                 // When using a .message file, use its content as the complete description
                 return format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{trimmed_content}");
-            } else {
-                error!("Warning: Message file {} is empty or contains only whitespace, falling back to commit message", message_path.display());
             }
         } else {
             error!("Warning: Could not read message file: {}", message_path.display());
@@ -311,7 +311,7 @@ fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
     )
 }
 
-/// Parse a .cvss file into CvssMetric entries.
+/// Parse a .cvss file into `CvssMetric` entries.
 ///
 /// The file holds one or more `CNA_ID CVSS_VECTOR` lines, optionally followed
 /// by a blank line and the rationale for the score. The rationale is published
@@ -324,13 +324,17 @@ fn parse_cvss_file(path: &Path) -> Result<Vec<CvssMetric>> {
     let file = cve_utils::cvss::file::CvssFile::read(path)?;
     file.validate()?;
 
-    let scenarios = match file.rationale.as_ref().map(Rationale::to_scenario_value) {
-        Some(value) => vec![Scenario {
-            lang: "en".to_string(),
-            value,
-        }],
-        None => Vec::new(),
-    };
+    let scenarios: Vec<Scenario> = file
+        .rationale
+        .as_ref()
+        .map(Rationale::to_scenario_value)
+        .map(|value| {
+            vec![Scenario {
+                lang: "en".to_string(),
+                value,
+            }]
+        })
+        .unwrap_or_default();
 
     Ok(file
         .entries
@@ -503,6 +507,9 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    // CVSS weights and scores are exact, spec-defined values. Comparing them
+    // with an epsilon would let a wrong score pass.
+    #![allow(clippy::float_cmp, reason = "spec-defined values compare exactly")]
     use super::*;
     use cve_utils::version_utils::{version_is_mainline, version_is_queue, version_is_rc};
     use std::fs::File;

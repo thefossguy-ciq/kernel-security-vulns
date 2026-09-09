@@ -130,7 +130,7 @@ fn json_output_reports_the_written_path() {
     assert_eq!(json["severity"], "HIGH");
     assert_eq!(json["vectorString"], VECTOR);
     assert_eq!(json["path"], repo.cvss_path().display().to_string());
-    assert!(json["rationale"].as_str().unwrap().lines().count() == 8);
+    assert_eq!(json["rationale"].as_str().unwrap().lines().count(), 8);
 }
 
 #[test]

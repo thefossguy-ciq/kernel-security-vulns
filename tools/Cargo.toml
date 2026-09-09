@@ -6,6 +6,10 @@ authors = ["Greg Kroah-Hartman <gregkh@linuxfoundation.org>", "Sasha Levin <sash
 license = "GPL-2.0"
 edition = "2024"
 
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+
 [features]
 default = []
 cuda = ["commit-classifier/cuda", "cve_classifier"]

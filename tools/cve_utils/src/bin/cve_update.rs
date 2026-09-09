@@ -614,7 +614,7 @@ mod tests {
         let cve_root = temp_dir.path();
 
         // Create the structure of published years
-        for year in ["2021", "2022", "2023"].iter() {
+        for year in &["2021", "2022", "2023"] {
             let year_dir = cve_root.join("published").join(year);
             fs::create_dir_all(&year_dir).unwrap();
         }
@@ -630,7 +630,7 @@ mod tests {
         ];
 
         // Create the files for each CVE
-        for (cve_id, sha, year) in sample_cves.iter() {
+        for (cve_id, sha, year) in &sample_cves {
             let year_dir = cve_root.join("published").join(year);
 
             // Create SHA1 file
@@ -674,7 +674,7 @@ mod tests {
         }
 
         // Test finding CVEs
-        for (cve_id, _, year) in sample_cves.iter() {
+        for (cve_id, _, year) in &sample_cves {
             let year_dir = cve_root.join("published").join(year);
             let sha1_file = year_dir.join(format!("{cve_id}.sha1"));
 
@@ -716,7 +716,7 @@ mod tests {
  }";
 
         let meaningful_changes_1 = diff_text_1.lines()
-            .filter(|line| line.starts_with("+") || line.starts_with("-"))
+            .filter(|line| line.starts_with('+') || line.starts_with('-'))
             .filter(|line| !line.contains("bippy") &&
                             !line.contains("@kernel.org") &&
                             !line.contains("@linuxfoundation.org") &&
@@ -741,7 +741,7 @@ mod tests {
  }";
 
         let meaningful_changes_2 = diff_text_2.lines()
-            .filter(|line| line.starts_with("+") || line.starts_with("-"))
+            .filter(|line| line.starts_with('+') || line.starts_with('-'))
             .filter(|line| !line.contains("bippy") &&
                             !line.contains("@kernel.org") &&
                             !line.contains("@linuxfoundation.org") &&
@@ -765,7 +765,7 @@ mod tests {
  This fixes a security vulnerability.";
 
         let meaningful_changes_3 = diff_text_3.lines()
-            .filter(|line| line.starts_with("+") || line.starts_with("-"))
+            .filter(|line| line.starts_with('+') || line.starts_with('-'))
             .filter(|line| !line.contains("bippy-") &&
                             !line.contains("@kernel.org") &&
                             !line.contains("@linuxfoundation.org") &&
@@ -784,7 +784,7 @@ mod tests {
         let cve_root = temp_dir.path();
 
         // Create the structure with multiple years
-        for year in ["2021", "2022", "2023"].iter() {
+        for year in &["2021", "2022", "2023"] {
             let year_dir = cve_root.join("published").join(year);
             fs::create_dir_all(&year_dir).unwrap();
         }
@@ -796,7 +796,7 @@ mod tests {
             ("CVE-2023-0179", "2023"),
         ];
 
-        for (cve_id, year) in sample_cves.iter() {
+        for (cve_id, year) in &sample_cves {
             let year_dir = cve_root.join("published").join(year);
 
             // Create SHA1 file
@@ -806,13 +806,13 @@ mod tests {
         }
 
         // Test the extraction logic with different CVE formats
-        for (cve_id, expected_year) in [
+        for (cve_id, expected_year) in &[
             ("CVE-2021-33909", "2021"),
             ("cve-2021-33909", "2021"),
             ("CVE-2022-0847", "2022"),
             ("cve-2022-0847", "2022"),
             ("CVE-2023-0179", "2023"),
-        ].iter() {
+        ] {
             let year = extract_year_from_cve(cve_id).unwrap();
             assert_eq!(&year, expected_year);
         }
@@ -871,8 +871,8 @@ mod tests {
         let mut cmd_args = vec![
             format!("--cve={}", cve_id),
             format!("--sha={}", sha),
-            format!("--json=/tmp/test.json"), // Placeholder
-            format!("--mbox=/tmp/test.mbox"), // Placeholder
+            "--json=/tmp/test.json".to_string(), // Placeholder
+            "--mbox=/tmp/test.mbox".to_string(), // Placeholder
         ];
 
         if vulnerable_file.exists() {

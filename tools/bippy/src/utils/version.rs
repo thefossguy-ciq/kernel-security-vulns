@@ -11,8 +11,8 @@ use log::debug;
 use std::collections::HashSet;
 
 /// Output of `generate_version_ranges`: separates the semver product ranges
-/// (kernel_versions) from stable branch ranges that belong in the git product
-/// (stable_versions).
+/// (`kernel_versions`) from stable branch ranges that belong in the git product
+/// (`stable_versions`).
 #[derive(Default)]
 pub struct VersionRangeOutput {
     /// Ranges for the semver product (defaultStatus=affected)
@@ -89,7 +89,7 @@ pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
         let vulnerable_git = if entry.vulnerable.is_empty() {
             policy::get_unknown_vulnerable_commit().to_string()
         } else {
-            entry.vulnerable.git_id().to_string()
+            entry.vulnerable.git_id().clone()
         };
 
         let mut ver_range = VersionRange {
@@ -102,7 +102,7 @@ pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
         // If this entry is fixed, report where it is fixed
         if entry.fixed.git_id() != "0" {
             // This entry is a fixed one, so set the place where it is resolved
-            ver_range.less_than = Some(entry.fixed.git_id().to_string());
+            ver_range.less_than = Some(entry.fixed.git_id().clone());
         }
 
         git_versions.push(ver_range);
@@ -595,7 +595,7 @@ fn add_fixed_unaffected_range(
     }
 }
 
-/// Emit an affected range for the stable introduction point (vuln_version..fix_version).
+/// Emit an affected range for the stable introduction point (`vuln_version..fix_version`).
 ///
 /// This goes into the git product (defaultStatus=unaffected) so consumers know
 /// exactly when the bug appeared on this stable branch.
@@ -1004,12 +1004,7 @@ mod tests {
         assert!(!kernel_versions.is_empty());
 
         // Verify we have some affected entries
-        let affected_entries: Vec<&VersionRange> = kernel_versions
-            .iter()
-            .filter(|v| v.status == "affected")
-            .collect();
-
-        assert!(!affected_entries.is_empty());
+        assert!(kernel_versions.iter().any(|v| v.status == "affected"));
     }
 
     /// Test for 9f6ad5d533d1c71e51bdd06a5712c4fbc8768dfa - complex case with multiple
@@ -1045,22 +1040,18 @@ mod tests {
         assert!(affected_count > 0, "Should have affected git ranges");
 
         // Check that fixed entries have less_than set (pointing to the fix commit)
-        let fixed_entries: Vec<_> = git_versions
-            .iter()
-            .filter(|v| v.status == "affected" && v.less_than.is_some())
-            .collect();
         assert!(
-            !fixed_entries.is_empty(),
+            git_versions
+                .iter()
+                .any(|v| v.status == "affected" && v.less_than.is_some()),
             "Should have fixed entries with less_than"
         );
 
         // Check that unfixed entries have no less_than (they remain affected with no fix)
-        let unfixed_entries: Vec<_> = git_versions
-            .iter()
-            .filter(|v| v.status == "affected" && v.less_than.is_none())
-            .collect();
         assert!(
-            !unfixed_entries.is_empty(),
+            git_versions
+                .iter()
+                .any(|v| v.status == "affected" && v.less_than.is_none()),
             "Should have unfixed entries without less_than"
         );
     }
@@ -1084,12 +1075,10 @@ mod tests {
         assert!(!cpe_matches.is_empty(), "Should have CPE matches");
 
         // Check that fixed ranges have version_end_excluding set
-        let fixed_ranges: Vec<_> = cpe_matches
-            .iter()
-            .filter(|m| !m.version_end_excluding.is_empty())
-            .collect();
         assert!(
-            !fixed_ranges.is_empty(),
+            cpe_matches
+                .iter()
+                .any(|m| !m.version_end_excluding.is_empty()),
             "Should have fixed CPE ranges with version_end_excluding"
         );
     }
@@ -1126,11 +1115,10 @@ mod tests {
         let kernel_versions = generate_version_ranges(&entries, "unaffected").kernel_versions;
         assert!(!kernel_versions.is_empty());
         // Should have at least one affected entry
-        let affected: Vec<_> = kernel_versions
-            .iter()
-            .filter(|v| v.status == "affected")
-            .collect();
-        assert!(!affected.is_empty(), "Should have at least one affected range");
+        assert!(
+            kernel_versions.iter().any(|v| v.status == "affected"),
+            "Should have at least one affected range"
+        );
     }
 
     #[test]
@@ -1178,12 +1166,12 @@ mod tests {
             ),
         ];
         let output = generate_version_ranges(&entries, "affected");
-        let unfixed: Vec<_> = output
-            .stable_versions
-            .iter()
-            .filter(|v| v.less_than == Some("5.16".to_string()))
-            .collect();
-        assert!(unfixed.is_empty());
+        assert!(
+            output
+                .stable_versions
+                .iter()
+                .all(|v| v.less_than.as_deref() != Some("5.16"))
+        );
     }
 
     #[test]

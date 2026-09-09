@@ -85,6 +85,6 @@ mod tests {
 
         // Test reading empty file
         let result = read_message_file(&message_path).unwrap();
-        assert_eq!(result, Some("".to_string()));
+        assert_eq!(result, Some(String::new()));
     }
 }

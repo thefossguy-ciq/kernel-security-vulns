@@ -105,7 +105,7 @@ pub fn check_cve_issuance_policy(entries: &[DyadEntry], git_sha: &str) -> bool {
 ///
 /// This should never happen if `check_cve_issuance_policy` was called earlier,
 /// but provides a clear message if the assertion fails.
-pub fn no_includable_entries_error() -> &'static str {
+pub const fn no_includable_entries_error() -> &'static str {
     "No vulnerable:fixed kernel versions to include in CVE output. \
      This is an internal error - should have been caught by check_cve_issuance_policy()"
 }
@@ -170,7 +170,7 @@ pub fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
 ///
 /// Returns the first Linux kernel commit ID, representing "beginning of time".
 #[inline]
-pub fn get_unknown_vulnerable_commit() -> &'static str {
+pub const fn get_unknown_vulnerable_commit() -> &'static str {
     FIRST_LINUX_COMMIT
 }
 

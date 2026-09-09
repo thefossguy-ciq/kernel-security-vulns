@@ -18,6 +18,11 @@ pub struct ScoreResult {
 /// Roundup function per CVSS v3.1 spec Appendix A.
 /// Returns the smallest number, specified to 1 decimal place,
 /// that is equal to or higher than its input.
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    reason = "spec-defined fixed-point roundup; inputs are bounded by 10.0"
+)]
 fn roundup(input: f64) -> f64 {
     let int_input = (input * 100_000.0).round() as i64;
     if int_input % 10000 == 0 {
@@ -41,6 +46,12 @@ fn severity_from_score(score: f64) -> String {
     }
 }
 
+// The impact expressions are written exactly as the specification states them.
+// mul_add()/powi() would be faster and more accurate, but they round differently
+// from the reference implementations, and a score that disagrees with NVD's
+// calculator in the last decimal place is worse than a slow one.
+#[allow(clippy::suboptimal_flops, reason = "formula transcribed verbatim from the CVSS v3.1 spec")]
+#[must_use]
 pub fn compute_base_score(metrics: &CvssMetrics) -> ScoreResult {
     let c = metrics.confidentiality.weight();
     let i = metrics.integrity.weight();
@@ -88,6 +99,9 @@ pub fn compute_base_score(metrics: &CvssMetrics) -> ScoreResult {
 
 #[cfg(test)]
 mod tests {
+    // CVSS weights and scores are exact, spec-defined values. Comparing them
+    // with an epsilon would let a wrong score pass.
+    #![allow(clippy::float_cmp, reason = "spec-defined values compare exactly")]
     use super::*;
     use crate::cvss::metrics::*;
     use crate::cvss::vector::parse_vector;

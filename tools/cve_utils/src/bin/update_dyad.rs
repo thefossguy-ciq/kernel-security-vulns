@@ -67,7 +67,7 @@ fn main() -> Result<()> {
     let mut raw_args = String::new();
     for a in env::args().skip(1) {
         raw_args += " ";
-        raw_args += &a.to_string();
+        raw_args += &a.clone();
     }
 
     let args = Args::parse();
@@ -109,7 +109,7 @@ fn main() -> Result<()> {
 
     let dyad_path = vulns_dir.join("scripts").join("dyad");
     if !dyad_path.exists() {
-        return Err(anyhow!("Dyad script not found at {dyad_path:?}"));
+        return Err(anyhow!("Dyad script not found at {}", dyad_path.display()));
     }
 
     // List of all ids we want to process/update
@@ -150,7 +150,7 @@ fn main() -> Result<()> {
     }
 
     debug!("Want to process {} ids", ids.len().to_string().cyan());
-    process_ids(&ids, &vulns_dir, &dyad_path)?;
+    process_ids(&ids, &vulns_dir, &dyad_path);
 
     Ok(())
 }
@@ -159,7 +159,7 @@ fn main() -> Result<()> {
 fn find_single_cve(cve_id: &str, vulns_dir: &Path) -> Result<String> {
     let cve_root = vulns_dir.join("cve");
     if !cve_root.exists() {
-        return Err(anyhow!("CVE directory not found: {cve_root:?}"));
+        return Err(anyhow!("CVE directory not found: {}", cve_root.display()));
     }
 
     // Look for the CVE ID in the published directory
@@ -218,7 +218,7 @@ fn find_ids_for_year(year: &str, vulns_dir: &Path) -> Result<Vec<String>> {
 }
 
 /// Process all sha1 files found
-fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> Result<()> {
+fn process_ids(sha_files: &[String], vulns_dir: &Path, dyad_path: &Path) {
     let total_count = sha_files.len();
 
     println!("Processing {} CVEs", total_count.to_string().cyan());
@@ -247,7 +247,7 @@ fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> R
                     error!("\nError processing {path}: {err}");
                 });
                 error_count.fetch_add(1, Ordering::Relaxed);
-                "".to_string()
+                String::new()
             }
         };
         if !result.is_empty() {
@@ -279,8 +279,6 @@ fn process_ids(sha_files: &Vec<String>, vulns_dir: &Path, dyad_path: &Path) -> R
             println!("  {}", cve_id.cyan());
         }
     }
-
-    Ok(())
 }
 
 /// Process a single file

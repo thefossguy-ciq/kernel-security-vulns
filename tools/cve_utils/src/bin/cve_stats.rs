@@ -197,7 +197,7 @@ fn run(args: &Args, cve_root: &Path, kernel_tree: &Path) -> Result<()> {
 
     // Show author stats if requested
     if let Some(num_authors) = args.authors {
-        show_author_stats(cve_root, kernel_tree, num_authors)?;
+        show_author_stats(cve_root, kernel_tree, num_authors);
     }
 
     // Show subsystem stats if requested
@@ -307,7 +307,16 @@ fn count_cves_in_range(vulns_dir: &Path, start_date: &str, end_date: &str) -> Re
                 for file_path in files.lines() {
                     // Only count .json files (matching bash script behavior)
                     // This avoids counting duplicates and skips bulk .dyad additions
-                    if file_path.starts_with("cve/published/") && file_path.ends_with(".json") && let Ok(cve_id) = extract_cve_id_from_path(file_path) {
+                    #[allow(
+                        clippy::case_sensitive_file_extension_comparisons,
+                        reason = "preserves the existing case-sensitive suffix predicate; \
+                                  Path::extension() would also drop names like \"CVE-x/.json\", \
+                                  which extract_cve_id_from_path() resolves via the parent dir"
+                    )]
+                    if file_path.starts_with("cve/published/")
+                        && file_path.ends_with(".json")
+                        && let Ok(cve_id) = extract_cve_id_from_path(file_path)
+                    {
                         commit_cves.insert(cve_id);
                     }
                 }
@@ -395,7 +404,9 @@ fn show_summary_stats(cve_root: &Path, first_cve_date: &str) -> Result<()> {
 
             // Use chrono to format the month name
             let date = NaiveDate::parse_from_str(&start_date, "%Y-%m-%d")
-                .unwrap_or_else(|_| NaiveDate::from_ymd_opt(year, month as u32, 1).unwrap());
+                .unwrap_or_else(|_| {
+                    NaiveDate::from_ymd_opt(year, u32::try_from(month).unwrap_or(1), 1).unwrap()
+                });
             let formatted_date = date.format("%B %Y").to_string();
 
             (start_date, formatted_date, count)
@@ -438,7 +449,7 @@ fn show_summary_stats(cve_root: &Path, first_cve_date: &str) -> Result<()> {
 }
 
 /// Show author statistics
-fn show_author_stats(cve_root: &Path, kernel_tree: &Path, num_authors: usize) -> Result<()> {
+fn show_author_stats(cve_root: &Path, kernel_tree: &Path, num_authors: usize) {
     println!("\n=== Top {num_authors} CVE Commit Authors ===");
 
     // Find all .sha1 files recursively in published directory
@@ -506,8 +517,6 @@ fn show_author_stats(cve_root: &Path, kernel_tree: &Path, num_authors: usize) ->
         prev_count = **count;
         println!("{}. {} ({} commits)", order + 1, author, count);
     }
-
-    Ok(())
 }
 
 /// Get the commit subsystem from a sha1 file

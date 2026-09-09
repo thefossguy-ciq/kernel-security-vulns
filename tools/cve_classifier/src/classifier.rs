@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0
 // (c) 2025, Sasha Levin <sashal@kernel.org>
 
+// The embedding model and tokenizer are cached in RefCells, which makes the
+// futures that touch them !Send. They are awaited in place and never handed to
+// a spawned task, so that is fine.
+#![allow(clippy::future_not_send, reason = "futures are awaited in place, never spawned")]
+
 use std::collections::HashMap;
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
@@ -24,6 +29,169 @@ static DECISION_PATTERNS: LazyLock<[(Regex, &'static str); 5]> = LazyLock::new(|
         (Regex::new(r"DECISION:\s*(YES|NO)").unwrap(), "DECISION: format"),
     ]
 });
+
+/// The analysis prompt. `{context}`, `{fixes_context}` and `{commit_info}`
+/// are filled in by `construct_prompt` with `str::replace`.
+#[allow(
+    clippy::literal_string_with_formatting_args,
+    reason = "placeholders are substituted with str::replace, not format!"
+)]
+const PROMPT_TEMPLATE: &str = r#"You are a security expert analyzing Linux kernel commits to determine if they should be assigned a CVE identifier.
+
+Your task requires THOROUGH and DETAILED research. This is a critical security assessment that demands comprehensive analysis.
+
+## Available Tools and Sub-Agents
+
+**IMPORTANT: Use the semcode MCP when available** - The semcode MCP provides semantic code search capabilities for the Linux kernel codebase. It can help you:
+- Find function definitions and understand their purpose: `find_function <name>`
+- Analyze call chains to understand impact: `find_callchain <function_name>`
+- Find callers of a function: `find_callers <function_name>`
+- Find functions called by a function: `find_calls <function_name>`
+- Search for specific patterns in code: `grep_functions <pattern>`
+- Extract functions from diffs: `diff_functions <diff_content>`
+- Search for commits: `find_commit <git_ref>` or `find_commit --git-range <range>`
+- Understand type definitions: `find_type <type_name>`
+
+**Use sub-agents as necessary**: You have access to specialized sub-agents for different tasks:
+- Use the "Explore" agent for complex codebase exploration
+- Use the "kernel-code-researcher" agent to investigate design decisions and rationale
+- Use other specialized agents as you deem appropriate
+
+## Research Requirements
+
+Perform a THOROUGH and DETAILED analysis:
+1. **Understand the vulnerability context**:
+   - What is the root cause of the issue?
+   - Use semcode to examine the affected functions and their call chains
+   - Investigate the history and purpose of the code being fixed
+
+2. **Assess security impact**:
+   - What attack vectors does this enable?
+   - What are the consequences of exploitation?
+   - Who can trigger this vulnerability (local user, remote attacker, etc.)?
+   - What privileges are needed to exploit this?
+
+3. **Analyze code changes in depth**:
+   - Review the actual code diff line by line
+   - Use semcode to understand the context of modified functions
+   - Examine how the fix addresses the vulnerability
+   - Look for similar patterns in the codebase
+
+4. **Consider security-relevant indicators**:
+   - Buffer overflow/underflow vulnerabilities
+   - Use-after-free or double-free bugs
+   - Race conditions and TOCTOU issues
+   - Privilege escalation vectors
+   - Information disclosure vulnerabilities
+   - Denial of service conditions (including resource exhaustion)
+   - Memory corruption issues
+   - Access control bypasses
+   - Input validation failures
+   - Integer overflows/underflows
+   - Memory leaks and resource leaks
+
+5. **Memory leaks and resource exhaustion**:
+   Memory leaks ARE security vulnerabilities when they can be exploited for denial of service.
+   A memory leak warrants a CVE if:
+   - An attacker can trigger the leak repeatedly (even if slowly)
+   - The leaked memory accumulates over time without bounds
+   - The leak can eventually exhaust system memory causing DoS
+
+   Key considerations:
+   - The size of each leak matters less than whether it can be triggered repeatedly
+   - Privileged access (CAP_NET_ADMIN, root) does NOT disqualify a leak from being a security issue -
+     many real-world attacks involve compromised privileged processes or containers
+   - Kernel memory exhaustion affects system stability and availability
+   - Consider whether the leak path is reachable via syscalls, network, filesystems, or device interfaces
+
+   Memory leaks should generally receive CVEs unless:
+   - The leak is bounded (cannot grow indefinitely)
+   - The trigger requires already having kernel code execution
+   - The affected code path is not reachable in practice
+
+6. **Evaluate scope and impact**:
+   - What subsystems are affected (memory management, networking, filesystem, etc.)?
+   - Is this a widespread issue or limited to specific configurations?
+   - Does this affect user data, system integrity, or availability?
+
+7. **Physical access and hardware-based attacks**:
+   Physical access attacks ARE valid security concerns. A vulnerability should NOT be
+   dismissed just because it requires physical access or hardware insertion.
+
+   Physical access vulnerabilities warrant CVEs when:
+   - The bug is in driver probe/init code that handles device-provided data
+   - Malicious USB, PCI, Thunderbolt, or other peripheral devices can trigger it
+   - The vulnerability could be exploited via evil maid attacks or malicious peripherals
+
+   Key considerations:
+   - Many environments have physical access risks: shared computers, data centers,
+     kiosks, laptops left unattended, cloud environments with hardware access
+   - Supply chain attacks can pre-install malicious devices or firmware
+   - Driver probe functions parsing device descriptors should be treated like
+     parsing any other untrusted input
+   - Hot-pluggable interfaces (USB, Thunderbolt) are especially relevant
+
+   Physical access bugs should generally receive CVEs unless:
+   - The attacker would need to already have kernel code execution
+   - The impact is less severe than what physical access already provides
+
+8. **Error path and cleanup vulnerabilities**:
+   Bugs in error paths and cleanup code ARE security vulnerabilities when the error
+   condition can be triggered by an attacker.
+
+   Error path vulnerabilities warrant CVEs when:
+   - The error condition can be triggered through resource exhaustion
+   - Malformed or malicious input can force the error path
+   - Hardware/device failures can be induced (e.g., malicious device descriptors)
+   - Timing or race conditions can force error handling
+
+   Key considerations:
+   - Error paths are often less tested and more likely to contain bugs
+   - Probe/init failure paths can be triggered by malicious device descriptors
+   - Resource exhaustion (memory, file descriptors, etc.) can force error paths
+   - The question is: "can an attacker trigger this error condition?" not
+     "is this code in an error path?"
+
+   Error path bugs should generally receive CVEs unless:
+   - The error condition cannot be triggered without existing kernel compromise
+   - The error requires hardware failure that cannot be induced
+
+9. **Supported kernel configurations**:
+   Bugs should NOT be dismissed because they only affect specific kernel configurations.
+   If a configuration is upstream and supported, vulnerabilities affecting it warrant CVEs.
+
+   Examples of legitimate configurations that should not be dismissed:
+   - PREEMPT_RT (real-time preemption) - merged upstream, used in production
+   - Various debugging options (KASAN, LOCKDEP, etc.) when bugs are not debug-only
+   - Different architecture configurations (32-bit, 64-bit, ARM, x86, etc.)
+   - Memory models, SMP vs UP, different allocators
+
+   A bug that causes a crash or lockup on PREEMPT_RT is just as valid as one on
+   a standard kernel - both are supported configurations with real users.
+
+Historical similar commits and their CVE status for reference:
+{context}
+
+{fixes_context}
+
+IMPORTANT: Pay close attention to the CVE Status (YES/NO) of similar commits as they provide valuable reference points.
+Commits with similar characteristics to those marked with "CVE Status: YES" are more likely to need a CVE.
+
+New Commit to analyze:
+{commit_info}
+
+## Your Task
+
+Based on your THOROUGH and DETAILED analysis (using semcode MCP and sub-agents as needed):
+1. Research the vulnerability deeply using all available tools
+2. Understand the security implications comprehensively
+3. Make an informed decision on CVE assignment
+
+Provide your answer as **YES** or **NO**, followed by a detailed explanation that:
+- References specific parts of the code changes
+- Explains the security impact (or lack thereof)
+- Justifies your decision with technical reasoning
+- Cites any relevant research you performed using semcode or other tools"#;
 
 // Import from the commit-classifier library
 use commit_classifier::{
@@ -63,7 +231,7 @@ impl CVEClassifier {
         let default_configs = Self::create_default_llm_configs();
 
         let final_configs = if let Some(user_configs) = llm_configs {
-            let mut merged = default_configs.clone();
+            let mut merged = default_configs;
             for (k, v) in user_configs {
                 merged.insert(k, v);
             }
@@ -72,7 +240,7 @@ impl CVEClassifier {
             default_configs
         };
 
-        CVEClassifier {
+        Self {
             embeddings: HuggingFaceEmbeddings::new(),
             vectorstore: None,
             persist_directory: persist_directory.map(Path::to_path_buf),
@@ -382,12 +550,12 @@ impl CVEClassifier {
         }
 
         // Process in reasonable batches
-        let mut start_idx = 0;
-
-        if self.vectorstore.is_none() {
+        let start_idx = if self.vectorstore.is_none() {
             // Create initial vectorstore with first batch
-            start_idx = self.create_initial_vectorstore(&texts, &metadatas, BATCH_SIZE)?;
-        }
+            self.create_initial_vectorstore(&texts, &metadatas, BATCH_SIZE)?
+        } else {
+            0
+        };
 
         // Add remaining batches
         self.add_remaining_batches(&texts, &metadatas, start_idx, BATCH_SIZE);
@@ -446,7 +614,7 @@ impl CVEClassifier {
         };
 
         // Create classifier
-        let mut classifier = CVEClassifier::new(
+        let mut classifier = Self::new(
             vec!["claude".to_string()],
             None,
             persist_dir,
@@ -501,165 +669,11 @@ impl CVEClassifier {
         commit_parts.join("\n\n")
     }
 
+    #[allow(
+        clippy::literal_string_with_formatting_args,
+        reason = "placeholder names, not format! arguments"
+    )]
     pub fn construct_prompt(commit_text: &str, similar_commits: &[(String, bool)], fixes_context: Option<&str>) -> String {
-        // Template for the prompt
-        let prompt_template = r#"You are a security expert analyzing Linux kernel commits to determine if they should be assigned a CVE identifier.
-
-Your task requires THOROUGH and DETAILED research. This is a critical security assessment that demands comprehensive analysis.
-
-## Available Tools and Sub-Agents
-
-**IMPORTANT: Use the semcode MCP when available** - The semcode MCP provides semantic code search capabilities for the Linux kernel codebase. It can help you:
-- Find function definitions and understand their purpose: `find_function <name>`
-- Analyze call chains to understand impact: `find_callchain <function_name>`
-- Find callers of a function: `find_callers <function_name>`
-- Find functions called by a function: `find_calls <function_name>`
-- Search for specific patterns in code: `grep_functions <pattern>`
-- Extract functions from diffs: `diff_functions <diff_content>`
-- Search for commits: `find_commit <git_ref>` or `find_commit --git-range <range>`
-- Understand type definitions: `find_type <type_name>`
-
-**Use sub-agents as necessary**: You have access to specialized sub-agents for different tasks:
-- Use the "Explore" agent for complex codebase exploration
-- Use the "kernel-code-researcher" agent to investigate design decisions and rationale
-- Use other specialized agents as you deem appropriate
-
-## Research Requirements
-
-Perform a THOROUGH and DETAILED analysis:
-1. **Understand the vulnerability context**:
-   - What is the root cause of the issue?
-   - Use semcode to examine the affected functions and their call chains
-   - Investigate the history and purpose of the code being fixed
-
-2. **Assess security impact**:
-   - What attack vectors does this enable?
-   - What are the consequences of exploitation?
-   - Who can trigger this vulnerability (local user, remote attacker, etc.)?
-   - What privileges are needed to exploit this?
-
-3. **Analyze code changes in depth**:
-   - Review the actual code diff line by line
-   - Use semcode to understand the context of modified functions
-   - Examine how the fix addresses the vulnerability
-   - Look for similar patterns in the codebase
-
-4. **Consider security-relevant indicators**:
-   - Buffer overflow/underflow vulnerabilities
-   - Use-after-free or double-free bugs
-   - Race conditions and TOCTOU issues
-   - Privilege escalation vectors
-   - Information disclosure vulnerabilities
-   - Denial of service conditions (including resource exhaustion)
-   - Memory corruption issues
-   - Access control bypasses
-   - Input validation failures
-   - Integer overflows/underflows
-   - Memory leaks and resource leaks
-
-5. **Memory leaks and resource exhaustion**:
-   Memory leaks ARE security vulnerabilities when they can be exploited for denial of service.
-   A memory leak warrants a CVE if:
-   - An attacker can trigger the leak repeatedly (even if slowly)
-   - The leaked memory accumulates over time without bounds
-   - The leak can eventually exhaust system memory causing DoS
-
-   Key considerations:
-   - The size of each leak matters less than whether it can be triggered repeatedly
-   - Privileged access (CAP_NET_ADMIN, root) does NOT disqualify a leak from being a security issue -
-     many real-world attacks involve compromised privileged processes or containers
-   - Kernel memory exhaustion affects system stability and availability
-   - Consider whether the leak path is reachable via syscalls, network, filesystems, or device interfaces
-
-   Memory leaks should generally receive CVEs unless:
-   - The leak is bounded (cannot grow indefinitely)
-   - The trigger requires already having kernel code execution
-   - The affected code path is not reachable in practice
-
-6. **Evaluate scope and impact**:
-   - What subsystems are affected (memory management, networking, filesystem, etc.)?
-   - Is this a widespread issue or limited to specific configurations?
-   - Does this affect user data, system integrity, or availability?
-
-7. **Physical access and hardware-based attacks**:
-   Physical access attacks ARE valid security concerns. A vulnerability should NOT be
-   dismissed just because it requires physical access or hardware insertion.
-
-   Physical access vulnerabilities warrant CVEs when:
-   - The bug is in driver probe/init code that handles device-provided data
-   - Malicious USB, PCI, Thunderbolt, or other peripheral devices can trigger it
-   - The vulnerability could be exploited via evil maid attacks or malicious peripherals
-
-   Key considerations:
-   - Many environments have physical access risks: shared computers, data centers,
-     kiosks, laptops left unattended, cloud environments with hardware access
-   - Supply chain attacks can pre-install malicious devices or firmware
-   - Driver probe functions parsing device descriptors should be treated like
-     parsing any other untrusted input
-   - Hot-pluggable interfaces (USB, Thunderbolt) are especially relevant
-
-   Physical access bugs should generally receive CVEs unless:
-   - The attacker would need to already have kernel code execution
-   - The impact is less severe than what physical access already provides
-
-8. **Error path and cleanup vulnerabilities**:
-   Bugs in error paths and cleanup code ARE security vulnerabilities when the error
-   condition can be triggered by an attacker.
-
-   Error path vulnerabilities warrant CVEs when:
-   - The error condition can be triggered through resource exhaustion
-   - Malformed or malicious input can force the error path
-   - Hardware/device failures can be induced (e.g., malicious device descriptors)
-   - Timing or race conditions can force error handling
-
-   Key considerations:
-   - Error paths are often less tested and more likely to contain bugs
-   - Probe/init failure paths can be triggered by malicious device descriptors
-   - Resource exhaustion (memory, file descriptors, etc.) can force error paths
-   - The question is: "can an attacker trigger this error condition?" not
-     "is this code in an error path?"
-
-   Error path bugs should generally receive CVEs unless:
-   - The error condition cannot be triggered without existing kernel compromise
-   - The error requires hardware failure that cannot be induced
-
-9. **Supported kernel configurations**:
-   Bugs should NOT be dismissed because they only affect specific kernel configurations.
-   If a configuration is upstream and supported, vulnerabilities affecting it warrant CVEs.
-
-   Examples of legitimate configurations that should not be dismissed:
-   - PREEMPT_RT (real-time preemption) - merged upstream, used in production
-   - Various debugging options (KASAN, LOCKDEP, etc.) when bugs are not debug-only
-   - Different architecture configurations (32-bit, 64-bit, ARM, x86, etc.)
-   - Memory models, SMP vs UP, different allocators
-
-   A bug that causes a crash or lockup on PREEMPT_RT is just as valid as one on
-   a standard kernel - both are supported configurations with real users.
-
-Historical similar commits and their CVE status for reference:
-{context}
-
-{fixes_context}
-
-IMPORTANT: Pay close attention to the CVE Status (YES/NO) of similar commits as they provide valuable reference points.
-Commits with similar characteristics to those marked with "CVE Status: YES" are more likely to need a CVE.
-
-New Commit to analyze:
-{commit_info}
-
-## Your Task
-
-Based on your THOROUGH and DETAILED analysis (using semcode MCP and sub-agents as needed):
-1. Research the vulnerability deeply using all available tools
-2. Understand the security implications comprehensively
-3. Make an informed decision on CVE assignment
-
-Provide your answer as **YES** or **NO**, followed by a detailed explanation that:
-- References specific parts of the code changes
-- Explains the security impact (or lack thereof)
-- Justifies your decision with technical reasoning
-- Cites any relevant research you performed using semcode or other tools"#;
-
         // Format the context from similar commits
         let mut context_parts = Vec::new();
 
@@ -681,7 +695,7 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         let fixes_context_text = fixes_context.unwrap_or("");
 
         // Replace placeholders in the template
-        prompt_template
+        PROMPT_TEMPLATE
             .replace("{context}", &context_text)
             .replace("{fixes_context}", fixes_context_text)
             .replace("{commit_info}", commit_text)
@@ -824,7 +838,9 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         // Get similar commits for context if vectorstore is available
         let similar_commits = if self.vectorstore.is_some() {
             // Ensure embeddings are initialized only if they aren't already
-            if !self.embeddings.is_initialized() {
+            if self.embeddings.is_initialized() {
+                self.find_similar_commits(&commit_text, 5)
+            } else {
                 info!("Initializing embeddings model for prediction");
                 if let Err(e) = self.embeddings.initialize() {
                     warn!("Failed to initialize embeddings model: {e}. Continuing without RAG.");
@@ -832,8 +848,6 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
                 } else {
                     self.find_similar_commits(&commit_text, 5)
                 }
-            } else {
-                self.find_similar_commits(&commit_text, 5)
             }
         } else {
             info!("No vectorstore available, proceeding without RAG");
@@ -936,7 +950,7 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         if let Some(captures) = BOLD_DECISION_RE.captures(&filtered_response) {
             let decision = captures.get(1).unwrap().as_str().to_uppercase();
             debug!("Found bold {decision} indicator");
-            return (decision == "YES", filtered_response.to_string());
+            return (decision == "YES", filtered_response.clone());
         }
 
         // Convert to uppercase for case-insensitive pattern matching
@@ -947,14 +961,14 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
             if let Some(captures) = pattern.captures(&upper_response) {
                 let decision = captures.get(1).unwrap().as_str();
                 debug!("Found {pattern_name} pattern: {decision}");
-                return (decision == "YES", filtered_response.to_string());
+                return (decision == "YES", filtered_response);
             }
         }
 
         // If specific patterns don't match, try these common cases
         if upper_response.trim().starts_with("NO:") {
             debug!("Found 'NO:' at start of response");
-            return (false, filtered_response.to_string());
+            return (false, filtered_response);
         }
 
         // Look for YES/NO anywhere in the text (first occurrence)
@@ -964,13 +978,13 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         if let (Some(yes_idx), Some(no_idx)) = (yes_pos, no_pos) {
             // Return based on which comes first
             debug!("Found both YES and NO at positions {yes_idx} and {no_idx}");
-            return (yes_idx < no_idx, filtered_response.to_string());
+            return (yes_idx < no_idx, filtered_response);
         } else if yes_pos.is_some() {
             debug!("Found only YES in response");
-            return (true, filtered_response.to_string());
+            return (true, filtered_response);
         } else if no_pos.is_some() {
             debug!("Found only NO in response");
-            return (false, filtered_response.to_string());
+            return (false, filtered_response);
         }
 
         // If still no match, check for phrases
@@ -994,14 +1008,14 @@ Provide your answer as **YES** or **NO**, followed by a detailed explanation tha
         for (decision, phrase) in &cve_phrases {
             if lower_response.contains(phrase) {
                 debug!("Found phrase: '{phrase}'");
-                return (*decision, filtered_response.to_string());
+                return (*decision, filtered_response);
             }
         }
 
         // Default fallback - consider it not needing a CVE unless clearly indicated
         // This is safer from a security perspective
         debug!("No clear YES/NO found in response, defaulting to NO");
-        (false, filtered_response.to_string())
+        (false, filtered_response)
     }
 
     // Shared method to process a prompt with all available LLMs
@@ -1187,7 +1201,7 @@ mod tests {
         // Regression test: **No special permissions** in the body should not
         // cause the response to be classified as NO when the actual decision
         // is "CVE Decision: YES".
-        let response = r#"## Analysis
+        let response = r"## Analysis
 
 **Security Impact:**
 
@@ -1196,7 +1210,7 @@ mod tests {
 
 **CVE Decision: YES**
 
-This fixes a kernel panic."#;
+This fixes a kernel panic.";
         let (decision, _) = CVEClassifier::parse_llm_response(response);
         assert!(decision, "Should parse as YES despite **No** in body text");
     }

@@ -307,10 +307,11 @@ fn main() -> Result<()> {
 
     // Validate directories exist
     if !review_dir.exists() {
-        return Err(anyhow!("Review directory does not exist: {review_dir:?}"));
+        return Err(anyhow!("Review directory does not exist: {}", review_dir.display()));
     }
     if !published_dir.exists() {
-        return Err(anyhow!("Published directory does not exist: {published_dir:?}"));
+        return Err(anyhow!(
+            "Published directory does not exist: {}", published_dir.display()));
     }
 
     println!("Reviewer Accuracy Report");
@@ -427,9 +428,9 @@ mod tests {
     fn test_against_bash_script() {
         // This test requires the actual CVE repository structure
         // It will be skipped if the directories don't exist
-        let vulns_dir = match common::find_vulns_dir() {
-            Ok(dir) => dir,
-            Err(_) => return, // Skip test if vulns dir not found
+        // Skip test if vulns dir not found
+        let Ok(vulns_dir) = common::find_vulns_dir() else {
+            return;
         };
 
         let review_dir = vulns_dir.join("cve").join("review").join("done");

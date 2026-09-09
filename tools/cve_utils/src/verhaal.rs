@@ -32,12 +32,12 @@ pub struct BackportEntry {
     pub revert_release: Option<String>,
 }
 
-/// Result of found_in() containing both non-reverted backports and revert-based fixes
+/// Result of `found_in()` containing both non-reverted backports and revert-based fixes
 #[derive(Debug, Default)]
 pub struct FoundInResult {
     /// Non-reverted backports (these are vulnerable or fixed depending on context)
     pub kernels: Vec<Kernel>,
-    /// Pairs of (reverted_backport, revert_commit) - the revert is a fix for that branch
+    /// Pairs of (`reverted_backport`, `revert_commit`) - the revert is a fix for that branch
     pub reverted_pairs: Vec<(Kernel, Kernel)>,
 }
 
@@ -167,7 +167,7 @@ impl Verhaal {
         if fixed_kernels.is_empty() {
             debug!("No fixes for {git_sha} were found");
             if let Ok(k) = Kernel::from_id(git_sha) {
-                debug!("kernel = {:?}", k);
+                debug!("kernel = {k:?}");
             } else {
                 debug!("{git_sha} is not a valid kernel yet, so maybe this is not in the mainline yet?");
                 // This commit could just be in Linus's tree, but NOT in a release kernel yet, so
@@ -176,12 +176,11 @@ impl Verhaal {
                 if let Some(k) = found.kernels.into_iter().next() {
                     // We only care about one of these kernels, so just grab the first and go with
                     // that, calling into ourself to get the data
-                    debug!("k = {:?}", k);
+                    debug!("k = {k:?}");
                     return self.get_fixes(&k.git_id());
-                } else {
-                    debug!("no kernels were found for this git id.");
-                    return Err(anyhow!("No fixes for {git_sha} were found"));
                 }
+                debug!("no kernels were found for this git id.");
+                return Err(anyhow!("No fixes for {git_sha} were found"));
             }
             return Err(anyhow!("No fixes for {git_sha} were found"))
         }
@@ -294,7 +293,7 @@ impl Verhaal {
     ///
     /// Returns a `FoundInResult` containing:
     /// - `kernels`: Non-reverted backports
-    /// - `reverted_pairs`: Pairs of (reverted_backport, revert_commit) for backports that were
+    /// - `reverted_pairs`: Pairs of (`reverted_backport`, `revert_commit`) for backports that were
     ///   later reverted. The revert commit can be treated as a "fix" for that branch.
     ///
     /// # Errors
@@ -388,13 +387,13 @@ impl Verhaal {
 mod tests {
     use crate::Verhaal;
 
-    fn get_version(git_id: String) -> String {
+    fn get_version(git_id: &str) -> String {
         let verhaal = match Verhaal::new() {
             Ok(verhaal) => verhaal,
             Err(error) => panic!("Can not open the database file {error:?}"),
         };
 
-        let version = verhaal.get_version(&git_id);
+        let version = verhaal.get_version(git_id);
         match version {
             Ok(version) => version,
             Err(error) => panic!("{error:?}"),
@@ -404,27 +403,27 @@ mod tests {
     #[test]
     fn get_version_test() {
         assert_eq!(
-            get_version("28cd47f75185c4818b0fb1b46f2f02faaba96376".to_string()),
+            get_version("28cd47f75185c4818b0fb1b46f2f02faaba96376"),
             "6.11"
         );
         assert_eq!(
-            get_version("22207fd5c80177b860279653d017474b2812af5e".to_string()),
+            get_version("22207fd5c80177b860279653d017474b2812af5e"),
             "6.9"
         );
         assert_eq!(
-            get_version("22f665ecfd1225afa1309ace623157d12bb9bb0c".to_string()),
+            get_version("22f665ecfd1225afa1309ace623157d12bb9bb0c"),
             "6.8.3"
         );
         assert_eq!(
-            get_version("af054a5fb24a144f99895afce9519d709891894c".to_string()),
+            get_version("af054a5fb24a144f99895afce9519d709891894c"),
             "6.7.12"
         );
         assert_eq!(
-            get_version("2e13f88e01ae7e28a7e831bf5c2409c4748e0a60".to_string()),
+            get_version("2e13f88e01ae7e28a7e831bf5c2409c4748e0a60"),
             "6.1.132"
         );
         assert_eq!(
-            get_version("e87e08c94c9541b4e18c4c13f2f605935f512605".to_string()),
+            get_version("e87e08c94c9541b4e18c4c13f2f605935f512605"),
             "6.6.24"
         );
     }
@@ -432,10 +431,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "Version 00000000 not found")]
     fn get_invalid_version_test() {
-        assert_eq!(get_version("00000000".to_string()), "0.0");
+        assert_eq!(get_version("00000000"), "0.0");
     }
 
-    /// Test found_in returns revert information for CVE-2024-27005
+    /// Test `found_in` returns revert information for CVE-2024-27005
     ///
     /// The introducing commit af42269c3523 was backported to:
     /// - 6.1.55 as ee42bfc791aa (later reverted by 19ec82b3cad1 in 6.1.81)
