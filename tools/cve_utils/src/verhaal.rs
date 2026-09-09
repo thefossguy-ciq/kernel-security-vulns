@@ -11,7 +11,7 @@
 use crate::common;
 use crate::Kernel;
 use anyhow::{anyhow, Result};
-use log::debug;
+use log::{debug, error};
 use rusqlite::fallible_iterator::FallibleIterator;
 use rusqlite::{Connection, ToSql};
 use std::fs;
@@ -172,8 +172,7 @@ impl Verhaal {
                 debug!("{git_sha} is not a valid kernel yet, so maybe this is not in the mainline yet?");
                 // This commit could just be in Linus's tree, but NOT in a release kernel yet, so
                 // let's dig and see if this is in a stable release (this happens at times)
-                let result = self.found_in(git_sha, &[]);
-                let found = result.unwrap();
+                let found = self.found_in(git_sha, &[])?;
                 if let Some(k) = found.kernels.into_iter().next() {
                     // We only care about one of these kernels, so just grab the first and go with
                     // that, calling into ourself to get the data
@@ -242,6 +241,9 @@ impl Verhaal {
         let mut stmt = match self.conn.prepare(sql) {
             Ok(s) => s,
             Err(e) => {
+                // Callers treat an Err from here as "not backported anywhere",
+                // so log the real cause to keep database failures visible.
+                error!("SQL prepare error for {git_sha}: {e:?}");
                 return Err(anyhow!("SQL prepare error: {e:?} for query: {sql}"));
             }
         };
