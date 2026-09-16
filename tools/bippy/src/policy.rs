@@ -90,6 +90,14 @@ pub fn should_issue_cve(entries: &[DyadEntry]) -> bool {
 /// # Returns
 /// `true` if a CVE should be issued, `false` if policy rejects it (error already logged)
 pub fn check_cve_issuance_policy(entries: &[DyadEntry], git_sha: &str) -> bool {
+    if entries.is_empty() {
+        log::error!(
+            "No vulnerable:fixed kernel versions were found for {git_sha}. \
+             dyad might have failed or returned no results."
+        );
+        return false;
+    }
+
     if should_issue_cve(entries) {
         return true;
     }
