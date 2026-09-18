@@ -1,0 +1,161 @@
+8ece90615012 net: skbuff: don't skb_tx_error() the source skb in skb_zerocopy()
+7c4841e2a627 fs/ntfs3: fix slab-out-of-bounds write in ni_create_attr_list()
+3105ae628fb7 mm/page_alloc: don't spin_trylock() in NMI on UP
+5eb5c72c72fe USB: gadget: ffs: fix mm lifetime handling
+e78dcb1f7ec2 usb: gadget: f_fs: Fix Use-After-Free in AIO error path
+a8b5875741d4 zram: fix slot lock bit position on big-endian 64-bit
+e939fc6a7bd9 ceph: properly decrypt filenames in vmalloc() buffers
+d1a3c2162334 KVM: SEV: Forcefully invalidate SNP VMSA if its backing gmem page is zapped
+2108de53568a NFSD: Prevent client use-after-free during export state revocation
+2330b788d732 NFSD: Prevent client use-after-free during close_lru reaping
+9026932ac8be NFSD: Prevent client use-after-free during blocked-lock reaping
+e4637ce34607 ALSA: usb-audio: fix OOB write in snd_usbmidi_us122l_output()
+fc530fe168bb media: usbtv: keep device alive while ALSA card exists
+b58e6200450d usb: dwc3: clear forceRM when issuing EndTransfer
+4ffee1aebb0c usb: storage: realtek_cr: fix use-after-free on disconnect
+263f7d61a420 usb: typec: qcom-pmic-typec: disable cc_debounce_dwork on stop
+7b0df6efd143 usb: typec: qcom-pmic: cancel reset_work on stop
+f0efaf187294 usb: gadget: midi2: Fix null-pointer dereference in f_midi2_free_ep_reqs
+fed0aa7c6eae usb: gadget: f_midi2: fix use-after-free in string attribute show path
+99aa998dec83 staging: rtl8723bs: fix OOB read / stack overflow in rtw_get_wps_attr()
+ff44dfb03a29 xhci: fix lost bounce buffers on TDs spanning several ring segments
+f2951ebd15c3 tracing: Take trace_array reference when opening options file
+6e2b571b0a54 ublk: clear VM_MAYWRITE on read-only ublk char device mmap
+367cea239fc9 spi: Fix DMA mapping ownership on partial map failure
+f4825922d2fb scsi: target: iscsi: Reserve a terminator byte for the login payload
+4b3c5965fca9 scsi: bsg: Fix TOCTOU in io_uring passthrough command setup
+af8c27375733 scsi: megaraid_sas: Limit NVMe request size to the PRP chain frame
+97d34aa65c29 mm/secretmem: properly account locked pages
+a3b8d46fe401 futex: Prevent rcuwait use-after-free during requeue PI
+9100191e5acb ftrace: Take trace_array reference before accessing its ftrace_ops
+9cdc7e6dc7a9 HID: bpf: serialize device reference release in struct_ops destroy path
+4956993bb3be HID: rmi: fix OOB access with undersized RMI reports
+a8e04f3f894c HID: wacom: validate report length in wacom_intuos_pro2_bt_irq
+44b43ec132f1 dm: fix resume-vs-remove race
+efebf6496685 bpf: Fix infinite loop in pcpu_freelist push with one possible CPU
+a61c6ae1dae2 ceph: lock mutex in ceph_mds_check_access()
+0c4256196b3a kprobes: Protect kprobe_blacklist with RCU
+540e583b66d6 mm/mempolicy: fix sleeping allocation in alloc_pages_bulk_weighted_interleave()
+bf4ade7dbd76 memcg: keep folio's objcg same as its node
+6b0d1083364f memcg: bypass the reclaim and oom killer for dying tasks once oom_reaper is done
+e2b0575900ff perf/x86/intel: Fix kernel address leakages in LBR stack
+58a8108bc73d perf: Fix use-after-free when perf mmap() revival races with the last munmap()
+b15b548d52b4 i2c: core: fix debugfs UAF on adapter removal
+acac7b5e0734 ALSA: pcm: Fix race between non-atomic ops and trigger-start
+dc1475366424 accel/amdxdna: return early from a zero-length flush
+f83af377c148 nvme-tcp: check the data direction of a C2HData PDU
+ef248d5de446 nvme: add missing SRCU grace period in error path
+eaa948c0e19b nvmet-auth: Synchronize timeout work during SQ teardown
+14cc5a7e7773 nvmet-tcp: fix out-of-bounds write when receiving an over-long PDU
+db62b35cbca0 nvmet-tcp: reject unsolicited H2CData PDUs
+dc41e961a269 mm/migrate_device: avoid out-of-bounds writes for compound folios
+7b8a8ae4dd17 mm/hugetlb_cma: fix null nodemask dereference in hugetlb_cma_alloc_frozen_folio
+6a1f2e5ed926 nvdimm/btt: reject an arena whose nfree is below the lane count
+4400270ec034 s390/vfio-ap: fix stale pqap_hook pointer on error in vfio_ap_mdev_set_kvm()
+917f509bfb88 s390/vfio-ap: Fix hot-unplug skipped when last AP adapter or domain removed
+e9290031f736 mtd: afs: validate v2 image info bounds
+e5e415262330 mtd: rawnand: validate ONFI extended parameter page sections
+ad46c907d7d9 batman-adv: fix stale receive device on merged fragments
+6a30a59e2660 batman-adv: mcast: linearize skbuff for packet generation
+8d128c932bce batman-adv: bla: fix freeing of claims on meshif deletion
+89f3502ff687 batman-adv: bla: prevent CRC corruptions after claim flush
+6288b593e76e iio: buffer: Fix potential use-after-free in anonymous buffer release
+8662e56c31cf iio: buffer: Make IIO DMA fence release RCU-safe
+f25ec4627d93 iio: buffer: Tie IIO dma fence lock lifetime to the fence
+be61c8c62526 iio: chemical: atlas-sensor: use iio_trigger_poll_nested() to fix remove UAF
+f0772389413d KVM: nVMX: Always flush vpid02 on first use
+11722439fb20 KVM: nVMX: Ensure KVM_REQ_GET_NESTED_STATE_PAGES is cleared on VM-Exit
+e428f9779a43 KVM: x86/mmu: Consume the locked rmap value in the lockless rmap walk
+0ca49fbd2883 KVM: x86: hyper-v: Clamp stimer deadline to avoid livelock
+4c07680a467e KVM: s390: Fix length check __import_wp_info()
+121ea1de927c KVM: s390: Fix memory leak in guest debug handling
+aa9c8e8baf1e KVM: s390: Fix old_data leak in guest debug error path
+e7f698b09d4a KVM: s390: Free guest debug data on vcpu destroy
+a4e482def853 KVM: s390: Take srcu when importing watchpoint data
+4e2c7f7cbc27 KVM: s390: Zero initialize data structures for inject_pfault_token
+b239410c7653 KVM: s390: Zero initialize irq in reinject_machine_check
+546dde823a36 KVM: s390: Fix memory corruption by not reinjecting CK machine checks
+da07a751efa4 KVM: s390: keyop: use mmu_lock to read gmap->asce
+8053393680d4 KVM: arm64: Handle negative S1 walk levels in VNCR TLB size evaluation
+38640bc32be3 KVM: arm64: Handle VNCR TLB invalidation race with vcpu_put() VNCR unmapping
+f5b8f203bfc0 KVM: arm64: vgic-v3: take an LPI reference in vgic_v3_save_pending_tables
+c6c156d931c3 KVM: arm64: vgic-its: Don't dereference a NULL collection on ITT save
+81aa3a58b542 LoongArch: KVM: Fix uninitialized stack variable issue with dmsintc
+27a9bfee3bbc LoongArch: KVM: Preserve memslot arch flags on KVM_MR_FLAGS_ONLY
+501514d6ebd2 LoongArch: KVM: Validate MSI data before routing it to EIOINTC
+37d545d12f21 LoongArch: BPF: Refactor jump offset calculation in tail call
+cd7e356b07a2 LoongArch: BPF: Move arena register slot below TCC context
+c3f2feace5e4 LoongArch: Do not save/restore percpu base register in rethook trampoline
+72ce4b24676e LoongArch: Avoid preempt count underflow without probe
+2f378dc45e68 media: airspy: use vb2_video_unregister_device() on disconnect to fix NULL deref
+0fbd5c232702 media: cec: disable delayed work before freeing an interrupted transmit
+abac9820b26b media: cec: extron-da-hd-4k-plus: add sanity check
+1924d0788caa media: cec: Serialize exclusive follower delivery
+627a121c15fe media: cx231xx: reject geometry changes while the VBI queue is busy
+4e143d662ca9 media: cx23885: cancel NetUP CI work before teardown
+95f76f51937f media: em28xx: defer audio-only extension registration
+826915b6b65e media: em28xx: fix use-after-free of dev_next->devlist on disconnect
+1bd456afeb8a media: go7007: defer the ALSA v4l2 put until card release
+94971ba0592c media: i2c: ov02a10: fix endpoint parsing use-after-free
+55793e4665b7 media: platform: mtk-mdp3: Fix SCP device refcounting
+90368323fb24 media: platform: mtk-mdp3: fix NULL deref on failed SCP lookup
+795bd2863591 media: nxp: imx8-isi: Fix stream ID validation bypass in crossbar routing
+052c5ed5a1d9 media: rkvdec: hevc: guard INTER_REF_PIC_SET_PRED index underflow
+dabb047c6266 media: rtl2832_sdr: use vb2_video_unregister_device() on remove to fix DMA leak
+fe50cdaebf12 media: rtl2832_sdr: release URBs and stream buffers on start_streaming() failure
+e504cc888f42 media: s2255: bound JPEG frame size before copying into the buffer
+28e84c6e2e67 media: saa7164: fix cleanup on resource allocation failure
+aeaacc300144 media: ti: vpe: quiesce overflow recovery before freeing streams
+796b5c6d4f16 media: v4l2-ctrls: validate HEVC EXT SPS RPS counts
+0735e0b5a967 media: zoran: Avoid freeing a registered video_device twice
+b9c2215bdedc media: qcom: iris: use disable_irq() during power-off
+2ae7faed2e60 media: chips-media: wave5: Add timeout while stop_streaming
+a52e6f7923c1 media: chips-media: wave5: Resume device before setting EOS flag
+b47d4a1547d9 scsi: qla2xxx: Zero SFP DMA buffer in FRU/I2C bsg handlers
+0918ee2c0eeb scsi: qla2xxx: Bound i2c->length in I2C bsg handlers
+c20ee380ca59 scsi: qla2xxx: edif: Fix NULL pointer deref in RX SA delete check
+793cedee296f scsi: qla2xxx: Hold vport reference in qla24xx_report_id_acquisition()
+a152edab3854 scsi: qla2xxx: Zero dport diagnostics buffer to avoid info leak
+de62cf265dbe scsi: qla2xxx: Bound image count in qla2x00_update_fru_versions()
+f743488e4a20 scsi: qla2xxx: Hold qpair lock when sending NVMe LS reject
+ebfd35c64433 scsi: qla2xxx: Clamp MSI-X derived queue counts to avoid truncation
+33d102102d92 scsi: qla2xxx: Fix cs84xx use-after-free on host teardown
+9efaa782845b scsi: qla2xxx: Zero mailbox struct in qla2x00_get_firmware_state()
+e0cebe20dcff scsi: qla2xxx: Don't query firmware state while chip is down
+0f41d07d72f2 scsi: qla2xxx: Reject non-SCSI SRB on status IOCB fast path
+505753ec2594 scsi: qla2xxx: Quiesce response IRQ before freeing request queue
+bb45bc4bd53c scsi: qla2xxx: Avoid double completion in async IOCB timeout
+ca6d880d6c70 scsi: qla2xxx: Bound rsp_info_len to avoid OOB sense-data read
+deb8abde83a7 scsi: qla2xxx: Avoid req_q_map double-read in qla2x00_error_entry()
+7944039ba9cb scsi: qla2xxx: Hold vport_slock for host map update in report ID acquisition
+b93d3bb3afe1 scsi: qla2xxx: Zero-init bsg stack buffers to avoid info leak
+f7e46ebffc57 scsi: qla2xxx: Skip NVMe LS reject IOCB when FW not started
+85171332742e f2fs: only redirty pinned folios in redirty_blocks
+e533889fc26a f2fs: validate MOVE_RANGE destination size
+cca7d3e30bf3 f2fs: fix dentry folio leak in find_in_level
+0dab71381f1b f2fs: fix folio_nr_pages() race after put in large folio invalidate
+ce366bfa821e f2fs: fix to avoid potential deadloop in f2fs_fsync_node_pages()
+6760f5cb12d2 drm/amdgpu: avoid force-completing uninitialized UVD rings
+92a9eebd2a1f drm/amd/display: fix dc_lock leak on GPU reset error paths
+e4c3ab59021e drm/amd/display: validate plane degamma LUT size for private color prop
+4d7390530853 drm/amdgpu/vcn: fix integer overflow in dec_msg buffer count check
+500cb24cd61b drm/gud: NUL-terminate TV mode names read from the device
+4d4be202165e drm: Fix drm_crtc_commit leak if signaled when PAGE_FLIP_EVENT is used
+941ac10529b3 drm/ttm: Drop tt->restore after successful restore
+3b5c4f4a479d drm/amdgpu: fix byte/dword unit mismatch in coredump IB dump
+fd65d1742992 drm/amdgpu: force complete the KIQ ring fences on reset
+48dc279c3010 drm/amdgpu: force complete the MES ring fences on reset
+d6e16df7df4d drm/amdgpu: use AMDGPU_GPU_PAGE_SHIFT instead of PAGE_SHIFT
+94e25cb6ab7f drm/amdkfd: Add TLB flush after MES queue eviction/suspension
+960c4a8069bf drm/amdkfd: Fix error path at svm_migrate_copy_to_ram
+6aa530642f95 drm/amdkfd: guard against NULL restore_mqd in CRIU queue restore
+c2256c044a1d drm/nouveau/dmem: fix callocated underflow on large folio split
+caa1bc2a0a6c drm/nouveau/dmem: fix mismatched DMA unmap size for large folios
+511585987d27 drm/nouveau: unsubscribe the channel-kill event before the fence context
+412a6ceb56d5 drm/nouveau/uvmm: fix NULL deref unwinding an OP_MAP_SPARSE op
+ccf930812f23 drm/nouveau/uvmm: fix premature region free on failed OP_UNMAP_SPARSE
+38a62306c426 drm/nouveau/uvmm: clear the dirty flag when unwinding an OP_UNMAP_SPARSE
+0e753899627b ksmbd: fix use-after-free in oplock break notification
+5b06f706374c rpcrdma: arm rn_done before publishing the notification
+75b1e88d3425 power: supply: ab8500_fg: fix use-after-free on remove
+73f860489e3b ksmbd: zero pipe read compound padding
