@@ -1,0 +1,158 @@
+28a57fb2c5df net: iptunnel: fix stale transport header during tunnel decapsulation
+73e594c19b4f af_packet: Don't cast tpacket_hdr.tp_len to int in tpacket_parse_header().
+2ac174dfcdde mlxsw: spectrum_ptp: Fix napi_gro_receive() call from GC workqueue context
+387d744fa7e4 netfilter: nfnetlink_log: cope with concurrent instance destruction
+1587d3394e25 x86/alternatives: Exclude text poking against change_page_attr()
+4a724bcf5d70 mm/slab: take n->list_lock in __slab_try_return_freelist() to avoid race
+7f711e62355b tracing: Fix memory corruption from a "STACKTRACE" histogram key
+78a86d75a70e net: mpls: clear inner_protocol when the last label is popped
+c0aceaf65b70 bnxt_en: Bound SW TPA IDs to prevent crashes
+f789d291bbda xfs: fix media verification ioctl for internal rt volumes
+ed54bf564ac5 bpf: Fix BPF_F_CPU validation for sparse CPU IDs
+7fcc2fe39fed net: icmp: avoid invalid transport header access in icmp_send tracepoint
+38b6be101006 net: macb: fix NULL pointer dereference on unbind with fixed-link
+8dc5d98a16fa ppp_async: drop the errored frame instead of resetting its headroom
+92312d333bf7 drm/cirrus-qemu: Validate BAR0 size during probe
+8fb45a934661 netfs: break unbuffered write when netfs_alloc_subrequest() fails
+57938bbdb9bf Bluetooth: hci_core: Fix race condition during device registration
+c4126f1db36e drm/pagemap: Prevent double migration of device pages
+b3b76e9f4f24 tipc: fix NULL deref in tipc_named_node_up() on empty publication list
+02c6be7d675b locking/lockdep: Invalidate stale class_cache entries for zapped classes
+cacf35832292 btrfs: do not force reloc root creation during qgroup_account_snapshot()
+86b7a239ec6b tracing/probes: Fix use-after-free on field name/type of events with multiple probes
+debac3a20dec net: Remove conflicting altnames for dying netns in __dev_change_net_namespace().
+0895a0c07347 bpf: Reject key-less BTF for hash maps
+4ea508b9ebd7 bpf: Fix NULL-ptr-deref when showing a void BTF type
+5403a383f52f bpf: Fix NULL-ptr-deref in btf_var_show()
+4ed7f3d7d435 nvme: remove stale namespaces by NSID range during scan
+402a9d6aab7a ALSA: caiaq: Decoupling ep1_in_urb in caiaq dev
+62be4e3e5f5f vhost-vdpa: protect config_ctx from being freed under the config callback
+fa2c25b4add5 vduse: validate virtqueue alignment
+cdca92eddc02 ipv6: null-check fib6_node before accessing in __ip6_del_rt_siblings()
+56ea4e86832d nstree: check listing permission before taking a namespace reference
+7f26a5e8040b net/mlx5e: Move representor vnic reporter to eswitch devlink port
+dff39930ad5e net/sched: cls_api: Don't replay RTM_GETCHAIN in tc_ctl_chain().
+985a663bf007 net: net_failover: Fix the deadlock in net_failover_slave_name_change()
+08cacffeef8f ftrace: fork: Initialize function graph state before copy_exec_state()
+1f1d43418d61 drm/amdgpu: skip gfx switch_power_profile during GPU reset
+cdd812d0683d exit: hold a reference to thread_pid across proc_flush_pid
+5be081b83abd net: dsa: tag_brcm: legacy FCS: request needed tailroom
+fec9b1de0d02 netfilter: cttimeout: prevent UAF during module unload
+b824476c56a1 inet: frags: invalidate queues before flushing them
+2f37fba846c9 mac802154: fix use-after-free of sdata via queued RX frames
+ba0623fc19a4 afs: Clear stale peer app data after address list changes
+cb26524ef4ac smb: client: fix one-byte OOB read in smb2_parse_native_symlink()
+4d3c07591534 xfs: fix under-reservation of blocks when repairing sf directories
+c8504fc1245f ntfs: bound $AttrDef table walk to the loaded table size
+4aa61c88b4e2 vxlan: mdb: Fix use-after-free in vxlan_mdb_remote_src_del()
+ca1f4a5ecab0 s390/time: Use jiffies instead of jiffies_64
+98fc57d16744 vxlan: reject dynamic fdb entries that reference a nexthop id
+c0c6f4ba8a37 net/mlx5: E-Switch, prevent mc_list repopulation during vport disable
+3f9a0fceb730 virtio: fix use-after-free in unregister_virtio_device()
+ccb1dc7c527f vhost/vdpa: reject VRING_NUM larger than device max
+6520198c430c net: ethernet: cortina: Count RX drops once per frame
+f06c2d26d199 configfs: unhash the dentry before dropping the item in rmdir
+a5e70ba87ca8 tracing: Fix memory corruption from the histogram stacktrace modifier
+6ede78d0563a tracing: Set the trace clock before registering the histogram trigger
+06f5634ec558 tracing: Keep the entry count when the histogram stats allocation fails
+0fe23b8eaba0 tracing: Take the reference before publishing the named histogram trigger
+92383cef6679 tracing: Undo the registration when enabling the histogram trigger fails
+ba4ba11ed6eb net: openvswitch: fix use-after-free of the flow table mask array
+a0a34a40ed29 fbdev: vfb: defer cleanup until the last reference
+2c6dc7925382 landlock: Fix use-after-free of the source's parent directory
+d806d5a85dcb smb: client: pin DFS superblock in iterator callback
+9f2e63f1b2d5 smb: client: avoid leaking refcount in cifs_queue_oplock_break()
+23b26f4408ac smb: client: avoid leaking refcount when cifs_sb_tlink() fails
+0ee150794c75 smb: client: fix heap overflow in DACL owner/group rewrite
+f576944a59f3 staging: fbtft: make dirty_lock IRQ-safe
+c2549d749539 powerpc: Do not restore KUAP in arch_exit_to_user_mode_prepare()
+63a7531ca31f powerpc/entry: Fix irq_soft_mask corruption on replayed interrupt exit
+b8bf9bfda5f6 eth: ice: don't dereference pointers from TP_printk()
+20fce5b34b21 drm/xe: Guard page-fault worker with runtime PM check
+4d0624679ae2 xfs: count escaped corruption errors in scrub stats
+7f918871112e s390/ipl: Fix NULL deref in kdump without re-IPL parm block
+dba9e2181ca5 scsi: mpi3mr: Fix NULL pointer dereference in mpi3mr_sas_port_add()
+e3eceb765159 watchdog: msc313e: Fix NULL pointer dereference in PM callbacks
+37f61b71cbc0 s390/ipl: Fix NULL deref in dump_reipl without re-IPL parm block
+b1eb31d533cd s390/debug: Fix NULL pointer dereference in debug_set_level()
+9b851b09b392 Bluetooth: hci_sysfs: Fix NULL pointer dereference in device_del()
+aefdbd574a36 x86/amd_node: Fix potential NULL pointer dereference
+bcfe2816e6ec tracing: Don't dereference trace_event_file in deferred trigger free
+bf79662bc85e ieee802154: 6lowpan: fix NULL dereference in lowpan_newlink
+20db6573301e iommu/s390: Fix NULL dereference in iova_to_phys() with ZPCI_TABLE_TYPE_RFX
+a8813a923f9e btrfs: fix transaction use-after-free in raid stripe insertion
+af3aef0245ab net/mlx5e: Fix use-after-free race in sample_restore_put()
+7ee07f601f8f net/mlx5: E-Switch: fix use-after-free in mlx5_eswitch_termtbl_put
+5a88f78df753 reboot: fix cad_pid use-after-free race
+ff5891b266a7 ieee802154: cc2520: fix FIFOP work use-after-free
+a2471ed17b0e hwmon: (gpio-fan) Fix use-after-free in alarm work
+19788a55cab6 scsi: qla2xxx: Fix use-after-free of qpair work on queue teardown
+2188569e7e1b sctp: fix a TOCTOU race in SCTP_CMD_TIMER_START
+9b110a9dcecc ALSA: pcm: Serialize PCM mmap with buffer reallocation to fix page UAF
+2987ee196c88 igmp: convert struct ip_sf_list to RCU
+9feb069e5ed0 ppp: ppp_async: simplify tty disc_data access
+97cc84dad1d7 ip6_gre: check tunnel info before xmit in ip6gre_tunnel_xmit
+144113b0a70f platform/x86: x86-android-tablets: hold device reference for secondary fwnode teardown
+a1c7570cedd0 x86/mm/pat: Acquire init_mm write lock on collapse to avoid UAF
+ed0aff60f83a tracing: Take trace_array reference when opening a tracer options file
+34a40e0dff94 scsi: qla2xxx: Fix queue teardown NULL dma_free and bitmap locking
+d5d8b8662e6e x86/mm/pat: Acquire init_mm read lock on attribute changes to avoid UAF
+9417c5818a01 wifi: mt76: mt7921: validate CLC firmware records
+d3ef6c097ba0 bpf: check_cond_jmp_op(): properly infer if register is null
+8aaeb56aff2a ppp_synctty: ensure a writeable skb header
+e0b54613aabe btrfs: restore active device pointers after failed sprout
+813f3582ac7a net/rds: acquire the fastpath locks in rds_conn_shutdown()
+dae8dda341d2 tracing: Fix subbuf resize races with trace_pipe_raw readers
+e317326d1755 hwmon: (ltc4282) Make sure clk_init_data is fully initialized
+72bd92bd8190 x86/amd_node: Avoid divide by zero on virtualized systems
+9ecc4d033879 s390/pai: Support CPU hotplug for PMU PAI
+1bb5c324b872 misc: amd-sbi: Add null check for devm_kasprintf()
+cb732d027aa1 drm/gud: validate GUD_ROTATION_0 is present in supported rotations
+72dd0ec09e7c printk: Don't WARN on kthread_run failure.
+d8d4d1cf40d5 ppp: ppp_synctty: simplify tty disc_data access
+c3fd8e5fd100 bpf: Reject non-scalar bpf_loop iteration counts
+b83641e0ab8b net: ipv4: Fix UDP length overflow with PMTU discover and big MTU
+0ae10b6be49b net: ipv6: Fix UDP length overflow with PMTU discover and big MTU
+796aa0547557 io_uring/rw: end write accounting from ->ki_complete
+5ab54837fce0 fs: autofs: fix memory leak in autofs_fill_super()
+979d5b8de8ed ieee802154: hwsim: serialize pib updates to fix double-free
+2ac7d6e62076 mptcp: pm: kernel: drop pending ADD_ADDR when removing ID0
+4164b1e3d728 xfs: fix reclaimed page accounting in xfs_buf_free
+18666c73afe9 tcp: use GFP_ATOMIC in tcp_send_active_reset()
+93b49239840b ipv6: mcast: fix RCU list diversion in ip6_mc_del1_src()
+c073d1b070f1 ipv6: mcast: use copy-on-write RCU updates in ip6_mc_source()
+75fa9caeb8aa ipv6: mcast: fix delay calculation in igmp6_join_group()
+0c8f56c583c3 ipv6: mcast: use rcu_assign_pointer() for __rcu list updates
+b4cf4a092a7b ipv6: mcast: use jiffies_delta_to_clock_t() in igmp6_mc_seq_show()
+975b5b067f52 ipv6: sr: restore network header before routing and forwarding
+70f3995830d3 bonding: alb: fix uninitialized transport header access in alb_determine_nd()
+af602c7aa5fe bonding: do not clear curr_active_slave prematurely when releasing all slaves
+1746ef2e2df2 bonding: use skb_cow_head() in bond_do_alb_xmit() and rlb_arp_xmit()
+be83178bfc44 vxlan: initialize _md in vxlan_xmit_one()
+56e1c6bbe4bb nvme: fix racy access to FDP placement id array
+e00827a4d0cf netfs: Fix read progress reporting
+3c30087e2759 netfs: Fix subreq ref leak
+a67632c8c268 cachefiles: Fix potential UAF/KASAN warning
+d12168084c8c ksmbd: safely drain sessions during logoff
+5443d9c4f55d net: ethernet: oa_tc6: Protect skb pointer used by two different kernel instances
+1d80a4792f1d ASoC: cs35l56: Fix probe deadlock waiting for SoundWire enumeration
+369f4ce73457 bpf: Check ancestor frames for rbtree callbacks
+8042312e73c5 hwmon: (asus_rog_ryujin) Validate HID report lengths
+06d48355bf41 hwmon: (asus_rog_ryujin) Synchronize HID command and report handling
+626e44f3d8a9 scsi: qla2xxx: Use memset_io() to clear QLAFX00 request ring slot
+f43fa4b8522b drm/xe/i2c: Fix the interrupt handling
+e46160a5d4fa scsi: qla2xxx: Unlink NVMe unsol ctx before freeing on LS reject error
+76da0c43c63e scsi: qla2xxx: Serialize NVMe unsol ctx list with a per-fcport lock
+2b0f561f21b2 mptcp: avoid unneeded actions on subflow reset
+42064de57fb8 mptcp: close race between scheduler and state change
+f3ef03357396 mptcp: fix bad accounting in __mptcp_subflow_push_pending()
+354ccc99b2dc hwmon: Fix potential UAF in pec_store
+1c12c3117639 Bluetooth: btusb: Fix UAF of btusb_data by rx_work
+19b4ed644d68 ipv6: fix fib6 walker UAF on seq stop
+907a56ab3eb8 s390/ism: folio_put() after error
+14d2ac442d66 wifi: ath9k_htc: don't store usb_device_id
+91a8c8c71888 media: as102: do not rely on id table address comparison
+934e1322f18c usb: serial: spcp8x5: don't store usb_device_id
+ce8101c33195 net: usb: pegasus: don't rely on id table pointer arithmetic
+eb6cd6d3d8ab usb: xusbatm: don't rely on id table pointer arithmetic
+fc045acec1a5 usb: usbtmc: don't store usb_device_id
