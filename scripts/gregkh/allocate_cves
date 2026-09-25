@@ -1,6 +1,6 @@
 #!/bin/bash
 
-year=$(gum input --prompt="# What year do you want to allocate ids for? " --value="2025")
+year=$(gum input --prompt="# What year do you want to allocate ids for? " --value="2026")
 num=$(gum input --prompt="# How many CVE ids for ${year} do you want to allocate? " --value="1")
 
 echo "mkdir ../cve/reserved/${year}"
