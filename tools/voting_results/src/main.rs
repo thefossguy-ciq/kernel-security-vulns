@@ -47,6 +47,15 @@ struct Args {
     no_annotate: bool,
 }
 
+/// Cached contents of a single reviewer's review file
+struct ReviewFile {
+    reviewer: String,
+    /// Subjects of the commits whose SHAs appear at the start of a line
+    sha_subjects: HashSet<String>,
+    /// Raw non-empty lines, used for subject substring matching
+    lines: Vec<String>,
+}
+
 struct VotingResults {
     repo: Repository,
     range: String,
@@ -56,6 +65,7 @@ struct VotingResults {
     reviewers: Vec<String>,
     guest_reviewers: Vec<String>,
     review_files: Vec<PathBuf>,
+    review_data: Vec<ReviewFile>,
     annotated_files: Vec<PathBuf>,
     commits_by_pattern: HashMap<String, Vec<String>>,
     no_annotate: bool,
@@ -118,6 +128,7 @@ impl VotingResults {
             reviewers: Vec::new(),
             guest_reviewers: Vec::new(),
             review_files: Vec::new(),
+            review_data: Vec::new(),
             annotated_files: Vec::new(),
             commits_by_pattern: HashMap::new(),
             no_annotate: args.no_annotate,
@@ -133,6 +144,7 @@ impl VotingResults {
         self.identify_guest_reviewers();
         self.display_reviewer_info();
         self.find_review_files()?;
+        self.load_review_files();
         self.init_commits_by_pattern();
         Ok(())
     }
@@ -401,6 +413,73 @@ impl VotingResults {
         Ok((short_sha, summary, oneline))
     }
 
+    /// Load the review files into memory once, resolving the SHA at the start
+    /// of each line to its commit subject, so that `tally_votes()` does not
+    /// have to re-read the files (and re-resolve every SHA through git) for
+    /// each commit in the range.
+    fn load_review_files(&mut self) {
+        let mut review_data = Vec::new();
+
+        for file_path in &self.review_files {
+            let file_name = file_path.file_name().unwrap().to_string_lossy();
+            let Some(reviewer) = file_name.split('-').next_back() else {
+                continue;
+            };
+
+            let Ok(file) = File::open(file_path) else {
+                continue;
+            };
+
+            let mut sha_subjects = HashSet::new();
+            let mut lines = Vec::new();
+
+            for line in BufReader::new(file).lines().map_while(Result::ok) {
+                // Skip empty lines
+                if line.trim().is_empty() {
+                    continue;
+                }
+
+                // Extract the first part of the line as a possible SHA and
+                // resolve it to its commit subject (for files that only
+                // contain SHA hashes)
+                if line.len() >= 12 {
+                    let possible_sha = line.split_whitespace().next().unwrap_or("");
+
+                    // Try to get the commit from the repo
+                    let commit = match git2::Oid::from_str(possible_sha) {
+                        Ok(oid) => self.repo.find_commit(oid).ok(),
+                        // A short SHA is not a valid Oid, so resolve it
+                        // through revparse instead.
+                        Err(_) if possible_sha.len() >= 7 => self
+                            .repo
+                            .revparse_single(possible_sha)
+                            .ok()
+                            .and_then(|obj| {
+                                obj.as_commit()
+                                    .and_then(|c| self.repo.find_commit(c.id()).ok())
+                            }),
+                        Err(_) => None,
+                    };
+
+                    if let Some(c) = commit
+                        && let Ok(Some(commit_subject)) = c.summary() {
+                            sha_subjects.insert(commit_subject.to_string());
+                        }
+                }
+
+                lines.push(line);
+            }
+
+            review_data.push(ReviewFile {
+                reviewer: reviewer.to_string(),
+                sha_subjects,
+                lines,
+            });
+        }
+
+        self.review_data = review_data;
+    }
+
     fn tally_votes(&self, subject: &str) -> HashMap<String, bool> {
         let mut reviewer_votes = HashMap::new();
 
@@ -409,68 +488,17 @@ impl VotingResults {
             reviewer_votes.insert(reviewer.clone(), false);
         }
 
-        // Check each review file for votes
-        for file_path in &self.review_files {
-            if let Ok(file) = File::open(file_path) {
-                let file_name = file_path.file_name().unwrap().to_string_lossy();
-                if let Some(reviewer) = file_name.split('-').next_back() {
-                    let reader = BufReader::new(file);
-
-                    // Process the current commit for this file
-                    for line in reader.lines().map_while(Result::ok) {
-                        // Skip empty lines
-                        if line.trim().is_empty() {
-                            continue;
-                        }
-
-                        // First try matching by SHA hash (for files that only contain SHA hashes)
-                        // Extract the first part of the line as a possible SHA
-                        if line.len() >= 12 {
-                            let possible_sha = line.split_whitespace().next().unwrap_or("");
-
-                            // Try to get the current commit's full SHA from the repo
-                            let commit = match git2::Oid::from_str(possible_sha) {
-                                Ok(oid) => self.repo.find_commit(oid).ok(),
-                                // A short SHA is not a valid Oid, so resolve it
-                                // through revparse instead.
-                                Err(_) if possible_sha.len() >= 7 => self
-                                    .repo
-                                    .revparse_single(possible_sha)
-                                    .ok()
-                                    .and_then(|obj| {
-                                        obj.as_commit()
-                                            .and_then(|c| self.repo.find_commit(c.id()).ok())
-                                    }),
-                                Err(_) => None,
-                            };
-
-                            // Check if this commit's subject matches our target subject
-                            if let Some(c) = commit
-                                && let Ok(Some(commit_subject)) = c.summary()
-                                && commit_subject == subject {
-                                    reviewer_votes.insert(reviewer.to_string(), true);
-                                    break;
-                                }
-                        }
-
-                        // If we can't match by SHA, try matching by subject (the original method)
-                        // Check for subject in various formats:
-                        // 1. Direct string match
-                        // 2. Subject in parentheses
-                        // 3. Subject in quotes or other common delimiters
-                        if line.contains(subject)
-                            || line.contains(&format!("(\"{subject}\")"))
-                            || line.contains(&format!("({subject})"))
-                            || line.contains(&format!("\"{subject}\""))
-                        {
-                            reviewer_votes.insert(reviewer.to_string(), true);
-                            break;
-                        }
-                    }
-
-                    // If we've found a match for this reviewer, we can move on to the next file
-                    // We don't break out of the outer loop because we need to check all reviewers
-                }
+        // Check the cached review file contents for votes
+        for review in &self.review_data {
+            // First try matching by SHA hash: the SHAs listed in the review
+            // file were already resolved to their subjects when the file was
+            // loaded.  If that fails, fall back to matching the subject as a
+            // substring of a line; this also covers the quoted and
+            // parenthesised forms ("subject"), (subject) and ("subject").
+            if review.sha_subjects.contains(subject)
+                || review.lines.iter().any(|line| line.contains(subject))
+            {
+                reviewer_votes.insert(review.reviewer.clone(), true);
             }
         }
 
@@ -1130,6 +1158,7 @@ mod tests {
             reviewers: vec!["greg".to_string(), "lee".to_string(), "sasha".to_string()],
             guest_reviewers: Vec::new(),
             review_files: Vec::new(),
+            review_data: Vec::new(),
             annotated_files: Vec::new(),
             commits_by_pattern: HashMap::new(),
             no_annotate: false,
