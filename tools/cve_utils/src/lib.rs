@@ -79,7 +79,8 @@ pub mod common {
     /// Finds the root directory of the vulns repository
     ///
     /// This function attempts to locate the vulns repository by traversing up from
-    /// the current directory until it finds a directory named "vulns".
+    /// the current directory until it finds a directory named "vulns" that
+    /// contains the CVE data (a "cve" subdirectory).
     /// Additional fallback methods implemented for robust directory discovery.
     ///
     /// # Errors
@@ -88,17 +89,23 @@ pub mod common {
     /// - The current directory cannot be determined
     /// - The 'vulns' directory cannot be found in the directory tree
     pub fn find_vulns_dir() -> Result<PathBuf> {
+        // A directory only counts as the vulns repo if it also contains the
+        // CVE data, so that unrelated directories named "vulns" are skipped.
+        let is_vulns_repo = |dir: &Path| {
+            dir.file_name().is_some_and(|name| name == "vulns") && dir.join("cve").is_dir()
+        };
+
         // First attempt: Check current directory and its parents
         let mut current_dir = env::current_dir().context("Failed to get current directory")?;
 
         // Check if we're already in the vulns repo
-        if current_dir.file_name().is_some_and(|name| name == "vulns") {
+        if is_vulns_repo(&current_dir) {
             return Ok(current_dir);
         }
 
         // Traverse up the directory tree
         while current_dir.parent().is_some() {
-            if current_dir.file_name().is_some_and(|name| name == "vulns") {
+            if is_vulns_repo(&current_dir) {
                 return Ok(current_dir);
             }
 
@@ -113,13 +120,13 @@ pub mod common {
                 let mut current_dir = exec_dir.to_path_buf();
 
                 // Check if we're already in the vulns repo
-                if current_dir.file_name().is_some_and(|name| name == "vulns") {
+                if is_vulns_repo(&current_dir) {
                     return Ok(current_dir);
                 }
 
                 // Traverse up the directory tree
                 while current_dir.parent().is_some() {
-                    if current_dir.file_name().is_some_and(|name| name == "vulns") {
+                    if is_vulns_repo(&current_dir) {
                         return Ok(current_dir);
                     }
 
