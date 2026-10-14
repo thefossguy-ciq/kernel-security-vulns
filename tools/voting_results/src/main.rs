@@ -69,6 +69,7 @@ struct VotingResults {
     review_files: Vec<PathBuf>,
     review_data: Vec<ReviewFile>,
     annotated_files: Vec<PathBuf>,
+    annotations: Vec<Vec<String>>,
     commits_by_pattern: HashMap<String, Vec<String>>,
     no_annotate: bool,
 }
@@ -136,6 +137,7 @@ impl VotingResults {
             review_files: Vec::new(),
             review_data: Vec::new(),
             annotated_files: Vec::new(),
+            annotations: Vec::new(),
             commits_by_pattern: HashMap::new(),
             no_annotate: args.no_annotate,
         };
@@ -151,6 +153,7 @@ impl VotingResults {
         self.display_reviewer_info();
         self.find_review_files()?;
         self.load_review_files();
+        self.load_annotation_files();
         self.init_commits_by_pattern();
         Ok(())
     }
@@ -642,6 +645,30 @@ impl VotingResults {
         self.cve_shas.contains(commit_sha)
     }
 
+    /// Load the annotation files into memory once so that
+    /// `print_annotations()` does not have to re-read every file for each
+    /// commit it prints.
+    fn load_annotation_files(&mut self) {
+        if self.no_annotate {
+            return;
+        }
+
+        let mut annotations = Vec::new();
+
+        for file_path in &self.annotated_files {
+            if let Ok(file) = File::open(file_path) {
+                annotations.push(
+                    BufReader::new(file)
+                        .lines()
+                        .map_while(Result::ok)
+                        .collect(),
+                );
+            }
+        }
+
+        self.annotations = annotations;
+    }
+
     fn print_annotations(&self, oneline: &str) {
         if self.no_annotate {
             return;
@@ -652,33 +679,28 @@ impl VotingResults {
             return;
         };
 
-        // Check each annotation file for this commit
-        for file_path in &self.annotated_files {
-            if let Ok(file) = File::open(file_path) {
-                let reader = BufReader::new(file);
-                let mut lines_iter = reader.lines();
+        // Check each cached annotation file for this commit
+        for lines in &self.annotations {
+            // Find the line containing the SHA
+            let Some(pos) = lines.iter().position(|line| line.contains(short_sha)) else {
+                continue;
+            };
 
-                // Find the line containing the SHA
-                while let Some(Ok(line)) = lines_iter.next() {
-                    if line.contains(short_sha) {
-                        // If found, check if there's a next line (the annotation)
-                        if let Some(Ok(annotation_line)) = lines_iter.next()
-                            && !annotation_line.is_empty() {
-                                println!("  {annotation_line}");
+            // If found, check if there's a next line (the annotation)
+            let mut rest = lines[pos + 1..].iter();
+            if let Some(annotation_line) = rest.next()
+                && !annotation_line.is_empty() {
+                    println!("  {annotation_line}");
 
-                                // Check for multi-line annotations (lines starting with two spaces)
-                                while let Some(Ok(continuation)) = lines_iter.next() {
-                                    if continuation.starts_with("  ") {
-                                        println!("  {continuation}");
-                                    } else {
-                                        break;
-                                    }
-                                }
-                            }
-                        break;
+                    // Check for multi-line annotations (lines starting with two spaces)
+                    for continuation in rest {
+                        if continuation.starts_with("  ") {
+                            println!("  {continuation}");
+                        } else {
+                            break;
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -1052,8 +1074,9 @@ mod tests {
         let mut file = File::create(&annotated_file_path).unwrap();
         file.write_all(content.as_bytes()).unwrap();
 
-        // Add the file to the annotated_files list
+        // Add the file to the annotated_files list and load it
         voting_results.annotated_files = vec![annotated_file_path];
+        voting_results.load_annotation_files();
 
         // Test that annotations are found correctly
         voting_results.print_annotations("abcdef1 Test commit");
@@ -1076,8 +1099,9 @@ mod tests {
         let mut file = File::create(&annotated_file_path).unwrap();
         file.write_all(content.as_bytes()).unwrap();
 
-        // Add the file to the annotated_files list
+        // Add the file to the annotated_files list and load it
         voting_results.annotated_files = vec![annotated_file_path];
+        voting_results.load_annotation_files();
 
         // Test the function behavior by verifying it correctly processes the content
         // We can't easily capture stdout in unit tests, so we'll validate the functionality
@@ -1195,6 +1219,7 @@ mod tests {
             review_files: Vec::new(),
             review_data: Vec::new(),
             annotated_files: Vec::new(),
+            annotations: Vec::new(),
             commits_by_pattern: HashMap::new(),
             no_annotate: false,
         }
