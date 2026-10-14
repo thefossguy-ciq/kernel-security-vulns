@@ -54,7 +54,7 @@ directory, in case text information in it was present.  It can also be used to
 hold notes and information about the specific CVE id that don't fit into the
 other files.
 
-The .sha1 file shall contain the git sha1 of the commit that fixes this CVE id.
+The .sha1 file shall contain the git sha1 of the commits that fix this CVE id.
 
 The .json file shall contain the json formatted CVE entry that can be submitted
 to CVE when published.
