@@ -12,8 +12,8 @@ use std::fmt::Write;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::sync::LazyLock;
+use walkdir::WalkDir;
 
 // Define a type alias for the complex commit result type
 type CommitResult = (String, bool, HashMap<String, bool>);
@@ -61,7 +61,9 @@ struct VotingResults {
     range: String,
     top: String,
     proposed_dir: PathBuf,
-    script_dir: PathBuf,
+    /// Full SHAs of the commits that already have a CVE assigned to them
+    /// (published or rejected)
+    cve_shas: HashSet<String>,
     reviewers: Vec<String>,
     guest_reviewers: Vec<String>,
     review_files: Vec<PathBuf>,
@@ -111,12 +113,16 @@ impl VotingResults {
 
         // Use the standard cve_utils implementation to find the vulns directory
         let vulns_dir = cve_utils::find_vulns_dir()?;
-        let proposed_dir = vulns_dir.join("cve").join("review").join("proposed");
-        let script_dir = vulns_dir.join("scripts");
+        let cve_dir = vulns_dir.join("cve");
+        let proposed_dir = cve_dir.join("review").join("proposed");
 
         if !proposed_dir.exists() {
             return Err(anyhow!("Cannot find review directory: {}", proposed_dir.display()));
         }
+
+        // Load the CVE records once so that each commit only needs a set
+        // lookup to know whether it already has a CVE assigned
+        let cve_shas = Self::load_cve_shas(&cve_dir);
 
         // Create a new instance with initialized fields
         let mut results = Self {
@@ -124,7 +130,7 @@ impl VotingResults {
             range,
             top,
             proposed_dir,
-            script_dir,
+            cve_shas,
             reviewers: Vec::new(),
             guest_reviewers: Vec::new(),
             review_files: Vec::new(),
@@ -318,7 +324,7 @@ impl VotingResults {
         let mainline_long_sha = self.get_upstream_sha(&short_stable_sha, &stable_sha);
 
         // Get the short SHA and subject
-        let (mainline_sha, subject, oneline) = self.get_commit_details(&mainline_long_sha)?;
+        let (_, subject, oneline) = self.get_commit_details(&mainline_long_sha)?;
 
         // Count votes from each reviewer
         let reviewer_votes = self.tally_votes(&subject);
@@ -336,8 +342,8 @@ impl VotingResults {
             .iter()
             .all(|reviewer| reviewer_votes.get(reviewer).unwrap_or(&false) == &true);
 
-        // Check for CVE
-        let has_cve = self.check_for_cve(&mainline_sha);
+        // Check for CVE: the records store full mainline SHAs
+        let has_cve = self.check_for_cve(&mainline_long_sha);
 
         // Create output string
         let output = self.format_commit_output(&oneline, has_cve, &reviewer_votes);
@@ -604,18 +610,36 @@ impl VotingResults {
         }
     }
 
-    fn check_for_cve(&self, commit_sha: &str) -> bool {
-        // Get the path to the cve_search script
-        let cve_search = self.script_dir.join("cve_search");
+    /// Collect the full SHAs of all commits that already have a CVE assigned
+    /// (published or rejected) by reading the .sha1 record files once, instead
+    /// of running the `cve_search` script (which greps all of them) per commit.
+    fn load_cve_shas(cve_dir: &Path) -> HashSet<String> {
+        let mut cve_shas = HashSet::new();
 
-        // We still need to use Command for this external script
-        // since it's not part of the git repository
-        Command::new(&cve_search)
-            .arg(commit_sha)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .is_ok_and(|status| status.success())
+        for dir in ["published", "rejected"] {
+            let dir = cve_dir.join(dir);
+            if !dir.exists() {
+                continue;
+            }
+
+            for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
+                let path = entry.path();
+                if path.is_file()
+                    && path.extension().is_some_and(|ext| ext == "sha1")
+                    && let Ok(content) = fs::read_to_string(path) {
+                        // A record can list more than one SHA, one per line
+                        for sha in content.split_whitespace() {
+                            cve_shas.insert(sha.to_string());
+                        }
+                    }
+            }
+        }
+
+        cve_shas
+    }
+
+    fn check_for_cve(&self, commit_sha: &str) -> bool {
+        self.cve_shas.contains(commit_sha)
     }
 
     fn print_annotations(&self, oneline: &str) {
@@ -972,31 +996,43 @@ mod tests {
     // Test check_for_cve function
     #[test]
     fn test_check_for_cve() {
-        use std::process::Command;
+        let mut voting_results = create_test_voting_results();
 
-        // Test command behavior with simple test commands
+        voting_results
+            .cve_shas
+            .insert("1234567890123456789012345678901234567890".to_string());
 
-        // Test case 1: Success (CVE found)
-        let status_success = Command::new("test")
-            .arg("1")
-            .arg("=")
-            .arg("1")
-            .status()
-            .unwrap();
-        assert!(status_success.success());
-        let cve_result = status_success.success();
-        assert!(cve_result);
+        // Test case 1: CVE found
+        assert!(voting_results.check_for_cve("1234567890123456789012345678901234567890"));
 
-        // Test case 2: Failure (no CVE found)
-        let status_failure = Command::new("test")
-            .arg("1")
-            .arg("=")
-            .arg("0")
-            .status()
-            .unwrap();
-        assert!(!status_failure.success());
-        let cve_result = status_failure.success();
-        assert!(!cve_result);
+        // Test case 2: No CVE found
+        assert!(!voting_results.check_for_cve("abcdef1234567890abcdef1234567890abcdef12"));
+    }
+
+    // Test load_cve_shas function
+    #[test]
+    fn test_load_cve_shas() {
+        use std::io::Write;
+
+        let temp_dir = tempdir().unwrap();
+        let published_dir = temp_dir.path().join("published").join("2024");
+        std::fs::create_dir_all(&published_dir).unwrap();
+
+        // A record can list more than one SHA
+        let mut file = File::create(published_dir.join("CVE-2024-12345.sha1")).unwrap();
+        writeln!(file, "1234567890123456789012345678901234567890").unwrap();
+        writeln!(file, "abcdef1234567890abcdef1234567890abcdef12").unwrap();
+
+        // Non-sha1 files must be ignored
+        let mut other = File::create(published_dir.join("CVE-2024-12345.json")).unwrap();
+        writeln!(other, "0000000000000000000000000000000000000000").unwrap();
+
+        let cve_shas = VotingResults::load_cve_shas(temp_dir.path());
+
+        assert_eq!(cve_shas.len(), 2);
+        assert!(cve_shas.contains("1234567890123456789012345678901234567890"));
+        assert!(cve_shas.contains("abcdef1234567890abcdef1234567890abcdef12"));
+        assert!(!cve_shas.contains("0000000000000000000000000000000000000000"));
     }
 
     // Test print_annotations function
@@ -1136,7 +1172,6 @@ mod tests {
     fn create_test_voting_results() -> VotingResults {
         let temp_dir = tempdir().unwrap();
         let proposed_dir = temp_dir.path().to_path_buf();
-        let script_dir = temp_dir.path().to_path_buf();
 
         // Get kernel tree path from the CVEKERNELTREE environment variable
         let kernel_tree = PathBuf::from(env::var("CVEKERNELTREE").expect(
@@ -1154,7 +1189,7 @@ mod tests {
             range: "v6.7.1..v6.7.2".to_string(),
             top: "v6.7.2".to_string(),
             proposed_dir,
-            script_dir,
+            cve_shas: HashSet::new(),
             reviewers: vec!["greg".to_string(), "lee".to_string(), "sasha".to_string()],
             guest_reviewers: Vec::new(),
             review_files: Vec::new(),
