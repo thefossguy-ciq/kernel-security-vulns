@@ -1,0 +1,238 @@
+0b7bd20f6379 ALSA: caiaq: unregister the input device when probe fails
+6f63e919fe1e wifi: mac80211: fix slab-out-of-bounds read in ieee80211_monitor_select_queue()
+b1f24c1ab523 Bluetooth: hci_sync: don't drain cmd_sync backlog on unregister
+8ec454dcd00c ipv6: sr: use skb_get_hash_net() in seg6_make_flowlabel()
+de020dc8049b bpf: Fix missing migration protection in __rhtab_map_lookup_and_delete_batch()
+33c920f7c595 USB: serial: fix port tear down use-after-free
+310c2d4608d8 usb: gadget: midi2: Fix the jack descriptor array sizes
+b48820de8c1a tty: port: fix tty_port_tty_vhangup() race
+499485a67fba serial: core: fix NULL pointer dereference in serial_core_unregister_port()
+b5965c422116 mtd: block2mtd: Fix divide error when erase_size is zero
+ae0e61d95677 USB: serial: fix ioctl hangup race
+646e5b28b4fd USB: serial: fix driver deregistration order
+be4219dd9860 USB: cdc-acm: fix racy TIOCMIWAIT implementation
+615f35fd5aee tty: amiserial: fix broken TIOCMIWAIT
+56964f6a3123 tty: tty_port: restore TTY_IO_ERROR on activation failure
+845a2737e0f5 tty: abort break signalling on hangup
+8df07fe93573 tty: fix saved termios reset race
+f658e6bcd00a serial: revert guards in uart_wait_modem_status()
+40adffec8c00 serial: fix TIOCMIWAIT race
+ec06546b43b6 USB: serial: quatech2: fix baud rate overflow
+afc235a21736 USB: serial: ssu100: fix baud rate overflow
+63594e8ffe09 USB: serial: fix dynamic id driver deregistration race
+217f64f348c9 drm/amd/display: guard dc_sink dereferences in MST mode validation
+2a42e6fe1293 block: reject polled dio with user integrity metadata
+17637e1a581a bpf: Skip detached progs in trampoline images that are still in use
+e060d9069b49 arm64/fpsimd: signal: Forbid non-streaming SVE payload on SME-only systems
+b6249c1d5665 KVM: x86/mmu: Bail from shadow walks if the root is invalid or a dummy
+aa650d87a498 audit: fix exe mark UAF in kill_rules()
+a92193c91e88 io_uring: fix task_work add use-after-free with SQPOLL
+22ab0647764c kasan: unpoison task stack below watermark only in generic mode
+0f17d2e3dd9c pfcp: fix socket lifetime on netdevice registration failure
+226bd5603371 vc_screen: reload vc pointer before if (ret) in vcs_write() to avoid UAF
+39495ef5d6f8 vt: selection: Fix unsigned underflow and slab-out-of-bounds read in paste_selection()
+0928ed9bd794 vt: skip screen update for DEC alignment test on backgroup consoles
+61b0a5a114fa ALSA: line6: reject oversized playback packets
+9952f3882ecb nvme: fix cdev lifetime
+72ece656abd4 nvme: fix command effects log lifetime for multipath heads
+ab39974240a0 bpf: Hold map BTF for the memory allocator destructor record
+0fb5751a6e41 bpf: Wait for an RCU tasks grace period before freeing trampoline progs
+ea4d4b5dddb5 net: cap skb->queue_mapping when the tx queue is picked
+30d15f44a9e5 binderfs: fix UAF write in binder_add_device
+86f86e6fdedc ALSA: ua101: reject mismatched capture/playback packet sizes
+2d696c1ed346 Bluetooth: RFCOMM: Fix initial port reference race
+81a2345f1984 Bluetooth: Serialize SMP remote OOB data access
+8ed67535fdff Bluetooth: hci_sync: Fix inquiry cache use-after-free
+024e05f73a4c Bluetooth: hci_conn: Lock parent access during enhanced SCO setup
+f4845ab191a4 Bluetooth: hci_core: Serialize ACL scheduling with channel deletion
+848a7a91c7f0 Bluetooth: hci_core: Serialize SCO and ISO scheduling with teardown
+1a572db43c05 Bluetooth: hci_core: Serialize fragmented ISO packet queueing
+fa6778e030be nvmet-auth: fix out-of-bounds write in nvmet_auth_challenge()
+5d5fbfbbacd1 nvmet: pci-epf: reject too-short SGL segments
+a02188ddc24b thunderbolt: Fix KASAN reported use-after-free when request is canceled
+9f8139c6145c virt: vmgenid: set driver_data before registering notification handlers
+7e0ad05ebc72 wifi: ath11k: reset ar->num_stations on hardware start
+19419faf58df net: bcmgenet: fix NULL dereference in set_coalesce before first open
+0d2c49915bc3 net: sparx5: skip ptp deinit if init was skipped
+e5052f2c5c73 usb: cdns3: Fix NULL pointer dereference in cdns3_pci_probe
+f0ea4824deeb iio: health: max30102: fix NULL dereference in interrupt handler
+aadf655e8ea9 net/mctp: publish the mctp_dev only after it is initialised
+04c824940d52 net/mlx5: Fix slab-out-of-bounds when handling team device events
+9bc184a2eda8 nitro_enclaves: fix use-after-free on SLOT_ALLOC failure
+af2fb3ee6679 mm/slab: do not wake up kswapd in __kfree_rcu_sheaf()
+6f0c2c4f5e71 net: ethernet: mtk_eth_soc: allocate dummy netdev sooner
+fcf0b58e976e rtc: ac100: Fix clock provider use-after-free on probe failure
+bdea4980182e net: page_pool: fix use-after-free in page_pool_recycle_ring_bulk()
+f35e3b578422 futex: Fix private hash use-after-free on resize
+63b269ec537d usb: typec: ucsi: glink: fix use-after-free of ucsi on remove
+ebe9b68c3967 usb: cdns3: fix use-after-free in cdns3_gadget_exit()
+189b9dc8c96e serial: 8250_bcm7271: fix use-after-free in brcmuart_remove()
+eef3b67f9c67 EDAC/altera: Fix use-after-free in error paths
+9ee830612149 iio: adc: ad_sigma_delta: fix use-after-free on unbind
+b636fef85bda sched/cache: Introduce task_struct->sched_cache_grp to fix UAF
+e0a624919040 fprobe: Use guard(rcu_sched_notrace) and check rcu_is_watching()
+dc614d6bc991 USB: cdc-acm: skip URB restart in port_shutdown if disconnected
+20388c8d1d74 usb: gadget: aspeed-vhub: cancel wake work on device removal
+03b49c991abb tty: vcc: hold port lock when clearing tty pointer in vcc_cleanup
+437f3727b4fd wifi: mac80211: count only matching reservations in reserved switch
+63213927b141 iio: light: gp2ap020a00f: drain irq_work after free_irq
+e3f33b0a1d89 ipv4: free inet_opt and ireq_opt after an RCU grace period
+ee3aadc43ea6 wifi: mac80211: fix mesh fast xmit path deletion UAF
+5e4f3509793b wifi: mac80211: drop oversized fragments to avoid extra_len overflow
+ac41b05d15db rtc: mpfs: fix unchecked devm_clk_get() error pointer in probe()
+ad139384ecdd bpf: Fix overflow of jump offset in constant blinding
+015e72cde567 drm/amd/display: check dc_state_create_copy() for NULL in dm_suspend
+bce7698e2e65 drm/mediatek: Add missing IS_ERR check for ovl_adaptor platform device
+29480b05e6e2 usb: hub: use shorter 120ms post resume hold for SS root hubs
+49ee1c6a3ebd iio: adc: ade9000: fix NULL pointer dereference in clkout registration
+e787fd23d506 iio: frequency: adf4377: Fully initialize clk_init_data and clk_parent_data
+56c423b233b2 iio: pressure: bmp280: fix out-of-bounds access in sampling frequency lookup
+6a4117eee82d rtc: ac100: Assign .num before accessing .hws
+4f1da630d13d sctp: check RCV_SHUTDOWN after the sendmsg connect wait
+6bdcdb31318c wifi: mac80211: validate TX status rate metadata
+9062d50e75c2 usb: gadget: f_uac1_legacy: validate bRequest index in generic_{set,get}_cmd
+15fb9e3cea55 wifi: mac80211: minstrel_ht: validate fixed rate index
+80756e263846 thunderbolt: Reject oversized XDomain properties responses
+7b97273cbebe net/mlx5e: Fix AF_XDP TX timestamp teardown NULL dereference
+9cd072788c76 usb: gadget: f_fs: Fix NULL pointer dereference in FUNCTIONFS_ENDPOINT_DESC
+b890e6163761 mtd: spinand: fix NULL pointer dereference with no ECC engine
+4310c6b8e75d thunderbolt: Fix NULL dereference in tb_remove_work()
+5acb2dace582 HID: multitouch: stop the release timer from being rearmed on remove
+44081d708b5b of/overlay: only treat a positive changeset id as registered
+5f0764cb1c81 net: extend IPv6 exthdr detection of tunneled packets
+056994563935 octeontx2-pf: Fix aura BPID assignment when CONFIG_DCB is enabled
+37e02c42a00b net: restrict SO_RESERVE_MEM to TCP sockets and cap max value
+b62a264163ca EDAC/altera: Drop __init from ECC setup paths for re-probe safety
+63fa2d9c9c37 nvme-multipath: fix underflow in ANA log bounds checks
+71cc2c67fb8f KVM: arm64: Use stage-1 leaf size for VM_PFNMAP
+e588e83e5c7a wifi: mac80211: shut down RX BA session timer on teardown
+2a57b9246cec iio: trigger: cancel reenable_work before freeing trigger
+fbd97dd1d3ce bpf: Fix objects stuck in free_by_rcu_ttrace
+357e8a77a501 perf: Require kernel access for text poke events
+45f730467987 arm64: errata: Add Cortex-A725 erratum 3821522 workaround
+7ac1f10f987a ("dm-pcache: reject a kset that overruns its segment")
+97fc4b53dbe4 ("dm-pcache: bound the logical key offset from persistent memory")
+cb86607ada73 ("sched_ext: Don't run ops.dequeue() with a DSQ lock held")
+7de9a6fb44ea ("sched_ext: Wait for SCX_OPSS_DISPATCHING before reenqueueing a task")
+10180a277549 ("KVM: x86: Re-pend GET_NESTED_STATE_PAGES if getting said pages fails")
+3afefbfe55c2 ("HID: bpf: cast size to ssize_t when checking hid_bpf_hw_request")
+2a3c3de660f9 ("ipvs: bound LBLCR and LBLC cache growth")
+7a39c732a22e ("kprobes: Skip disarmed probes when checking optkprobe overlap")
+30724547b221 ("of/irq: Fix remaining refcount leaks in of_irq_init()")
+814f2da69957 ("of/overlay: put property on deadprops only after changeset add succeeds")
+006c8b834aed ("net: gso: limit recursive IP-in-IP segmentation")
+747928b5d4ff ("netfilter: nft_flow_offload: drop flowtable reference on init error path")
+2cf81fc9505b ("net/packet: prevent TX_RING byte count overflow")
+055ef5ce9f67 ("rtc: spear: initialize IRQ state before requesting alarm IRQ")
+015fb29a7483 ("tpm: Disable TPM on null key name mismatch")
+69bf14300b50 ("netfs: clear post-EOF pagecache when extending a file via write")
+8db55c5cd831 ("netfs: zero gaps in read-gaps folio to avoid writing back stale data")
+c79cf15eb35a ("module: fix lost error code from codetag_load_module()")
+1b48c1307582 ("virt: vmgenid: remap memory as decrypted")
+0e65412aee4f ("iio: accel: kionix-kx022a: Fix array boundary check")
+26300879cd8e ("mtd: core: avoid double-free of OTP NVMEM device")
+12b31d1acd20 ("mtd: core: call _get_device() with the master MTD")
+327c428ba79b ("blk-cgroup: save IRQ state in blkg_tryget_closest()")
+1d62f0f2bc7e ("of/overlay: don't leak fragment references when changeset init fails")
+ce67ebe9d862 ("wifi: wfx: validate MIB read length before copying to caller")
+93ce8ea70451 ("wifi: ath9k: reject short WMI command responses")
+aeaca27c1db3 ("wifi: ath9k_htc: bound TX aggregation to MAX_TX_BUF_SIZE")
+0ee5c5d804d5 ("rtc: dev: zero-initialize struct rtc_wkalrm to prevent information leak")
+cc45f313d855 ("wifi: cfg80211: preserve hidden-group beacon IE ownership")
+7f93ca31f7fd ("wifi: mac80211: prevent AP VLAN tx from other interfaces")
+ab6c756f28c7 ("blk-mq: set RQF_USE_SCHED when the operation is known")
+c9c15d4d8956 ("Bluetooth: btintel: validate DDC record lengths")
+91094f9c8621 ("ASoC: SDCA: Add better pm_runtime error handling in func probe")
+0bb8eab29b55 ("net/sched: cls_api: reclaim an empty proto on the error path")
+eb7b84af0ec5 ("net: systemport: Fix buffer overflow in bcm_sysport_get_stats()")
+512ccd3d0e91 ("tipc: prevent GCM nonce reuse on peer key changes")
+88095728511e ("net: stmmac: fix rx Scatter-Gather support")
+8ae3f4067ba4 ("seg6: ensure packet data is writable before modifying SRH and IPv6 DA")
+d031465acc36 ("net/sched: fq_codel: match the no-drop threshold to the packet size")
+54518e0e827f ("net/sched: sch_codel: match the no-drop threshold to the packet size")
+f96e91748f63 ("ipvs: filter some flags received in the backup server")
+16d464013ec2 ("netfilter: bpf: reject invalid NAT manipulation types")
+7c549fb7eecd ("netfilter: flowtable: generalize pending status bit")
+ffb684f2aa14 ("perf: Fix race between perf_event_exit_task() and perf_pending_task()")
+cc172e177795 ("drm/amdgpu/gfx6: fix firmware leak on teardown")
+048739be3e9c ("drm/mediatek: Fix ovl adaptor platform device leak")
+3753e34b73fc ("drm/mediatek: Fix pdev reference leak in mtk_drm_bind()")
+f5a5add36059 ("drm/amdgpu: fix IP instance memory leak on kobject add failure")
+f0013046151b ("drm/amdgpu: fix ACP MFD device leak on init failure")
+22c135635fdd ("binder: fix is_failure flag for superseded transaction cleanup")
+c4c02084d668 ("binder: fix leaked fd fixups on TF_UPDATE_TXN supersede")
+ef3134cd0d48 ("kgdboc: Fix tty driver reference leak in configure_kgdboc()")
+62479b6e5df8 ("rust_binder: cancel deferred work items in thread exit")
+8a0200d14acd ("usb: storage: sierra_ms: reject short SWoC info transfers")
+4c7a1b9f1f19 ("usb: octeon-hcd: fix the FIFO-flush timeout computation")
+469600d5d292 ("usb: typec: anx7411 - stop the IRQ before destroying the workqueue")
+1ff77cbefe5a ("usb: dwc3: gadget: fix IRQ storm on invalid event buffer count")
+b263ff9b0fc5 ("USB: gadget: dummy-hcd: Fix wait for outstanding request completions")
+0e8baa78d872 ("usb: core: clear both ep_in and ep_out for non-ep0 control endpoints")
+fd772af9512c ("USB: dwc2: shut down wakeup timer before freeing HCD state")
+90156585765b ("usb: typec: tcpm: recover after failure to start the frs ams")
+c4b27b360578 ("usb: typec: tipd: fix uninitialized typec_partner_desc in tps6598x_connect()")
+88c7e458af53 ("usb: typec: tipd: fix uninitialized typec_partner_desc in cd321x_update_work()")
+5b114bfc1dfd ("tty: vt: fix memory leak in vc_allocate()")
+1f71f565e358 ("tty: vcc: zero-initialize control packet in vcc_send_ctl()")
+db0949bbd06d ("tty: serial: max3100: shut down timer before freeing port")
+98401cf912fe ("serial: ma35d1: Fix clock reference leak in ma35d1serial_probe()")
+bcd61aa247c2 ("ASoC: codecs: max98363: fix uninitialized stream_config->type")
+174d16088419 ("ASoC: codecs: rt1017-sdca-sdw: fix uninitialized stream_config->type")
+95b2e0361c88 ("ALSA: seq: Serialize compat port-info ioctls")
+40eb4b18ad16 ("Bluetooth: btintel: fix buffer over-read in btintel_hw_error()")
+7dbeb6935ac3 ("Bluetooth: btintel_pcie: fix plen overflow in btintel_pcie_recv_frame()")
+f771f96557a4 ("Bluetooth: btintel_pcie: reject oversized TX packets in send_frame()")
+d2457a7e2727 ("x86/mm: Don't apply va_align to hugetlb mappings on AMD F15h")
+9b522400bf5c ("tpm: fix off-by-four bounds check in tpm2_get_random()")
+4a5e49ba0abb ("nvme-multipath: set BLK_FEAT_ZONED only after the zone info is known")
+5211fed41d7e ("nvmet: copy the hostid into the ctrl before creating PR pc_refs")
+21f027016b12 ("mtd: rawnand: cadence: Initialize IRQ state before requesting IRQ")
+2abb25273c82 ("KVM: nVMX: Force MSR bitmap refresh if runtime eVMCS controls are modified")
+8abbc76120a7 ("KVM: SEV: Nullify "have run CPUs" mask pointer when freeing it")
+973ea70393e8 ("KVM: SEV: Do cache maintenance on the source VM *before* clearing SEV state")
+9e06bbb9ade7 ("KVM: SVM: Use the active VMCB's MSR bitmap when checking if MSR is intercepted")
+60d93c27859f ("KVM: SVM: Preserve TLB control (i.e. pending TLB flush) on failed VMRUN")
+e27fc915c8f5 ("KVM: SVM: Update control fields on #VMEXIT if and only if VMRUN succeeded")
+4bdd2b3a708c ("KVM: arm64: Apply the fine-grained UNDEFs without FEAT_FGT")
+19bc5d79ece6 ("KVM: arm64: vgic: Take a refcount on IRQs referenced by last_lr_irq")
+7c1611780823 ("wifi: cw1200: fix TX padding OOB read leaking heap data to device")
+f8ebe286394c ("wifi: iwlegacy: 3945: free EEPROM data on remove")
+3412e9a80078 ("wifi: mac80211: keep paired old chanctx alive")
+67a9e80c3ca2 ("wifi: mac80211: drain PS delivery work during station teardown")
+a5f35d4b112a ("wifi: mac80211: account proxy paths against the mesh path limit")
+a10a2f80476d ("wifi: mac80211: keep fallback association elements alive")
+56e236759f0a ("wifi: mac80211: reject invalid 320 MHz CSA bandwidth")
+7325a44474f2 ("wifi: mac80211: release mesh path quota on failed additions")
+4febc02cd02f ("wifi: mac80211: set info->band for 802.3 encap offload frames")
+5bfd4b0b40b7 ("wifi: mac80211: handle empty FILS association request payload")
+032c59c7681c ("thunderbolt: Hold a router reference for each allocated HopID")
+12f5d8b85a66 ("thunderbolt: Make the DP tunnel activation callback mandatory")
+0b457c6733f7 ("thunderbolt: Tear down inactive DP tunnels when the domain is stopped")
+1fd1f67c94d3 ("thunderbolt: Fix domain reference leak when DPRX read is canceled")
+419fa32fa5bc ("thunderbolt: Don't access a DP tunnel after its DPRX read was canceled")
+da4fe97fb6c7 ("smb: client: discard post-EOF pagecache when extending a file via zero range")
+4721587f96cb ("smb: client: discard post-EOF pagecache when extending a file via clone range")
+aa994489bd83 ("smb: client: flush and commit data before querying allocated ranges")
+8f8d32c1044f ("smb: client: flush dirty data before zeroing a range")
+c9b1194e8ec9 ("smb: client: drain and invalidate before server-side copy/clone")
+19465a9aeb66 ("smb: client: split cifsFileInfo bitfields to avoid shared-byte RMW races")
+e65e128b51a3 ("iio: accel: kionix-kx022a: Prevent memory leak and fix state")
+dd30c10ff60d ("iio: accel: kxcjk-1013: reject duplicate event disable")
+d61521056420 ("iio: adc: ad4030: fix invalid oversampling_ratio validation")
+fafefa925ed7 ("iio: adc: ade9000: handle Phase C dip events in IRQ1 handler")
+549b71ce0506 ("iio: adc: adi-axi-adc: Initialize state mutex")
+64c82e7bd9c8 ("iio: adc: pac1934: check ACPI label duplication")
+c5de6a6f855f ("iio: adc: stm32-adc: fix possible division by zero in processed channel")
+2cdc7ef31827 ("iio: adc: sun4i-gpadc-iio: clean up on thermal zone registration failure")
+0f3f42707624 ("iio: adc: xilinx-xadc: free IRQ before cancelling the unmask worker on unbind")
+84bb0fc46ccf ("iio: buffer: serialize buffer teardown with mode claims")
+5330036bc68d ("iio: buffer: Ensure bounce buffer used for unaligned case is zeroed.")
+2b498df75d6c ("iio: gyro: adis16136: fix unprotected debugfs reads")
+d94787287a11 ("iio: imu: adis16400: fix unprotected debugfs reads")
+e1dea54496f9 ("iio: imu: adis16480: fix unprotected debugfs reads")
+8065a6c02f62 ("iio: light: rohm-bu27034: Fix infinite delay on error")
+b0e951ffc5a2 ("iio: pressure: rohm-bm1390: Return error when read fails")
+1a7c522a3547 ("iio: proximity: aw96103: validate firmware data length")
+4daa9ca557b4 ("iio: proximity: pulsedlight: fix iio_device left registered on PM setup failure")
+089e58805c45 ("xen/netfront: drop RX packets with a short Ethernet header")
