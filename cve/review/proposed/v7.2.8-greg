@@ -251,3 +251,5 @@ e75c96157d45 ("smb: client: fix smbd_connection leak on cifs_get_tcp_session() e
 e1aeaf79dea5 ("smb: client: fix unaligned access in WSL reparse point parser")
 4775c3b7a597 ("smb: client: fix potential OOB read in smb3_enum_snapshots()")
 bd1f08246b8a ("drm/amdgpu: restrict BAR0 fallback read to SR-IOV VFs only")
+0a416ee20bcc ("KVM: PPC: Book3S HV: fix secure device page leak on uv_page_in() failure")
+82431877d837 ("sysctl: Check range in  proc_dointvec_ms_jiffies_minmax")
