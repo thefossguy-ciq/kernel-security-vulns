@@ -1,0 +1,6 @@
+7d4d4f3b668d dm-integrity: fix NULL pointer dereference when the 'R' flag is used
+fc79aeb86a2c dm-integrity: validate the superblock on resume
+d35a535d3e3e sched_ext: Fix CPU hotplug hang when a dying CPU's tasks sit in the BPF scheduler
+e08f57a7dcb8 readdir: take no inode lock on an immutable directory
+23a0be6a84a3 ksmbd: fix heap out-of-bounds write in krb5_authenticate()
+b3e6212dea2e KVM: x86: Use active memslots for the per-vCPU MMIO cache
