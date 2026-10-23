@@ -1,3 +1,4 @@
+8e42aeb5b39f nfsd: fix all-zero stateid in CB_OFFLOAD for async COPY
 7d4d4f3b668d dm-integrity: fix NULL pointer dereference when the 'R' flag is used
 fc79aeb86a2c dm-integrity: validate the superblock on resume
 d35a535d3e3e sched_ext: Fix CPU hotplug hang when a dying CPU's tasks sit in the BPF scheduler
