@@ -9,16 +9,17 @@
 //        specific to how the Linux kernel has its stable branches and how it
 //        labels things.
 //
+//        All of the real work happens in cve_utils::dyad_core, this is just
+//        the command line front end for it.
+//
 // Usage: dyad --sha1 <git-sha> [--sha1 <git-sha> ...] [--vulnerable <git-sha> ...]
 
+use cve_utils::dyad_core;
 use log::{debug, error};
 use owo_colors::{OwoColorize, Stream::Stdout};
 use std::env;
-extern crate cve_utils;
 
 mod cli;
-mod kernel;
-mod state;
 
 /// Initialize and configure the logging system
 fn initialize_logging(verbose: bool) -> log::LevelFilter {
@@ -37,70 +38,31 @@ fn initialize_logging(verbose: bool) -> log::LevelFilter {
     logging_level
 }
 
-/// Process fixing SHA1s from command line arguments
-fn process_fixing_shas(state: &mut state::DyadState, shas: &[String]) -> bool {
-    state.git_sha_full.clear(); // Clear any existing values
-
-    for git_sha in shas {
-        if !kernel::process_fixing_sha(state, git_sha) {
-            error!("Error: The provided git SHA1 '{git_sha}' could not be found in the repository");
-            return false;
+/// Print the kernel pairs in the format required by bippy
+fn print_kernel_pairs(pairs: &[cve_utils::KernelPair]) {
+    for e in pairs {
+        /* ***POLICY***
+         * FIXME
+         * Should we be testing for if we have a fix in an older kernel than was actually
+         * vulnerable?  If so, uncomment this if {} out for it to print it in a comment only
+         */
+        /*
+        if !e.fixed.is_empty() && (e.vulnerable > e.fixed) {
+            print!("# fix before vulnerable ");
         }
-    }
-
-    // Print information about the fixing SHA1s
-    for (idx, full_id) in state.git_sha_full.iter().enumerate() {
-        debug!(" Full git id {idx}: '{full_id:?}'");
-    }
-
-    for git_sha in &state.git_sha_full {
+        */
         println!(
-            "{} {}",
-            "# \tgetting vulnerable:fixed pairs for git id"
+            "{}:{}:{}:{}",
+            e.vulnerable
+                .version()
                 .if_supports_color(Stdout, |x| x.green()),
-            git_sha.git_id().if_supports_color(Stdout, |x| x.cyan())
+            e.vulnerable
+                .git_id()
+                .if_supports_color(Stdout, |x| x.cyan()),
+            e.fixed.version().if_supports_color(Stdout, |x| x.green()),
+            e.fixed.git_id().if_supports_color(Stdout, |x| x.cyan())
         );
     }
-
-    true
-}
-
-/// Process vulnerable SHA1s from command line arguments
-fn process_vulnerable_shas(state: &mut state::DyadState, shas: &[String]) -> bool {
-    for vuln_id in shas {
-        if !kernel::process_vulnerable_sha(state, vuln_id) {
-            error!(
-                "Error: The provided vulnerable git SHA1 '{vuln_id}' could not be found in the repository"
-            );
-            return false;
-        }
-    }
-
-    true
-}
-
-/// Process and generate kernel pairs
-fn process_kernel_pairs(state: &mut state::DyadState) {
-    // Find all of the places where each git commit was backported to
-    kernel::find_fixed_kernels(state);
-
-    // Process explicitly provided vulnerable commits
-    let mut vulnerable_kernels = kernel::add_provided_vulnerabilities(state);
-
-    // Derive vulnerabilities from fixing SHAs if needed
-    kernel::derive_vulnerabilities(state, &mut vulnerable_kernels);
-
-    // Find backported vulnerable kernels and winnow the vulnerable set
-    kernel::process_vulnerable_kernels(state, &vulnerable_kernels);
-
-    // Generate kernel pairs from vulnerable and fixed sets
-    let fixed_pairs = kernel::generate_kernel_pairs(state);
-
-    // Filter and sort pairs for consistency
-    let filtered_pairs = kernel::filter_and_sort_pairs(fixed_pairs);
-
-    // Print the final kernel pairs
-    kernel::print_kernel_pairs(&filtered_pairs);
 }
 
 fn main() {
@@ -127,9 +89,14 @@ fn main() {
     // Debug message will only be seen after logger is initialized
     debug!("{args:#?}");
 
-    // Initialize state
-    let mut state = state::DyadState::new();
-    state::validate_env_vars(&mut state);
+    // Do all of the real work
+    let result = match dyad_core::run(&args.sha1, &args.vulnerable) {
+        Ok(result) => result,
+        Err(e) => {
+            error!("Error: {e}");
+            std::process::exit(1);
+        }
+    };
 
     // output our version for the record to make things easier to track over time
     println!(
@@ -140,16 +107,26 @@ fn main() {
         program_version.if_supports_color(Stdout, |x| x.cyan())
     );
 
-    // Process fixing SHA1s
-    if !process_fixing_shas(&mut state, &args.sha1) {
-        std::process::exit(1);
+    for git_sha in &result.fixing_kernels {
+        println!(
+            "{} {}",
+            "# \tgetting vulnerable:fixed pairs for git id"
+                .if_supports_color(Stdout, |x| x.green()),
+            git_sha.git_id().if_supports_color(Stdout, |x| x.cyan())
+        );
     }
 
-    // Process vulnerable SHA1s
-    if !process_vulnerable_shas(&mut state, &args.vulnerable) {
-        std::process::exit(1);
+    for k in &result.vulnerable_kernels {
+        println!(
+            "{} {} {} {}",
+            "# \tSetting original vulnerable kernel to be kernel"
+                .if_supports_color(Stdout, |x| x.green()),
+            k.version().if_supports_color(Stdout, |x| x.cyan()),
+            "and git id".if_supports_color(Stdout, |x| x.green()),
+            k.git_id().if_supports_color(Stdout, |x| x.cyan())
+        );
     }
 
-    // Process and generate kernel pairs
-    process_kernel_pairs(&mut state);
+    // Print the final kernel pairs
+    print_kernel_pairs(&result.pairs);
 }

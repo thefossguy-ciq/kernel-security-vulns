@@ -4,6 +4,7 @@
 
 pub mod cvss;
 pub mod dyad;
+pub mod dyad_core;
 pub mod kernel;
 pub mod verhaal;
 pub mod version_utils;

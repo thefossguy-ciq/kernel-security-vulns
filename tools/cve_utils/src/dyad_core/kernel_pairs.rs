@@ -4,10 +4,9 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
-use crate::state::DyadState;
-use cve_utils::{Kernel, KernelPair};
+use super::state::DyadState;
+use crate::{Kernel, KernelPair};
 use log::debug;
-use owo_colors::{OwoColorize, Stream::Stdout};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 
@@ -554,29 +553,3 @@ pub fn filter_and_sort_pairs(pairs: Vec<KernelPair>) -> Vec<KernelPair> {
     filtered_pairs
 }
 
-/// Print kernel pairs in the format required by bippy
-pub fn print_kernel_pairs(pairs: &[KernelPair]) {
-    for e in pairs {
-        /* ***POLICY***
-         * FIXME
-         * Should we be testing for if we have a fix in an older kernel than was actually
-         * vulnerable?  If so, uncomment this if {} out for it to print it in a comment only
-         */
-        /*
-        if !e.fixed.is_empty() && (e.vulnerable > e.fixed) {
-            print!("# fix before vulnerable ");
-        }
-        */
-        println!(
-            "{}:{}:{}:{}",
-            e.vulnerable
-                .version()
-                .if_supports_color(Stdout, |x| x.green()),
-            e.vulnerable
-                .git_id()
-                .if_supports_color(Stdout, |x| x.cyan()),
-            e.fixed.version().if_supports_color(Stdout, |x| x.green()),
-            e.fixed.git_id().if_supports_color(Stdout, |x| x.cyan())
-        );
-    }
-}

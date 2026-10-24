@@ -6,6 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use cve_utils::common;
 use cve_utils::cve_utils::extract_cve_id_from_path;
+use cve_utils::dyad_core;
 use cve_utils::print_git_error_details;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error};
@@ -14,7 +15,6 @@ use rayon::prelude::*;
 use std::env;
 use std::fs;
 use std::path::Path;
-use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use walkdir::WalkDir;
@@ -105,11 +105,6 @@ fn main() -> Result<()> {
         }
     };
 
-    let dyad_path = vulns_dir.join("scripts").join("dyad");
-    if !dyad_path.exists() {
-        return Err(anyhow!("Dyad script not found at {}", dyad_path.display()));
-    }
-
     // List of all ids we want to process/update
     let mut ids: Vec<String> = Vec::new();
 
@@ -148,7 +143,7 @@ fn main() -> Result<()> {
     }
 
     debug!("Want to process {} ids", ids.len().to_string().cyan());
-    process_ids(&ids, &vulns_dir, &dyad_path);
+    process_ids(&ids, &vulns_dir);
 
     Ok(())
 }
@@ -233,7 +228,7 @@ fn find_ids_for_year(year: &str, vulns_dir: &Path) -> Result<Vec<String>> {
 }
 
 /// Process all sha1 files found
-fn process_ids(sha_files: &[String], vulns_dir: &Path, dyad_path: &Path) {
+fn process_ids(sha_files: &[String], vulns_dir: &Path) {
     let total_count = sha_files.len();
 
     println!("Processing {} CVEs", total_count.to_string().cyan());
@@ -255,7 +250,7 @@ fn process_ids(sha_files: &[String], vulns_dir: &Path, dyad_path: &Path) {
     // Process files in parallel
     sha_files.par_iter().for_each(|path| {
         let update_results = Arc::clone(&update_results);
-        let result = match process_single_file(path, vulns_dir, dyad_path) {
+        let result = match process_single_file(path, vulns_dir) {
             Ok(r) => r,
             Err(err) => {
                 progress_bar.suspend(|| {
@@ -299,7 +294,7 @@ fn process_ids(sha_files: &[String], vulns_dir: &Path, dyad_path: &Path) {
 /// Process a single file
 /// Return a CVE entry id if it was updated/added.
 /// Return an empty string if nothing happened.
-fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) -> Result<String> {
+fn process_single_file(relative_path: &str, vulns_dir: &Path) -> Result<String> {
     let full_path = vulns_dir.join(relative_path);
     let sha = fs::read_to_string(&full_path).context("Failed to read SHA file")?;
 
@@ -315,45 +310,31 @@ fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) 
 
     // Check for vulnerable file
     let vuln_file = vulns_dir.join(format!("{root}.vulnerable"));
-    let vulnerable_options = if vuln_file.exists() {
+    let vulnerable_shas = if vuln_file.exists() {
         let vulnerable_sha = fs::read_to_string(&vuln_file)?;
         // Split the vulnerable SHA string in case it contains multiple space-separated values
         vulnerable_sha
             .split_whitespace()
-            .map(|sha| {
-                let trimmed = sha.trim();
-                format!("-v {trimmed}")
-            })
+            .map(str::to_string)
             .collect::<Vec<String>>()
     } else {
         Vec::new()
     };
 
-    // Run dyad
-    let mut command = Command::new(dyad_path);
-    for option in &vulnerable_options {
-        let parts: Vec<&str> = option.split_whitespace().collect();
-        if parts.len() == 2 {
-            command.arg(parts[0]).arg(parts[1]);
+    // The fixing SHA values, one per line
+    let fixing_shas = sha
+        .split_whitespace()
+        .map(str::to_string)
+        .collect::<Vec<String>>();
+
+    // Run the dyad engine
+    let new_content = match dyad_core::run(&fixing_shas, &vulnerable_shas) {
+        Ok(result) => dyad_core::format_output(&result),
+        Err(e) => {
+            error!("{} dyad failed for {}: {e}", "Error:".red(), cve_id.cyan());
+            return Err(anyhow!("dyad run failed"));
         }
-    }
-
-    // Split SHA values and add each as a separate --sha1 argument
-    for sha_value in sha.lines().filter(|line| !line.trim().is_empty()) {
-        command.arg("--sha1").arg(sha_value.trim());
-    }
-
-    let output = command
-        .stdout(Stdio::piped())
-        .output()
-        .context("Failed to execute dyad command")?;
-
-    if !output.status.success() {
-        error!("{} dyad failed for {}", "Error:".red(), cve_id.cyan());
-        return Err(anyhow!("dyad command failed"));
-    }
-
-    let new_content = String::from_utf8_lossy(&output.stdout).into_owned();
+    };
 
     // Target dyad file
     let dyad_file = vulns_dir.join(format!("{root}.dyad"));

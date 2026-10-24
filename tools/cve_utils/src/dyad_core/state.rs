@@ -4,17 +4,17 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 //
 
-use cve_utils::FoundInResult;
-use cve_utils::Kernel;
-use cve_utils::Verhaal;
+use crate::FoundInResult;
+use crate::Kernel;
+use crate::Verhaal;
+use anyhow::Result;
 use log::debug;
 use std::collections::HashSet;
 use std::fs;
 
-/// State for dyad tool runtime
+/// State for a dyad run
 pub struct DyadState {
     pub kernel_tree: String,
-    pub verhaal: Verhaal,
     pub vulnerable_sha: Vec<Kernel>,
     pub git_sha_full: Vec<Kernel>,
     pub fixed_set: Vec<Kernel>,
@@ -41,17 +41,12 @@ pub struct DyadState {
 }
 
 impl DyadState {
+    #[must_use]
     pub fn new() -> Self {
-        let verhaal = match Verhaal::new() {
-            Ok(verhaal) => verhaal,
-            Err(error) => panic!("Can not open the database file {error:?}"),
-        };
-
         Self {
             // Init with some "blank" default, the command line and
             // environment variables will override them
             kernel_tree: String::new(),
-            verhaal,
             vulnerable_sha: vec![],
             git_sha_full: vec![],
             fixed_set: vec![],
@@ -102,14 +97,26 @@ impl DyadState {
     }
 }
 
-/// Validates and sets up environment variables for the `DyadState`
-pub fn validate_env_vars(state: &mut DyadState) {
-    // Use cve_utils to get kernel tree path
-    match cve_utils::common::get_kernel_tree() {
-        Ok(path) => state.kernel_tree = path.to_string_lossy().into_owned(),
-        Err(e) => panic!("Failed to get kernel tree: {e}"),
+impl Default for DyadState {
+    fn default() -> Self {
+        Self::new()
     }
+}
+
+/// Validates and sets up environment variables for the `DyadState`
+///
+/// # Errors
+///
+/// Returns an error if the kernel tree cannot be determined (i.e. the
+/// CVEKERNELTREE environment variable is not set or does not point at a
+/// directory).
+pub fn validate_env_vars(state: &mut DyadState) -> Result<()> {
+    // Use cve_utils to get kernel tree path
+    state.kernel_tree = crate::common::get_kernel_tree()?
+        .to_string_lossy()
+        .into_owned();
     debug!("kernel_tree = {}", state.kernel_tree);
+    Ok(())
 }
 
 /// Determines the list of kernels where a specific git sha has been backported to, both mainline
@@ -119,8 +126,8 @@ pub fn validate_env_vars(state: &mut DyadState) {
 /// - `kernels`: Non-reverted backports
 /// - `reverted_pairs`: Pairs of (`reverted_backport`, `revert_commit`) where the backport was later reverted
 pub fn found_in(state: &DyadState, git_sha: &str) -> FoundInResult {
-    let result = state.verhaal.found_in(git_sha, &state.fixed_set);
-    match result {
+    let result = Verhaal::with(|verhaal| verhaal.found_in(git_sha, &state.fixed_set));
+    match result.and_then(|r| r) {
         Ok(r) => r,
         Err(e) => {
             debug!("{e:?}");
@@ -134,7 +141,7 @@ pub fn found_in(state: &DyadState, git_sha: &str) -> FoundInResult {
 /// `not_reverts` and `not_fixes`; returns an empty set on any read error so
 /// dyad behaves as it did before the file existed.
 fn load_sha_list(name: &str) -> HashSet<String> {
-    let vulns_dir = match cve_utils::common::find_vulns_dir() {
+    let vulns_dir = match crate::common::find_vulns_dir() {
         Ok(p) => p,
         Err(e) => {
             debug!("{name}: could not locate vulns dir: {e:?}");
