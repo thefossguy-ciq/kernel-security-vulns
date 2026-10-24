@@ -231,12 +231,8 @@ fn process_commit_text(script_dir: &Path, commit_text: &str, message_file: Optio
 }
 
 /// Run dyad and parse its output into `DyadEntry` objects
-fn run_dyad_and_parse(
-    script_dir: &Path,
-    git_shas: &[String],
-    vulnerable_shas: &[String],
-) -> Vec<DyadEntry> {
-    let dyad_data = match run_dyad(script_dir, git_shas, vulnerable_shas) {
+fn run_dyad_and_parse(git_shas: &[String], vulnerable_shas: &[String]) -> Vec<DyadEntry> {
+    let dyad_data = match run_dyad(git_shas, vulnerable_shas) {
         Ok(data) => data,
         Err(err) => {
             warn!("Warning: Failed to run dyad: {err:?}");
@@ -461,7 +457,7 @@ fn main() -> Result<()> {
     let commit_text = process_commit_text(&script_dir, &raw_commit_text, args.message.as_deref());
 
     // Run dyad and parse its output
-    let dyad_entries = run_dyad_and_parse(&script_dir, &git_shas, &vulnerable_shas);
+    let dyad_entries = run_dyad_and_parse(&git_shas, &vulnerable_shas);
 
     // Check CVE issuance policy - logs error if no released version was affected
     // (see policy.rs for detailed documentation)
