@@ -9,7 +9,7 @@ pub mod verhaal;
 pub mod version_utils;
 
 use anyhow::{anyhow, Context, Result};
-use git2::{Oid, Repository};
+use git2::Oid;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -49,7 +49,7 @@ pub use self::verhaal::{FoundInResult, Verhaal};
 
 /// Common functionality shared across all CVE utilities
 pub mod common {
-    use super::{anyhow, Context, Oid, Path, PathBuf, Repository, Result, WalkDir};
+    use super::{anyhow, Context, Oid, Path, PathBuf, Result, WalkDir};
     use super::{env, fs};
 
     /// Gets the kernel tree path from the CVEKERNELTREE environment variable
@@ -161,16 +161,13 @@ pub mod common {
     /// Returns an error if:
     /// - The git repository cannot be opened at the specified path
     pub fn verify_commit(kernel_tree: &Path, sha: &str) -> Result<bool> {
-        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
-
         // Check if the commit hash is valid format
         let Ok(oid) = Oid::from_str(sha) else {
             return Ok(false);
         };
 
         // Check if the commit exists in the repository
-        let exists = repo.find_commit(oid).is_ok();
-        Ok(exists)
+        crate::git_utils::with_repository(kernel_tree, |repo| repo.find_commit(oid).is_ok())
     }
 
     /// Finds a CVE ID by its associated git SHA
@@ -252,7 +249,43 @@ pub mod git_utils {
     use chrono::DateTime;
     use git2::{Object, ObjectType, Oid, Repository, Status, StatusOptions};
     use log::{debug, error};
+    use std::cell::RefCell;
+    use std::collections::HashMap;
     use std::path::{Path, PathBuf};
+
+    thread_local! {
+        // One opened Repository handle per repository path.  Opening a
+        // repository is not free (discovery, config parsing, etc.) and some
+        // callers resolve thousands of SHAs, so reuse the handle instead of
+        // re-opening the repository on every call.  git2::Repository is not
+        // Sync, so the cache is per-thread; each thread opens its own handle.
+        static REPO_CACHE: RefCell<HashMap<PathBuf, Repository>> = RefCell::new(HashMap::new());
+    }
+
+    /// Runs a closure with an opened git `Repository` for the given path.
+    ///
+    /// The repository handle is opened once per thread and then reused by all
+    /// later calls for the same path.  The closure must not call back into
+    /// `with_repository()` (the per-thread cache is locked while it runs).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the git repository cannot be opened at the
+    /// specified path.
+    pub fn with_repository<F, R>(repo_path: &Path, f: F) -> Result<R>
+    where
+        F: FnOnce(&Repository) -> R,
+    {
+        REPO_CACHE.with(|cache| {
+            let mut cache = cache.borrow_mut();
+            if !cache.contains_key(repo_path) {
+                let repo =
+                    Repository::open(repo_path).context("Failed to open git repository")?;
+                cache.insert(repo_path.to_path_buf(), repo);
+            }
+            Ok(f(&cache[repo_path]))
+        })
+    }
 
     /// Gets the full SHA from a partial SHA
     ///
@@ -267,18 +300,18 @@ pub mod git_utils {
     /// - The provided git SHA does not exist or cannot be resolved
     /// - The resolved object is not a commit
     pub fn get_full_sha(kernel_tree: &Path, git_sha: &str) -> Result<String> {
-        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
+        with_repository(kernel_tree, |repo| {
+            // Use revparse_single directly without the ^{commit} suffix which will work for partial SHAs too
+            let object = repo
+                .revparse_single(git_sha)
+                .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
-        // Use revparse_single directly without the ^{commit} suffix which will work for partial SHAs too
-        let object = repo
-            .revparse_single(git_sha)
-            .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
+            let commit = repo
+                .find_commit(object.id())
+                .context("Found object is not a commit")?;
 
-        let commit = repo
-            .find_commit(object.id())
-            .context("Found object is not a commit")?;
-
-        Ok(commit.id().to_string())
+            Ok(commit.id().to_string())
+        })?
     }
 
     /// Gets the full SHA from a git Object
@@ -357,15 +390,19 @@ pub mod git_utils {
         );
 
         // Try to open the git repository
-        let repo = match Repository::open(kernel_tree) {
-            Ok(repo) => repo,
+        let result = with_repository(kernel_tree, |repo| sort_ids_in_repo(repo, ids));
+        match result {
+            Ok(sorted) => sorted,
             Err(e) => {
                 error!("Error opening repository: {e}");
                 // Keep original order for consistency
-                return ids.clone();
+                ids.clone()
             }
-        };
+        }
+    }
 
+    /// Sort git ids newest-first within an already opened repository.
+    fn sort_ids_in_repo(repo: &Repository, ids: &Vec<String>) -> Vec<String> {
         // Convert string IDs to Oid objects for lookup
         let mut valid_ids = Vec::new();
 
@@ -375,9 +412,9 @@ pub mod git_utils {
                     // Check if the object exists in the repository
                     if repo.find_commit(oid).is_ok() {
                         // Resolve the reference and get full SHA
-                        match resolve_reference(&repo, id_str) {
+                        match resolve_reference(repo, id_str) {
                             Ok(obj) => {
-                                if let Ok(full_sha) = get_object_full_sha(&repo, &obj) {
+                                if let Ok(full_sha) = get_object_full_sha(repo, &obj) {
                                     valid_ids.push(full_sha);
                                 }
                             }
@@ -518,28 +555,28 @@ pub mod git_utils {
     /// - The provided git SHA is not a valid format
     /// - The commit cannot be found in the repository
     pub fn get_commit_details(kernel_tree: &Path, git_sha: &str, _format_type: Option<&str>) -> Result<String> {
-        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
+        with_repository(kernel_tree, |repo| {
+            // Try to resolve the reference instead of direct Oid parsing
+            let object = repo
+                .revparse_single(git_sha)
+                .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
-        // Try to resolve the reference instead of direct Oid parsing
-        let object = repo
-            .revparse_single(git_sha)
-            .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
+            let commit = repo
+                .find_commit(object.id())
+                .context(format!("Commit not found: {git_sha}"))?;
 
-        let commit = repo
-            .find_commit(object.id())
-            .context(format!("Commit not found: {git_sha}"))?;
+            // Get short SHA and message - use the original SHA prefix if it's already short
+            let short_id = if git_sha.len() <= 12 {
+                git_sha.to_string() // Use the original SHA if it's already short
+            } else {
+                commit.id().to_string()[0..12].to_string() // Otherwise use the first 12 chars
+            };
+            let message = commit.summary().ok().flatten().unwrap_or("").to_string();
 
-        // Get short SHA and message - use the original SHA prefix if it's already short
-        let short_id = if git_sha.len() <= 12 {
-            git_sha.to_string() // Use the original SHA if it's already short
-        } else {
-            commit.id().to_string()[0..12].to_string() // Otherwise use the first 12 chars
-        };
-        let message = commit.summary().ok().flatten().unwrap_or("").to_string();
-
-        // Format based on the common kernel commit output of:
-        // git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n" "${GIT_SHA_FULL}")
-        Ok(format!("{short_id} (\"{message}\")"))
+            // Format based on the common kernel commit output of:
+            // git show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n" "${GIT_SHA_FULL}")
+            Ok(format!("{short_id} (\"{message}\")"))
+        })?
     }
 
     /// Gets the commit year from a SHA
@@ -562,22 +599,22 @@ pub mod git_utils {
     /// - The commit cannot be found in the repository
     /// - The commit timestamp cannot be converted to a `DateTime`
     pub fn get_commit_year(kernel_tree: &Path, git_sha: &str) -> Result<String> {
-        let repo = Repository::open(kernel_tree).context("Failed to open git repository")?;
+        with_repository(kernel_tree, |repo| {
+            // Try to resolve the reference instead of direct Oid parsing
+            let object = repo
+                .revparse_single(git_sha)
+                .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
 
-        // Try to resolve the reference instead of direct Oid parsing
-        let object = repo
-            .revparse_single(git_sha)
-            .context(format!("Git SHA '{git_sha}' not found in kernel tree"))?;
+            let commit = repo
+                .find_commit(object.id())
+                .context(format!("Commit not found: {git_sha}"))?;
 
-        let commit = repo
-            .find_commit(object.id())
-            .context(format!("Commit not found: {git_sha}"))?;
+            let time = commit.time();
+            let dt = DateTime::from_timestamp(time.seconds(), 0)
+                .context("Failed to convert git timestamp to DateTime")?;
 
-        let time = commit.time();
-        let dt = DateTime::from_timestamp(time.seconds(), 0)
-            .context("Failed to convert git timestamp to DateTime")?;
-
-        Ok(dt.format("%Y").to_string())
+            Ok(dt.format("%Y").to_string())
+        })?
     }
 
     /// Prints detailed information about a `git2::Error`

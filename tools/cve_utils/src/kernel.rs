@@ -79,8 +79,7 @@ impl Kernel {
         let repo_path = Path::new(&kernel_tree);
         let full_id = git_utils::get_full_sha(repo_path, id)?;
 
-        let verhaal = Verhaal::new()?;
-        let version = verhaal.get_version(&full_id)?;
+        let version = Verhaal::with(|verhaal| verhaal.get_version(&full_id))??;
 
         Ok(Self {
             version,

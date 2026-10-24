@@ -14,6 +14,7 @@ use anyhow::{anyhow, Result};
 use log::{debug, error};
 use rusqlite::fallible_iterator::FallibleIterator;
 use rusqlite::{Connection, ToSql};
+use std::cell::OnceCell;
 use std::fs;
 use std::sync::OnceLock;
 
@@ -43,6 +44,14 @@ pub struct FoundInResult {
 
 // Location of the verhaal database we are working on.
 static VERHAAL_DB: OnceLock<String> = OnceLock::new();
+
+thread_local! {
+    // One database connection per thread, opened on first use and then reused
+    // for every later call.  Opening the database on each lookup is wasteful,
+    // and rusqlite's Connection is not Sync, so the shared handle is
+    // per-thread.
+    static VERHAAL_TLS: OnceCell<Verhaal> = const { OnceCell::new() };
+}
 
 pub struct Verhaal {
     conn: Connection,
@@ -101,6 +110,32 @@ impl Verhaal {
         let conn = Connection::open(Self::verhaal_database_file())?;
 
         Ok(Self { conn })
+    }
+
+    /// Run a closure against a shared, per-thread Verhaal instance.
+    ///
+    /// The database connection is opened on the first call on each thread and
+    /// then reused, so callers that perform many lookups do not pay the
+    /// connection setup cost over and over again.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the verhaal database cannot be opened or accessed
+    pub fn with<F, R>(f: F) -> Result<R>
+    where
+        F: FnOnce(&Self) -> R,
+    {
+        VERHAAL_TLS.with(|cell| {
+            if cell.get().is_none() {
+                // The set() can not fail as we are the only user of this
+                // thread-local cell right now.
+                let _ = cell.set(Self::new()?);
+            }
+            cell.get().map_or_else(
+                || Err(anyhow!("verhaal thread-local cell was not initialized")),
+                |verhaal| Ok(f(verhaal)),
+            )
+        })
     }
 
     /// Returns the kernel version that this git sha is in
