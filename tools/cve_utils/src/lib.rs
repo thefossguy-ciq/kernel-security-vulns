@@ -253,6 +253,7 @@ pub mod git_utils {
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::path::{Path, PathBuf};
+    use std::sync::{LazyLock, RwLock};
 
     thread_local! {
         // One opened Repository handle per repository path.  Opening a
@@ -391,7 +392,7 @@ pub mod git_utils {
         );
 
         // Try to open the git repository
-        let result = with_repository(kernel_tree, |repo| sort_ids_in_repo(repo, ids));
+        let result = with_repository(kernel_tree, |repo| sort_ids_in_repo(repo, kernel_tree, ids));
         match result {
             Ok(sorted) => sorted,
             Err(e) => {
@@ -402,8 +403,49 @@ pub mod git_utils {
         }
     }
 
+    // Cache of "is commit X a descendant of commit Y" answers.  The ancestry
+    // of released kernel commits never changes while a tool runs, the same
+    // pairs get compared over and over again (sorting alone compares a pair
+    // multiple times), and the answers can be shared between all threads.
+    static DESCENDANT_CACHE: LazyLock<RwLock<HashMap<(String, String), bool>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+
+    /// Check whether `commit` is a descendant of `ancestor`.
+    ///
+    /// This runs the git client instead of using libgit2 on purpose: git can
+    /// answer the question from the repository's commit-graph files
+    /// (including the split commit-graph chains that libgit2 cannot read),
+    /// while libgit2 falls back to walking, loading and decompressing large
+    /// parts of the history, which takes seconds for commits that are far
+    /// apart.  The answers are cached for the lifetime of the process.
+    fn is_descendant_of(repo_path: &Path, commit: &str, ancestor: &str) -> bool {
+        // Match libgit2's git_graph_descendant_of(): a commit is not its own
+        // descendant (git merge-base --is-ancestor would say yes here).
+        if commit == ancestor {
+            return false;
+        }
+
+        let key = (commit.to_string(), ancestor.to_string());
+        if let Some(&hit) = DESCENDANT_CACHE.read().unwrap().get(&key) {
+            return hit;
+        }
+
+        let result = std::process::Command::new("git")
+            .arg("-C")
+            .arg(repo_path)
+            .arg("merge-base")
+            .arg("--is-ancestor")
+            .arg(ancestor)
+            .arg(commit)
+            .output()
+            .is_ok_and(|output| output.status.success());
+
+        DESCENDANT_CACHE.write().unwrap().insert(key, result);
+        result
+    }
+
     /// Sort git ids newest-first within an already opened repository.
-    fn sort_ids_in_repo(repo: &Repository, ids: &Vec<String>) -> Vec<String> {
+    fn sort_ids_in_repo(repo: &Repository, repo_path: &Path, ids: &Vec<String>) -> Vec<String> {
         // Convert string IDs to Oid objects for lookup
         let mut valid_ids = Vec::new();
 
@@ -456,11 +498,7 @@ pub mod git_utils {
                         continue;
                     }
 
-                    // Use the Oid objects for comparison
-                    let oid_i = Oid::from_str(&remaining_ids[i]).unwrap();
-                    let oid_j = Oid::from_str(&remaining_ids[j]).unwrap();
-
-                    if repo.graph_descendant_of(oid_j, oid_i) == Ok(true) {
+                    if is_descendant_of(repo_path, &remaining_ids[j], &remaining_ids[i]) {
                         // Found a descendant, so this one isn't the newest
                         is_newest = false;
                         break;
