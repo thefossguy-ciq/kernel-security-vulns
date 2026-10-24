@@ -196,6 +196,10 @@ fn update_year(year: &str, user: &UserIdentity, num_threads: usize, dry_run: boo
         return Ok(());
     }
 
+    // Pre-compute the affected-files lists for the whole year in bulk,
+    // a few git forks per year instead of one fork per CVE.
+    prime_affected_files(&sha1_files);
+
     // Create a multi-progress display
     let multi = MultiProgress::new();
 
@@ -290,6 +294,28 @@ fn update_year(year: &str, user: &UserIdentity, num_threads: usize, dry_run: boo
     }
 
     Ok(())
+}
+
+/// Pre-compute the affected-files list of every fixing commit listed in the
+/// given .sha1 files, so that generating the records does not fork one git
+/// process per CVE.
+fn prime_affected_files(sha1_files: &[PathBuf]) {
+    let Ok(kernel_tree) = common::get_kernel_tree() else {
+        return;
+    };
+
+    let all_shas: Vec<String> = sha1_files
+        .iter()
+        .filter_map(|file| fs::read_to_string(file).ok())
+        .flat_map(|content| {
+            content
+                .split_whitespace()
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    cve_utils::prime_affected_files_cache(&kernel_tree, &all_shas);
 }
 
 /// Update a single CVE entry

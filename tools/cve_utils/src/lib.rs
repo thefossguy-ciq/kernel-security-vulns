@@ -27,7 +27,8 @@ pub use self::common::{
 pub use self::git_utils::{
     get_affected_files, get_commit_details, get_commit_message, get_commit_oneline,
     get_commit_year, get_full_sha, get_modified_files, get_object_full_sha, get_short_sha,
-    git_sort_ids, match_pattern, print_git_error_details, resolve_reference,
+    git_sort_ids, match_pattern, prime_affected_files_cache, print_git_error_details,
+    resolve_reference,
 };
 // CVE file operations
 pub use self::cve_utils::{extract_cve_id_from_path, find_next_free_cve_id};
@@ -530,6 +531,116 @@ pub mod git_utils {
         result_order
     }
 
+    // Cache of commit id -> affected files lists, filled in bulk by
+    // prime_affected_files_cache().  Computing the list needs a git process
+    // (libgit2's tree diff decompresses large parts of the kernel pack files
+    // and is orders of magnitude slower), but one git process can answer for
+    // thousands of commits, so bulk callers prime this cache instead of
+    // paying one fork per commit.
+    static AFFECTED_FILES_CACHE: LazyLock<RwLock<HashMap<String, Vec<String>>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+
+    /// Compute the affected-files lists of a batch of commits with a single
+    /// 'git diff-tree' invocation.
+    ///
+    /// '-M' matches the rename detection that 'git show' (which the fallback
+    /// path of `get_affected_files()` runs) performs by default, so a renamed
+    /// file is listed once under its new name either way.  Ids that cannot be
+    /// resolved are silently skipped.
+    fn diff_tree_batch(kernel_tree: &Path, ids: &[String]) -> HashMap<String, Vec<String>> {
+        use std::io::{BufRead, BufReader, Write};
+        use std::process::{Command, Stdio};
+
+        let mut result = HashMap::new();
+
+        let child = Command::new("git")
+            .arg("-C")
+            .arg(kernel_tree)
+            .args(["diff-tree", "-r", "-M", "--name-only", "--stdin"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn();
+        let Ok(mut child) = child else {
+            return result;
+        };
+
+        // Feed the ids from a separate thread; writing them all before
+        // reading any output would deadlock once the pipes fill up.
+        let Some(mut stdin) = child.stdin.take() else {
+            return result;
+        };
+        let input = ids.iter().fold(String::new(), |mut input, id| {
+            input.push_str(id);
+            input.push('\n');
+            input
+        });
+        let writer = std::thread::spawn(move || {
+            let _ = stdin.write_all(input.as_bytes());
+        });
+
+        // Each output block is the echoed full commit id followed by the
+        // changed file names, one per line.
+        if let Some(stdout) = child.stdout.take() {
+            let mut current: Option<(String, Vec<String>)> = None;
+            for line in BufReader::new(stdout).lines() {
+                let Ok(line) = line else { break };
+                if line.len() == 40 && line.bytes().all(|b| b.is_ascii_hexdigit()) {
+                    if let Some((id, files)) = current.take() {
+                        result.insert(id, files);
+                    }
+                    current = Some((line, Vec::new()));
+                } else if let Some((_, files)) = current.as_mut()
+                    && !line.is_empty()
+                {
+                    files.push(line);
+                }
+            }
+            if let Some((id, files)) = current.take() {
+                result.insert(id, files);
+            }
+        }
+
+        let _ = writer.join();
+        let _ = child.wait();
+        result
+    }
+
+    /// Pre-compute the affected-files lists of many commits in bulk and
+    /// cache them for `get_affected_files()`.
+    ///
+    /// The ids are split over a handful of concurrent 'git diff-tree'
+    /// processes, each answering for thousands of commits.  Ids that cannot
+    /// be resolved are silently skipped; `get_affected_files()` falls back
+    /// to asking git directly for anything not in the cache.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the affected-files cache lock is poisoned.
+    pub fn prime_affected_files_cache(kernel_tree: &Path, ids: &[String]) {
+        if ids.is_empty() {
+            return;
+        }
+
+        // One process per ~1000 commits amortizes the startup cost while
+        // still spreading large batches over the available CPUs.
+        let max_jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+        let jobs = ids.len().div_ceil(1000).clamp(1, max_jobs);
+        let chunk_size = ids.len().div_ceil(jobs);
+
+        std::thread::scope(|scope| {
+            let handles: Vec<_> = ids
+                .chunks(chunk_size)
+                .map(|chunk| scope.spawn(|| diff_tree_batch(kernel_tree, chunk)))
+                .collect();
+            for handle in handles {
+                if let Ok(batch) = handle.join() {
+                    AFFECTED_FILES_CACHE.write().unwrap().extend(batch);
+                }
+            }
+        });
+    }
+
     /// Gets a list of files changed in a commit
     ///
     /// Used by bippy and other tools to find affected files
@@ -540,10 +651,19 @@ pub mod git_utils {
     /// - The commit cannot be found in the repository
     /// - The git show command fails to execute
     ///
+    /// # Panics
+    ///
+    /// Panics if the affected-files cache lock is poisoned.
+    ///
     /// This implementation uses direct git commands rather than libgit2,
     /// which is significantly faster (at least 200ms improvement).
     pub fn get_affected_files<'a>(_repo: &'a Repository, obj: &Object<'a>) -> Result<Vec<String>> {
         let commit_id = obj.id().to_string();
+
+        // Served from the cache when a bulk caller primed it
+        if let Some(files) = AFFECTED_FILES_CACHE.read().unwrap().get(&commit_id) {
+            return Ok(files.clone());
+        }
 
         // Get the kernel tree path to run git commands in
         let kernel_tree = crate::common::get_kernel_tree()?;
