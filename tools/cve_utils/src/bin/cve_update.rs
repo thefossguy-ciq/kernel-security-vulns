@@ -4,19 +4,39 @@
 
 use anyhow::{anyhow, Context, Result};
 use cve_utils::print_git_error_details;
+use cve_utils::bippy_core::{self, GenerateRequest};
 use cve_utils::cve_validation::find_cve_id;
+use cve_utils::git_config;
 use cve_utils::year_utils::{is_valid_year, is_year_dir_exists};
 use cve_utils::common;
+use std::env;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::fs;
-use std::process::Command;
 use clap::Parser;
-use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 use owo_colors::OwoColorize;
 use indicatif::{ProgressBar, ProgressStyle, MultiProgress};
+
+/// The identity recorded in the generated files, resolved once per run
+/// instead of once per CVE.
+#[derive(Clone)]
+struct UserIdentity {
+    name: String,
+    email: String,
+}
+
+impl UserIdentity {
+    /// Resolve the user identity the same way the bippy tool does: the email
+    /// from the `CVE_USER` environment variable, the name from git config.
+    fn from_environment() -> Result<Self> {
+        let email = env::var("CVE_USER")
+            .map_err(|_| anyhow!("CVE_USER environment variable is not set"))?;
+        let name = git_config::get_git_config("user.name").unwrap_or_default();
+        Ok(Self { name, email })
+    }
+}
 
 /// Update all existing CVE entries based on the latest information from the git tree(s)
 #[derive(Parser, Debug)]
@@ -51,6 +71,20 @@ fn main() -> Result<()> {
         }
     };
 
+    // The generation engine needs the kernel tree and the user identity;
+    // check both up front instead of failing once per CVE.
+    if let Err(e) = common::get_kernel_tree() {
+        eprintln!("Error: {e}");
+        std::process::exit(1);
+    }
+    let user = match UserIdentity::from_environment() {
+        Ok(user) => user,
+        Err(e) => {
+            eprintln!("Error: {e}");
+            std::process::exit(1);
+        }
+    };
+
     if let Some(target) = args.target.as_deref() {
         // Check if target is a specific CVE ID
         match find_cve_id(target) {
@@ -64,7 +98,7 @@ fn main() -> Result<()> {
                 if args.dry_run {
                     println!("  {} Dry run mode - no actual update", "INFO:".blue());
                 }
-                if let Err(e) = update_cve(&cve_id, args.dry_run) {
+                if let Err(e) = update_cve(&cve_id, &user, args.dry_run) {
                     eprintln!("Error updating {}: {}", cve_id_str.cyan(), e);
                     print_git_error_details(&e);
                     return Err(e);
@@ -72,7 +106,7 @@ fn main() -> Result<()> {
             }
             // Check if target is a year
             Ok(None) if is_valid_year(target) && is_year_dir_exists(&cve_root, target).unwrap_or(false) => {
-                if let Err(e) = update_year(target, num_threads, args.dry_run) {
+                if let Err(e) = update_year(target, &user, num_threads, args.dry_run) {
                     eprintln!("Error updating year {target}: {e}");
                     print_git_error_details(&e);
                     return Err(e);
@@ -90,7 +124,7 @@ fn main() -> Result<()> {
     } else {
         // No target specified, update all years
         println!("Updating all published CVE entries");
-        if let Err(e) = update_all_years(&cve_root, num_threads, args.dry_run) {
+        if let Err(e) = update_all_years(&cve_root, &user, num_threads, args.dry_run) {
             eprintln!("Error updating all years: {e}");
             print_git_error_details(&e);
             return Err(e);
@@ -101,7 +135,7 @@ fn main() -> Result<()> {
 }
 
 /// Update all years with published CVEs
-fn update_all_years(cve_root: &Path, num_threads: usize, dry_run: bool) -> Result<()> {
+fn update_all_years(cve_root: &Path, user: &UserIdentity, num_threads: usize, dry_run: bool) -> Result<()> {
     let published_dir = cve_root.join("published");
 
     // Collect and sort all years numerically
@@ -125,14 +159,14 @@ fn update_all_years(cve_root: &Path, num_threads: usize, dry_run: bool) -> Resul
 
     // Update each year
     for year in years {
-        update_year(&year, num_threads, dry_run)?;
+        update_year(&year, user, num_threads, dry_run)?;
     }
 
     Ok(())
 }
 
 /// Update all CVEs for a specific year
-fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
+fn update_year(year: &str, user: &UserIdentity, num_threads: usize, dry_run: bool) -> Result<()> {
     let cve_root = common::get_cve_root()?;
     let year_dir = cve_root.join("published").join(year);
 
@@ -186,6 +220,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
             let counter = Arc::clone(&counter);
             let progress = Arc::clone(&progress);
             let update_results = Arc::clone(&update_results);
+            let user = user.clone();
 
             thread::spawn(move || -> Result<()> {
                 loop {
@@ -207,7 +242,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
                         .and_then(|s| s.to_str())
                         .unwrap_or("unknown");
 
-                    let result = update_cve(&file, dry_run);
+                    let result = update_cve(&file, &user, dry_run);
 
                     match result {
                         Err(ref e) => {
@@ -258,7 +293,7 @@ fn update_year(year: &str, num_threads: usize, dry_run: bool) -> Result<()> {
 }
 
 /// Update a single CVE entry
-fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
+fn update_cve(sha1_file: &Path, user: &UserIdentity, dry_run: bool) -> Result<Vec<String>> {
     // Process files and extract metadata
     let cve_data = prepare_cve_files(sha1_file)?;
 
@@ -266,8 +301,33 @@ fn update_cve(sha1_file: &Path, dry_run: bool) -> Result<Vec<String>> {
         return Ok(Vec::new());
     }
 
-    // Run bippy on the files and collect updated file paths
-    let updated_files = run_bippy_and_update_files(sha1_file, &cve_data)?;
+    // Generate the record with the bippy engine, in-process
+    let record = bippy_core::generate(&GenerateRequest {
+        cve_number: &cve_data.cve_id,
+        fixing_shas: &cve_data.shas,
+        vulnerable_shas: &cve_data.vulnerable_shas,
+        reference_file: cve_data.reference_file.as_deref(),
+        message_file: cve_data.message_file.as_deref(),
+        cvss_file: cve_data.cvss_file.as_deref(),
+        user_name: &user.name,
+        user_email: &user.email,
+    })
+    .with_context(|| format!("bippy engine failed for {}", cve_data.cve_id))?;
+
+    // Check for changes and update files if needed
+    let mut updated_files = Vec::new();
+    update_file_if_changed(
+        &cve_data.root_path.with_extension("json"),
+        &record.json,
+        "bippy",
+        &mut updated_files,
+    )?;
+    update_file_if_changed(
+        &cve_data.root_path.with_extension("mbox"),
+        &record.mbox,
+        "bippy-",
+        &mut updated_files,
+    )?;
 
     Ok(updated_files)
 }
@@ -282,12 +342,12 @@ struct CveFileData {
     vulnerable_shas: Vec<String>,
     /// Path to the CVE root directory
     root_path: PathBuf,
-    /// Whether a .reference file exists
-    has_reference_file: bool,
-    /// Whether a .message file exists
-    has_message_file: bool,
-    /// Whether a .cvss file exists
-    has_cvss_file: bool,
+    /// Path of the .reference file, if one exists
+    reference_file: Option<PathBuf>,
+    /// Path of the .message file, if one exists
+    message_file: Option<PathBuf>,
+    /// Path of the .cvss file, if one exists
+    cvss_file: Option<PathBuf>,
 }
 
 /// Prepare CVE files and extract metadata
@@ -330,192 +390,62 @@ fn prepare_cve_files(sha1_file: &Path) -> Result<CveFileData> {
     }
 
     // Check for .reference file
-    let reference_file = sha1_file.with_extension("reference");
-    let has_reference_file = reference_file.exists();
+    let reference_file = Some(sha1_file.with_extension("reference")).filter(|p| p.exists());
 
     // Check for .message file
-    let message_file = sha1_file.with_extension("message");
-    let has_message_file = message_file.exists();
+    let message_file = Some(sha1_file.with_extension("message")).filter(|p| p.exists());
 
     // Check for .cvss file
-    let cvss_file = sha1_file.with_extension("cvss");
-    let has_cvss_file = cvss_file.exists();
+    let cvss_file = Some(sha1_file.with_extension("cvss")).filter(|p| p.exists());
 
     Ok(CveFileData {
         cve_id,
         shas,
         vulnerable_shas,
         root_path,
-        has_reference_file,
-        has_message_file,
-        has_cvss_file,
+        reference_file,
+        message_file,
+        cvss_file,
     })
 }
 
-/// Run bippy on a CVE and update the files if needed
-fn run_bippy_and_update_files(sha1_file: &Path, cve_data: &CveFileData) -> Result<Vec<String>> {
-    // Create temporary files for the new json and mbox content
-    let tmp_json = NamedTempFile::new()
-        .context("Failed to create temporary JSON file")?;
-    let tmp_mbox = NamedTempFile::new()
-        .context("Failed to create temporary mbox file")?;
-
-    // Build bippy command with full path from vulns dir
-    let vulns_dir = match common::find_vulns_dir() {
-        Ok(dir) => dir,
-        Err(e) => return Err(anyhow!("Failed to find vulns directory: {e}")),
-    };
-    let bippy_path = vulns_dir.join("scripts").join("bippy");
-
-    // Build command and run bippy
-    let bippy_params = BippyCommandParams {
-        bippy_path: &bippy_path,
-        cve_id: &cve_data.cve_id,
-        shas: &cve_data.shas,
-        vulnerable_shas: &cve_data.vulnerable_shas,
-        tmp_json: &tmp_json,
-        tmp_mbox: &tmp_mbox,
-        sha1_file,
-        has_reference_file: cve_data.has_reference_file,
-        has_message_file: cve_data.has_message_file,
-        has_cvss_file: cve_data.has_cvss_file,
-    };
-    let output = build_and_run_bippy_command(&bippy_params)?;
-
-    if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow!("bippy failed for {}: {error}", cve_data.cve_id));
-    }
-
-    // Check for changes and update files if needed
-    let mut updated_files = Vec::new();
-    check_and_update_json_file(&cve_data.root_path, &tmp_json, &mut updated_files)?;
-    check_and_update_mbox_file(&cve_data.root_path, &tmp_mbox, &mut updated_files)?;
-
-    Ok(updated_files)
+/// Iterate over the lines of a generated file that carry meaningful content.
+///
+/// The generator version line (matched by `generator_marker`) and the user
+/// email lines change without the record itself changing, so they are
+/// ignored, exactly as the previous diff-based check ignored them.
+fn meaningful_lines<'a>(
+    content: &'a str,
+    generator_marker: &'a str,
+) -> impl Iterator<Item = &'a str> {
+    content.lines().filter(move |line| {
+        !line.contains(generator_marker)
+            && !line.contains("@kernel.org")
+            && !line.contains("@linuxfoundation.org")
+    })
 }
 
-/// Parameters for building and running the bippy command
-struct BippyCommandParams<'a> {
-    bippy_path: &'a Path,
-    cve_id: &'a str,
-    shas: &'a [String],
-    vulnerable_shas: &'a [String],
-    tmp_json: &'a NamedTempFile,
-    tmp_mbox: &'a NamedTempFile,
-    sha1_file: &'a Path,
-    has_reference_file: bool,
-    has_message_file: bool,
-    has_cvss_file: bool,
-}
-
-/// Build and run the bippy command
-fn build_and_run_bippy_command(params: &BippyCommandParams) -> Result<std::process::Output> {
-    let mut bippy_cmd = Command::new(params.bippy_path);
-    bippy_cmd.arg(format!("--cve={}", params.cve_id))
-        .arg(format!("--json={}", params.tmp_json.path().display()))
-        .arg(format!("--mbox={}", params.tmp_mbox.path().display()));
-
-    // Add each SHA as a separate argument
-    for sha in params.shas {
-        bippy_cmd.arg(format!("--sha={sha}"));
-    }
-
-    // Add vulnerable option if present
-    for sha in params.vulnerable_shas {
-        bippy_cmd.arg(format!("--vulnerable={sha}"));
-    }
-
-    // Add reference option if present
-    if params.has_reference_file {
-        let reference_file = params.sha1_file.with_extension("reference");
-        bippy_cmd.arg(format!("--reference={}", reference_file.display()));
-    }
-
-    // Add message option if present
-    if params.has_message_file {
-        let message_file = params.sha1_file.with_extension("message");
-        bippy_cmd.arg(format!("--message={}", message_file.display()));
-    }
-
-    // Add cvss option if present
-    if params.has_cvss_file {
-        let cvss_file = params.sha1_file.with_extension("cvss");
-        bippy_cmd.arg(format!("--cvss={}", cvss_file.display()));
-    }
-
-    // Run bippy
-    bippy_cmd.stdout(std::process::Stdio::piped())
-             .stderr(std::process::Stdio::piped())
-             .output()
-             .context("Failed to execute bippy command")
-}
-
-/// Check JSON file for changes and update if needed
-fn check_and_update_json_file(root_path: &Path, tmp_json: &NamedTempFile, updated_files: &mut Vec<String>) -> Result<()> {
-    let json_file = root_path.with_extension("json");
-    if !json_file.exists() {
+/// Compare newly generated content against an existing output file and
+/// overwrite the file when they differ in more than the ignored lines.
+fn update_file_if_changed(
+    path: &Path,
+    new_content: &str,
+    generator_marker: &str,
+    updated_files: &mut Vec<String>,
+) -> Result<()> {
+    if !path.exists() {
         return Ok(());
     }
 
-    let diff_output = Command::new("diff")
-        .args(["-u", &json_file.to_string_lossy(), &tmp_json.path().to_string_lossy()])
-        .output()
-        .context("Failed to execute diff command for JSON file")?;
+    let old_content = fs::read_to_string(path)
+        .context(format!("Failed to read file: {}", path.display()))?;
 
-    let diff_text = String::from_utf8_lossy(&diff_output.stdout);
-
-    // Check if there are meaningful changes (ignoring bippy version, emails, etc.)
-    let meaningful_changes = diff_text.lines()
-        .filter(|line| line.starts_with('+') || line.starts_with('-'))
-        .filter(|line| !line.contains("bippy") &&
-                        !line.contains("@kernel.org") &&
-                        !line.contains("@linuxfoundation.org") &&
-                        !line.starts_with("+++ ") &&
-                        !line.starts_with("--- ") &&
-                        !line.starts_with("@@ "))
-        .count() > 0;
-
-    if meaningful_changes {
-        // Copy the new file over the old one
-        fs::copy(tmp_json.path(), &json_file)
-            .context(format!("Failed to update JSON file: {}", json_file.display()))?;
-        updated_files.push(json_file.display().to_string());
-    }
-
-    Ok(())
-}
-
-/// Check mbox file for changes and update if needed
-fn check_and_update_mbox_file(root_path: &Path, tmp_mbox: &NamedTempFile, updated_files: &mut Vec<String>) -> Result<()> {
-    let mbox_file = root_path.with_extension("mbox");
-    if !mbox_file.exists() {
-        return Ok(());
-    }
-
-    let diff_output = Command::new("diff")
-        .args(["-u", &mbox_file.to_string_lossy(), &tmp_mbox.path().to_string_lossy()])
-        .output()
-        .context("Failed to execute diff command for mbox file")?;
-
-    let diff_text = String::from_utf8_lossy(&diff_output.stdout);
-
-    // Check if there are meaningful changes (ignoring bippy version, emails, etc.)
-    let meaningful_changes = diff_text.lines()
-        .filter(|line| line.starts_with('+') || line.starts_with('-'))
-        .filter(|line| !line.contains("bippy-") &&
-                        !line.contains("@kernel.org") &&
-                        !line.contains("@linuxfoundation.org") &&
-                        !line.starts_with("+++ ") &&
-                        !line.starts_with("--- ") &&
-                        !line.starts_with("@@ "))
-        .count() > 0;
-
-    if meaningful_changes {
-        // Copy the new file over the old one
-        fs::copy(tmp_mbox.path(), &mbox_file)
-            .context(format!("Failed to update mbox file: {}", mbox_file.display()))?;
-        updated_files.push(mbox_file.display().to_string());
+    if meaningful_lines(&old_content, generator_marker)
+        .ne(meaningful_lines(new_content, generator_marker))
+    {
+        fs::write(path, new_content)
+            .context(format!("Failed to update file: {}", path.display()))?;
+        updated_files.push(path.display().to_string());
     }
 
     Ok(())
@@ -700,81 +630,29 @@ mod tests {
     }
 
     #[test]
-    fn test_diff_logic() {
-        // Test the logic that determines if there are meaningful changes in a diff
+    fn test_meaningful_change_detection() {
+        // Case 1: No meaningful changes (only the generator version changed)
+        let old_json = "{\n  \"id\": \"CVE-2023-12345\",\n  \"generator\": \"bippy-1.0.0\",\n  \"commit\": \"abcdef1234567890\"\n}\n";
+        let new_json = "{\n  \"id\": \"CVE-2023-12345\",\n  \"generator\": \"bippy-1.0.1\",\n  \"commit\": \"abcdef1234567890\"\n}\n";
+        assert!(
+            meaningful_lines(old_json, "bippy").eq(meaningful_lines(new_json, "bippy")),
+            "Should not detect meaningful changes when only bippy version changed"
+        );
 
-        // Case 1: No meaningful changes (only metadata)
-        let diff_text_1 = "\
---- /tmp/tmp123.json	2023-09-01 12:34:56.000000000 -0700
-+++ /tmp/tmp456.json	2023-09-01 12:35:00.000000000 -0700
-@@ -1,5 +1,5 @@
- {
-   \"id\": \"CVE-2023-12345\",
--  \"generator\": \"bippy-1.0.0\",
-+  \"generator\": \"bippy-1.0.1\",
-   \"commit\": \"abcdef1234567890\"
- }";
-
-        let meaningful_changes_1 = diff_text_1.lines()
-            .filter(|line| line.starts_with('+') || line.starts_with('-'))
-            .filter(|line| !line.contains("bippy") &&
-                            !line.contains("@kernel.org") &&
-                            !line.contains("@linuxfoundation.org") &&
-                            !line.starts_with("+++ ") &&
-                            !line.starts_with("--- ") &&
-                            !line.starts_with("@@ "))
-            .count() > 0;
-
-        assert!(!meaningful_changes_1, "Should not detect meaningful changes when only bippy version changed");
-
-        // Case 2: Meaningful changes
-        let diff_text_2 = "\
---- /tmp/tmp123.json	2023-09-01 12:34:56.000000000 -0700
-+++ /tmp/tmp456.json	2023-09-01 12:35:00.000000000 -0700
-@@ -1,5 +1,6 @@
- {
-   \"id\": \"CVE-2023-12345\",
-   \"generator\": \"bippy-1.0.0\",
--  \"commit\": \"abcdef1234567890\"
-+  \"commit\": \"abcdef1234567890\",
-+  \"affects\": { \"vendor\": { \"vendor_data\": [{ \"vendor_name\": \"Linux Kernel\", \"product\": { \"product_data\": [{ \"product_name\": \"Kernel\", \"version\": { \"version_data\": [{ \"version_value\": \"5.15\" }] } }] } }] } }
- }";
-
-        let meaningful_changes_2 = diff_text_2.lines()
-            .filter(|line| line.starts_with('+') || line.starts_with('-'))
-            .filter(|line| !line.contains("bippy") &&
-                            !line.contains("@kernel.org") &&
-                            !line.contains("@linuxfoundation.org") &&
-                            !line.starts_with("+++ ") &&
-                            !line.starts_with("--- ") &&
-                            !line.starts_with("@@ "))
-            .count() > 0;
-
-        assert!(meaningful_changes_2, "Should detect meaningful changes when content is modified");
+        // Case 2: Meaningful changes (content was modified)
+        let new_json = "{\n  \"id\": \"CVE-2023-12345\",\n  \"generator\": \"bippy-1.0.0\",\n  \"commit\": \"abcdef1234567890\",\n  \"affects\": \"5.15\"\n}\n";
+        assert!(
+            meaningful_lines(old_json, "bippy").ne(meaningful_lines(new_json, "bippy")),
+            "Should detect meaningful changes when content is modified"
+        );
 
         // Case 3: Email changes (should be ignored)
-        let diff_text_3 = "\
---- /tmp/tmp123.mbox	2023-09-01 12:34:56.000000000 -0700
-+++ /tmp/tmp456.mbox	2023-09-01 12:35:00.000000000 -0700
-@@ -1,5 +1,5 @@
- From CVE-2023-12345-version Mon Sep 17 00:00:00 2001
--From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-+From: John Doe <john.doe@kernel.org>
- Subject: [PATCH] CVE-2023-12345: Fix security vulnerability
-
- This fixes a security vulnerability.";
-
-        let meaningful_changes_3 = diff_text_3.lines()
-            .filter(|line| line.starts_with('+') || line.starts_with('-'))
-            .filter(|line| !line.contains("bippy-") &&
-                            !line.contains("@kernel.org") &&
-                            !line.contains("@linuxfoundation.org") &&
-                            !line.starts_with("+++ ") &&
-                            !line.starts_with("--- ") &&
-                            !line.starts_with("@@ "))
-            .count() > 0;
-
-        assert!(!meaningful_changes_3, "Should not detect meaningful changes when only email addresses changed");
+        let old_mbox = "From bippy-1.0.0 Mon Sep 17 00:00:00 2001\nFrom: Greg Kroah-Hartman <gregkh@linuxfoundation.org>\nSubject: CVE-2023-12345: Fix security vulnerability\n\nThis fixes a security vulnerability.\n";
+        let new_mbox = "From bippy-1.0.1 Mon Sep 17 00:00:00 2001\nFrom: John Doe <john.doe@kernel.org>\nSubject: CVE-2023-12345: Fix security vulnerability\n\nThis fixes a security vulnerability.\n";
+        assert!(
+            meaningful_lines(old_mbox, "bippy-").eq(meaningful_lines(new_mbox, "bippy-")),
+            "Should not detect meaningful changes when only email addresses changed"
+        );
     }
 
     #[test]
@@ -819,8 +697,8 @@ mod tests {
     }
 
     #[test]
-    fn test_bippy_command_construction() {
-        // Test constructing the bippy command with various file combinations
+    fn test_prepare_cve_files() {
+        // Test gathering the engine inputs with various file combinations
         let temp_dir = tempdir().unwrap();
         let cve_root = temp_dir.path();
         let year_dir = cve_root.join("published").join("2023");
@@ -844,7 +722,7 @@ mod tests {
         // Create message file
         let message_file = year_dir.join(format!("{cve_id}.message"));
         let mut file = File::create(&message_file).unwrap();
-        writeln!(file, "Custom CVE description for testing bippy command construction.").unwrap();
+        writeln!(file, "Custom CVE description for testing input gathering.").unwrap();
         writeln!(file, "This message overrides the git commit message.").unwrap();
 
         // Create reference file
@@ -852,43 +730,26 @@ mod tests {
         let mut file = File::create(&reference_file).unwrap();
         writeln!(file, "https://example.com/reference").unwrap();
 
-        // Verify files exist
-        assert!(sha1_file.exists());
-        assert!(vulnerable_file.exists());
-        assert!(message_file.exists());
-        assert!(reference_file.exists());
+        // Check that prepare_cve_files() finds everything
+        let cve_data = prepare_cve_files(&sha1_file).unwrap();
+        assert_eq!(cve_data.cve_id, cve_id);
+        assert_eq!(cve_data.shas, vec![sha.to_string()]);
+        assert_eq!(cve_data.vulnerable_shas, vec![vulnerable_sha.to_string()]);
+        assert_eq!(cve_data.root_path, year_dir.join(cve_id));
+        assert_eq!(cve_data.reference_file, Some(reference_file));
+        assert_eq!(cve_data.message_file, Some(message_file.clone()));
+        assert_eq!(cve_data.cvss_file, None);
 
-        // Read the vulnerable SHA
-        let vulnerable_sha_read = fs::read_to_string(&vulnerable_file).unwrap().trim().to_string();
-        assert_eq!(vulnerable_sha_read, vulnerable_sha);
+        // Without the optional files, none may be reported
+        fs::remove_file(&vulnerable_file).unwrap();
+        fs::remove_file(&message_file).unwrap();
+        let cve_data = prepare_cve_files(&sha1_file).unwrap();
+        assert!(cve_data.vulnerable_shas.is_empty());
+        assert!(cve_data.message_file.is_none());
 
-        // Check if our implementation correctly detects these files
-        assert!(vulnerable_file.exists());
-        assert!(message_file.exists());
-        assert!(reference_file.exists());
-
-        // Simulate command-building logic
-        let mut cmd_args = vec![
-            format!("--cve={}", cve_id),
-            format!("--sha={}", sha),
-            "--json=/tmp/test.json".to_string(), // Placeholder
-            "--mbox=/tmp/test.mbox".to_string(), // Placeholder
-        ];
-
-        if vulnerable_file.exists() {
-            cmd_args.push(format!("--vulnerable={vulnerable_sha_read}"));
-        }
-
-        if reference_file.exists() {
-            cmd_args.push(format!("--reference={}", reference_file.display()));
-        }
-
-        // Check if all expected arguments are present
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--cve=")));
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--sha=")));
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--json=")));
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--mbox=")));
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--vulnerable=")));
-        assert!(cmd_args.iter().any(|arg| arg.starts_with("--reference=")));
+        // An empty .sha1 file is an error
+        let empty_sha1 = year_dir.join("CVE-2023-99999.sha1");
+        File::create(&empty_sha1).unwrap();
+        assert!(prepare_cve_files(&empty_sha1).is_err());
     }
 }
