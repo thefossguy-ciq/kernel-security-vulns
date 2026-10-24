@@ -160,7 +160,24 @@ fn find_single_cve(cve_id: &str, vulns_dir: &Path) -> Result<String> {
         return Err(anyhow!("CVE directory not found: {}", cve_root.display()));
     }
 
-    // Look for the CVE ID in the published directory
+    // CVE ids embed the year they were assigned in (CVE-YYYY-NNNN), and the
+    // published tree is laid out by year, so look for the .sha1 file directly
+    // where it should be instead of walking the whole tree.
+    if let Some(year) = cve_id
+        .strip_prefix("CVE-")
+        .and_then(|rest| rest.split('-').next())
+    {
+        let direct_path = cve_root
+            .join("published")
+            .join(year)
+            .join(format!("{cve_id}.sha1"));
+        if direct_path.is_file() {
+            let relative_path = direct_path.strip_prefix(vulns_dir).unwrap_or(&direct_path);
+            return Ok(relative_path.to_string_lossy().to_string());
+        }
+    }
+
+    // Fall back to looking for the CVE ID anywhere in the published directory
     let mut cve_file = None;
     for entry in WalkDir::new(cve_root.join("published"))
         .into_iter()
