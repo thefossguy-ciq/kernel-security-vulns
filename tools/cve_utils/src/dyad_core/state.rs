@@ -11,6 +11,13 @@ use anyhow::Result;
 use log::debug;
 use std::collections::HashSet;
 use std::fs;
+use std::sync::OnceLock;
+
+// The scripts/not_reverts and scripts/not_fixes whitelists, loaded once per
+// process and shared by every dyad run.  The files never change while a tool
+// runs, so there is no point in re-reading them for every CVE processed.
+static NOT_REVERTS: OnceLock<HashSet<String>> = OnceLock::new();
+static NOT_FIXES: OnceLock<HashSet<String>> = OnceLock::new();
 
 /// State for a dyad run
 pub struct DyadState {
@@ -27,13 +34,13 @@ pub struct DyadState {
     /// (e.g. cosmetic compiler-warning fixup followed by an immediate re-apply).
     /// When a reverted backport's git id is in this set, dyad treats the original
     /// as still-active on its stable branch and suppresses the re-applied sibling.
-    pub not_reverts: HashSet<String>,
+    pub not_reverts: &'static HashSet<String>,
     /// SHAs from `scripts/not_fixes`: stable backports that look like a fix for
     /// the CVE but did not actually fix the issue (typo, misplaced check,
     /// dropped hunk, etc.).  Kernels matching these SHAs are dropped from the
     /// fix set; the actual fix needs to be supplied separately (e.g. via an
     /// extra line in the CVE's .sha1 file).
-    pub not_fixes: HashSet<String>,
+    pub not_fixes: &'static HashSet<String>,
     // HashSets for O(1) deduplication checks
     fixed_set_ids: HashSet<String>,
     vulnerable_set_ids: HashSet<String>,
@@ -52,8 +59,8 @@ impl DyadState {
             fixed_set: vec![],
             vulnerable_set: vec![],
             revert_pairs: vec![],
-            not_reverts: load_sha_list("not_reverts"),
-            not_fixes: load_sha_list("not_fixes"),
+            not_reverts: NOT_REVERTS.get_or_init(|| load_sha_list("not_reverts")),
+            not_fixes: NOT_FIXES.get_or_init(|| load_sha_list("not_fixes")),
             fixed_set_ids: HashSet::new(),
             vulnerable_set_ids: HashSet::new(),
             revert_pair_vuln_ids: HashSet::new(),
