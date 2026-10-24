@@ -13,9 +13,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 // ─── verify_cve_consistency logic ───────────────────────────────────────────
 
-/// Mirrors `bippy::policy::FIRST_LINUX_COMMIT`; the binary's modules are not
-/// importable from an integration test.
-const FIRST_LINUX_COMMIT: &str = "1da177e4c3f41524e886b7f1b8a0c1fc7321cac2";
+use cve_utils::bippy_core::policy::FIRST_LINUX_COMMIT;
 
 #[derive(Default)]
 struct ConsistencyIssues {

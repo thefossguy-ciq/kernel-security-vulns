@@ -2,6 +2,7 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
+pub mod bippy_core;
 pub mod cvss;
 pub mod dyad;
 pub mod dyad_core;

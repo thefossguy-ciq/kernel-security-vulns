@@ -7,15 +7,17 @@ use serde::Serialize;
 use serde_json::ser::{PrettyFormatter, Serializer};
 use std::collections::HashSet;
 
-use crate::models::{
+use super::cve::{
     AffectedProduct, CnaData, Containers, CpeApplicability, CpeNodes, CveMetadata, CveRecord,
-    CvssMetric, Description, DyadEntry, Generator, ProviderMetadata, Reference,
+    CvssMetric, Description, Generator, ProviderMetadata, Reference,
 };
-use crate::policy;
-use crate::utils::{
+use super::file::read_uuid;
+use super::policy;
+use super::version::{
     determine_default_status, generate_cpe_ranges, generate_git_ranges, generate_version_ranges,
-    read_uuid, VersionRangeOutput,
+    VersionRangeOutput,
 };
+use crate::dyad::DyadEntry;
 
 /// Parameters for generating a JSON CVE record
 pub struct CveRecordParams<'a> {
@@ -49,7 +51,7 @@ pub struct CveRecordParams<'a> {
 fn get_uuid() -> Result<String> {
     // Get vulns directory using cve_utils
     let vulns_dir =
-        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
+        crate::common::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
 
     // Get the script directory from vulns directory
     let script_dir = vulns_dir.join("scripts");
@@ -246,6 +248,11 @@ fn serialize_cve_record(cve_record: &CveRecord) -> Result<String> {
 }
 
 /// Generate a JSON for the CVE
+///
+/// # Errors
+///
+/// Returns an error if the CVE team UUID cannot be read or the record
+/// cannot be serialized.
 pub fn generate_json(params: &CveRecordParams) -> Result<String> {
     let CveRecordParams {
         cve_number,
@@ -301,7 +308,7 @@ pub fn generate_json(params: &CveRecordParams) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::CveRecord;
+    use super::super::cve::CveRecord;
 
     #[test]
     fn test_process_description() {
@@ -326,8 +333,8 @@ mod tests {
 
     #[test]
     fn test_generate_references() {
-        use cve_utils::dyad::DyadEntry;
-        use cve_utils::Kernel;
+        use crate::dyad::DyadEntry;
+        use crate::Kernel;
 
         // Helper function to create test kernels
         fn create_test_kernel(_version: &str, git_id: &str) -> Kernel {

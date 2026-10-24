@@ -7,6 +7,10 @@ use git2::Object;
 use git2::Repository;
 
 /// Get the commit subject for a git reference
+///
+/// # Errors
+///
+/// Returns an error if the object is not a commit.
 pub fn get_commit_subject(_repo: &Repository, obj: &Object) -> Result<String> {
     let commit = obj
         .as_commit()
@@ -16,6 +20,10 @@ pub fn get_commit_subject(_repo: &Repository, obj: &Object) -> Result<String> {
 }
 
 /// Get the full commit message text
+///
+/// # Errors
+///
+/// Returns an error if the object is not a commit.
 pub fn get_commit_text(_repo: &Repository, obj: &Object) -> Result<String> {
     let commit = obj
         .as_commit()

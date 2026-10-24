@@ -6,6 +6,10 @@ use anyhow::{Context, Result};
 use std::path::Path;
 
 /// Reads the tags file from the script directory
+///
+/// # Errors
+///
+/// Returns an error if the tags file cannot be read.
 pub fn read_tags_file(script_dir: &Path) -> Result<Vec<String>> {
     let tags_path = script_dir.join("tags");
     let content = std::fs::read_to_string(&tags_path)
@@ -19,6 +23,10 @@ pub fn read_tags_file(script_dir: &Path) -> Result<Vec<String>> {
 }
 
 /// Read the UUID for the Linux kernel CVE team from a file
+///
+/// # Errors
+///
+/// Returns an error if the UUID file cannot be read or is empty.
 pub fn read_uuid(script_dir: &Path) -> Result<String> {
     let uuid_path = script_dir.join("linux.uuid");
     let content = std::fs::read_to_string(&uuid_path)
@@ -35,6 +43,10 @@ pub fn read_uuid(script_dir: &Path) -> Result<String> {
 }
 
 /// Read a .message file if it exists
+///
+/// # Errors
+///
+/// Returns an error if the message file exists but cannot be read.
 pub fn read_message_file(file_path: &Path) -> Result<Option<String>> {
     if file_path.exists() {
         let content = std::fs::read_to_string(file_path)

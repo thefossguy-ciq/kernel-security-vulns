@@ -2,11 +2,11 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-use crate::models::{CpeMatch, CpeNodes, VersionRange};
-use crate::policy;
-use cve_utils::dyad::DyadEntry;
-use cve_utils::version_utils::compare_kernel_versions;
-use cve_utils::version_utils::version_is_mainline;
+use super::cve::{CpeMatch, CpeNodes, VersionRange};
+use super::policy;
+use crate::dyad::DyadEntry;
+use crate::version_utils::compare_kernel_versions;
+use crate::version_utils::version_is_mainline;
 use log::debug;
 use std::collections::HashSet;
 
@@ -28,11 +28,13 @@ const DEDUP_STABLE: &str = "stable";
 
 /// Determine the default status for CVE entries based on the dyad entries.
 /// Delegates to the centralized policy module.
+#[must_use]
 pub fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     policy::determine_default_status(entries)
 }
 
 /// Generate CPE ranges for the CVE JSON format
+#[must_use]
 pub fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
     let mut cpe_nodes: Vec<CpeNodes> = vec![];
     let mut node = CpeNodes {
@@ -80,6 +82,7 @@ pub fn generate_cpe_ranges(entries: &[DyadEntry]) -> Vec<CpeNodes> {
 }
 
 /// Generate git ranges for the CVE JSON format
+#[must_use]
 pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
     let mut git_versions = Vec::new();
 
@@ -111,6 +114,7 @@ pub fn generate_git_ranges(entries: &[DyadEntry]) -> Vec<VersionRange> {
 }
 
 /// Generate version ranges for the CVE JSON format
+#[must_use]
 pub fn generate_version_ranges(entries: &[DyadEntry], default_status: &str) -> VersionRangeOutput {
     let mut kernel_versions = Vec::new();
     let mut stable_versions = Vec::new();
@@ -765,7 +769,7 @@ fn log_final_ranges(kernel_versions: &[VersionRange]) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cve_utils::dyad::DyadEntry;
+    use crate::dyad::DyadEntry;
 
     // Helper function to create a DyadEntry from string representation
     fn dyad_entry(s: &str) -> DyadEntry {

@@ -2,9 +2,9 @@
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
-use crate::policy;
-use cve_utils::dyad::DyadEntry;
-use cve_utils::version_utils::compare_kernel_versions;
+use super::policy;
+use crate::dyad::DyadEntry;
+use crate::version_utils::compare_kernel_versions;
 use std::collections::HashSet;
 use std::fmt::Write;
 
@@ -33,7 +33,7 @@ pub struct MboxParams<'a> {
     /// List of affected files
     pub affected_files: &'a Vec<String>,
     /// Optional CVSS metrics
-    pub cvss_metrics: &'a [crate::models::CvssMetric],
+    pub cvss_metrics: &'a [super::cve::CvssMetric],
 }
 
 /// Parse dyad entries into vulnerability information strings
@@ -251,6 +251,7 @@ fn create_mbox_content(params: &MboxContentParams) -> String {
 }
 
 /// Generate an mbox file for the CVE
+#[must_use]
 pub fn generate_mbox(params: &MboxParams) -> String {
     let MboxParams {
         cve_number,
@@ -315,8 +316,8 @@ pub fn generate_mbox(params: &MboxParams) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cve_utils::dyad::DyadEntry;
-    use cve_utils::Kernel;
+    use crate::dyad::DyadEntry;
+    use crate::Kernel;
 
     fn create_test_kernel(_version: &str, git_id: &str) -> Kernel {
         // In tests, we don't have real git commit IDs to look up,

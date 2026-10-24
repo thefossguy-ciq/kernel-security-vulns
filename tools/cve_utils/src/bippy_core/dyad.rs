@@ -3,7 +3,7 @@
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
 
 use anyhow::Result;
-use cve_utils::dyad_core;
+use crate::dyad_core;
 
 /// Run the dyad engine to get version range information.
 ///

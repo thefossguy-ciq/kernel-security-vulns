@@ -1,28 +1,21 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
 // Copyright (c) 2025 - Sasha Levin <sashal@kernel.org>
+//
+// bippy - generate the CVE record (.json) and announcement mail (.mbox) for
+//         a kernel CVE.  All of the real work happens in
+//         cve_utils::bippy_core, this is just the command line front end
+//         for it.
 
-use anyhow::{Context, Result};
 use clap::Parser;
+use cve_utils::bippy_core::{self, GenerateRequest};
 use cve_utils::git_config;
-use cve_utils::git_utils::{get_object_full_sha, resolve_reference, get_affected_files};
-use git2::Repository;
-use log::{debug, error, warn};
+use log::{debug, error};
 use std::env;
-use std::path::{Path, PathBuf};
 
-mod commands;
-mod models;
-mod policy;
-mod utils;
+mod cli;
 
-use commands::{generate_json, generate_mbox, json::CveRecordParams, mbox::MboxParams};
-use cve_utils::cvss::rationale::Rationale;
-use models::{Args, CvssMetric, CvssV31, DyadEntry, Scenario};
-use utils::{
-    get_commit_subject, get_commit_text, read_message_file, read_tags_file,
-    run_dyad, strip_commit_text,
-};
+use cli::Args;
 
 /// Initialize and configure the logging system
 fn initialize_logging(verbose: bool) -> log::LevelFilter {
@@ -136,304 +129,8 @@ fn validate_args_and_env(args: &Args) -> ArgsResult {
     (cve_number, user_name, user_email, git_shas, vulnerable_shas)
 }
 
-/// Get repository and script directories
-fn get_directories() -> Result<(String, PathBuf, String, String)> {
-    // Get vulns directory using cve_utils
-    let vulns_dir =
-        cve_utils::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
-
-    // Get scripts directory
-    let script_dir = vulns_dir.join("scripts");
-    if !script_dir.exists() {
-        return Err(anyhow::anyhow!(
-            "Scripts directory not found at {}",
-            script_dir.display()
-        ));
-    }
-
-    // Get the script name
-    let script_name = "bippy".to_string();
-
-    // Get the script version using Cargo package version
-    let script_version = env!("CARGO_PKG_VERSION").to_string();
-
-    // Get kernel tree path from environment
-    let kernel_tree = env::var("CVEKERNELTREE")
-        .with_context(|| "CVEKERNELTREE environment variable is not set")?;
-
-    Ok((kernel_tree, script_dir, script_name, script_version))
-}
-
-/// Get commit information from Git repository
-fn get_commit_info(kernel_tree: &str, git_shas: &[String]) -> Result<(String, String, String, Vec<String>)> {
-    // Open the kernel repository
-    let repo = Repository::open(kernel_tree)
-        .with_context(|| format!("Failed to open Git repository at {kernel_tree:?}"))?;
-
-    // Resolve Git references for all main commits
-    let git_refs: Vec<_> = git_shas
-        .iter()
-        .filter_map(|sha| match resolve_reference(&repo, sha) {
-            Ok(reference) => Some(reference),
-            Err(err) => {
-                warn!("Warning: Could not resolve SHA reference: {err}");
-                None
-            }
-        })
-        .collect();
-    if git_refs.is_empty() {
-        error!("None of the provided SHAs could be resolved");
-        std::process::exit(1);
-    }
-
-    // Use the first as the main one for output fields
-    let main_git_ref = &git_refs[0];
-
-    // Get SHA information for the main commit
-    let git_sha_full =
-        get_object_full_sha(&repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
-    let commit_subject =
-        get_commit_subject(&repo, main_git_ref).with_context(|| "Failed to get commit subject")?;
-
-    // Get the full commit message text for the main commit
-    let git_ref = resolve_reference(&repo, &git_sha_full)?;
-    let commit_text = get_commit_text(&repo, &git_ref)?;
-
-    // Get the affected files list
-    let affected_files = get_affected_files(&repo, &git_ref)?;
-
-    Ok((git_sha_full, commit_subject, commit_text, affected_files))
-}
-
-/// Process the commit text
-fn process_commit_text(script_dir: &Path, commit_text: &str, message_file: Option<&Path>) -> String {
-    // Check if a message file was explicitly provided
-    if let Some(message_path) = message_file {
-        if let Ok(Some(message_content)) = read_message_file(message_path) {
-            let trimmed_content = message_content.trim();
-            // Check if message file has actual content after trimming
-            if trimmed_content.is_empty() {
-                error!("Warning: Message file {} is empty or contains only whitespace, falling back to commit message", message_path.display());
-            } else {
-                debug!("Using content from .message file: {}", message_path.display());
-                // When using a .message file, use its content as the complete description
-                return format!("In the Linux kernel, the following vulnerability has been resolved:\n\n{trimmed_content}");
-            }
-        } else {
-            error!("Warning: Could not read message file: {}", message_path.display());
-        }
-    }
-
-    // Read the tags file to strip from commit message
-    let tags = read_tags_file(script_dir).unwrap_or_default();
-    // Strip tags from commit text normally
-    strip_commit_text(commit_text, &tags)
-}
-
-/// Run dyad and parse its output into `DyadEntry` objects
-fn run_dyad_and_parse(git_shas: &[String], vulnerable_shas: &[String]) -> Vec<DyadEntry> {
-    let dyad_data = match run_dyad(git_shas, vulnerable_shas) {
-        Ok(data) => data,
-        Err(err) => {
-            warn!("Warning: Failed to run dyad: {err:?}");
-            String::new()
-        }
-    };
-
-    // Parse dyad output into DyadEntry objects
-    let mut dyad_entries: Vec<DyadEntry> = Vec::new();
-
-    // Process dyad data to create entries
-    if !dyad_data.is_empty() {
-        for line in dyad_data.lines() {
-            // Skip comments and empty lines
-            if line.starts_with('#') || line.trim().is_empty() {
-                continue;
-            }
-
-            // Parse the line directly as DyadEntry
-            if let Ok(entry) = DyadEntry::new(line) {
-                dyad_entries.push(entry);
-            }
-        }
-    }
-
-    dyad_entries
-}
-
-/// Read additional references from a file if specified
-fn read_additional_references(reference_path: Option<PathBuf>) -> Vec<String> {
-    reference_path.map_or_else(
-        || {
-            debug!("No reference file specified");
-            Vec::new()
-        },
-        |ref_path| {
-            debug!("Attempting to read references from {}", ref_path.display());
-
-            std::fs::read_to_string(&ref_path).map_or_else(
-                |_| {
-                    warn!("Warning: Failed to read reference file from {}", ref_path.display());
-                    if !ref_path.exists() {
-                        debug!("  File does not exist");
-                    } else if !ref_path.is_file() {
-                        debug!("  Path exists but is not a regular file");
-                    } else {
-                        debug!("  File exists but could not be read (permissions issue?)");
-                    }
-                    Vec::new()
-                },
-                |contents| {
-                    debug!("Successfully read reference file");
-                    if contents.is_empty() {
-                        debug!("Reference file is empty");
-                    } else {
-                        debug!("Reference file contains {} lines", contents.lines().count());
-                        for (i, line) in contents.lines().enumerate() {
-                            if !line.trim().is_empty() {
-                                debug!("  Reference[{}]: {}", i, line.trim());
-                            }
-                        }
-                    }
-
-                    contents
-                        .lines()
-                        .map(|line| line.trim().to_string())
-                        .filter(|line| !line.is_empty())
-                        .collect()
-                },
-            )
-        },
-    )
-}
-
-/// Parse a .cvss file into `CvssMetric` entries.
-///
-/// The file holds one or more `CNA_ID CVSS_VECTOR` lines, optionally followed
-/// by a blank line and the rationale for the score. The rationale is published
-/// as `metrics[].scenarios[].value`.
-///
-/// A file we were told to use but cannot use is an error, not a reason to
-/// carry on: dropping the metrics would quietly strip the score from a record
-/// that already has one.
-fn parse_cvss_file(path: &Path) -> Result<Vec<CvssMetric>> {
-    let file = cve_utils::cvss::file::CvssFile::read(path)?;
-    file.validate()?;
-
-    let scenarios: Vec<Scenario> = file
-        .rationale
-        .as_ref()
-        .map(Rationale::to_scenario_value)
-        .map(|value| {
-            vec![Scenario {
-                lang: "en".to_string(),
-                value,
-            }]
-        })
-        .unwrap_or_default();
-
-    Ok(file
-        .entries
-        .iter()
-        .map(|entry| {
-            let result = entry.score();
-            CvssMetric {
-                cvss_v3_1: CvssV31 {
-                    version: "3.1".to_string(),
-                    vector_string: entry.vector_string(),
-                    base_score: result.score,
-                    base_severity: result.severity,
-                },
-                scenarios: scenarios.clone(),
-            }
-        })
-        .collect())
-}
-
-/// Output parameters for generating files
-struct OutputParams<'a> {
-    cve_number: &'a str,
-    git_sha_full: &'a str,
-    commit_subject: &'a str,
-    user_name: &'a str,
-    user_email: &'a str,
-    script_name: &'a str,
-    script_version: &'a str,
-    commit_text: &'a str,
-    affected_files: &'a Vec<String>,
-    cvss_metrics: Vec<CvssMetric>,
-}
-
-/// Generate and write output files (mbox and/or JSON)
-fn generate_output_files(
-    mbox_path: Option<&Path>,
-    json_path: Option<&Path>,
-    params: &OutputParams,
-    dyad_entries: &[DyadEntry],
-    additional_references: &[String],
-) {
-    // Generate mbox file if requested
-    if let Some(path) = mbox_path {
-        // Create MboxParams from OutputParams
-        let mbox_params = MboxParams {
-            cve_number: params.cve_number,
-            git_sha_full: params.git_sha_full,
-            commit_subject: params.commit_subject,
-            user_name: params.user_name,
-            user_email: params.user_email,
-            dyad_entries,
-            script_name: params.script_name,
-            script_version: params.script_version,
-            additional_references,
-            commit_text: params.commit_text,
-            affected_files: params.affected_files,
-            cvss_metrics: &params.cvss_metrics,
-        };
-
-        let mbox_content = generate_mbox(&mbox_params);
-
-        if let Err(err) = std::fs::write(path, mbox_content) {
-            error!("Warning: Failed to write mbox file to {}: {err}", path.display());
-        } else {
-            debug!("Wrote mbox file to {path}", path = path.display());
-        }
-    }
-
-    // Generate JSON file if requested
-    if let Some(path) = json_path {
-        // Create CveRecordParams from OutputParams
-        let json_params = CveRecordParams {
-            cve_number: params.cve_number,
-            git_sha_full: params.git_sha_full,
-            commit_subject: params.commit_subject,
-            user_name: params.user_name,
-            user_email: params.user_email,
-            dyad_entries: dyad_entries.to_vec(),
-            script_name: params.script_name,
-            script_version: params.script_version,
-            additional_references,
-            commit_text: params.commit_text,
-            affected_files: params.affected_files,
-            cvss_metrics: params.cvss_metrics.clone(),
-        };
-
-        match generate_json(&json_params) {
-            Ok(json_record) => {
-                if let Err(err) = std::fs::write(path, json_record) {
-                    error!("Warning: Failed to write JSON file to {}: {err}", path.display());
-                } else {
-                    debug!("Wrote JSON file to {path}", path = path.display());
-                }
-            }
-            Err(err) => {
-                error!("Error: Failed to generate JSON record: {err}");
-            }
-        }
-    }
-}
-
 /// Main function
-fn main() -> Result<()> {
+fn main() {
     // Parse command line arguments
     let args = Args::parse();
 
@@ -447,58 +144,47 @@ fn main() -> Result<()> {
     let (cve_number, user_name, user_email, git_shas, vulnerable_shas) =
         validate_args_and_env(&args);
 
-    // Get required directories and script information
-    let (kernel_tree, script_dir, script_name, script_version) = get_directories()?;
-
-    // Get Git commit information
-    let (git_sha_full, commit_subject, raw_commit_text, affected_files) = get_commit_info(&kernel_tree, &git_shas)?;
-
-    // Process commit text
-    let commit_text = process_commit_text(&script_dir, &raw_commit_text, args.message.as_deref());
-
-    // Run dyad and parse its output
-    let dyad_entries = run_dyad_and_parse(&git_shas, &vulnerable_shas);
-
-    // Check CVE issuance policy - logs error if no released version was affected
-    // (see policy.rs for detailed documentation)
-    if !policy::check_cve_issuance_policy(&dyad_entries, &git_sha_full) {
-        std::process::exit(1);
-    }
-
-    // Read additional references from file if specified
-    let additional_references = read_additional_references(args.reference);
-
-    // Parse CVSS file if specified
-    let cvss_metrics = match args.cvss {
-        Some(ref path) => parse_cvss_file(path)
-            .with_context(|| format!("reading CVSS file {}", path.display()))?,
-        None => Vec::new(),
-    };
-
-    // Create output parameters
-    let output_params = OutputParams {
+    // Generate the CVE record and announcement mail
+    let record = match bippy_core::generate(&GenerateRequest {
         cve_number: &cve_number,
-        git_sha_full: &git_sha_full,
-        commit_subject: &commit_subject,
+        fixing_shas: &git_shas,
+        vulnerable_shas: &vulnerable_shas,
+        reference_file: args.reference.as_deref(),
+        message_file: args.message.as_deref(),
+        cvss_file: args.cvss.as_deref(),
         user_name: &user_name,
         user_email: &user_email,
-        script_name: &script_name,
-        script_version: &script_version,
-        commit_text: &commit_text,
-        affected_files: &affected_files,
-        cvss_metrics,
+    }) {
+        Ok(record) => record,
+        Err(err) => {
+            error!("{err:#}");
+            std::process::exit(1);
+        }
     };
 
-    // Generate and write output files
-    generate_output_files(
-        args.mbox.as_deref(),
-        args.json.as_deref(),
-        &output_params,
-        &dyad_entries,
-        &additional_references,
-    );
+    // Write the requested output files.  A failed write is logged but does
+    // not fail the run, keeping the historic behavior.
+    if let Some(path) = args.mbox.as_deref() {
+        if let Err(err) = std::fs::write(path, &record.mbox) {
+            error!(
+                "Warning: Failed to write mbox file to {}: {err}",
+                path.display()
+            );
+        } else {
+            debug!("Wrote mbox file to {path}", path = path.display());
+        }
+    }
 
-    Ok(())
+    if let Some(path) = args.json.as_deref() {
+        if let Err(err) = std::fs::write(path, &record.json) {
+            error!(
+                "Warning: Failed to write JSON file to {}: {err}",
+                path.display()
+            );
+        } else {
+            debug!("Wrote JSON file to {path}", path = path.display());
+        }
+    }
 }
 
 #[cfg(test)]
@@ -506,10 +192,14 @@ mod tests {
     // CVSS weights and scores are exact, spec-defined values. Comparing them
     // with an epsilon would let a wrong score pass.
     #![allow(clippy::float_cmp, reason = "spec-defined values compare exactly")]
-    use super::*;
+    use cve_utils::bippy_core;
+    use cve_utils::bippy_core::file::{read_message_file, read_tags_file, read_uuid};
+    use cve_utils::bippy_core::{parse_cvss_file, process_commit_text, strip_commit_text};
+    use cve_utils::dyad::DyadEntry;
     use cve_utils::version_utils::{version_is_mainline, version_is_queue, version_is_rc};
     use std::fs::File;
     use std::io::Write;
+    use std::path::PathBuf;
     use tempfile::tempdir;
 
     #[test]
@@ -609,7 +299,7 @@ mod tests {
         let entries =
             vec![DyadEntry::new("0:0:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap()];
         assert_eq!(
-            utils::version::determine_default_status(&entries),
+            bippy_core::version::determine_default_status(&entries),
             "affected"
         );
 
@@ -629,7 +319,7 @@ mod tests {
             DyadEntry::new("5.11:e478d6029dca9d8462f426aee0d32896ef64f10f:5.15:11c52d250b34a0862edc29db03fbec23b30db6da").unwrap(),
         ];
         assert_eq!(
-            utils::version::determine_default_status(&entries),
+            bippy_core::version::determine_default_status(&entries),
             "affected"
         );
 
@@ -639,7 +329,7 @@ mod tests {
             DyadEntry::new("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(
-            utils::version::determine_default_status(&entries),
+            bippy_core::version::determine_default_status(&entries),
             "unaffected"
         );
 
@@ -649,7 +339,7 @@ mod tests {
             DyadEntry::new("0:0:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(
-            utils::version::determine_default_status(&entries),
+            bippy_core::version::determine_default_status(&entries),
             "affected"
         );
 
@@ -659,7 +349,7 @@ mod tests {
             DyadEntry::new("6.1:7bd7ad3c310cd6766f170927381eea0aa6f46c69:6.1:1a0398915d2243fc14be6506a6d226e0593a1c33").unwrap(),
         ];
         assert_eq!(
-            utils::version::determine_default_status(&entries),
+            bippy_core::version::determine_default_status(&entries),
             "unaffected"
         );
     }
@@ -671,8 +361,9 @@ mod tests {
             DyadEntry::new("5.15:11c52d250b34a0862edc29db03fbec23b30db6da:5.16:2b503c8598d1b232e7fc7526bce9326d92331541").unwrap(),
         ];
 
-        let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected").kernel_versions;
-        let git_versions = utils::version::generate_git_ranges(&entries);
+        let kernel_versions =
+            bippy_core::version::generate_version_ranges(&entries, "unaffected").kernel_versions;
+        let git_versions = bippy_core::version::generate_git_ranges(&entries);
 
         // Check git versions
         assert_eq!(git_versions.len(), 1);
@@ -701,8 +392,9 @@ mod tests {
             DyadEntry::new("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
-        let kernel_versions = utils::version::generate_version_ranges(&entries, "affected").kernel_versions;
-        let git_versions = utils::version::generate_git_ranges(&entries);
+        let kernel_versions =
+            bippy_core::version::generate_version_ranges(&entries, "affected").kernel_versions;
+        let git_versions = bippy_core::version::generate_git_ranges(&entries);
 
         // Check git versions
         assert_eq!(git_versions.len(), 1);
@@ -730,8 +422,9 @@ mod tests {
             DyadEntry::new("6.0:d640c4cb8f2f933c0ca896541f9de7fb1ae245f4:6.1:c1547f12df8b8e9ca2686accee43213ecd117efe").unwrap(),
         ];
 
-        let kernel_versions = utils::version::generate_version_ranges(&entries, "unaffected").kernel_versions;
-        let git_versions = utils::version::generate_git_ranges(&entries);
+        let kernel_versions =
+            bippy_core::version::generate_version_ranges(&entries, "unaffected").kernel_versions;
+        let git_versions = bippy_core::version::generate_git_ranges(&entries);
 
         // Check git versions (should have two entries)
         assert_eq!(git_versions.len(), 2);
@@ -751,7 +444,7 @@ mod tests {
         file.write_all(tags_content.as_bytes()).unwrap();
 
         // Test reading the tags file
-        let tags = utils::file::read_tags_file(dir.path()).unwrap();
+        let tags = read_tags_file(dir.path()).unwrap();
         assert_eq!(tags.len(), 3);
         assert_eq!(tags[0], "Signed-off-by");
         assert_eq!(tags[1], "Acked-by");
@@ -762,7 +455,7 @@ mod tests {
         std::fs::remove_file(&tags_path).unwrap();
         let mut file = File::create(&empty_tags_path).unwrap();
         file.write_all(b"").unwrap();
-        let tags = utils::file::read_tags_file(dir.path()).unwrap();
+        let tags = read_tags_file(dir.path()).unwrap();
         assert_eq!(tags.len(), 0);
 
         // Test with file containing empty lines and comments
@@ -775,7 +468,7 @@ mod tests {
         file.write_all(mixed_content.as_bytes()).unwrap();
 
         // Read tags file - our implementation should ignore empty lines and comments
-        let tags = utils::file::read_tags_file(dir.path()).unwrap();
+        let tags = read_tags_file(dir.path()).unwrap();
         assert_eq!(tags.len(), 3); // Changed from 4 to 3 to match implementation
     }
 
@@ -790,7 +483,7 @@ mod tests {
         file.write_all(uuid_content.as_bytes()).unwrap();
 
         // Test reading the UUID file
-        let uuid = utils::file::read_uuid(dir.path()).unwrap();
+        let uuid = read_uuid(dir.path()).unwrap();
         assert_eq!(uuid, "12345678-abcd-efgh-ijkl-mnopqrstuvwx");
 
         // Test with empty file
@@ -798,7 +491,7 @@ mod tests {
         let empty_path = dir.path().join("linux.uuid");
         let mut file = File::create(&empty_path).unwrap();
         file.write_all(b"").unwrap();
-        let result = utils::file::read_uuid(dir.path());
+        let result = read_uuid(dir.path());
         assert!(result.is_err());
     }
 

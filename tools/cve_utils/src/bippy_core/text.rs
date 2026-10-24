@@ -4,6 +4,7 @@
 
 /// Strip commit text to only keep the relevant parts
 /// Removes Signed-off-by and other tags from the commit message
+#[must_use]
 pub fn strip_commit_text(text: &str, tags: &[String]) -> String {
     let mut result =
         String::from("In the Linux kernel, the following vulnerability has been resolved:\n\n");

@@ -9,7 +9,7 @@
 // CVE, which versions are affected, and how to represent version ranges are
 // defined here.
 
-use cve_utils::dyad::DyadEntry;
+use crate::dyad::DyadEntry;
 use std::collections::HashSet;
 
 // =============================================================================
@@ -43,6 +43,7 @@ pub const MAX_DESCRIPTION_LENGTH: usize = 3982;
 /// Same-version pairs are excluded from CVE issuance because no released
 /// kernel version was actually vulnerable.
 #[inline]
+#[must_use]
 pub fn is_same_version_pair(entry: &DyadEntry) -> bool {
     entry.vulnerable.version() == entry.fixed.version()
 }
@@ -52,6 +53,7 @@ pub fn is_same_version_pair(entry: &DyadEntry) -> bool {
 /// An entry is included if it represents an actual vulnerability window
 /// (i.e., not a same-version pair).
 #[inline]
+#[must_use]
 pub fn entry_should_be_included(entry: &DyadEntry) -> bool {
     !is_same_version_pair(entry)
 }
@@ -89,6 +91,7 @@ pub fn should_issue_cve(entries: &[DyadEntry]) -> bool {
 ///
 /// # Returns
 /// `true` if a CVE should be issued, `false` if policy rejects it (error already logged)
+#[must_use]
 pub fn check_cve_issuance_policy(entries: &[DyadEntry], git_sha: &str) -> bool {
     if entries.is_empty() {
         log::error!(
@@ -113,6 +116,7 @@ pub fn check_cve_issuance_policy(entries: &[DyadEntry], git_sha: &str) -> bool {
 ///
 /// This should never happen if `check_cve_issuance_policy` was called earlier,
 /// but provides a clear message if the assertion fails.
+#[must_use]
 pub const fn no_includable_entries_error() -> &'static str {
     "No vulnerable:fixed kernel versions to include in CVE output. \
      This is an internal error - should have been caught by check_cve_issuance_policy()"
@@ -143,6 +147,7 @@ pub const fn no_includable_entries_error() -> &'static str {
 /// Returns "unaffected" when:
 /// - All entries are same-version pairs, OR
 /// - All affected versions are stable-only (not mainline)
+#[must_use]
 pub fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
     // If any entry has unknown vulnerable version, default to "affected"
     // because we don't know how far back the vulnerability goes
@@ -178,6 +183,7 @@ pub fn determine_default_status(entries: &[DyadEntry]) -> &'static str {
 ///
 /// Returns the first Linux kernel commit ID, representing "beginning of time".
 #[inline]
+#[must_use]
 pub const fn get_unknown_vulnerable_commit() -> &'static str {
     FIRST_LINUX_COMMIT
 }
@@ -196,6 +202,7 @@ pub const fn get_unknown_vulnerable_commit() -> &'static str {
 ///
 /// If the description exceeds `MAX_DESCRIPTION_LENGTH` characters, it is
 /// truncated and a "---truncated---" marker is added.
+#[must_use]
 pub fn truncate_description(description: &str) -> String {
     // If already under the limit, just ensure no trailing newline
     if description.len() <= MAX_DESCRIPTION_LENGTH {
@@ -227,6 +234,7 @@ pub fn truncate_description(description: &str) -> String {
 ///
 /// Used to suppress unfixed-branch ranges when a later fix exists on the
 /// same branch (the fixed entry will emit the correct narrower range).
+#[must_use]
 pub fn collect_fixed_branches(entries: &[DyadEntry]) -> HashSet<String> {
     entries
         .iter()
@@ -238,7 +246,7 @@ pub fn collect_fixed_branches(entries: &[DyadEntry]) -> HashSet<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cve_utils::dyad::DyadEntry;
+    use crate::dyad::DyadEntry;
 
     fn dyad_entry(s: &str) -> DyadEntry {
         DyadEntry::new(s).unwrap()
