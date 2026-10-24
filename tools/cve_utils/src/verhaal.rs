@@ -63,7 +63,7 @@ where
     T: rusqlite::types::FromSql,
     P: rusqlite::Params,
 {
-    let mut stmt = match conn.prepare(sql) {
+    let mut stmt = match conn.prepare_cached(sql) {
         Ok(s) => s,
         Err(e) => {
             debug!("SQL prepare error: {e:?} for query: {sql}");
@@ -212,7 +212,7 @@ impl Verhaal {
             FROM commits
             WHERE id IN (SELECT id FROM fix_ids)";
 
-        if let Ok(mut stmt) = self.conn.prepare(sql)
+        if let Ok(mut stmt) = self.conn.prepare_cached(sql)
             && let Ok(rows) = stmt.query([git_sha]) {
                 let mapped_rows =
                     rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
@@ -297,7 +297,7 @@ impl Verhaal {
             WHERE c.mainline_id = ?1
         ";
 
-        let mut stmt = match self.conn.prepare(sql) {
+        let mut stmt = match self.conn.prepare_cached(sql) {
             Ok(s) => s,
             Err(e) => {
                 // Callers treat an Err from here as "not backported anywhere",
@@ -323,7 +323,7 @@ impl Verhaal {
 
         // Also check for the mainline commit itself
         let sql_mainline = "SELECT id, release FROM commits WHERE id = ?1";
-        if let Ok(mut stmt) = self.conn.prepare(sql_mainline)
+        if let Ok(mut stmt) = self.conn.prepare_cached(sql_mainline)
             && let Ok(mainline_rows) = stmt.query_map([git_sha], |row| {
                 Ok(BackportEntry {
                     id: row.get::<_, String>(0)?,
