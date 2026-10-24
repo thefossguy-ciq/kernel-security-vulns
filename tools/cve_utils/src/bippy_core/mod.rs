@@ -9,7 +9,6 @@
 //              fork one bippy process per CVE.
 
 use anyhow::{anyhow, Context, Result};
-use git2::Repository;
 use log::{debug, error, warn};
 use std::path::{Path, PathBuf};
 
@@ -91,47 +90,42 @@ fn get_commit_info(
     kernel_tree: &Path,
     git_shas: &[String],
 ) -> Result<(String, String, String, Vec<String>)> {
-    // Open the kernel repository
-    let repo = Repository::open(kernel_tree)
-        .with_context(|| {
-            format!(
-                "Failed to open Git repository at {}",
-                kernel_tree.display()
-            )
-        })?;
+    // Use the per-thread cached repository handle; opening the repository on
+    // every call is wasteful for callers that generate many CVEs in a row.
+    crate::git_utils::with_repository(kernel_tree, |repo| {
+        // Resolve Git references for all main commits
+        let git_refs: Vec<_> = git_shas
+            .iter()
+            .filter_map(|sha| match resolve_reference(repo, sha) {
+                Ok(reference) => Some(reference),
+                Err(err) => {
+                    warn!("Warning: Could not resolve SHA reference: {err}");
+                    None
+                }
+            })
+            .collect();
+        if git_refs.is_empty() {
+            return Err(anyhow!("None of the provided SHAs could be resolved"));
+        }
 
-    // Resolve Git references for all main commits
-    let git_refs: Vec<_> = git_shas
-        .iter()
-        .filter_map(|sha| match resolve_reference(&repo, sha) {
-            Ok(reference) => Some(reference),
-            Err(err) => {
-                warn!("Warning: Could not resolve SHA reference: {err}");
-                None
-            }
-        })
-        .collect();
-    if git_refs.is_empty() {
-        return Err(anyhow!("None of the provided SHAs could be resolved"));
-    }
+        // Use the first as the main one for output fields
+        let main_git_ref = &git_refs[0];
 
-    // Use the first as the main one for output fields
-    let main_git_ref = &git_refs[0];
+        // Get SHA information for the main commit
+        let git_sha_full =
+            get_object_full_sha(repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
+        let commit_subject = get_commit_subject(repo, main_git_ref)
+            .with_context(|| "Failed to get commit subject")?;
 
-    // Get SHA information for the main commit
-    let git_sha_full =
-        get_object_full_sha(&repo, main_git_ref).with_context(|| "Failed to get full SHA")?;
-    let commit_subject =
-        get_commit_subject(&repo, main_git_ref).with_context(|| "Failed to get commit subject")?;
+        // Get the full commit message text for the main commit
+        let git_ref = resolve_reference(repo, &git_sha_full)?;
+        let commit_text = get_commit_text(repo, &git_ref)?;
 
-    // Get the full commit message text for the main commit
-    let git_ref = resolve_reference(&repo, &git_sha_full)?;
-    let commit_text = get_commit_text(&repo, &git_ref)?;
+        // Get the affected files list
+        let affected_files = get_affected_files(repo, &git_ref)?;
 
-    // Get the affected files list
-    let affected_files = get_affected_files(&repo, &git_ref)?;
-
-    Ok((git_sha_full, commit_subject, commit_text, affected_files))
+        Ok((git_sha_full, commit_subject, commit_text, affected_files))
+    })?
 }
 
 /// Process the commit text, replacing it with the content of the message
