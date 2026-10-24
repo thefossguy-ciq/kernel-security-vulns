@@ -274,21 +274,22 @@ mod tests {
 
         // Test process_commit_text with message file
         let commit_text = "Original commit message that should be ignored";
-        let processed = process_commit_text(script_dir, commit_text, Some(&message_file_path));
+        let processed = process_commit_text(&[], commit_text, Some(&message_file_path));
         assert!(processed.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));
         assert!(processed.contains("This is a custom CVE description"));
         assert!(!processed.contains("Original commit message"));
 
         // Test process_commit_text without message file
         fs::write(script_dir.join("tags"), "Signed-off-by\n").unwrap();
-        let processed_no_message = process_commit_text(script_dir, commit_text, None);
+        let tags = read_tags_file(script_dir).unwrap();
+        let processed_no_message = process_commit_text(&tags, commit_text, None);
         assert!(processed_no_message.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));
         assert!(processed_no_message.contains("Original commit message"));
 
         // Test empty message file - should fall back to commit message
         let empty_message_path = script_dir.join("empty.message");
         fs::write(&empty_message_path, "   \n\n   \n").unwrap();
-        let processed_empty = process_commit_text(script_dir, commit_text, Some(&empty_message_path));
+        let processed_empty = process_commit_text(&tags, commit_text, Some(&empty_message_path));
         assert!(processed_empty.starts_with("In the Linux kernel, the following vulnerability has been resolved:"));
         assert!(processed_empty.contains("Original commit message"));
     }

@@ -6,6 +6,7 @@ use anyhow::{Context, Result};
 use serde::Serialize;
 use serde_json::ser::{PrettyFormatter, Serializer};
 use std::collections::HashSet;
+use std::sync::OnceLock;
 
 use super::cve::{
     AffectedProduct, CnaData, Containers, CpeApplicability, CpeNodes, CveMetadata, CveRecord,
@@ -48,24 +49,18 @@ pub struct CveRecordParams<'a> {
 }
 
 /// Get UUID information
+///
+/// The UUID comes from the scripts/linux.uuid file, which cannot change
+/// while a tool runs, so it is read once per process.
 fn get_uuid() -> Result<String> {
-    // Get vulns directory using cve_utils
-    let vulns_dir =
-        crate::common::find_vulns_dir().with_context(|| "Failed to find vulns directory")?;
-
-    // Get the script directory from vulns directory
-    let script_dir = vulns_dir.join("scripts");
-    if !script_dir.exists() {
-        return Err(anyhow::anyhow!(
-            "Scripts directory not found at {}",
-            script_dir.display()
-        ));
-    }
-
-    // Read the UUID from the linux.uuid file
-    let uuid = read_uuid(&script_dir).with_context(|| "Failed to read UUID")?;
-
-    Ok(uuid)
+    static UUID: OnceLock<Result<String, String>> = OnceLock::new();
+    UUID.get_or_init(|| {
+        super::cached_script_dir()
+            .and_then(|script_dir| read_uuid(script_dir).with_context(|| "Failed to read UUID"))
+            .map_err(|e| format!("{e:#}"))
+    })
+    .clone()
+    .map_err(|e| anyhow::anyhow!("{e}"))
 }
 
 /// Prepare dyad entries and affected files

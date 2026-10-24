@@ -11,6 +11,7 @@
 use anyhow::{anyhow, Context, Result};
 use log::{debug, error, warn};
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 pub mod cve;
 mod dyad;
@@ -85,6 +86,33 @@ fn find_script_dir() -> Result<PathBuf> {
     Ok(script_dir)
 }
 
+/// The kernel tree, looked up once per process: it cannot change while a
+/// tool runs, and callers that generate many CVEs should not re-validate it
+/// for every record.
+fn cached_kernel_tree() -> Result<&'static Path> {
+    static KERNEL_TREE: OnceLock<Result<PathBuf, String>> = OnceLock::new();
+    KERNEL_TREE
+        .get_or_init(|| crate::common::get_kernel_tree().map_err(|e| format!("{e:#}")))
+        .as_deref()
+        .map_err(|e| anyhow!("{e}"))
+}
+
+/// The scripts directory of the vulns repository, looked up once per process.
+pub(crate) fn cached_script_dir() -> Result<&'static Path> {
+    static SCRIPT_DIR: OnceLock<Result<PathBuf, String>> = OnceLock::new();
+    SCRIPT_DIR
+        .get_or_init(|| find_script_dir().map_err(|e| format!("{e:#}")))
+        .as_deref()
+        .map_err(|e| anyhow!("{e}"))
+}
+
+/// The tags to strip from commit messages, loaded from scripts/tags once per
+/// process: the file cannot change while a tool runs.
+fn cached_tags(script_dir: &Path) -> &'static [String] {
+    static TAGS: OnceLock<Vec<String>> = OnceLock::new();
+    TAGS.get_or_init(|| read_tags_file(script_dir).unwrap_or_default())
+}
+
 /// Get commit information from Git repository
 fn get_commit_info(
     kernel_tree: &Path,
@@ -129,11 +157,10 @@ fn get_commit_info(
 }
 
 /// Process the commit text, replacing it with the content of the message
-/// file when one is given and stripping the tags listed in the scripts/tags
-/// file otherwise.
+/// file when one is given and stripping the given tags otherwise.
 #[must_use]
 pub fn process_commit_text(
-    script_dir: &Path,
+    tags: &[String],
     commit_text: &str,
     message_file: Option<&Path>,
 ) -> String {
@@ -160,10 +187,8 @@ pub fn process_commit_text(
         }
     }
 
-    // Read the tags file to strip from commit message
-    let tags = read_tags_file(script_dir).unwrap_or_default();
     // Strip tags from commit text normally
-    strip_commit_text(commit_text, &tags)
+    strip_commit_text(commit_text, tags)
 }
 
 /// Run dyad and parse its output into `DyadEntry` objects
@@ -311,15 +336,15 @@ pub fn parse_cvss_file(path: &Path) -> Result<Vec<CvssMetric>> {
 /// - A given .cvss file cannot be parsed
 pub fn generate(req: &GenerateRequest) -> Result<GeneratedRecord> {
     // Get required directories
-    let kernel_tree = crate::common::get_kernel_tree()?;
-    let script_dir = find_script_dir()?;
+    let kernel_tree = cached_kernel_tree()?;
+    let script_dir = cached_script_dir()?;
 
     // Get Git commit information
     let (git_sha_full, commit_subject, raw_commit_text, affected_files) =
-        get_commit_info(&kernel_tree, req.fixing_shas)?;
+        get_commit_info(kernel_tree, req.fixing_shas)?;
 
     // Process commit text
-    let commit_text = process_commit_text(&script_dir, &raw_commit_text, req.message_file);
+    let commit_text = process_commit_text(cached_tags(script_dir), &raw_commit_text, req.message_file);
 
     // Run dyad and parse its output
     let dyad_entries = run_dyad_and_parse(req.fixing_shas, req.vulnerable_shas);

@@ -744,7 +744,7 @@ mod tests {
         fs::remove_file(&vulnerable_file).unwrap();
         fs::remove_file(&message_file).unwrap();
         let cve_data = prepare_cve_files(&sha1_file).unwrap();
-        assert!(cve_data.vulnerable_shas.is_empty());
+        assert_eq!(cve_data.vulnerable_shas, Vec::<String>::new());
         assert!(cve_data.message_file.is_none());
 
         // An empty .sha1 file is an error
