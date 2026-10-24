@@ -74,6 +74,22 @@ impl Kernel {
             return Ok(Self::empty_kernel());
         }
 
+        // Fast path: a full sha1 that the verhaal database knows about needs
+        // no git lookup at all, the id is already in canonical form and the
+        // database only contains commits that were part of a kernel release.
+        // This avoids loading and decompressing the commit object from the
+        // git tree, which dominates the cost when many kernel objects are
+        // created.
+        if id.len() == 40
+            && id.bytes().all(|b| b.is_ascii_hexdigit())
+            && let Ok(version) = Verhaal::with(|verhaal| verhaal.get_version(id))?
+        {
+            return Ok(Self {
+                version,
+                git_id: id.to_string(),
+            });
+        }
+
         // Verify, AND turn the id given to us into a "full" sha1
         let kernel_tree = Self::git_dir();
         let repo_path = Path::new(&kernel_tree);
