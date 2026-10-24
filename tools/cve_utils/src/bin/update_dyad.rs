@@ -13,12 +13,10 @@ use owo_colors::OwoColorize;
 use rayon::prelude::*;
 use std::env;
 use std::fs;
-use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
-use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 
 /// Update all .dyad files in the tree.
@@ -314,9 +312,6 @@ fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) 
         Vec::new()
     };
 
-    // Create temporary file for dyad output
-    let mut tmp_dyad = NamedTempFile::new()?;
-
     // Run dyad
     let mut command = Command::new(dyad_path);
     for option in &vulnerable_options {
@@ -341,70 +336,35 @@ fn process_single_file(relative_path: &str, vulns_dir: &Path, dyad_path: &Path) 
         return Err(anyhow!("dyad command failed"));
     }
 
-    // Write to temp file
-    tmp_dyad.write_all(&output.stdout)?;
+    let new_content = String::from_utf8_lossy(&output.stdout).into_owned();
 
     // Target dyad file
     let dyad_file = vulns_dir.join(format!("{root}.dyad"));
 
     // Compare and update if needed
-    let mut updated = false;
-    if dyad_file.exists() {
-        // Compare the files
-        let diff_output = Command::new("diff")
-            .args([
-                "-u",
-                &dyad_file.to_string_lossy(),
-                &tmp_dyad.path().to_string_lossy(),
-            ])
-            .output()
-            .context("Failed to execute diff command")?;
-
-        if diff_output.status.success() {
-            // Files are the same, do nothing
-        } else {
-            // Check if the changes are meaningful (ignore comment lines)
-            let diff_text = String::from_utf8_lossy(&diff_output.stdout);
-            let meaningful_change = diff_text.lines().any(|line| {
-                // Only consider added/removed lines
-                line.strip_prefix('+').map_or_else(
-                    || {
-                        line.strip_prefix('-').map_or_else(
-                            || false,
-                            |rest| {
-                                let rest = rest.trim_start();
-                                // Ignore removed comment lines and diff metadata
-                                !rest.starts_with('#') && !line.starts_with("--- ")
-                            },
-                        )
-                    },
-                    |rest| {
-                        let rest = rest.trim_start();
-                        // Ignore added comment lines and diff metadata
-                        !rest.starts_with('#') && !line.starts_with("+++ ")
-                    },
-                )
-            });
-
-            if meaningful_change {
-                // Update the file
-                fs::copy(tmp_dyad.path(), &dyad_file)?;
-                updated = true;
-            }
-        }
+    let updated = if dyad_file.exists() {
+        let old_content = fs::read_to_string(&dyad_file).context("Failed to read dyad file")?;
+        // Only consider the change meaningful if something other than
+        // comment lines changed.
+        meaningful_lines(&old_content).ne(meaningful_lines(&new_content))
     } else {
         // No existing file, just use the new one
-        fs::copy(tmp_dyad.path(), &dyad_file)?;
-        updated = true;
-    }
-
-    // Let temp file clean itself up
-    drop(tmp_dyad);
+        true
+    };
 
     if updated {
+        fs::write(&dyad_file, &new_content)?;
         return Ok(cve_id.to_string());
     }
     Ok(String::new())
+}
+
+/// Iterate over the lines of a dyad file that carry real data (i.e. skip
+/// comment lines).
+fn meaningful_lines(content: &str) -> impl Iterator<Item = &str> {
+    content
+        .lines()
+        .filter(|line| !line.trim_start().starts_with('#'))
 }
 
 #[cfg(test)]
