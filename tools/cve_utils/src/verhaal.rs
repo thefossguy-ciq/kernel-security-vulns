@@ -218,9 +218,9 @@ impl Verhaal {
                     rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
 
                 for result in mapped_rows.flatten() {
-                    if let Ok(k) = Kernel::from_id(&result.0) {
-                        fixed_kernels.push(k);
-                    }
+                    // The query already returns the release next to the id,
+                    // so there is nothing left for a validating lookup to add.
+                    fixed_kernels.push(Kernel::from_id_no_validate(&result.0, &result.1));
                 }
             }
 
@@ -394,10 +394,10 @@ impl Verhaal {
                 );
                 result.reverted_pairs.push((vuln_kernel, fix_kernel));
             } else {
-                // Non-reverted backport - add to kernels list
-                if let Ok(k) = Kernel::from_id(&entry.id) {
-                    result.kernels.push(k);
-                }
+                // Non-reverted backport - add to kernels list.  The row came
+                // out of the commits table, so the id and release are already
+                // the exact values a validating lookup would return.
+                result.kernels.push(Kernel::from_id_no_validate(&entry.id, &entry.release));
             }
         }
 
