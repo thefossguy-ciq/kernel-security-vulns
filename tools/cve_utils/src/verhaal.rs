@@ -202,27 +202,28 @@ impl Verhaal {
     pub fn get_fixes(&self, git_sha: &str) -> Result<Vec<Kernel>> {
         let mut fixed_kernels: Vec<Kernel> = vec![];
 
-        let sql = "
-            WITH fix_ids AS (
-                SELECT value AS id
-                FROM commits, json_each('[\"' || replace(fixes, ' ', '\",\"') || '\"]')
-                WHERE commits.id = ?1 AND fixes IS NOT NULL AND fixes != ''
-            )
-            SELECT id, release
-            FROM commits
-            WHERE id IN (SELECT id FROM fix_ids)";
+        // The fixes column holds a space-separated list of shas.  Fetching
+        // the list and resolving each sha with an indexed point lookup is
+        // far cheaper than assembling a JSON array out of the string inside
+        // sqlite and probing the commits table through a subquery.
+        let fixes = query_string(
+            &self.conn,
+            "SELECT fixes from commits WHERE id=?1",
+            &[&git_sha as &dyn ToSql],
+        );
 
-        if let Ok(mut stmt) = self.conn.prepare_cached(sql)
-            && let Ok(rows) = stmt.query([git_sha]) {
-                let mapped_rows =
-                    rows.mapped(|row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)));
-
-                for result in mapped_rows.flatten() {
-                    // The query already returns the release next to the id,
-                    // so there is nothing left for a validating lookup to add.
-                    fixed_kernels.push(Kernel::from_id_no_validate(&result.0, &result.1));
-                }
+        let mut seen: Vec<&str> = vec![];
+        for fix_id in fixes.split_whitespace() {
+            // The IN probe of the old query ignored duplicate entries, so
+            // a sha listed twice must still produce only one kernel.
+            if seen.contains(&fix_id) {
+                continue;
             }
+            seen.push(fix_id);
+            if let Ok(release) = self.get_version(fix_id) {
+                fixed_kernels.push(Kernel::from_id_no_validate(fix_id, &release));
+            }
+        }
 
         if fixed_kernels.is_empty() {
             debug!("No fixes for {git_sha} were found");
