@@ -375,9 +375,6 @@ pub mod common {
             let relative_path = cve_path.strip_prefix(vulns_dir).unwrap_or(&cve_path);
             Ok(relative_path.to_string_lossy().to_string())
         }
-
-
-
 }
 
 /// Git repository operations commonly used across CVE tools
