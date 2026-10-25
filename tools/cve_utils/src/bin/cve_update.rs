@@ -9,6 +9,7 @@ use cve_utils::cve_validation::find_cve_id;
 use cve_utils::git_config;
 use cve_utils::year_utils::{is_valid_year, is_year_dir_exists};
 use cve_utils::common;
+use log::error;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::thread;
@@ -42,10 +43,6 @@ impl UserIdentity {
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 struct Args {
-    /// Optional CVE ID or year to update (if not provided, all years will be updated)
-    #[clap(index = 1)]
-    target: Option<String>,
-
     /// Dry run - show what would be updated but don't actually do it
     #[clap(long)]
     dry_run: bool,
@@ -53,6 +50,10 @@ struct Args {
     /// Number of threads to use for parallel updates (defaults to number of CPUs)
     #[clap(long, short)]
     threads: Option<usize>,
+
+    /// List of CVE ids or years to process (if not specified, all years will be processed)
+    #[clap(index = 1)]
+    cve_ids_or_years: Vec<String>,
 }
 
 fn main() -> Result<()> {
@@ -85,49 +86,66 @@ fn main() -> Result<()> {
         }
     };
 
-    if let Some(target) = args.target.as_deref() {
-        // Check if target is a specific CVE ID
-        match find_cve_id(target) {
-            Ok(Some(cve_id)) => {
-                // Extract the CVE ID from the file path for display
-                let cve_id_str = cve_id.file_stem()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or(target);
-
-                println!("Updating CVE {}", cve_id_str.cyan());
-                if args.dry_run {
-                    println!("  {} Dry run mode - no actual update", "INFO:".blue());
-                }
-                if let Err(e) = update_cve(&cve_id, &user, args.dry_run) {
-                    eprintln!("Error updating {}: {}", cve_id_str.cyan(), e);
-                    print_git_error_details(&e);
-                    return Err(e);
-                }
-            }
-            // Check if target is a year
-            Ok(None) if is_valid_year(target) && is_year_dir_exists(&cve_root, target).unwrap_or(false) => {
-                if let Err(e) = update_year(target, &user, num_threads, args.dry_run) {
-                    eprintln!("Error updating year {target}: {e}");
-                    print_git_error_details(&e);
-                    return Err(e);
-                }
-            }
-            Ok(_) => {
-                return Err(anyhow!("{target} is not a valid CVE ID or year with published entries"));
-            }
-            Err(e) => {
-                eprintln!("Error: {e}");
-                print_git_error_details(&e);
-                return Err(e);
-            }
+    // Get path to vulns and dyad repos
+    let vulns_dir = match common::find_vulns_dir() {
+        Ok(path) => path,
+        Err(e) => {
+            error!("Error finding vulns directory: {e}");
+            print_git_error_details(&e);
+            return Err(e);
         }
-    } else {
-        // No target specified, update all years
+    };
+
+    // list of all ids we want to process/update
+    let mut _ids = common::ids_from_command_line(&vulns_dir, &args.cve_ids_or_years);
+
+    // Process CVEs based on input
+    if args.cve_ids_or_years.is_empty() {
+        // Process all years, in sorted order
         println!("Updating all published CVE entries");
         if let Err(e) = update_all_years(&cve_root, &user, num_threads, args.dry_run) {
             eprintln!("Error updating all years: {e}");
             print_git_error_details(&e);
             return Err(e);
+        }
+        // FIXME use ids...
+    } else {
+        for target in args.cve_ids_or_years {
+            // Check if target is a specific CVE ID
+            match find_cve_id(&target) {
+                Ok(Some(cve_id)) => {
+                    // Extract the CVE ID from the file path for display
+                    let cve_id_str = cve_id.file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or(&target);
+
+                    println!("Updating CVE {}", cve_id_str.cyan());
+                    if args.dry_run {
+                        println!("  {} Dry run mode - no actual update", "INFO:".blue());
+                    }
+                    if let Err(e) = update_cve(&cve_id, &user, args.dry_run) {
+                        eprintln!("Error updating {}: {}", cve_id_str.cyan(), e);
+                        print_git_error_details(&e);
+                        return Err(e);
+                    }
+                }
+                // Check if target is a year
+                Ok(None) if is_valid_year(&target) && is_year_dir_exists(&cve_root, &target).unwrap_or(false) => {
+                    if let Err(e) = update_year(&target, &user, num_threads, args.dry_run) {
+                        eprintln!("Error updating year {target}: {e}");
+                        print_git_error_details(&e);
+                        return Err(e);
+                    }
+                }
+                Ok(_) => {
+                    return Err(anyhow!("{target} is not a valid CVE ID or year with published entries"));
+                }
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    print_git_error_details(&e);
+                    return Err(e);
+                }
+            }
         }
     }
 

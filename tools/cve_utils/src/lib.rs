@@ -54,6 +54,7 @@ pub use self::verhaal::{FoundInResult, Verhaal};
 pub mod common {
     use super::{anyhow, Context, Oid, Path, PathBuf, Result, WalkDir};
     use super::{env, fs};
+    use crate::cve_utils::extract_cve_id_from_path;
 
     /// Gets the kernel tree path from the CVEKERNELTREE environment variable
     ///
@@ -244,6 +245,139 @@ pub mod common {
 
         None
     }
+
+    /// Gather a list of CVE ids based either on the specific CVE id passed in, OR on the year
+    /// passed in, OR if empty, returns all of the current processed CVE ids
+    ///
+    /// This is used by `update_dyad` and `cve_update` on the command line, might as well put it in
+    /// one single place instead of duplicating the logic in both places.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - a CVE id can not be found that was attempted to be asked for
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if:
+    /// - A file path doesn't have a valid file name (i.e., when `read_dir()` returns None)
+    pub fn ids_from_command_line(vulns_dir: &Path, args_ids: &Vec<String>) -> Result<Vec<String>> {
+        let mut ids: Vec<String> = Vec::new();
+
+        if args_ids.is_empty() {
+            // Process all years, in sorted order
+            let published_dir = vulns_dir.join("cve").join("published");
+            let mut years: Vec<_> = fs::read_dir(&published_dir)
+                .unwrap()
+                .map(|r| r.unwrap())
+                .collect();
+            years.sort_by_key(std::fs::DirEntry::path);
+            for entry in years {
+                if entry.file_type()?.is_dir() {
+                    let year = entry.file_name().to_string_lossy().to_string();
+                    if year.chars().all(|c| c.is_ascii_digit()) {
+                        let mut y = find_ids_for_year(&year, vulns_dir)?;
+                        ids.append(&mut y);
+                    }
+                }
+            }
+        } else {
+            for id in args_ids {
+                // Check if it's a year or a CVE ID
+                let published_dir = vulns_dir.join("cve").join("published").join(id);
+                if published_dir.exists() && published_dir.is_dir() {
+                    // It's a year
+                    let mut y = find_ids_for_year(id, vulns_dir)?;
+                    ids.append(&mut y);
+                } else {
+                    // Try to process it as a CVE ID
+                    let i = find_single_cve(id, vulns_dir)?;
+                    ids.push(i);
+                }
+            }
+        }
+
+        Ok(ids)
+        }
+
+        /// Find ids for a year
+        fn find_ids_for_year(year: &str, vulns_dir: &Path) -> Result<Vec<String>> {
+            let published_dir = vulns_dir.join("cve").join("published").join(year);
+
+            let mut sha_files: Vec<String> = Vec::new();
+            for entry in fs::read_dir(published_dir)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.is_file() && path.extension().is_some_and(|ext| ext == "sha1") {
+                    let relative_path = path.strip_prefix(vulns_dir).unwrap_or(&path);
+                    sha_files.push(relative_path.display().to_string());
+                }
+            }
+
+            if sha_files.is_empty() {
+                //log::debug!("{} No CVEs found for year {}", "ERROR:".red(), year);
+            }
+
+            Ok(sha_files)
+        }
+
+        /// Find a single CVE to process
+        fn find_single_cve(cve_id: &str, vulns_dir: &Path) -> Result<String> {
+            let cve_root = vulns_dir.join("cve");
+            if !cve_root.exists() {
+                return Err(anyhow!("CVE directory not found: {}", cve_root.display()));
+            }
+
+            // CVE ids embed the year they were assigned in (CVE-YYYY-NNNN), and the
+            // published tree is laid out by year, so look for the .sha1 file directly
+            // where it should be instead of walking the whole tree.
+            if let Some(year) = cve_id
+                .strip_prefix("CVE-")
+                .and_then(|rest| rest.split('-').next())
+            {
+                let direct_path = cve_root
+                    .join("published")
+                    .join(year)
+                    .join(format!("{cve_id}.sha1"));
+                if direct_path.is_file() {
+                    let relative_path = direct_path.strip_prefix(vulns_dir).unwrap_or(&direct_path);
+                    return Ok(relative_path.to_string_lossy().to_string());
+                }
+            }
+
+            // Fall back to looking for the CVE ID anywhere in the published directory
+            let mut cve_file = None;
+            for entry in WalkDir::new(cve_root.join("published"))
+                .into_iter()
+                .filter_map(Result::ok)
+            {
+                let path = entry.path();
+                // Skip directories and non-sha1 files
+                if !path.is_file() || !path.to_string_lossy().ends_with(".sha1") {
+                    continue;
+                }
+
+                // Extract CVE ID from path
+                match extract_cve_id_from_path(path) {
+                    Ok(id) if id == cve_id => {
+                        cve_file = Some(path.to_path_buf());
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+
+            // If the file wasn't found, error out
+            let Some(cve_path) = cve_file else {
+                return Err(anyhow!("ERROR: {cve_id} is not found or is not a year."));
+            };
+
+            let relative_path = cve_path.strip_prefix(vulns_dir).unwrap_or(&cve_path);
+            Ok(relative_path.to_string_lossy().to_string())
+        }
+
+
+
 }
 
 /// Git repository operations commonly used across CVE tools
