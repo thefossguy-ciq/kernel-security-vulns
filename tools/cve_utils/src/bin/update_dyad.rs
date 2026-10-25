@@ -116,7 +116,7 @@ fn main() -> Result<()> {
 fn process_ids(sha_files: &[String], vulns_dir: &Path) {
     let total_count = sha_files.len();
 
-    println!("Processing {} CVEs", total_count.to_string().cyan());
+    println!("Updating dyad files for {} CVEs", total_count.to_string().cyan());
 
     // Set up progress bar
     let progress_bar = ProgressBar::new(total_count as u64);
