@@ -1,0 +1,92 @@
+5b4bd13e0552 power: supply: core: prevent unregistering a power supply while a callback runs
+3f57b34485dc drm/vc4: hdmi: Move packet RAM enable to PM runtime
+4f6ac74fa594 vsock: treat TCP_CLOSING as once-established
+98d446b7c013 net/rds: don't let the rdma_cm destroy an id RDS still owns on route failure
+8bf659bd54e1 netlink: reset skb headers before unicast and multicast filtering
+4ac852419f0d accel/rocket: clear rdev on device init failure
+448e76cbdc66 drm/xe: skip eviction of a BO with no resource
+fd8662823caa drm/xe/oa: Zero OA buffer at allocation
+04a67a8b1a44 scsi: target: Disable interrupts while holding delayed_cmd_lock
+e15b81f602ed scsi: target: iscsi: Fix race in discovery auth updates
+4c435828932b ocfs2/dlm: Protect the recovery list during debugfs reads
+40bb03d3ea6f pipe: preserve existing fasync readers on writer setup failure
+81e097a064b2 scsi: libsas: Fix SMP IO deadlock during HA resume
+f88bb3606e4b netlink: avoid hashing the network namespace pointer
+c2c482431985 net: ethernet: actions: Move setting of netops to fix crash
+c9f8ce62a5fa net: ethoc: move setting of netops to fix crash
+d71483f0716e net: ethernet: aeroflex: move setting of netops to fix crash
+38d44f78f041 gpio: mxc: fix race between chained IRQ handler install and probe completion
+32c52ec87d62 x86/insn-eval: Fix shadowed segment index in get_seg_reg_override_idx()
+7f9f2d6abc40 firewire: core: fix race condition in split transaction handling
+6eff1d69dae8 accel/rocket: search every core slot when a core is removed
+89c2c777df17 accel/rocket: search every core slot when looking up a scheduler
+a96c5299bd73 unicode: free the map after a grace period
+5e531d62f1f8 watch_queue: Fix note pool publication race in watch_queue_set_size()
+81d99abe2bd8 x86/kvm: Don't consume async #PF flags on a kernel #PF in NMI context
+97818b2fa708 KVM: SEV: Fix page dirtying in sev_gmem_post_populate()
+c8f4cfe1cf93 KVM: nVMX: Reset MMU back to the root MMU if loading L2 state fails for !VM-Entry
+36ebddca56b9 fsnotify: prevent mark additions during connector teardown
+81933038f5e2 pid_namespace: make zap_pid_ns_processes() freezable
+c17b44266a1f ext4: free the sbi after a grace period
+2cd88c498ecf eventfs: Free the eventfs_inode after an rcu grace period too
+f0e48172a59e ipc: drop the mqueue mount with kern_unmount() on setup failure
+c01b091b0641 ntfs3: free the sbi after a grace period
+69fbe94f80bc namespace: a mount that copy_tree() leaves out can't take over a lock
+3267512ad1c2 futex: Fix mm reuse handling for FUT_OFF_MMSHARED
+7b16eb911091 net/sched: fix use-after-free in __tcf_action_put()
+492ba6ac1b1f net: rds: fix uninitialized trans dereference in CM event handler
+b7ad72414c67 sctp: revalidate output stream after association connect wait
+59eb22641f0c spi: imx: fix slab corruption from undersized DMA bounce buffers
+a244c241593b tracing/histograms: Reject non-stacktrace fields for synthetic stacktrace fields
+bd22f7e63509 gpio: shared: fix use-after-free bug when adding shared proxies
+3f23cae09a46 ring-buffer: Do not show buffer_meta for CPUs without a buffer
+25132363c723 ring-buffer: Fix the sub-buffer array base in rb_meta_subbuf_idx()
+ec6b083915e8 scsi: bsg: Pass reply_len to bsg_setup_queue() to fit UFS ARPMB replies
+71caf7f84bd6 scsi: st: Fix use-after-free race between st_remove() and st_open()
+8c8222c25577 scsi: xen/scsifront: Check for a NULL shadow entry on a backend response
+8ee2a09a1dbb scsi: libiscsi: Reject a negative task index from parse_pdu_itt
+c5958c770b2a scsi: libiscsi: Validate the ITT reflected in a Reject PDU
+11bffcd9cb34 scsi: libiscsi: Validate the task named by a management response
+55a67aa89342 drm/amd/display: Fix NULL sink dereference in USB4 bandwidth functions
+de9f6bcdb44f drm/amdgpu: don't drop the runtime PM reference twice in amdgpu_gpr
+3c516a564628 drm/amdgpu: fix GEM object leak on ENOMEM in userptr ioctl
+3c44cbcec5eb drm/amdgpu: keep the eviction fence until the last handle is closed
+26401a4999f1 drm/exec: don't immediately add prelocked obj to array of locked objs
+069403dff337 sched_ext: Fix use-after-free of a destroyed user DSQ by a deferred reenqueue
+803aa6fc2dbe tracing: Keep the predicate limit separate from program capacity
+2afe7575fb24 tracing: Take trace_types_lock when dropping the buffer_meta reference
+c47a7b11bcb3 tracing: Check operator stack capacity before pushing
+b3b974008388 tracing: Do not initialize tracefs work if tracing is disabled
+3cc117514d69 tracing: Fix crash in print_graph_function_event()
+5271b79b7ad6 tcp: fix use-after-free in do_tcp_getsockopt(TCP_CONGESTION)
+385e474086c2 tcp: fix use-after-free in do_tcp_getsockopt(TCP_CC_INFO)
+8e3599202166 cgroup: fix spurious SIGKILL of CLONE_INTO_CGROUP children
+18d80c77b4c7 dm-integrity: fix infinite loop on discard with large tag size
+c037915f80c4 mac802154: fix data race and NULL deref on local->assoc_dev
+fa5acd038ea6 net/iucv: fix the recvmsg window update
+e2f62a9744eb xfs: fix capability check in xfs
+fddcf4c5321b io_uring/cancel: don't spin on local work the task can't run
+dddf197f29ba tipc: protect node reset trace dump with node lock
+77d499e61d36 selinux: fix BPF token permission checks
+6cfc1b90cb86 sctp: validate chunk length in the inqueue parser
+dc0df5a0c62c page_pool: keep frag_offset aligned for odd-sized requests
+b264d8422779 s390/ctcm: Prevent XID null dereference
+f3110e969ad2 s390/pai: Handle multiple PMU stop callback invocations
+dee44f41f206 vsock/virtio: validate packet source for connected sockets
+ad9a7da3fa39 vsock/vmci: validate packet source for connected sockets
+5046d2880fec ipv4: avoid divide by zero in fib_rebalance
+e90ab3669181 KVM: x86/mmu: Cope with the SS bit being set in #NPF exit codes
+50b24a20be8c drm/amdgpu: correct reservation fence slots for userq per-vm BOs eviction
+32d0771ef4ca drm/amdgpu/userq: actually validate userq BOs
+5a3f7a683aee net: bridge: mcast: don't truncate the port group walk on teardown
+1d2929d0850f net: psp: do not inherit the Rx association on clone
+db2267b27c05 ksmbd: fill in FileSysIdentifier in FS_POSIX_INFORMATION
+399aa12450a6 ksmbd: zero the FS_OBJECT_ID_INFORMATION buffer before filling it in
+fee10655709c net/sched: cls_flower: validate mask pointer after nla_next()
+1dac61e2c29d smb: client: fix heap overflow in cifs_do_set_acl()
+4aa2c106aef4 smb: client: reject SetEA requests that do not fit the request buffer
+8d139e3635c8 ntfs: fix incorrect MFT record pointer passed to ntfs_attr_record_resize
+1b4da805a0ba drm/amdgpu: free the userptr ranges when a CS fails after parser_bos
+5bdeca322a6f sched_ext: Fix the bypass dispatch claim for schedulers bypassed by an ancestor
+cf9c8aaea0d4 workqueue: Fix unbound pool lifetime for pending pwqs
+0ab6dc1ac460 ntfs: move attribute payload before shrinking its record
