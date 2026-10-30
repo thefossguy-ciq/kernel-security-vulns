@@ -101,6 +101,30 @@ Per-CVE details are in cve/published/<year>/:
 	CVE-*.mbox	the announcement email
 	CVE-*.sha1	the fixing commit
 
+To see the CVSS classification of a single CVE, print the .cvss file for the
+rationale of each metric, and pass its vector to 'cvss --vector-only -v' for
+the score and the metric breakdown:
+	cve=CVE-2026-99999
+	f=$(ls cve/published/*/${cve}.cvss)
+	tools/target/release/cvss --vector-only "$(head -1 "${f}" | awk '{print $2}')" -v
+
+the second command output should look something like:
+	9.3  CRITICAL  CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H
+	  Attack Vector:       Local (0.55)
+	  Attack Complexity:   Low (0.77)
+	  Privileges Required: None (0.85)
+	  ...
+
+Do not run 'cvss CVE-ID VECTOR' just to look at a CVE, that rewrites its
+.cvss file.
+
+To list all published CVEs sorted by score, highest first:
+        for f in cve/published/*/*.json; do
+                jq -r '[.cveMetadata.cveId,
+                        .containers.cna.metrics[0].cvssV3_1.baseScore // "-",
+                        .containers.cna.metrics[0].cvssV3_1.baseSeverity // "-"] | @tsv' "${f}";
+        done | sort -t$'\t' -k2,2nr | column -t
+
 Do not rely on the CVSS scores to decide what to fix, they are worst-case
 values that do not know your configuration or use case.
 
