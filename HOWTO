@@ -6,6 +6,7 @@ Prep work
 Things you need to have installed to get this all working:
 
 Binaries needed on your path to run automatically:
+	rustup/cargo - https://rustup.rs/ (see "Rust toolchain" below)
 	jo - https://github.com/jpmens/jo
 	cvelib - https://github.com/RedHatProductSecurity/cvelib.git
 	just - https://github.com/casey/just.git
@@ -24,6 +25,90 @@ Source repos that are required:
 	  export CVEKERNELTREE="${HOME}/<path_to_kernel>"
 
 	If it helps, add them to your terminal rc file (~/.bashrc|~/.zshrc) et al.
+
+Rust toolchain
+--------------
+
+The tools in tools/ are written in Rust and use the 2024 edition, which needs
+cargo/rustc 1.85 or newer.  Distro packaged cargo is often too old and fails
+with:
+	feature `edition2024` is required
+
+Install the toolchain with rustup instead of the distro packages:
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	source ~/.cargo/env
+or, if rustup is already installed:
+	rustup update stable
+	rustup default stable
+
+Make sure ~/.cargo/bin comes before /usr/bin in your PATH and check the
+version:
+	which -a cargo
+	cargo --version
+
+Building the tools
+------------------
+
+Build the vulns tools:
+	just build_utils
+
+This runs 'cargo build --release' in tools/ and places the binaries in
+tools/target/release/.  The scripts/strak, scripts/bippy, scripts/dyad,
+... entries are symlinks to them.
+
+Download a prebuilt database
+	just verhaal_fetch
+
+or build the verhaal tool and its database (tools/verhaal/verhaal.db):
+
+	Fetch the verhaal submodule:
+	  git submodule update --init tools/verhaal
+
+	cd tools/verhaal
+	just make
+	just build_db
+	cd ../..
+
+Rerun the above after pulling new changes to this repo.
+
+Querying the CVE database
+=========================
+
+With CVEKERNELTREE set and the tools built, use 'strak' to see which CVEs
+affect a kernel.  Nothing from cve.org is needed for this.
+
+List all CVEs that are NOT fixed in a given git id (tag, branch or SHA in
+CVEKERNELTREE):
+	scripts/strak v5.10.272
+	...
+	5.10.272 is vulnerable to CVE-2025-40080
+
+	Total Vulnerable CVEs in 5.10.272 : 2462
+
+List the CVEs fixed in a specific stable release (version without the 'v'):
+	scripts/strak --fixed 5.10.272
+	Kernel version 5.10.272 contains 2 CVE fixes:
+	  CVE-2026-99999 is fixed with commit a464d950f31c ("ipv4: validate checksum_start before completing checksum")
+	  ...
+
+Use scripts/strak, not scripts/strak.sh.  The .sh file is the old shell
+version.
+
+Per-CVE details are in cve/published/<year>/:
+	CVE-*.json	the record submitted to cve.org, including the CVSS
+			score under containers.cna.metrics
+	CVE-*.cvss	CVSS v3.1 vector plus the rationale for each metric
+	CVE-*.mbox	the announcement email
+	CVE-*.sha1	the fixing commit
+
+Do not rely on the CVSS scores to decide what to fix, they are worst-case
+values that do not know your configuration or use case.
+
+Assigning ids: cve.org access
+=============================
+
+The rest of this file is only needed by the CNA team for assigning and
+publishing ids.
 
 Set the environment variable CVE_USER="your email address used for CVE"
 
