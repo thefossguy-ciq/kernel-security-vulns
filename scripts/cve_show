@@ -1,0 +1,90 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# cve_show - show the details of a published CVE: the announcement text,
+#	     the CVSS score with its rationale and, if a kernel version is
+#	     given, the fix for that stable branch.
+#
+# Usage:
+#	cve_show CVE_ID [KERNEL_VERSION]
+#
+#	CVE_ID		e.g. CVE-2026-64160
+#	KERNEL_VERSION	optional, e.g. v6.18.40, to show the fix for 6.18.y
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+help()
+{
+	echo "Usage: $0 CVE_ID [KERNEL_VERSION]"
+	echo "    CVE_ID          e.g. CVE-2026-64160"
+	echo "    KERNEL_VERSION  optional, e.g. v6.18.40, to show the fix for that branch"
+	exit 1
+}
+
+[[ $# -lt 1 || $# -gt 2 ]] && help
+
+if [[ -t 1 ]]; then
+	txtblu=$(tput setaf 4)
+	txtrst=$(tput sgr0)
+else
+	txtblu=""
+	txtrst=""
+fi
+
+section()
+{
+	echo
+	echo "${txtblu}${1}${txtrst}"
+	echo "${1//?/=}"
+	echo
+}
+
+VULNS="$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/..")"
+CVSS="${VULNS}/tools/target/release/cvss"
+
+cve="${1^^}"
+sha1=$(ls "${VULNS}"/cve/published/*/"${cve}".sha1 2>/dev/null | head -n 1 || true)
+if [[ -z "${sha1}" ]]; then
+	echo "${cve} is not a published CVE" >&2
+	exit 1
+fi
+base="${sha1%.sha1}"
+
+# The announcement, without the mail headers
+sed '1,/^$/d' "${base}.mbox"
+
+if [[ -f "${base}.cvss" ]]; then
+	section "CVSS rationale"
+	vector=$(head -n 1 "${base}.cvss" | awk '{print $2}')
+	if [[ -x "${CVSS}" ]]; then
+		"${CVSS}" --vector-only "${vector}" -v
+		echo
+	fi
+	tail -n +2 "${base}.cvss" | sed '/./,$!d'
+else
+	section "CVSS"
+	echo "No CVSS score assigned by the kernel CNA."
+fi
+
+if [[ $# -eq 2 ]]; then
+	version="${2#v}"
+	branch="${version%.*}"
+	section "Fix for ${branch}.y (you have ${version})"
+	fix=$(grep -E "fixed in ${branch//./\\.}\.[0-9]+ with commit" "${base}.mbox" || true)
+	mainline=$(grep -E "fixed in [0-9]+\.[0-9]+(-rc[0-9]+)? with commit" "${base}.mbox" || true)
+	mainline_ver=$(echo "${mainline}" | sed -nE 's/.*fixed in ([0-9.rc-]+) with commit.*/\1/p' | head -n 1)
+	if [[ -n "${fix}" ]]; then
+		echo "${fix}" | sed 's/^[[:space:]]*//'
+	elif [[ -n "${mainline_ver}" &&
+		"$(printf '%s\n' "${mainline_ver}" "${branch}" | sort -V | head -n 1)" == "${mainline_ver}" ]]; then
+		echo "Fixed in mainline ${mainline_ver}, so ${branch} already contains the fix."
+	else
+		echo "No fix in the ${branch}.y stable branch yet."
+		[[ -n "${mainline}" ]] && echo "${mainline}" | sed 's/^[[:space:]]*//'
+	fi
+fi
+
+section "Files"
+printf '%s\n' "${base}".*
