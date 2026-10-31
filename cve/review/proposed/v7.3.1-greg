@@ -1,0 +1,20 @@
+0a0ec45bf577 keys: Check the authorization payload in process keyring searches
+fced7238b7e8 keys: Protect the type name while describing a key
+9695df3b1db4 asymmetric_keys: reject trust keys without IDs
+e1f339ff3b83 ftrace: Initialize modname and offset in print_rec()
+3403d9bb27eb tracing/histograms: Verify event_call identity when updating synth_event refcount
+097fd0050089 tracing/syscalls: Use copy_from_user for the faultable syscall buffer
+86b55991d3cd Bluetooth: L2CAP: refuse __l2cap_chan_add if chan already has conn
+610c4438fb66 mm/damon/core: error damos_commit_quota_goal() for zero target_value
+66877a312ae3 tracing: Hold trace_types_lock when updating modules in persistent instances
+5a6bd62f0914 tracing: Hold trace_types_lock when resetting last boot data from readers
+1fdc4164e488 tracing: Reject incomplete event filter expressions
+d5c42664fc09 tracing: Save the event file instead of the compatible histogram
+51409aaa01f8 keys: Avoid the owner account dereference in named keyring lookup
+98787d3fa4e9 io_uring/waitid: prevent cancel reference wrap
+91c14d6c1309 tracing: Unregister field variable histograms when the command fails
+de891c73c1cf keys: make keyring indexes independent of kernel addresses
+925c84e3cc21 keys: Protect the read method check against type removal
+61d58591aa01 coredump: hold RCU while releasing parked threads
+f92d0ccb05bf keys/trusted_keys: return immediately after TPM unseal failure
+296a98c1fa50 fork: release the files of a failed fork after sched_cancel_fork()
