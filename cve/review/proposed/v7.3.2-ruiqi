@@ -1,0 +1,279 @@
+79dc34beb1fd net: skbuff: propagate shared-frag marker in skb_zerocopy()
+68f410faedaf ksmbd: wait for negotiation before receiving another PDU
+4ca76b89917a smb: smbdirect: don't wait for RDMA_CM_EVENT_DISCONNECTED in smbdirect_socket_destroy_sync()
+328c7e307e84 smb: smbdirect: release failed pending sockets of a listener
+5c171c90c446 smb: smbdirect: don't hand out already failed sockets in smbdirect_socket_accept()
+ef85bad39cf2 ksmbd: reject FSCTL_SET_ZERO_DATA on a directory handle
+c254eec4364b io_uring/waitid: own the request before clearing ->head
+4c83e39f4d19 io_uring/cmd: don't leave list poison in ->hash_node
+34f5a664c34d io_uring/wait: don't spin on a stuck overflow list
+63c103279a95 io_uring/io-wq: don't lose the signal that ends work
+436d48a2ed13 io_uring/io-wq: don't hide a link from cancellations
+22e643e61b9b io_uring: don't flood a cancelling task with task_work
+76a82c666abf io_uring/cancel: rearm local work wake up before sleep
+68a95c396889 io_uring/mpscq: disable preemption while pushing
+fe6ca13c98b1 io_uring/cancel: let CANCEL_ALL find parked requests
+89f193dc3ef4 io_uring/timeout: don't lose a cancel as io-wq arms a timeout
+b42c85c20d84 exec: cancel io_uring requests before de_thread()
+1f978881ce6c fork: don't create io threads once PF_POSTCOREDUMP is set
+aa118c8f61d5 ALSA: line6: Clear prev_fbuf on capture buffer release
+c182bfe944eb wifi: mt76: mt7925: fix reset panic caused by the WM2 rx irq mask
+1eb87d8f7737 ARM: 9524/1: mm: align hugetlb mappings to the huge page size
+c8c53d669d4e blk-crypto: fix NULL deref and UAF in __blk_crypto_evict_key()
+728c856d7da0 ceph: fail readdir when the MDS reply carries no dirfrag
+c1338aae7b40 fuse: don't BUG when the copy buffer is exhausted
+7220980b2423 ksmbd: serialize directory emptiness checks with readdir
+62b41a16d860 libceph: bound mon_command ack decode to front len
+aebfe430ba88 media: em28xx: reject audio endpoint with zero packet size
+2eacf058d2db media: go7007: only set audio_enabled if go7007_snd_init() succeeded
+cb705f75d03e media: usbtv: fix null-pointer dereference on disconnect
+363c8c79220d net: ipv4: add zero check for snd_cwnd_clamp
+bfa09dccf98c net: usb: pegasus: do not advance rx_skb->data on dropped frames
+ee62dc03a69e nfsd: fix race between client_info_show() and free_client()
+28f366d84023 ocfs2/dlm: drain join handlers before releasing module text
+b584c45b6066 ocfs2: drain quorum work before removing the cluster
+26d7e34b4226 ocfs2: pin owning modules for open debugfs files
+2225ab306575 smb: client: do not pass a NULL buf to is_oplock_break()
+7b1afb631395 smb: client: fix early procfs exposure race
+96a8479804e3 thunderbolt: Do not RPM complete unrelated subtrees on unplug
+0f242ca08788 udf: fix return value for non-recorded-allocated extents in udf_map_block()
+58f7989da6e7 net/sched: cls_flower: avoid stale mask references after delete
+782d6bb8f9b8 net/sched: sch_teql: fix use-after-free on lower qdisc drop
+498c631f9c6d net/sched: act_ife: do not consume the inner header on egress
+0f554506a3fc driver core: fix parent lock use-after-free on USB disconnect
+1d287c17cc5b Drivers: hv: vmbus: Bounds check the shared ring buffer indices
+b4bae7af1154 ksmbd: defer connection scavenging while session locks are busy
+de0cffef897c ksmbd: deny access for an empty DACL instead of granting the request
+1c087cf7d538 ksmbd: drain session procfs readers before dropping table references
+783a7fc45499 ksmbd: fix OOB read and cross-share confusion in ksmbd_validate_name_reconnect()
+eb96e2a0e817 ksmbd: fix overflow in dacloffset bounds check in build_sec_desc()
+171df27077fb ksmbd: fix parent dentry lifetime in directory enumeration
+03bd8f5279e4 ksmbd: fix session reference leak on compounded SESSION_SETUP
+add8d7fb04ef ksmbd: hold a connection reference for each session channel
+1f5ce2b8b916 ksmbd: ignore network devices of other namespaces
+dc6aa1ba8b7f ksmbd: limit sessions on each connection
+80c816c047f7 ksmbd: preserve unreadable named streams on open
+19f8fd6b5ced ksmbd: prevent session binding in compound requests
+9fd1fcbbf849 ksmbd: prevent share root removal through empty paths
+bc0e0f5ac1d7 ksmbd: prevent stale data from being written by SMB2 WRITE requests
+26534ef335e9 ksmbd: reclaim ended sessions on logoff and expiration
+a025c4991a7d ksmbd: reserve space for the UTF-16 terminator in stream info
+e0386cd6498b ksmbd: validate AppInstanceId takeover target
+3474e1a304fb ksmbd: validate security descriptor offsets before pointer arithmetic
+798214e6fafc ksmbd: verify transform SessionId matches the decrypted header
+bf6fbf46b5ff cgroup: serialize migrations of newly forked processes
+c6c8bc355657 wifi: b43: fix use-after-free in b43_bcma_remove()
+e7a8721b7edb SUNRPC: fix netns use-after-free in write_gssp()
+f7aa9de4f2b1 spmi: Fix potential use-after-free by grabbing of_node reference
+59131dd72f62 smb: client: fix use-after-free infoleak via the readdir resume name
+031278577380 smb: client: fix use-after-free in cifs_ses_add_channel()
+43e1ef14a472 sched_ext: Fix use-after-free of a local reenq node left on an inactive cpu
+2854f9025d4e RDMA/uverbs: Fix DMABUF use-after-free during ufile cleanup
+8a8088b899e4 RDMA/irdma: avoid use-after-free in icrdma_remove
+0f2cd84858e6 rapidio: mport_cdev: fix use-after-free in mport_mm_close()
+d19552611cb2 pps: generators: fix use-after-free when closing a removed device
+f58dacfbadb7 PM: EM: Fix use-after-free of perf domain in netlink doit handlers
+55d8406dfa2f platform/x86/amd: hfi: Fix a use-after-free when unloading the driver
+f316aa7f0188 nvmet: fix use-after-free of the old registrant in nvmet_pr_preempt()
+2c29f8c9b9e5 nvmet-fc: fix use-after-free in nvmet_fc_ls_create_connection()
+440ca8a4b69f iommufd: Fix event queue release use-after-free
+3e271a27c46f landlock: Fix superblock use-after-free in release_inode()
+f5b7634f0f21 lockd: Fix use-after-free in nlmsvc_retry_blocked
+521030837bee media: au0828: fix use-after-free in bulk_timeout timer on disconnect
+75016a992d9b media: cx23885: Fix use-after-free in cx23885_finidev due to race condition
+6802ad4b6b26 media: hackrf: fix use-after-free in hackrf_alloc_urbs() error path
+118a3590a408 media: imon: fix use-after-free in display_close via dev_dbg
+3d42d1c82717 media: ipu-bridge: Fix use-after-free in IVSC error path
+d8a9cd7fd2fb mm/hugetlb: fix use-after-free in hugetlb_mfill_atomic_pte()
+824cc56bf43c mm/hugetlb: fix use-after-free of a new anon folio
+f292873ceb4b apparmor: fix a use-after-free in aa_lookupn_ns()
+5ea495bccfd7 ASoC: audio-graph-card2: Fix use-after-free in audio_graph2_link_c2c()
+70b1196740d6 ata: sata_fsl: Fix use-after-free of host_priv on probe() failure
+81878aa1a2f5 drm/msm: Fix vm_bo use-after-free in with_vm_locks()
+31c66bd27330 s390/pci: Fix double-free and NULL deref in zpci MSI domain cleanup
+1844913582fe s390/pci: Fix MSI directed-mode teardown IRQ bit count
+422d75ad5bc9 s390/pci: Fix use-after-free race in zpci floating interrupt cleanup
+5e9b339f3232 s390/zcrypt: Fix and improve zcrypt reply message verification checks
+9fd7fca66735 s390/zcrypt: Fix out-of-bounds ptr advance in cca_query_crypto_facility()
+7b88e8b6d714 s390/zcrypt: Guard domain index uses against speculative bypass
+ef32877368a7 HID: wacom: Fix Use-After-Free in wacom_intuos_pad
+3a523ecf9ac3 HID: wacom: Fix Use-After-Free in wacom_bamboo_pad
+480c9cb14ae8 HID: wacom: Redesign shared sibling data lifecycle
+732e3e10234c klist: avoid accesses after waking klist_remove()
+02c5d7bfa872 rust: cpufreq: reject NULL from cpufreq_cpu_get()
+bc6f2a284c63 rust: fwctl: declare cfi_encoding for fwctl_rpc_scope
+2117e3d96a4f accel/amdxdna: clear the mailbox channel pointer when starting it fails
+d4febca239be ALSA: control: Fix UAF in snd_ctl_elem_add() on card disconnect
+34e3e04b8a17 ALSA: emux: Fix UAF of soundfont zones at note-on
+c53791d673ed ASoC: amd: ps: fix snd_acp63_remove() teardown ordering
+7764289d76a3 drm/panthor: Fix TOCTOU race between GROUP_REGISTERED check and erase
+20b3b97cf89c fbdev: atmel_lcdfb: Prevent FIFO work after removal
+ac9cfa552102 fbdev: udlfb: don't rebuild the mode list while the framebuffer is in use
+c206cdfee6c0 filelock: keep superblock active through delegation wait
+4fb975471717 fs/proc/task_mmu: pin mm_users in do_pagemap_scan()
+c349b233d6ab fsverity: Set S_VERITY only after rollback is no longer possible
+d04adff68605 genirq: Defer kfree(irqaction) until irq_thread_dtor() finishes
+89a9e003a2ef genirq: Move interrupt thread exit_work object to irqaction
+03f449b5de36 HID: hiddev: keep state alive through disconnect unlock
+37e425460b7c io_uring/io-wq: save worker type before dropping its reference
+3f517370076f iomap: don't resubmit an ioend after ->writeback_submit() failed
+e6ecb88711d9 KVM: guest_memfd: Gracefully handle xarray errors when binding a memslot
+da260bcb56fe KVM: pfncache: use a dedicated invalidation sequence for cache refresh
+61a39797bb13 KVM: PPC: Book3S HV: Add SRCU protection for virtual-mode HPT hcalls
+3dbbbc3cafa2 media: gspca: use vb2_video_unregister_device() on disconnect
+78fdfbf117c4 media: imx-jpeg: cancel timeout worker when streaming stops
+0f29f84317c1 media: marvell: mcam: stop DMA and cancel s_bh_work before freeing DMA buffers
+c7528789244c media: microchip-csi2dc: fix async notifier leak on probe error path
+f2eb2fd388bf media: microchip-isc: take a reference on the parsed endpoints
+af452b9e0133 media: redrat3: fix UAF in probe error path leaving rc device registered
+63069b5917cb media: s5p-mfc: use timer_shutdown_sync() for the self-rearming watchdog
+984c0700854e mm/rmap: don't discard lazyfree THPs at PMD level
+088bfdc0d794 mm/slab: sample slab_state once in kmem_cache_destroy()
+f47dee903b9f mm/truncate: look up the end-edge straddler by index
+942c8ec27aa4 mm: khugepaged: fix swap entry value to folio_pfn()
+c9c90cf437a9 mptcp: hold MP_JOIN msk ref when cloning reqsk
+efc5dc4c1571 mshv_vtl: detach poll waiter on POLLFREE
+532caaa2f445 mtd: virt-concat: unlink concat node before freeing it
+112a666bd82e mtd: virt-concat: unlink discarded items before freeing
+d6f81fd6abe2 net: sched: prevent scheduling deactivated qdiscs
+0b1a79f2791a scsi: dc395x: sync the waiting_timer before freeing the host
+810d467c11f0 serial: core: shut down initialized port on removal
+495cb31c791b staging: rtl8723bs: fix protected RX frame validation in decrypt path
+f3e27b795572 xen-blkfront: unbind irq before tearing down ring and shadow requests
+81394dfb9a79 wifi: ath9k: delete channel-context timers on deinit
+022f5f8b7a05 wifi: mt76: mt7996: unlink TWT flow if the MCU rejects the agreement
+123470748205 virtio_net: atomically disable rx mode work
+9c48b994b66d vfio/nvgrace-gpu: Use a core-only open_device in fallback mode
+cb3b441f2698 usb: gadget: fix refcount underflow in gadgetfs_bind() error path
+1eff23433e73 ufs: use u64 for directory size in ufs_last_byte
+0b591332a2bd spi: spi-pci1xxxx: quiesce DMA engines on transfer timeout
+d2f7bdfdeac8 resource: report a devm_request_resource() conflict under the lock
+090055ee6295 phy: core: Fix race-condition between _of_phy_get() and try_module_get()
+4856b49317cc power: supply: pf1550: drain IRQ work before unregistering supplies
+5c1c602463d5 power: supply: sbs-battery: disable polling before supply teardown
+4e8063cae337 pps: generators: don't use the driver's info after unregister
+24530401e800 nvmem: core: Fix OOB read for bit offsets of more than one byte
+53f6efe00cea nvmet-auth: serialize access to DH-HMAC-CHAP state to fix UAF
+61c7ca95d248 media: rc: Ensure that rc_unregister_device() does not free input device
+37efd09ba2c6 media: rc: Ensure registered is cleared in error path
+d1febef1bcfa media: rc: fintek-cir: process a full RX buffer instead of overflowing it
+b3f5daf32229 media: rc: Fix race between bpf(BPG_PROG_ATTACH) and device unregister
+29ee25fa9beb media: rc: mce_kbd: Fix inconsistent locking of keylock
+3ae197731681 media: rc: Use after free in ir_raw_event_handle()
+ef41a67979ae media: rc: After rc_unregister_device() timers can be re-armed
+f95a9f8472f9 media: rc: Fix use after free in bpf progs
+3ccd24c3f7a5 ocfs2/heartbeat: unlink live slots when their node is missing
+71743471204e ocfs2/dlm: hold a lock reference across grant AST enqueue
+125fe08ff6cf ocfs2/dlm: hold the lookup reference across convert AST enqueue
+1dd1f005026d ocfs2: cancel quota sync work before freeing quota info
+4effccfd50ba ocfs2: fix chunk number of the first chunk in a local quota file
+8c714a074074 ocfs2: pin refcount trees before dropping the lookup lock
+8cd3ff306597 ocfs2: snapshot dentry names in file and setattr traces
+570c783a96f0 smb: client: fix OOB last_entry pointer from unbounded LastNameOffset
+482c117c6dbe smb: client: hold server info until cifsd exits
+51efca72345a smb: client: stop processing a read response after a receive error
+16d319e12328 ovl: hold a reference on the parent in readdir
+cbec8610ec5a ovl: set OVL_WHITEOUTS before publishing the upper dir
+65bf000962a3 ovl: take a snapshot of the name for copy up
+4f61ff2ebfb3 ovl: use the pinned upper dir in ovl_fix_origin()
+949f9d8a5580 ovl: always encode the origin fh when index is enabled
+e34d2ef818e4 ovl: check that the parents of volatile/dirty are dirs
+1d27da7de3f7 ovl: check the casefold flag of directories only
+f635192ad223 ovl: do not copy up a dentry that was removed
+755b5c5c9277 ovl: do not copy up an xattr value that was never read
+2001cd7ca556 ovl: fix a torn path in ovl_get_redirect()
+75e89c0055c1 ovl: set the revalidate flags after d_instantiate()
+0b9081a774ee xfs: fix buffer overruns in xfs_ioc_attr_list
+f61c91a2e599 xfs: mark overfull dabtree node blocks as corrupt
+c2226f0c7fe9 netfilter: nft_payload: restrict checksum offsets to known values
+3b70edea393d rtnetlink: wait for RCU readers in rtnl_link_unregister()
+0643549ffeca xfs: reject out-of-range attribute value lengths in xfs_attr_copy_value
+15ccd92a782a xfs: reject remote xattr entries with an out-of-range value length
+3df5e5aaa3bc xfs: bound da-node entry count against the correct geometry
+9232301894a0 xfs: bound inode fork length against the fork size during log recovery
+c28b4b48deac xfs: don't overrun incore inode when cleaning attr forks
+f1f37834eaba smb: server: size directory name conversion buffer correctly
+7193241a49c9 smb: smbdirect: fix buffer length underflow in RDMA transfers
+8fc9af68c571 smb: client: bound POSIX lock data area by response length
+d58e7b40908a smb: client: don't resurrect an exiting tcon from cached dir workers
+73cc469b0ff7 smb: client: fix buffer overflow in SMB2_tcon()
+f5baa17a0f31 smb: client: fix fiemap wild read on empty truncated response
+f8171804a39e smb: client: fix OOB read of the resume name sent in TRANS2_FIND_NEXT2
+fa0c2f082946 smb: client: fix OOB read in the SMB_FIND_FILE_UNIX name scan
+a377a3645c7d smb: client: fix slab-out-of-bounds write in id_mode_to_cifs_acl()
+78f739858464 smb: client: reclaim credits for decrypted reads with no matching mid
+29bd6773187c smb: client: reject FIND data areas that run past the received response
+531aa4239b0d smb: client: reject short or out-of-range FIND response parameters
+4d8930afa344 smb: client: reject short SESSION_SETUP responses
+83d0d5e0ca22 smb: client: validate NT transaction response layout and offsets
+ddc7a7e1eeb1 smb: client: validate SMB1 EA list bounds before parsing
+2ec9cdf469dd smb: client: validate the data area in SMB2_read()
+acfbea6c5e27 pnfs/blocklayout: Complete a device upcall only on its own reply
+7fa2ad367abe NFSv4/flexfiles: fail I/O to the data server once a lock is lost
+0cc1191538b1 NFSv4/flexfiles: Use the full 64-bit stripe_unit
+9a05e5ee0a98 NFSD: cap the number of listeners accepted in listener_set
+daba58690339 nfsd: clear XDR padding in GETXATTR replies
+b01319947c69 NFSD: copy SETXATTR data from all XDR buffer segments
+bbfa823f624d NFSD: Destroy a recalled delegation the client does not hold
+7f4bf851aca4 NFSD: Don't complete a cld upcall the daemon has not read
+298783831750 nfsd: don't modify a session slot when replaying its cached reply
+cbea14890783 NFSD: Fix out-of-bounds read in the rpc_status dump
+5336899b5491 nfsd: hold cl_lock in client_has_openowners()
+f913d5d2130a NFSD: Map flex file layout IDs through the request's user namespace
+35ff1a7a7e38 nfsd: preflight SEQUENCE replies before accepting a slot
+cfcfe0b38a66 nfsd: propagate SETXATTR value decode errors
+14996e662f3b NFSD: Set nn->cld_net before registering the cld pipe
+3f1181cb09c8 nfsd: zero NFSv4 COMPOUND tag padding
+2192a56b0686 SUNRPC: Copy the deferred RPC Call from the head buffer
+129e7107b971 SUNRPC: Do not credit control-record octets to the RPC stream
+62319c2534b6 SUNRPC: fix oversized GSS proxy token copy
+7bc856dfaa10 sunrpc: honor the netlink unix_gid NEGATIVE flag
+06f90cf104fc SUNRPC: trace an accepted transport before publishing it
+2c0dfe9d6d81 SUNRPC: Treat every TLS error alert as fatal
+7801c42c3bb7 rxrpc: Fix update of call->tx_pending without holding lock
+41eb0af096ba rxrpc: Fix double IRQ enablement
+f5e1a9a3fdda ALSA: x86: hdmi: fix chmap array missing terminator entry
+bf260dc9e7b8 KVM: SVM: Trigger new ASID allocation in both VMCBs on pCPU switch
+5dc500a354cc KVM: nSVM: Reject KVM_SET_NESTED_STATE if L1 has EFER.LMA=1 && EFER.LME=0
+1c4c84a643b7 KVM: nSVM: Ignore EFER.LMA if EFER.LME=0 when preparing L2 state
+b59a87c1ba3c KVM: x86: Take SRCU in kvm_zap_gfn_range()
+2616f497506a KVM: x86: Zero reserved synic flags when delivering message to avoid stack leak
+d93395058c19 KVM: TDX: Enable Notify VM exit
+0ee2c883b62d KVM: guest_memfd: take the invalidate lock when unbinding a dying file
+3fe5d2944e5a KVM: guest_memfd: Establish memslot<=>guest_memfd bindings *after* memslot is ready
+abbbe5ff83e7 KVM: PPC: Book3S HV: Add preempt_disable() around virtual-mode HPTE bit-lock users
+9932c9af185f HID: zydacron: validate key report length
+5fe63b415c63 HID: core: Fix out-of-bounds left shift by 32 in s32ton()
+c6c0df8a4b73 HID: cougar: reject short special-key reports
+fc54e71a063c HID: cp2112: validate response report lengths
+1cb92fcb2ac3 HID: elo: reject short touchscreen reports
+c2deafcb4c82 HID: logitech-dj: validate unnumbered keyboard reports
+26ce0e6bf0b2 HID: mcp2200: validate READ_ALL response length
+1ae40774d386 HID: mcp2221: validate response report length
+feade898fc95 HID: picoLCD: check for fb_deferred_io_init() error
+0ff37294c41b HID: prodikeys: validate fixed-format MIDI reports
+0deb22da5a8c HID: pxrc: reject short input reports
+93e5f7f6189a HID: roccat: isku: reject short button reports
+d879e17a8b4c HID: roccat: koneplus: reject short button reports
+1590b7c9bea0 HID: roccat: konepure: reject short button reports
+e95917a606f4 HID: roccat: kovaplus: reject short button reports
+493268f459bb HID: roccat: pyra: reject short button reports
+02f3607d0beb HID: roccat: ryos: reject short special reports
+76c51fdc825a HID: roccat: savu: reject short special reports
+e66907c3ba22 io_uring/net: mask socket type with SOCK_TYPE_MASK in io_socket_bpf_populate()
+4a93427e99a8 io_uring/register: enforce per-task restrictions in io_uring_register_blind()
+47c68f925062 io_uring/io-wq: no new workers once the exit has begun
+075d5837bafc io_uring/rsrc: charge buffer arrays and nodes to memcg
+0b34e7b20a48 io_uring: charge tctx nodes and personalities
+51bab09b7ca1 io_uring: free XArray nodes left by a failed store
+8543a39f03db io_uring/bpf-ops: clear bpf_ctx while submitting SQEs
+9f5315d3f436 io_uring: free the task context after a grace period
+360395e8dbf9 io_uring/sqpoll: don't wait for the thread to exit
+3de16279b43d io_uring: defer foreign io-wq enqueues to task_work
+713c31a3a225 ksmbd: fix SMB2 CREATE response buffer overflow
+714f27729121 ksmbd: fix out-of-bounds read when padding the final compound response
+f728cfee6929 ksmbd: fix app-instance non-durable supersede session UAF
+19d180c7baab ksmbd: fix invalid pointer dereference when get_inode_acl() fails
+864bbcd5dc5e ksmbd: rebind completed CREATE replays without draining the old channel
+248b5819591c ksmbd: fix use-after-free after a failed durable reconnect
+ffdf678dd166 tun: Require CAP_NET_ADMIN to attach to an ownerless device
