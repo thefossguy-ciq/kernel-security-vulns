@@ -58,6 +58,8 @@ sed '1,/^$/d' "${base}.mbox"
 if [[ -f "${base}.cvss" ]]; then
 	section "CVSS rationale"
 	vector=$(head -n 1 "${base}.cvss" | awk '{print $2}')
+	echo "Vector: ${vector}"
+	echo
 	if [[ -x "${CVSS}" ]]; then
 		"${CVSS}" --vector-only "${vector}" -v
 		echo
