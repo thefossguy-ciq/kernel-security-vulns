@@ -75,6 +75,7 @@ if [[ $# -eq 2 ]]; then
 	fix=$(grep -E "fixed in ${branch//./\\.}\.[0-9]+ with commit" "${base}.mbox" || true)
 	mainline=$(grep -E "fixed in [0-9]+\.[0-9]+(-rc[0-9]+)? with commit" "${base}.mbox" || true)
 	mainline_ver=$(echo "${mainline}" | sed -nE 's/.*fixed in ([0-9.rc-]+) with commit.*/\1/p' | head -n 1)
+	mainline_branch="${mainline_ver%%-*}"
 	if [[ -n "${fix}" ]]; then
 		echo "${fix}" | sed 's/^[[:space:]]*//'
 		fix_ver=$(echo "${fix}" | sed -nE 's/.*fixed in ([0-9.]+) with commit.*/\1/p' | head -n 1)
@@ -84,7 +85,7 @@ if [[ $# -eq 2 ]]; then
 			echo "Your kernel predates this fix."
 		fi
 	elif [[ -n "${mainline_ver}" &&
-		"$(printf '%s\n' "${mainline_ver}" "${branch}" | sort -V | head -n 1)" == "${mainline_ver}" ]]; then
+		"$(printf '%s\n' "${mainline_branch}" "${branch}" | sort -V | head -n 1)" == "${mainline_branch}" ]]; then
 		echo "Fixed in mainline ${mainline_ver}, so ${branch} already contains the fix."
 	else
 		echo "No fix in the ${branch}.y stable branch yet."
