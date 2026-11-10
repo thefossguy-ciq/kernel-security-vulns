@@ -77,6 +77,12 @@ if [[ $# -eq 2 ]]; then
 	mainline_ver=$(echo "${mainline}" | sed -nE 's/.*fixed in ([0-9.rc-]+) with commit.*/\1/p' | head -n 1)
 	if [[ -n "${fix}" ]]; then
 		echo "${fix}" | sed 's/^[[:space:]]*//'
+		fix_ver=$(echo "${fix}" | sed -nE 's/.*fixed in ([0-9.]+) with commit.*/\1/p' | head -n 1)
+		if [[ "$(printf '%s\n' "${fix_ver}" "${version}" | sort -V | head -n 1)" == "${fix_ver}" ]]; then
+			echo "Your kernel includes this fix."
+		else
+			echo "Your kernel predates this fix."
+		fi
 	elif [[ -n "${mainline_ver}" &&
 		"$(printf '%s\n' "${mainline_ver}" "${branch}" | sort -V | head -n 1)" == "${mainline_ver}" ]]; then
 		echo "Fixed in mainline ${mainline_ver}, so ${branch} already contains the fix."
